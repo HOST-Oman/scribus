@@ -26,22 +26,8 @@
 #include "sctextstruct.h"
 
 class StoryText;
-
-struct LineSpec
-{
-	qreal x;
-	qreal y;
-	qreal width;
-	qreal ascent;
-	qreal descent;
-	qreal colLeft;
-
-	int firstItem;
-	int lastItem;
-	qreal naturalWidth;
-	bool isFirstLine;
-	qreal height;
-};
+class GroupBox;
+class LineBox;
 
 struct PathData
 {
@@ -61,7 +47,8 @@ class SCRIBUS_API TextLayout
 {
 public:
 	TextLayout(StoryText* text, PageItem* frame);
-
+	~TextLayout();
+	
 	bool overflows() const;
 	
 	StoryText* story() { return m_story; }
@@ -80,11 +67,11 @@ public:
 
 	uint lines() const;
 	
-	const LineSpec& line(uint i) const;
+	const LineBox*  line(uint i) const;
 	const PathData& point(int pos) const;
 	PathData& point(int pos);
 
-	void appendLine(const LineSpec& ls);
+	void appendLine(const LineBox* ls);
 	void removeLastLine ();
 
 	void clear();
@@ -94,10 +81,8 @@ protected:
 	
 	StoryText* m_story;
     PageItem* m_frame;
+	GroupBox* m_lines;
 	
-    int m_firstInFrame;
-	int m_lastInFrame;
-	QList<LineSpec> m_lines;
 	QVector<PathData> m_path;
 	bool m_validLayout;
 	mutable qreal m_magicX;
