@@ -2557,112 +2557,123 @@ void PageItem::SetQColor(QColor *tmp, QString colorName, double shad)
     sets xadvance to the advance width without kerning. If more than one glyph
     is generated, kerning is included in all but the last xadvance.
 */
-double PageItem::layoutGlyphs(const CharStyle& style, const QString& chars, LayoutFlags flags, GlyphLayout& layout)
+double PageItem::layoutGlyphs(const QString& chars, GlyphRun& glyphrun)
 {
 	double retval = 0.0;
+
+	LayoutFlags flags = glyphrun.flags();
+	const CharStyle& style(glyphrun.style());
 	const ScFace font = style.font();
 	double asce = font.ascent(style.fontSize() / 10.0);
 	int chst = style.effects() & ScStyle_UserStyles;
-/*	if (chars[0] == SpecialChars::ZWSPACE ||
-		chars[0] == SpecialChars::ZWNBSPACE ||
-		chars[0] == SpecialChars::NBSPACE ||
-		chars[0] == SpecialChars::NBHYPHEN ||
-		chars[0] == SpecialChars::SHYPHEN ||
-		chars[0] == SpecialChars::PARSEP ||
-		chars[0] == SpecialChars::COLBREAK ||
-		chars[0] == SpecialChars::LINEBREAK ||
-		chars[0] == SpecialChars::FRAMEBREAK ||
-		chars[0] == SpecialChars::TAB)
-	{
-		layout.glyph = ScFace::CONTROL_GLYPHS + chars[0].unicode();
-	}
-	else */
-	{
-		layout.glyph = font.char2CMap(chars[0].unicode());
-	}
-	double tracking = 0.0;
-	if ( (flags & ScLayout_StartOfLine) == 0)
-		tracking = style.fontSize() * style.tracking() / 10000.0;
 
-	layout.xoffset = tracking;
-	layout.yoffset = 0;
-	if (chst != ScStyle_Default)
+	for (int i = 0; i < chars.length(); ++i)
 	{
-		if (chst & ScStyle_Superscript)
+		GlyphLayout layout;
+		
+		/*	if (chars[0] == SpecialChars::ZWSPACE ||
+		 chars[0] == SpecialChars::ZWNBSPACE ||
+		 chars[0] == SpecialChars::NBSPACE ||
+		 chars[0] == SpecialChars::NBHYPHEN ||
+		 chars[0] == SpecialChars::SHYPHEN ||
+		 chars[0] == SpecialChars::PARSEP ||
+		 chars[0] == SpecialChars::COLBREAK ||
+		 chars[0] == SpecialChars::LINEBREAK ||
+		 chars[0] == SpecialChars::FRAMEBREAK ||
+		 chars[0] == SpecialChars::TAB)
+		 {
+		 layout.glyph = ScFace::CONTROL_GLYPHS + chars[0].unicode();
+		 }
+		 else */
 		{
-			retval -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
-			layout.yoffset -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
-			layout.scaleV = layout.scaleH = qMax(m_Doc->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+			layout.glyph = font.char2CMap(chars[0].unicode());
 		}
-		else if (chst & ScStyle_Subscript)
+		double tracking = 0.0;
+		if ( (flags & ScLayout_StartOfLine) == 0)
+			tracking = style.fontSize() * style.tracking() / 10000.0;
+		
+		layout.xoffset = tracking;
+		layout.yoffset = 0;
+		if (chst != ScStyle_Default)
 		{
-			retval += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
-			layout.yoffset += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
-			layout.scaleV = layout.scaleH = qMax(m_Doc->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
-		}
-		else {
-			layout.scaleV = layout.scaleH = 1.0;
-		}
-		layout.scaleH *= style.scaleH() / 1000.0;
-		layout.scaleV *= style.scaleV() / 1000.0;
-		if (chst & ScStyle_AllCaps)
-		{
-			layout.glyph = font.char2CMap(chars[0].toUpper().unicode());
-		}
-		if (chst & ScStyle_SmallCaps)
-		{
-			double smallcapsScale = m_Doc->typographicPrefs().valueSmallCaps / 100.0;
-			QChar uc = chars[0].toUpper();
-			if (uc != chars[0])
+			if (chst & ScStyle_Superscript)
+			{
+				retval -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
+				layout.yoffset -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
+				layout.scaleV = layout.scaleH = qMax(m_Doc->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+			}
+			else if (chst & ScStyle_Subscript)
+			{
+				retval += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
+				layout.yoffset += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
+				layout.scaleV = layout.scaleH = qMax(m_Doc->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
+			}
+			else {
+				layout.scaleV = layout.scaleH = 1.0;
+			}
+			layout.scaleH *= style.scaleH() / 1000.0;
+			layout.scaleV *= style.scaleV() / 1000.0;
+			if (chst & ScStyle_AllCaps)
 			{
 				layout.glyph = font.char2CMap(chars[0].toUpper().unicode());
-				layout.scaleV *= smallcapsScale;
-				layout.scaleH *= smallcapsScale;
+			}
+			if (chst & ScStyle_SmallCaps)
+			{
+				double smallcapsScale = m_Doc->typographicPrefs().valueSmallCaps / 100.0;
+				QChar uc = chars[0].toUpper();
+				if (uc != chars[0])
+				{
+					layout.glyph = font.char2CMap(chars[0].toUpper().unicode());
+					layout.scaleV *= smallcapsScale;
+					layout.scaleH *= smallcapsScale;
+				}
 			}
 		}
-	}
-	else {
-		layout.scaleH = style.scaleH() / 1000.0;
-		layout.scaleV = style.scaleV() / 1000.0;
-	}	
-	
-/*	if (layout.glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBSPACE.unicode())) {
-		uint replGlyph = font.char2CMap(QChar(' '));
-		layout.xadvance = font.glyphWidth(replGlyph, style.fontSize() / 10) * layout.scaleH;
-		layout.yadvance = font.glyphBBox(replGlyph, style.fontSize() / 10).ascent * layout.scaleV;
-	}
-	else if (layout.glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBHYPHEN.unicode())) {
-		uint replGlyph = font.char2CMap(QChar('-'));
-		layout.xadvance = font.glyphWidth(replGlyph, style.fontSize() / 10) * layout.scaleH;
-		layout.yadvance = font.glyphBBox(replGlyph, style.fontSize() / 10).ascent * layout.scaleV;
-	}
-	else if (layout.glyph >= ScFace::CONTROL_GLYPHS) {
-		layout.xadvance = 0;
-		layout.yadvance = 0;
-	}
-	else */
-	{
-		layout.xadvance = font.glyphWidth(layout.glyph, style.fontSize() / 10) * layout.scaleH;
-		layout.yadvance = font.glyphBBox(layout.glyph, style.fontSize() / 10).ascent * layout.scaleV;
-	}
-	if (layout.xadvance > 0)
-		layout.xadvance += tracking;
-
-	if (chars.length() > 1) {
-		layout.grow();
-		layoutGlyphs(style, chars.mid(1), ScLayout_None, *layout.more);
-		layout.xadvance += font.glyphKerning(layout.glyph, layout.more->glyph, style.fontSize() / 10) * layout.scaleH;
-		if (layout.more->yadvance > layout.yadvance)
-			layout.yadvance = layout.more->yadvance;
-	}
-	else {
-		layout.shrink();
+		else {
+			layout.scaleH = style.scaleH() / 1000.0;
+			layout.scaleV = style.scaleV() / 1000.0;
+		}
+		
+		/*	if (layout.glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBSPACE.unicode())) {
+		 uint replGlyph = font.char2CMap(QChar(' '));
+		 layout.xadvance = font.glyphWidth(replGlyph, style.fontSize() / 10) * layout.scaleH;
+		 layout.yadvance = font.glyphBBox(replGlyph, style.fontSize() / 10).ascent * layout.scaleV;
+		 }
+		 else if (layout.glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBHYPHEN.unicode())) {
+		 uint replGlyph = font.char2CMap(QChar('-'));
+		 layout.xadvance = font.glyphWidth(replGlyph, style.fontSize() / 10) * layout.scaleH;
+		 layout.yadvance = font.glyphBBox(replGlyph, style.fontSize() / 10).ascent * layout.scaleV;
+		 }
+		 else if (layout.glyph >= ScFace::CONTROL_GLYPHS) {
+		 layout.xadvance = 0;
+		 layout.yadvance = 0;
+		 }
+		 else */
+		{
+			layout.xadvance = font.glyphWidth(layout.glyph, style.fontSize() / 10) * layout.scaleH;
+			layout.yadvance = font.glyphBBox(layout.glyph, style.fontSize() / 10).ascent * layout.scaleV;
+		}
+		if (layout.xadvance > 0)
+			layout.xadvance += tracking;
+		
+		glyphrun.glyphs().append(layout);
+		
+		if (i>0)
+		{
+			GlyphLayout& lastLayout(glyphrun.glyphs().last());
+			lastLayout.xadvance += font.glyphKerning(lastLayout.glyph, layout.glyph, style.fontSize() / 10) * lastLayout.scaleH;
+// TODO: set yadvance to max yadvance?
+//			if (layout.yadvance > lastLayout.yadvance)
+//				lastLayout.yadvance = layout.yadvance;
+		}
 	}
 	return retval;
 }
 
+
 void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flags, GlyphLayout& glyphs)
 {
+#if 0
 	uint glyph = glyphs.glyph;
 	const ScFace font = style.font();
 	if ((m_Doc->guidesPrefs().showControls) &&
@@ -2947,6 +2958,7 @@ void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flag
 		p->translate(glyphs.xadvance, 0);
 		drawGlyphs(p, style, ScLayout_None, *glyphs.more);
 	}
+#endif
 }
 
 void PageItem::DrawPolyL(QPainter *p, QPolygon pts)

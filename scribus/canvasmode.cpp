@@ -1098,7 +1098,7 @@ void CanvasMode::commonDrawTextCursor(QPainter* p, PageItem_TextFrame* textframe
 				FRect bbox = textframe->textLayout.boundingBox ( textCursorPos );
 				dx = bbox.x();
 				dy = bbox.y();
-                dx += textframe->itemText.getGlyphs(textCursorPos)->wide();
+                dx += bbox.width();
 				if ( bbox.height() <= 2 )
 					dy1 = bbox.y() + textframe->itemText.charStyle ( textCursorPos ).fontSize() / 30.0;
 				else
@@ -1110,7 +1110,7 @@ void CanvasMode::commonDrawTextCursor(QPainter* p, PageItem_TextFrame* textframe
 			FRect bbox = textframe->textLayout.boundingBox ( textCursorPos );
 			dx = bbox.x();
 			dy = bbox.y();
-            dx += textframe->itemText.getGlyphs(textCursorPos)->wide();
+            dx += bbox.width();
 			if ( bbox.height() <= 2 )
 				dy1 = bbox.y() + textframe->itemText.charStyle ( textCursorPos ).fontSize() / 30.0;
 			else
