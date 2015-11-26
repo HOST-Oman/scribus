@@ -71,6 +71,7 @@ void PageItem_PathText::layout()
 
 void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 {
+#if 0
 	itemText.invalidateAll();
 	firstChar = 0;
 	MaxChars = 0;
@@ -372,6 +373,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		else
 			CurX += glyphs->wide()+itemRenderText.charStyle(a).fontSize() *itemRenderText.charStyle(a).tracking() / 10000.0 + extraOffset;
 	}
+#endif
 }
 
 bool PageItem_PathText::createInfoGroup(QFrame *infoGroup, QGridLayout *infoGroupLayout)

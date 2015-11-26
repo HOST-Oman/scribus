@@ -13,12 +13,24 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "scribusdoc.h"
 
-void GlyphLayout::growWithTabLayout()
+
+qreal GlyphRun::width() const
 {
-	if (more)
-		shrink();
-	more = new TabLayout();
+	TODO
+	return 42;
 }
+
+void GlyphRun::insertSoftHyphen()
+{
+	
+}
+
+void GlyphRun::removeSoftHyphen()
+{
+	
+}
+
+
 
 ScText::~ScText() 
 {
