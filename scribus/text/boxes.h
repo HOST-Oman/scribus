@@ -116,7 +116,7 @@ class GlyphBox : public Box
 	
 public:
 	GlyphBox(const CharStyle* style, LayoutFlags flags) : glyphs(style, flags) {}
-	
+	GlyphBox(const GlyphRun& glyphrun) : glyphs(glyphrun) {}
 	GlyphRun glyphs;
 	
 	int pointToPosition(FPoint coord) const;
