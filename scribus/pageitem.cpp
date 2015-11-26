@@ -2549,7 +2549,7 @@ void PageItem::SetQColor(QColor *tmp, QString colorName, double shad)
 
 /**
     layout glyphs translates the chars into a number of glyphs, applying the Charstyle
-    'style'. The following fields are set in layout: glyph, more, scaleH, scaleV, xoffset, yoffset, xadvance.
+    'style'. The following fields are set in layout: glyph, scaleH, scaleV, xoffset, yoffset, xadvance.
     If the DropCap-bit in style.effects is set and yadvance is > 0, scaleH/V, x/yoffset and xadvance
     are modified to scale the glyphs to this height.
     Otherwise yadvance is set to the max ascender of all generated glyphs.
