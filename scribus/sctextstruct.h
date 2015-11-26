@@ -42,7 +42,7 @@ enum LayoutFlags {
 	ScLayout_BulletNum     = 1,       // new: marks list layout glyphs
 	ScLayout_FixedSpace    = 2,       // new: marks a fixed space
 	ScLayout_ExpandingSpace= 4,       // new: marks an expanding space
-	ScLayout_ImplicitSpace = 2,       // new: marks an implicit space
+	ScLayout_ImplicitSpace = 8,       // new: marks an implicit space
 	ScLayout_TabLeaders    = 16,      // new: marks a tab with fillchar
 	ScLayout_HyphenationPossible=128, //Hyphenation possible here (Soft Hyphen)
 	ScLayout_DropCap       = 2048,
@@ -132,6 +132,9 @@ public:
 	const QList<GlyphLayout> glyphs() const { return m_glyphs; }
 	
 	qreal width() const;
+	void insertSoftHyphen();
+	void removeSoftHyphen();
+	
 };
 
 
