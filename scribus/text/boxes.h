@@ -75,7 +75,7 @@ public:
 	virtual FRect boundingBox(int pos, uint len = 1) const = 0;
 	//	virtual double ascent(int pos) const = 0;
 //	virtual QList<const Box*> pathForPos(int pos) const = 0;
-	
+	int screenToPosition (FPoint coord) const{return 1;} // fix me
 	
 	QList<Box*>& boxes() { return m_boxes; }
 	const QList<const Box*>& boxes() const {
@@ -106,7 +106,10 @@ public:
 	FRect boundingBox(int pos, uint len = 1) const;
 //	QList<const Box*> pathForPos(int pos) const;
 
+	GroupBox* m_lines;
+	Box* m_last;
 	void addBox(const Box* box);
+	Box* addBox(uint i);
 	Box* removeBox(uint i);
 };
 
@@ -115,8 +118,8 @@ class GlyphBox : public Box
 {
 	
 public:
-	GlyphBox(const CharStyle* style, LayoutFlags flags) : glyphs(style, flags) {}
-	GlyphBox(const GlyphRun& glyphrun) : glyphs(glyphrun) {}
+	GlyphBox(const CharStyle* style, LayoutFlags flags) : glyphs(style, flags) {m_type = T_Glyphs;}
+	GlyphBox(const GlyphRun& glyphrun) : glyphs(glyphrun) {m_type = T_Glyphs;}
 	GlyphRun glyphs;
 	
 	int pointToPosition(FPoint coord) const;
