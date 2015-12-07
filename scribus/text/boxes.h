@@ -121,7 +121,7 @@ public:
 	GlyphBox(const CharStyle* style, LayoutFlags flags) : glyphs(style, flags) {m_type = T_Glyphs;}
 	GlyphBox(const GlyphRun& glyphrun) : glyphs(glyphrun) {m_type = T_Glyphs;}
 	GlyphRun glyphs;
-	
+	QList <GlyphLayout> m_glyphs;
 	int pointToPosition(FPoint coord) const;
 	FRect boundingBox(int pos, uint len = 1) const;
 //	QList<const Box*> pathForPos(int pos) const;
@@ -132,7 +132,7 @@ class LineBox : public GroupBox
 {
 public:	
 	LineBox();
-	
+
 	qreal colLeft;
 };
 
