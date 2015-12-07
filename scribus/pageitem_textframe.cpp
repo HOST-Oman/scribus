@@ -78,6 +78,20 @@ PageItem_TextFrame::PageItem_TextFrame(ScribusDoc *pa, double x, double y, doubl
 	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
 	verticalAlign = 0;
 	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
+	const LineBox* linebox;
+	for (uint ll=0; ll < textLayout.lines(); ++ll)
+	{
+		linebox = textLayout.line(ll);
+		const GlyphBox* glyphbox;
+		for (int i = 0; i < linebox->boxes().count(); ++i)
+
+		{
+			glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
+		}
+		m_gb = glyphbox;
+	}
+
+
 }
 
 PageItem_TextFrame::PageItem_TextFrame(const PageItem & p) : PageItem(p)
@@ -91,6 +105,18 @@ PageItem_TextFrame::PageItem_TextFrame(const PageItem & p) : PageItem(p)
 	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
 	verticalAlign = 0;
 	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
+	const LineBox* linebox;
+	for (uint ll=0; ll < textLayout.lines(); ++ll)
+	{
+		linebox = textLayout.line(ll);
+	}
+	const GlyphBox* glyphbox;
+	for (int i = 0; i < linebox->boxes().count(); ++i)
+
+	{
+		glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
+	}
+	m_gb = glyphbox;
 }
 
 static QRegion itemShape(PageItem* docItem, double xOffset, double yOffset)
@@ -381,14 +407,13 @@ static void dumpIt(const ParagraphStyle& pstyle, QString indent = QString("->"))
 		dumpIt(*dynamic_cast<const ParagraphStyle*>(pstyle.parentStyle()), more + indent);
 }
 */
-static const bool legacy = true;
+//static const bool legacy = true;
 
 /*
 static void layoutDropCap(GlyphLayout layout, double curX, double curY, double offsetX, double offsetY, double dropCapDrop)
 {
 }
 */
-
 
 
 
@@ -1041,7 +1066,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 	// measure natural widths for glyphs and spaces
 	for (int sof = curr.line.firstChar; sof <= curr.line.lastChar; ++sof)
 	{
-		GlyphRun& glyphrun(curr.glyphRuns[sof + curr.glFirstChar]);
+		GlyphRun glyphrun(curr.glyphRuns.at(sof + curr.glFirstChar));
 		
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
@@ -1117,7 +1142,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 	GlyphLayout* lastGlyph = NULL;
 	for (int yof = startItem; yof <= curr.line.lastChar; ++yof)
 	{
-		GlyphRun& glyphrun(curr.glyphRuns[curr.glFirstChar + yof]);
+		GlyphRun glyphrun(curr.glyphRuns[curr.glFirstChar + yof]);
 		if (lastGlyph != NULL && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 		{
 			lastGlyph->xadvance += imSpace;
@@ -3933,6 +3958,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			double oldShade = 100;
 			const GlyphBox* glyphbox;
 			for (int i = 0; i < linebox->boxes().count(); ++i)
+
 			{
 				glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
 				const CharStyle& charStyle(glyphbox->glyphs.style());
@@ -4113,7 +4139,9 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				else*/
 				CurX += glyphs->wide();
 			}
+		m_gb = glyphbox;
 		}
+
 	//	else {
 	//		//		qDebug("skipping textframe: len=%d", itemText.count());
 	//	}
