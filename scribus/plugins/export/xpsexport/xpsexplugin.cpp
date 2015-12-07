@@ -806,6 +806,7 @@ void XPSExPlug::processImageItem(double xOffset, double yOffset, PageItem *Item,
 
 void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
 {
+	const GlyphBox* lincon = Item->asTextFrame()->m_gb;
 	if (Item->isAnnotation())
 		return;
 	if (Item->GrType == 14)
@@ -882,7 +883,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 	bool bFound = false;
 	for (uint ll=0; ll < Item->textLayout.lines(); ++ll)
 	{
-		if (Item->itemText.paragraphStyle(Item->textLayout.line(ll).firstItem).backgroundColor() != CommonStrings::None)
+		if (Item->itemText.paragraphStyle(Item->textLayout.line(ll).firstChar).backgroundColor() != CommonStrings::None)
 		{
 			bFound = true;
 			break;
@@ -898,7 +899,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 	while (llp < Item->textLayout.lines())
 	{
 		LineSpec ls = Item->textLayout.line(llp++);
-		const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(ls.firstItem);
+		const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(ls.firstChar);
 		if (LineStyle.backgroundColor() != CommonStrings::None)
 		{
 			double y0 = ls.y;
@@ -913,19 +914,19 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			while (llp < Item->textLayout.lines())
 			{
 				ls = Item->textLayout.line(llp);
-				if ((ls.colLeft > lMarg) || (Item->itemText.paragraphStyle(ls.firstItem) != LineStyle))
+				if ((ls.colLeft > lMarg) || (Item->itemText.paragraphStyle(ls.firstChar) != LineStyle))
 				{
 					if (y2 == 0)
 						y2 = y0;
 					break;
 				}
-				if (Item->itemText.text(ls.lastItem) == SpecialChars::PARSEP)
+				if (Item->itemText.text(ls.lastChar) == SpecialChars::PARSEP)
 				{
 					y2 = ls.y;
 					descent = ls.descent;
 					if ((llp + 1) < Item->textLayout.lines())
 					{
-						if ((Item->textLayout.line(llp + 1).lastItem - Item->textLayout.line(llp + 1).firstItem) > 0)
+						if ((Item->textLayout.line(llp + 1).lastChar - Item->textLayout.line(llp + 1).firstChar) > 0)
 							descent += LineStyle.lineSpacing() - (ls.descent + Item->textLayout.line(llp + 1).ascent);
 					}
 					llp++;
@@ -951,19 +952,18 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 	}
 	for (uint ll=0; ll < Item->textLayout.lines(); ++ll)
 	{
-		LineSpec ls = Item->textLayout.line(ll);
+		const LineBox * ls = Item->textLayout.line(ll);
 		QList<txtRunItem> current_run;
 		QList<QList<txtRunItem> > textRuns;
 		QList<txtRunItem> specialText;
-		double CurX = ls.x;
-
-		double CurXB = ls.x;
-		int last = qMin(ls.lastItem, Item->itemText.length() - 1);
+		double CurX = ls->x();
+		double CurXB = ls->x();
+		int last = qMin(ls->lastChar(), Item->itemText.length() - 1);
 		QRectF scr;
 		QString oldBack = "";
 		double oldShade = 100;
 		QString colorB = "";
-		for (int a = ls.firstItem; a <= last; ++a)
+		for (int a = ls->firstChar(); a <= last; ++a)
 		{
 			const GlyphLayout* glyphs(Item->itemText.getGlyphs(a));
 			const CharStyle& charStyle(Item->itemText.charStyle(a));
@@ -971,35 +971,35 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			{
 			// This code is for rendering character background color.
 				colorB = SetColor(charStyle.backColor(), charStyle.backShade(), 0);
-				const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(ls.firstItem);
-				double y1 = ls.y;
-				double hl = ls.height;
+				const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(ls->firstChar());
+				double y1 = ls->y();
+				double hl = ls->height();
 				if (LineStyle.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
 					hl = m_Doc->guidesPrefs().valueBaselineGrid;
 				else if (LineStyle.lineSpacingMode() == ParagraphStyle::FixedLineSpacing)
 					hl = LineStyle.lineSpacing();
-				if (ls.isFirstLine)
+				if (ls->isFirstLine())
 				{
 					if (Item->textLayout.lines() == 1)
-						hl = ls.ascent + ls.descent;
-					if (LineStyle.hasDropCap() && (a == ls.firstItem))
+						hl = ls->ascent() + ls->descent();
+					if (LineStyle.hasDropCap() && (a == ls->firstChar()))
 						hl *= LineStyle.dropCapLines();
 					if (LineStyle.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
 						y1 -= LineStyle.lineSpacing();
 					else if (Item->firstLineOffset() == FLOPRealGlyphHeight || Item->firstLineOffset() == FLOPFontAscent)
-						y1 -= ls.ascent;
+						y1 -= ls->ascent();
 					else
 						y1 -= LineStyle.lineSpacing();
 				}
 				else
-					y1 -= ls.ascent + (hl - (ls.ascent + ls.descent)) / 2.0;
+					y1 -= ls->ascent() + (hl - (ls->ascent() + ls->descent())) / 2.0;
 				QRectF scrG;
 				if (Item->itemText.hasObject(a))
 				{
 					PageItem* obj = Item->itemText.object(a);
 					double ww = (obj->width() + obj->lineWidth()) * glyphs->scaleH;
 					double hh = (obj->height() + obj->lineWidth()) * glyphs->scaleV;
-					scrG = QRectF(CurXB, ls.y - hh, ww , hh);
+					scrG = QRectF(CurXB, ls->y() - hh, ww , hh);
 				}
 				else
 					scrG = QRectF(CurXB, y1, glyphs->wide(), hl);
@@ -1054,12 +1054,12 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			grp.appendChild(glyS);
 		}
 
-		for (int a = ls.firstItem; a <= ls.lastItem; ++a)
+		for (int a = ls->firstChar(); a <= last; ++a)
 		{
 			//ScText *hl = Item->itemText.item_p(a);
 			QChar chr = Item->itemText.text(a);
 			CharStyle charStyle = Item->itemText.charStyle(a);
-			GlyphLayout* glyphs = Item->itemText.getGlyphs(a);
+			GlyphLayout glyphs = lincon->glyphs.glyphs().at(a);
 			LayoutFlags flags = Item->itemText.flags(a);
 			const ScFace* font = &charStyle.font();
 			txtRunItem txItem;
@@ -1074,7 +1074,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 				specialText.append(txItem);
 				textRuns.append(current_run);
 				current_run.clear();
-				CurX += txItem.glyphs->wide();
+				CurX += txItem.glyphs.xadvance;
 				continue;
 			}
 			if (SpecialChars::isBreak(chr, true) || (chr == QChar(10)))
@@ -1090,7 +1090,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 				specialText.append(txItem);
 				textRuns.append(current_run);
 				current_run.clear();
-				CurX += txItem.glyphs->wide();
+				CurX += txItem.glyphs.xadvance;
 				continue;
 			}
 			QString guidFont;
@@ -1106,13 +1106,13 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			else
 			{
 				txtRunItem txItemL = current_run.last();
-				double chl = (txItemL.style.fontSize() / 10.0) * qMax(txItemL.glyphs->scaleV, txItemL.glyphs->scaleH) * conversionFactor;
+				double chl = (txItemL.style.fontSize() / 10.0) * qMax(txItemL.glyphs.scaleV, txItemL.glyphs.scaleH) * conversionFactor;
 				const ScFace* fontL = &txItemL.style.font();
 				QString guidFontL = xps_fontMap[fontL->replacementName()];
 				StyleFlag old_sty = txItemL.style.effects();
 				int old_shade = txItemL.style.fillShade();
 				QString old_fill = txItemL.style.fillColor();
-				double chs = (charStyle.fontSize() / 10.0) * qMax(glyphs->scaleV, glyphs->scaleH) * conversionFactor;
+				double chs = (charStyle.fontSize() / 10.0) * qMax(glyphs.scaleV, glyphs.scaleH) * conversionFactor;
 				if ((chs != chl) || (guidFont != guidFontL) || (charStyle.effects() != old_sty) || (charStyle.fillColor() != old_fill) || (charStyle.fillShade() != old_shade))
 				{
 					textRuns.append(current_run);
@@ -1120,7 +1120,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 				}
 				current_run.append(txItem);
 			}
-			CurX += txItem.glyphs->wide();
+			CurX += txItem.glyphs.xadvance;
 		}
 		textRuns.append(current_run);
 		for (int txr = 0; txr < textRuns.count(); txr++)
@@ -1132,7 +1132,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 				continue;
 			double StartX = current_run[0].CurX;
 			CurX = current_run[0].CurX;
-			double chs = (current_run[0].style.fontSize() / 10.0) * qMax(current_run[0].glyphs->scaleV, current_run[0].glyphs->scaleH) * conversionFactor;
+			double chs = (current_run[0].style.fontSize() / 10.0) * qMax(current_run[0].glyphs.scaleV, current_run[0].glyphs.scaleH) * conversionFactor;
 			for (int cr = 0; cr < current_run.count(); cr++)
 			{
 				txtRunItem txItem = current_run[cr];
@@ -1147,18 +1147,18 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 				}
 				else if ((SpecialChars::isBreakingSpace(txItem.chr)) || (SpecialChars::isExpandingSpace(txItem.chr)) || (txItem.chr.isSpace()))
 				{
-					indString += QString(",%1;").arg((txItem.glyphs->wide() * conversionFactor) / chs * 100);
+					indString += QString(",%1;").arg((txItem.glyphs.xadvance * conversionFactor) / chs * 100);
 					uniString += " ";
 				}
 				else
 				{
 					uniString += txItem.chr;
-					if ((txItem.glyphs->xoffset != 0) || (txItem.glyphs->yoffset != 0))
-						indString += QString(",%1,%2,%3;").arg((txItem.glyphs->wide() * conversionFactor) / chs * 100).arg((txItem.glyphs->xoffset * conversionFactor) / chs * 100).arg((-txItem.glyphs->yoffset * conversionFactor) / chs * 100);
+					if ((txItem.glyphs.xoffset != 0) || (txItem.glyphs.yoffset != 0))
+						indString += QString(",%1,%2,%3;").arg((txItem.glyphs.xadvance * conversionFactor) / chs * 100).arg((txItem.glyphs.xoffset * conversionFactor) / chs * 100).arg((-txItem.glyphs.yoffset * conversionFactor) / chs * 100);
 					else
-						indString += QString(",%1;").arg((txItem.glyphs->wide() * conversionFactor) / chs * 100);
+						indString += QString(",%1;").arg((txItem.glyphs.xadvance * conversionFactor) / chs * 100);
 				}
-				CurX += txItem.glyphs->wide();
+				CurX += txItem.glyphs.xadvance;
 			}
 			if (!indString.isEmpty())
 				indString.chop(1);
@@ -1172,13 +1172,13 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			gly.setAttribute("UnicodeString", uniString);
 			if (current_run.count() == 1)
 			{
-				gly.setAttribute("OriginX", FToStr((StartX + current_run[0].glyphs->xoffset) * conversionFactor));
-				gly.setAttribute("OriginY", FToStr((ls.y + current_run[0].glyphs->yoffset) * conversionFactor));
+				gly.setAttribute("OriginX", FToStr((StartX + current_run[0].glyphs.xoffset) * conversionFactor));
+				gly.setAttribute("OriginY", FToStr((ls->y() + current_run[0].glyphs.yoffset) * conversionFactor));
 			}
 			else
 			{
 				gly.setAttribute("OriginX", FToStr(StartX * conversionFactor));
-				gly.setAttribute("OriginY", FToStr(ls.y * conversionFactor));
+				gly.setAttribute("OriginY", FToStr(ls->y() * conversionFactor));
 				gly.setAttribute("Indices", indString);
 			}
 			grp.appendChild(gly);
@@ -1193,7 +1193,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 				{
 					QDomElement obO = p_docu.createElement("Canvas");
 					QTransform mm;
-					mm.translate(CurX * conversionFactor, (ls.y - (txItem.embItem->height() * (txItem.style.scaleV() / 1000.0))) * conversionFactor);
+					mm.translate(CurX * conversionFactor, (ls->y() - (txItem.embItem->height() * (txItem.style.scaleV() / 1000.0))) * conversionFactor);
 					if (txItem.style.baselineOffset() != 0)
 						mm.translate(0, (txItem.style.baselineOffset() / 1000.0) * conversionFactor);
 					if (txItem.style.scaleH() != 1000)
@@ -1242,18 +1242,18 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 					if (pts.size() < 4)
 						continue;
 					chma = QTransform();
-					chma.scale(txItem.glyphs->scaleH * txItem.style.fontSize() / 100.00, txItem.glyphs->scaleV * txItem.style.fontSize() / 100.0);
+					chma.scale(txItem.glyphs.scaleH * txItem.style.fontSize() / 100.00, txItem.glyphs.scaleV * txItem.style.fontSize() / 100.0);
 					pts.map(chma);
 					if (txItem.style.effects() & (ScStyle_Subscript | ScStyle_Superscript))
-						pts.translate(0, -(chs / 10.0 * txItem.glyphs->scaleV));
+						pts.translate(0, -(chs / 10.0 * txItem.glyphs.scaleV));
 					else
 						pts.translate(0, -(chs / 10.0));
-					pts.translate(CurX, ls.y);
+					pts.translate(CurX, ls->y());
 					// Fix for drop caps ???
-					if (ls.isFirstLine && Item->itemText.paragraphStyle(ls.firstItem).hasDropCap() && (txItem.index == ls.firstItem))
+					if (ls.isFirstLine && Item->itemText.paragraphStyle(ls.firstChar).hasDropCap() && (txItem.index == ls.firstChar))
 						pts.translate(0, -ls.ascent);
 					if (txItem.style.effects() & (ScStyle_Subscript | ScStyle_Superscript))
-						pts.translate(0, txItem.glyphs->yoffset);
+						pts.translate(0, txItem.glyphs.yoffset);
 					if ((txItem.style.effects() & ScStyle_Shadowed) && (txItem.style.strokeColor() != CommonStrings::None))
 					{
 						FPointArray ptsS = pts.copy();
@@ -1297,12 +1297,12 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 						lw = qMax(txItem.style.font().strokeWidth(txItem.style.fontSize() / 10.0), 1.0);
 					}
 					if (txItem.style.baselineOffset() != 0)
-						st += (txItem.style.fontSize() / 10.0) * txItem.glyphs->scaleV * (txItem.style.baselineOffset() / 1000.0);
+						st += (txItem.style.fontSize() / 10.0) * txItem.glyphs.scaleV * (txItem.style.baselineOffset() / 1000.0);
 					QDomElement gly = p_docu.createElement("Path");
 					if (txItem.style.effects() & ScStyle_Subscript)
-						gly.setAttribute("Data", QString("M%1,%2 L%3,%4").arg((CurX + txItem.glyphs->xoffset) * conversionFactor).arg((ls.y + txItem.glyphs->yoffset - st) * conversionFactor).arg((CurX + txItem.glyphs->xoffset + txItem.glyphs->xadvance) * conversionFactor).arg((ls.y + txItem.glyphs->yoffset - st) * conversionFactor));
+						gly.setAttribute("Data", QString("M%1,%2 L%3,%4").arg((CurX + txItem.glyphs.xoffset) * conversionFactor).arg((ls->y() + txItem.glyphs.yoffset - st) * conversionFactor).arg((CurX + txItem.glyphs.xoffset + txItem.glyphs.xadvance) * conversionFactor).arg((ls->y() + txItem.glyphs.yoffset - st) * conversionFactor));
 					else
-						gly.setAttribute("Data", QString("M%1,%2 L%3,%4").arg((CurX + txItem.glyphs->xoffset) * conversionFactor).arg((ls.y - st) * conversionFactor).arg((CurX + txItem.glyphs->xoffset + txItem.glyphs->xadvance) * conversionFactor).arg((ls.y - st) * conversionFactor));
+						gly.setAttribute("Data", QString("M%1,%2 L%3,%4").arg((CurX + txItem.glyphs.xoffset) * conversionFactor).arg((ls->y() - st) * conversionFactor).arg((CurX + txItem.glyphs.xoffset + txItem.glyphs.xadvance) * conversionFactor).arg((ls->y() - st) * conversionFactor));
 					gly.setAttribute("Stroke", SetColor(txItem.style.fillColor(), txItem.style.fillShade(), 0));
 					gly.setAttribute("StrokeThickness", FToStr(lw * conversionFactor));
 					grp.appendChild(gly);
@@ -1327,9 +1327,9 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 						lw = qMax(txItem.style.font().strokeWidth(txItem.style.fontSize() / 10.0), 1.0);
 					}
 					if (txItem.style.baselineOffset() != 0)
-						st += (txItem.style.fontSize() / 10.0) * txItem.glyphs->scaleV * (txItem.style.baselineOffset() / 1000.0);
+						st += (txItem.style.fontSize() / 10.0) * txItem.glyphs.scaleV * (txItem.style.baselineOffset() / 1000.0);
 					QDomElement gly = p_docu.createElement("Path");
-					gly.setAttribute("Data", QString("M%1,%2 L%3,%4").arg((CurX + txItem.glyphs->xoffset) * conversionFactor).arg((ls.y - st) * conversionFactor).arg((CurX + txItem.glyphs->xoffset + txItem.glyphs->xadvance) * conversionFactor).arg((ls.y - st) * conversionFactor));
+					gly.setAttribute("Data", QString("M%1,%2 L%3,%4").arg((CurX + txItem.glyphs.xoffset) * conversionFactor).arg((ls->y() - st) * conversionFactor).arg((CurX + txItem.glyphs.xoffset + txItem.glyphs.xadvance) * conversionFactor).arg((ls->y() - st) * conversionFactor));
 					gly.setAttribute("Stroke", SetColor(txItem.style.fillColor(), txItem.style.fillShade(), 0));
 					gly.setAttribute("StrokeThickness", FToStr(lw * conversionFactor));
 					grp.appendChild(gly);
@@ -1379,6 +1379,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 
 void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
 {
+	const GlyphBox* lincon = Item->asTextFrame()->m_gb;
 	QDomElement grp = p_docu.createElement("Canvas");
 	QTransform mpx;
 	mpx.translate(xOffset * conversionFactor, yOffset * conversionFactor);
@@ -1441,7 +1442,7 @@ void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *It
 		//ScText *hl = Item->asPathText()->itemRenderText.item_p(a);
 		const CharStyle& charStyle(Item->asPathText()->itemRenderText.charStyle(a));
 		const PathData* pdata = &(Item->asPathText()->textLayout.point(a));
-		const GlyphLayout* glyphs = Item->asPathText()->itemRenderText.getGlyphs(a);
+		const GlyphLayout glyphs = lincon->glyphs.glyphs().at(a);
 		PageItem* embItem = Item->asPathText()->itemRenderText.hasObject(a)?
 		                    Item->asPathText()->itemRenderText.object(a) : NULL;
 		
@@ -1522,14 +1523,14 @@ void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *It
 		if (pts.size() < 4)
 			continue;
 		chma = QTransform();
-		chma.scale(glyphs->scaleH * charStyle.fontSize() / 100.00, glyphs->scaleV * charStyle.fontSize() / 100.0);
+		chma.scale(glyphs.scaleH * charStyle.fontSize() / 100.00, glyphs.scaleV * charStyle.fontSize() / 100.0);
 		pts.map(chma);
 		if (charStyle.effects() & (ScStyle_Subscript | ScStyle_Superscript))
-			pts.translate(0, -(chs / 10.0 * glyphs->scaleV));
+			pts.translate(0, -(chs / 10.0 * glyphs.scaleV));
 		else
 			pts.translate(0, -(chs / 10.0));
 		if (charStyle.effects() & (ScStyle_Subscript | ScStyle_Superscript))
-			pts.translate(0, glyphs->yoffset);
+			pts.translate(0, glyphs.yoffset);
 		if ((charStyle.effects() & ScStyle_Shadowed) && (charStyle.strokeColor() != CommonStrings::None))
 		{
 			FPointArray ptsS = pts.copy();
@@ -1572,18 +1573,18 @@ void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *It
 				lw = qMax(charStyle.font().strokeWidth(charStyle.fontSize() / 10.0), 1.0);
 			}
 			if (charStyle.baselineOffset() != 0)
-				st += (charStyle.fontSize() / 10.0) * glyphs->scaleV * (charStyle.baselineOffset() / 1000.0);
+				st += (charStyle.fontSize() / 10.0) * glyphs.scaleV * (charStyle.baselineOffset() / 1000.0);
 			FPointArray ptsS;
 			ptsS.svgInit();
 			if (charStyle.effects() & ScStyle_Subscript)
 			{
-				ptsS.svgMoveTo(glyphs->xoffset, glyphs->yoffset - st);
-				ptsS.svgLineTo(glyphs->xoffset + glyphs->xadvance, glyphs->yoffset - st);
+				ptsS.svgMoveTo(glyphs.xoffset, glyphs.yoffset - st);
+				ptsS.svgLineTo(glyphs.xoffset + glyphs.xadvance, glyphs.yoffset - st);
 			}
 			else
 			{
-				ptsS.svgMoveTo(glyphs->xoffset, -st);
-				ptsS.svgLineTo(glyphs->xoffset + glyphs->xadvance, -st);
+				ptsS.svgMoveTo(glyphs.xoffset, -st);
+				ptsS.svgLineTo(glyphs.xoffset + glyphs.xadvance, -st);
 			}
 			ptsS.map(finalMat);
 			QString paS = SetClipPath(&ptsS, true);
@@ -1613,11 +1614,11 @@ void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *It
 				lw = qMax(charStyle.font().strokeWidth(charStyle.fontSize() / 10.0), 1.0);
 			}
 			if (charStyle.baselineOffset() != 0)
-				st += (charStyle.fontSize() / 10.0) * glyphs->scaleV * (charStyle.baselineOffset() / 1000.0);
+				st += (charStyle.fontSize() / 10.0) * glyphs.scaleV * (charStyle.baselineOffset() / 1000.0);
 			FPointArray ptsS;
 			ptsS.svgInit();
-			ptsS.svgMoveTo(glyphs->xoffset, -st);
-			ptsS.svgLineTo(glyphs->xoffset + glyphs->xadvance, -st);
+			ptsS.svgMoveTo(glyphs.xoffset, -st);
+			ptsS.svgLineTo(glyphs.xoffset + glyphs.xadvance, -st);
 			ptsS.map(finalMat);
 			QString paS = SetClipPath(&ptsS, true);
 			QDomElement gly = p_docu.createElement("Path");
