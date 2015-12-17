@@ -127,7 +127,10 @@ public:
 	bool       hasFlag(LayoutFlags f) const { return (m_flags & f) == f; }
 	void       setFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags | f); }
 	void     clearFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags & ~f); }
-	
+	void appendGlyph(GlyphLayout glyph)
+	{
+		m_glyphs.append(glyph);
+	}
 	QList<GlyphLayout>       glyphs()       { return m_glyphs; }
 	const QList<GlyphLayout> glyphs() const { return m_glyphs; }
 	

@@ -41,7 +41,7 @@ protected:
 	int m_lastChar;
 	
 public:
-	Box() { m_type = T_Invalid; m_x = m_y = m_width = m_ascent = m_descent = 0; }
+	Box() { m_type = T_Invalid; m_x = m_y = m_width = m_ascent = m_descent = m_firstChar= 0;m_lastChar=0; }
 	virtual ~Box() {}
 	
 	//	virtual GlyphBox* asGlyphBox() { return NULL; }
@@ -119,8 +119,13 @@ class GlyphBox : public Box
 	
 public:
 	GlyphBox(const CharStyle* style, LayoutFlags flags) : glyphs(style, flags) {m_type = T_Glyphs;}
-	GlyphBox(const GlyphRun& glyphrun) : glyphs(glyphrun) {m_type = T_Glyphs;}
-	GlyphRun glyphs;
+	GlyphBox(const GlyphRun& glyphrun)
+		: glyphs(glyphrun)
+		, m_glyphs(glyphrun.glyphs())
+	{
+		m_type = T_Glyphs;
+	}
+	const GlyphRun glyphs;
 	QList <GlyphLayout> m_glyphs;
 	int pointToPosition(FPoint coord) const;
 	FRect boundingBox(int pos, uint len = 1) const;
