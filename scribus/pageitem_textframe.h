@@ -223,7 +223,7 @@ struct LineControl {
 		breakIndex = last;
 		breakXPos  = line.x;
 		int nItems = glFirstChar + last + 1;
-		for (int j = 0; j <= nItems; ++j)
+		for (int j = 0; j < nItems; ++j)
 		{
 			if ( (glyphRuns[j].flags() & ScLayout_SuppressSpace) == 0 )
 				breakXPos += glyphRuns[j].width();
