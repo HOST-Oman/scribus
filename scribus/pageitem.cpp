@@ -2656,7 +2656,7 @@ double PageItem::layoutGlyphs(const QString& chars, GlyphRun& glyphrun)
 		if (layout.xadvance > 0)
 			layout.xadvance += tracking;
 		
-		glyphrun.glyphs().append(layout);
+		glyphrun.appendGlyph(layout);
 		
 		if (i>0)
 		{
