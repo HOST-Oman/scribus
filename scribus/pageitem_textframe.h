@@ -242,6 +242,8 @@ struct LineControl {
 		line.naturalWidth = breakXPos - line.x;
 		line.width = endX - line.x;
 		maxShrink = maxStretch = 0;
+		while (glyphRuns.count() > breakIndex + 1)
+			glyphRuns.removeLast();
 	}
 
 	int restartRow(bool recalcY)
@@ -270,9 +272,9 @@ struct LineControl {
 	{
 		bool res;
 		if (legacy)
-			res = ceil(xPos + lineCorr - maxShrink) + ceil(moreSpace) >= floor(colRight);
+			res = (ceil(xPos + lineCorr - maxShrink) + ceil(moreSpace)) >= floor(colRight);
 		else
-			res = ceil(xPos - maxShrink)  + ceil(moreSpace) >= floor(colRight);
+			res =( ceil(xPos - maxShrink)  + ceil(moreSpace)) >= floor(colRight);
 		return res;
 	}
 
