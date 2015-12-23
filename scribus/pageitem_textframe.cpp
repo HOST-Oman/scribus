@@ -78,20 +78,6 @@ PageItem_TextFrame::PageItem_TextFrame(ScribusDoc *pa, double x, double y, doubl
 	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
 	verticalAlign = 0;
 	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
-	const LineBox* linebox;
-	for (uint ll=0; ll < textLayout.lines(); ++ll)
-	{
-		linebox = textLayout.line(ll);
-		const GlyphBox* glyphbox;
-		for (int i = 0; i < linebox->boxes().count(); ++i)
-
-		{
-			glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
-		}
-		m_gb = glyphbox;
-	}
-
-
 }
 
 PageItem_TextFrame::PageItem_TextFrame(const PageItem & p) : PageItem(p)
@@ -105,18 +91,6 @@ PageItem_TextFrame::PageItem_TextFrame(const PageItem & p) : PageItem(p)
 	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
 	verticalAlign = 0;
 	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
-	const LineBox* linebox;
-	for (uint ll=0; ll < textLayout.lines(); ++ll)
-	{
-		linebox = textLayout.line(ll);
-	}
-	const GlyphBox* glyphbox;
-	for (int i = 0; i < linebox->boxes().count(); ++i)
-
-	{
-		glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
-	}
-	m_gb = glyphbox;
 }
 
 static QRegion itemShape(PageItem* docItem, double xOffset, double yOffset)
@@ -2525,6 +2499,8 @@ void PageItem_TextFrame::layout()
 				hyphWidth = font.charWidth('-', hlcsize10) * (charStyle.scaleH() / 1000.0);
 			if ((current.isEndOfLine(style.rightMargin() + hyphWidth)) || current.isEndOfCol(realDesc) || SpecialChars::isBreak(currentCh, Cols > 1) || (current.xPos - current.maxShrink + hyphWidth) >= current.mustLineEnd)
 			{
+
+				outs = true;
 				//end of row reached - right column, end of column, break char or line must end
 				if (current.charsInLine == 0 && !current.afterOverflow && !SpecialChars::isBreak(currentCh, Cols > 1))
 				{
@@ -2568,7 +2544,7 @@ void PageItem_TextFrame::layout()
 					inOverflow = false;
 					continue;
 				}
-				outs = true;
+
 				current.addLine = true;
 				current.lastInRowLine = true;
 				current.rightMargin = style.rightMargin();
