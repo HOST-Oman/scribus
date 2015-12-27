@@ -12,7 +12,7 @@
 #include "fpoint.h"
 #include "frect.h"
 #include "sctextstruct.h"
-
+#include "scpainter.h"
 
 
 /**
@@ -111,6 +111,7 @@ public:
 	void addBox(const Box* box);
 	Box* addBox(uint i);
 	Box* removeBox(uint i);
+    void render(ScPainter* p);
 };
 
 
@@ -130,6 +131,7 @@ public:
 	int pointToPosition(FPoint coord) const;
 	FRect boundingBox(int pos, uint len = 1) const;
 //	QList<const Box*> pathForPos(int pos) const;
+    void render(ScPainter* p);
 };
 
 
@@ -137,6 +139,7 @@ class LineBox : public GroupBox
 {
 public:	
 	LineBox();
+    void render(ScPainter *p);
 
 	qreal colLeft;
 };
