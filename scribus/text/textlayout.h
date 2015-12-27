@@ -54,7 +54,7 @@ public:
 	StoryText* story() { return m_story; }
 	const StoryText* story() const { return m_story; }
 	void setStory(StoryText* story);
-
+    void render(ScPainter *p);
 	int startOfLine(int pos) const;
 	int endOfLine(int pos) const;
 	int prevLine(int pos) const;

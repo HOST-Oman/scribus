@@ -4020,8 +4020,8 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			for (int i = 0; i < linebox->boxes().count(); ++i)
 			{
 				glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
-				if (!isEmbedded && !cullingArea.intersects(pf2.mapRect(QRectF(glyphbox->x(), glyphbox->y() - glyphbox->ascent(), glyphbox->width(), glyphbox->height()))))
-					continue;
+//				if (!isEmbedded && !cullingArea.intersects(pf2.mapRect(QRectF(glyphbox->x(), glyphbox->y() - glyphbox->ascent(), glyphbox->width(), glyphbox->height()))))
+//					continue;
 				
 				const CharStyle& charStyle(glyphbox->glyphs.style());
 				// TODO: this code assumes one char per glyphbox
@@ -4103,9 +4103,11 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	//TODO:						drawMark(p, charStyle, SpecialChars::OBJECT);
 							//GlyphLayout markGlyph;
 							//layoutGlyphs(charStyle, SpecialChars::OBJECT, ScLayout_None, markGlyph);
+							//drawGlyphs(p, glyphbox->glyphs);
 							//drawGlyphs(p, charStyle, ScLayout_None, markGlyph);
+							textLayout.render(p);
 						}
-						drawGlyphs(p, glyphbox->glyphs);
+						//drawGlyphs(p, glyphbox->glyphs);
 					}
 					p->restore();//RE4
 				}
@@ -4113,9 +4115,9 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				/*if ((hl->ch == SpecialChars::OBJECT) && (hl->embedded.hasItem()))
 					CurX += (hl->embedded.getItem()->gWidth + hl->embedded.getItem()->lineWidth()) * hl->glyph.scaleH;
 				else*/
-				CurX += glyphs->wide();
+				//CurX += glyphs->wide();
+				textLayout.render(p);
 			}
-		m_gb = glyphbox;
 		}
 
 	//	else {
