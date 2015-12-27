@@ -85,7 +85,14 @@ void TextLayout::removeLastLine ()
 	delete last;
 }
 
+void TextLayout::render(ScPainter *p)
+{
 
+     p->save();
+
+     m_lines->render(p);
+     p->restore();
+}
 
 void TextLayout::clear() 
 {
