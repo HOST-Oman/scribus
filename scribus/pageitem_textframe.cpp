@@ -229,6 +229,7 @@ struct LineControl {
 		line.naturalWidth = breakXPos - line.x;
 		line.width = endX - line.x;
 		maxShrink = maxStretch = 0;
+		// FIXME: works only for first line!!
 		while (glyphRuns.count() > breakIndex + 1)
 			glyphRuns.removeLast();
 	}
