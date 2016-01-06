@@ -72,7 +72,7 @@ void TextLayout::appendLine(const LineBox* ls)
 	{ 
 		assert( ls->firstChar() >= 0 );
 		assert( ls->firstChar() < story()->length() );
-		assert( ls->lastChar() >= 0 && ls->firstChar() - ls->lastChar() < 1 );
+//		assert( ls->lastChar() >= 0 && ls->firstChar() - ls->lastChar() < 1 );
 		assert( ls->lastChar() < story()->length() );
 		m_lines->addBox(ls);
 	}
