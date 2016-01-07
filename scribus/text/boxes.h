@@ -66,7 +66,9 @@ public:
 	bool containsPoint(FPoint coord) const { return bbox().contains(coord); }
 
 	int firstChar() const { return m_firstChar; }
+	void setFirstChar(int c) { m_firstChar = c; }
 	int lastChar() const { return m_lastChar; }
+	void setLastChar(int c) { m_lastChar = c; }
 	bool containsPos(int pos) const { return m_firstChar <= pos && pos <= m_lastChar;}
 	
 	/// returns a char position for the point coord + (m_x, m_y)

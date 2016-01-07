@@ -123,8 +123,10 @@ FRect GroupBox::boundingBox(int pos, uint len) const
 			result = result.unite(b->boundingBox(pos, len));
 		}
 	}
-
-    return result.isValid()?result : result.unite(FRect(m_x, m_y,m_width,m_ascent+m_descent));
+	if (result.isValid())
+		return result;//.unite(FRect(m_x, m_y,m_width,m_ascent+m_descent));
+	else
+		return result;
 }
 
 
@@ -153,7 +155,6 @@ Box* GroupBox::addBox(uint i)
 {	m_boxes.removeAt(i);
 	Box* result = m_boxes.at(i);
 //TODO: recalc bounds;
-    result->boundingBox(x());
 	int lastsLastChar = m_last->lastChar();
 	delete m_last;
 	if (m_lines->boxes().isEmpty()) {
@@ -198,21 +199,29 @@ int GlyphBox::pointToPosition(FPoint coord) const
 
 FRect GlyphBox::boundingBox(int pos, uint len) const
 {
-//	int relPos = firstChar() - pos;
-//	qreal xPos1 = m_x;
+//    int relPos = firstChar() - pos;
+//    qreal xPos1 = m_x;
 //	for (int i = 0; i < relPos - 1; ++i)
 //	{
-//		xPos1 += m_glyphs[i].xadvance;
+//        xPos1 += m_glyphs[pos].xadvance;
 //	}
-//	qreal width = m_glyphs[relPos].xadvance;
-//	qreal xPos2 = xPos1 + width;
+//   // qreal width = m_glyphs[relPos].xadvance;
+//    //qreal xPos2 = xPos1 + width;
 //	for (int i = relPos + 1; i < pos + len; ++i)
 //	{
-//		xPos2 += m_glyphs[i].xadvance;
+//        //xPos2 += m_glyphs[pos].xadvance;
 //	}
 //    qreal hight = m_glyphs.at(pos).yadvance;
 //    qreal top = m_glyphs.at(pos).yoffset + m_glyphs.at(pos).yadvance;
-    return FRect(x(), y() - descent(), width(),hight());
+//    qreal xpos= 0;
+//    xpos += glyphs.glyphs().at(pos).xadvance;
+	qDebug()<<"x: "<<x()<<"  y: "<<y()<<" width : "<<width()<<" ascent: "<<ascent()<<"  descent: "<<descent();
+	FPoint topLeft(x(),y()+ascent());
+	FPoint bottomRight(x()+width(), y()- descent());
+	FRect result(topLeft, bottomRight);
+	//FRect result(x(), y() - ascent(), width(),height());
+	bool valid =  result.isValid();
+	return result;
 }
 
 

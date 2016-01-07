@@ -255,7 +255,7 @@ FRect TextLayout::boundingBox(int pos, uint len) const
 		result = m_lines->boundingBox(pos, len);
 		if (result.isValid())
 		{
-			result.moveBy(m_frame->xPos(), m_frame->yPos());
+//			result.moveBy(m_frame->xPos(), m_frame->yPos());
 			return result;
 		}
 	}
