@@ -528,14 +528,19 @@ struct LineControl {
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
 		result->colLeft = line.colLeft;
+		result->setFirstChar(line.firstChar);
+		result->setLastChar(line.lastChar);
 		qreal pos = line.colLeft;
 		int runCount = line.lastChar - line.firstChar;
 		for (int i = 0; i < runCount+1; ++i)
 		{
 			GlyphBox* glyphbox = createGlyphBox(glyphRuns.at(i));
 			glyphbox->moveBy(pos, 0);
+			glyphbox->setFirstChar(i+result->firstChar());
+			glyphbox->setLastChar(i+result->firstChar());
 			pos += glyphbox->width();
 			result->addBox(glyphbox);
+
 		}
 		return result;
 	}
