@@ -144,10 +144,10 @@ void GroupBox::addBox(const Box* box)
 	FRect newRect = box->bbox();
 	newRect.moveBy(m_x, m_y);
 	newRect = bbox().unite(newRect);
-	m_y = newRect.y() + m_ascent;
-	m_x = newRect.x();
-	m_width = newRect.width();
-	m_descent = newRect.height() - m_ascent;
+	if (0 == m_y) m_y = newRect.y() + m_ascent;
+	if (0 == m_x) m_x = newRect.x();
+	if (0 == m_width) m_width = newRect.width();
+	if (0 == m_descent) m_descent = newRect.height() - m_ascent;
 }
 
 Box* GroupBox::addBox(uint i)
@@ -199,8 +199,8 @@ int GlyphBox::pointToPosition(FPoint coord) const
 FRect GlyphBox::boundingBox(int pos, uint len) const
 {
 	FPoint topLeft(x(), y());
-	FPoint bottomRight(x() + width(), y() - height());
-	return FRect(topLeft, bottomRight);
+	FPoint bottomRight(x() + width(), y() + height());
+	return FRect(x(), y(), width(), height());
 }
 
 
