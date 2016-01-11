@@ -56,7 +56,7 @@ public:
 	qreal width() const { return m_width; }
 	void addWidth(double w) { m_width += w; }
 	void setWidth(double w) { m_width = w; }
-	qreal height() const { return m_ascent + m_descent; }
+	qreal height() const { return m_ascent - m_descent; }
 	void setHeight(double h, double vBase) { m_ascent = h * (1-vBase); m_descent = h * vBase; }
 	qreal ascent() const { return m_ascent; }
 	qreal descent() const { return m_descent; }
