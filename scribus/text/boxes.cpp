@@ -27,9 +27,11 @@ int GroupBox::pointToPosition(FPoint coord) const
 	for (int i=0; i < m_boxes.count(); ++i)
 	{
 		Box* b = m_boxes[i];
+		qDebug()<<"bbox.x1 "<<bbox().left()<<"<< bbox.x2 "<<bbox().right()<<" x coor "<<rel.x();
+		qDebug()<<"bbox.y1 "<<bbox().top()<<"<< bbox.y2 "<<bbox().bottom()<<" y coor "<<rel.y();
 		if (b->containsPoint(rel))
 		{
-			int result = b->screenToPosition(rel);
+			int result = b->pointToPosition(rel);
 			if (result >= 0)
 				return result;
 		}
@@ -144,7 +146,7 @@ void GroupBox::addBox(const Box* box)
 	FRect newRect = box->bbox();
 	newRect.moveBy(m_x, m_y);
 	newRect = bbox().unite(newRect);
-	if (0 == m_y) m_y = newRect.y() + m_ascent;
+	if (0 == m_y) m_y = newRect.y();
 	if (0 == m_x) m_x = newRect.x();
 	if (0 == m_width) m_width = newRect.width();
 	if (0 == m_descent) m_descent = newRect.height() - m_ascent;
@@ -194,15 +196,6 @@ int GlyphBox::pointToPosition(FPoint coord) const
 	}
 	return -1;
 }
-
-
-FRect GlyphBox::boundingBox(int pos, uint len) const
-{
-	FPoint topLeft(x(), y());
-	FPoint bottomRight(x() + width(), y() + height());
-	return FRect(x(), y(), width(), height());
-}
-
 
 LineBox::LineBox()
 {
