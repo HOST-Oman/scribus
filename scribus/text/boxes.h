@@ -62,7 +62,7 @@ public:
 	qreal descent() const { return m_descent; }
 	void setAscent(double a) { m_ascent = a; }
 	void setDescent(double d) { m_descent = d; }
-	FRect bbox() const { return FRect(m_x, m_y - m_ascent, m_width, height()); }
+	FRect bbox() const { return FRect(m_x, m_y, m_width, height()); }
 	bool containsPoint(FPoint coord) const { return bbox().contains(coord); }
 
 	int firstChar() const { return m_firstChar; }
@@ -131,7 +131,7 @@ public:
 	const GlyphRun glyphs;
 	QList <GlyphLayout> m_glyphs;
 	int pointToPosition(FPoint coord) const;
-	FRect boundingBox(int pos, uint len = 1) const;
+	FRect boundingBox(int pos, uint len = 1) const { return bbox(); }
 //	QList<const Box*> pathForPos(int pos) const;
     void render(ScPainter* p);
 };

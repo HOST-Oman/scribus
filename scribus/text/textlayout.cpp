@@ -208,7 +208,7 @@ int TextLayout::endOfFrame() const
 
 int TextLayout::screenToPosition(FPoint coord) const
 {
-	int result = m_lines->pointToPosition(coord - FPoint(m_frame->xPos(), m_frame->yPos()));
+	int result = m_lines->pointToPosition(coord /*- FPoint(m_frame->xPos(), m_frame->yPos())*/);
 	if (result >= 0)
 		return result;
 #if 0
