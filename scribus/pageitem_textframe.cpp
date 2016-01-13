@@ -3805,7 +3805,6 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		return;
 	QTransform pf2;
 	QPoint pt1, pt2;
-	double wide;
 	QString cachedStroke = "";
 	QString cachedFill = "";
 	double cachedFillShade = -1;
@@ -4281,11 +4280,10 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		assert( firstInFrame() >= 0 );
 		assert( lastInFrame() < itemText.length() );
 
-		const LineBox* linebox;
-
 		uint llp = 0;
 		while (llp < textLayout.lines())
 		{
+			const LineBox* ls = textLayout.line(ll);
 			linebox = textLayout.line(ll);
 			const ParagraphStyle& LineStyle = itemText.paragraphStyle(linebox->firstChar());
 			if (LineStyle.backgroundColor() != CommonStrings::None)
@@ -4340,77 +4338,44 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				p->restore();
 			}
 		}
+
 		for (uint ll=0; ll < textLayout.lines(); ++ll)
 		{
-			linebox = textLayout.line(ll);
-			double colStart = linebox->colLeft; // was CurX
+			const LineBox* ls = textLayout.line(ll);
+			double colStart = ls->colLeft; // was CurX
 
-#if 0
-		TODO: use Box methods
 			// Draw text selection rectangles
 			QRectF selectedFrame;
 			QList<QRectF> sFList;
-			bool previousWasObject(false);
-			double selX = ls.x;
-			GlyphLayout* glyphs = 0;
-			int last = qMin(ls.lastItem, itemText.length() - 1);
-			for (int as = ls.firstItem; as <= last; ++as)
+			double selX = ls->x();
+			for (int as = 0; as < ls->boxes().length(); ++as)
 			{
-				bool selecteds = itemText.selected(as);
-				glyphs = itemText.getGlyphs(as);
-				bool HasObject = itemText.hasObject(as);
-				Mark* mark = itemText.mark(as);
+				const Box* box = ls->boxes()[as];
+				bool selecteds = itemText.selected(box->firstChar()) || itemText.selected(box->lastChar());
+				const CharStyle& charStyleS(itemText.charStyle(box->firstChar()));
+				const CharStyle& charStyleS2(itemText.charStyle(box->firstChar()-1));
+				Mark* mark = itemText.mark(box->firstChar());
 				if (mark != NULL && (mark->isType(MARKAnchorType) || mark->isType(MARKIndexType)))
 					continue;
 				if (selecteds)
 				{
 					const CharStyle& charStyleS(itemText.charStyle(as));
-					if (((as > ls.firstItem) && (charStyleS != itemText.charStyle(as-1)))
-						|| ((!selectedFrame.isNull()) && HasObject)
-						|| previousWasObject)
+					if ((as > ls->lastChar()) && (charStyleS != charStyleS2))
 					{
 						sFList << selectedFrame;
 						selectedFrame = QRectF();
-						previousWasObject = false;
 					}
 					if ((m_isSelected || (NextBox != 0 || BackBox != 0))
 						&& (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable))
 					{
-						double xcoZli = selX + glyphs->xoffset;
-						// ugly hack to make selection correct, as xoffset is used to
-						// remove left-half of CJK lparen , which is blank.
-						if (glyphs->xoffset)
-						{
-							int attr = SpecialChars::getCJKAttr(itemText.text(as)) & SpecialChars::CJK_CHAR_MASK;
-							if (attr == SpecialChars::CJK_FENCE_BEGIN)
-							{
-								xcoZli -= glyphs->xoffset;
-							}
-						}
-						const ScFace font = charStyleS.font();
-						double fontSize = charStyleS.fontSize() / 10.0;
-						desc = - font.descent(fontSize);
-						asce = font.ascent(fontSize);
-						wide = glyphs->wide();
-						QRectF scr;
-						if (HasObject)
-						{
-							PageItem* obj = itemText.object(as);
-							double ww = (obj->width() + obj->lineWidth()) * glyphs->scaleH;
-							double hh = (obj->height() + obj->lineWidth()) * glyphs->scaleV;
-							scr = QRectF(xcoZli, ls.y - hh, ww , hh);
-							previousWasObject = true;
-						}
-						else
-							scr = QRectF(xcoZli, ls.y + glyphs->yoffset - asce * glyphs->scaleV, wide , (asce+desc) * (glyphs->scaleV));
-						selectedFrame |=  scr;
+						selectedFrame |= QRectF(box->x(), box->y(), box->width(), box->height());
 					}
 				}
 				// Unneeded now that glyph xadvance is set appropriately for inline objects by layout() - JG
 				/*if ((hls->ch == SpecialChars::OBJECT) && (hls->embedded.hasItem()))
 					selX += (hls->embedded.getItem()->gWidth + hls->embedded.getItem()->lineWidth()) * hls->glyph.scaleH;
 				else*/
-				selX += glyphs->wide();
+				selX += box->width();
 			}
 			if (!selectedFrame.isNull())
 				sFList << selectedFrame;
@@ -4427,7 +4392,6 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			p->restore();//RE3
 			//	End of selection
 
-#endif
 			
 			QColor tmp;
 			double CurXB = ls.x;
@@ -4435,45 +4399,45 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			QString oldBack;
 			double oldShade = 100;
 			const GlyphBox* glyphbox;
-			for (int i = 0; i < linebox->boxes().count(); ++i)
+			for (int i = 0; i < ls->boxes().count(); ++i)
 
 			{
-				glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
+				glyphbox = dynamic_cast<const GlyphBox*>(ls->boxes()[i]);
 				const CharStyle& charStyle(glyphbox->glyphs.style());
 				// TODO: this code assumes one char per glyphbox
 				int charPos = glyphbox->firstChar();
 				if (charStyle.backColor() != CommonStrings::None)
 				{
 					SetQColor(&tmp, charStyle.backColor(), charStyle.backShade());
-					const ParagraphStyle& LineStyle = itemText.paragraphStyle(linebox->firstChar());
-					double y1 = linebox->y();
-					double hl = linebox->height();
+					const ParagraphStyle& LineStyle = itemText.paragraphStyle(ls->firstChar());
+					double y1 = ls->y();
+					double hl = ls->height();
 					if (LineStyle.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
 						hl = doc()->guidesPrefs().valueBaselineGrid;
 					else if (LineStyle.lineSpacingMode() == ParagraphStyle::FixedLineSpacing)
 						hl = LineStyle.lineSpacing();
-					if (linebox->isFirstLine())
+					if (ls->isFirstLine())
 					{
 						if (textLayout.lines() == 1)
-							hl = linebox->ascent() + linebox->descent();
-						if (LineStyle.hasDropCap() && (charPos == linebox->firstChar()))
+							hl = ls->ascent() + ls->descent();
+						if (LineStyle.hasDropCap() && (charPos == ls->firstChar()))
 							hl *= LineStyle.dropCapLines();
 						if (LineStyle.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
 							y1 -= LineStyle.lineSpacing();
 						else if (firstLineOffset() == FLOPRealGlyphHeight || firstLineOffset() == FLOPFontAscent)
-							y1 -= linebox->ascent();
+							y1 -= ls->ascent();
 						else
 							y1 -= LineStyle.lineSpacing();
 					}
 					else
-						y1 -= linebox->ascent() + (hl - (linebox->ascent() + linebox->descent())) / 2.0;
+						y1 -= ls->ascent() + (hl - (ls->ascent() + ls->descent())) / 2.0;
 					QRectF scr;
 					if (itemText.hasObject(charPos))
 					{
 						PageItem* obj = itemText.object(charPos);
 						double ww = (obj->width() + obj->lineWidth()) * glyphs->scaleH;
 						double hh = (obj->height() + obj->lineWidth()) * glyphs->scaleV;
-						scr = QRectF(CurXB, linebox->y() - hh, ww , hh);
+						scr = QRectF(CurXB, ls->y() - hh, ww , hh);
 					}
 					else
 						scr = QRectF(CurXB, y1, glyphs->wide(), hl);
@@ -4519,9 +4483,9 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				p->drawRect(scrG.x(), scrG.y(), scrG.width(), scrG.height());
 				p->restore();
 			}
-			for (int i = 0; i < linebox->boxes().count(); ++i)
+			for (int i = 0; i < ls->boxes().count(); ++i)
 			{
-				glyphbox = dynamic_cast<const GlyphBox*>(linebox->boxes()[i]);
+				glyphbox = dynamic_cast<const GlyphBox*>(ls->boxes()[i]);
 //				if (!isEmbedded && !cullingArea.intersects(pf2.mapRect(QRectF(glyphbox->x(), glyphbox->y() - glyphbox->ascent(), glyphbox->width(), glyphbox->height()))))
 //					continue;
 				
@@ -4586,7 +4550,6 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					double ww = (obj->width() + obj->lineWidth()) * glyphs->scaleH;
 					double hh = (obj->height() + obj->lineWidth()) * glyphs->scaleV;
 					scrGl = QRectF(CurX, ls.y + glyphs->yoffset, ww , -hh).normalized();
-					previousWasObject = true;
 				}
 				else
 					scrGl = QRectF(CurX + glyphs->xoffset, ls.y + glyphs->yoffset - asce * glyphs->scaleV, glyphs->xadvance+1 , (asce+desc) * (glyphs->scaleV));
