@@ -14,6 +14,7 @@
 #include "sctextstruct.h"
 #include "scpainter.h"
 
+class StoryText;
 
 /**
  class Box has a similar role as TeX's boxes. Scribus packs glyph runs into GlyphBoxes, GlyphBoxes and InlineBoxes into LineBoxes and LineBoxes into GroupBox(T_Block). (and in the future: math atoms, tables & table cells, ...)
@@ -41,7 +42,13 @@ protected:
 	int m_lastChar;
 	
 public:
-	Box() { m_type = T_Invalid; m_x = m_y = m_width = m_ascent = m_descent = m_firstChar= 0;m_lastChar=0; }
+	Box()
+	{
+		m_type = T_Invalid;
+		m_x = m_y = m_width = m_ascent = m_descent = 0;
+		m_firstChar = 0;
+		m_lastChar = 0;
+	}
 	virtual ~Box() {}
 	
 	//	virtual GlyphBox* asGlyphBox() { return NULL; }
@@ -64,7 +71,6 @@ public:
 	void setDescent(double d) { m_descent = d; }
 	FRect bbox() const { return FRect(m_x, m_y, m_width, height()); }
 	bool containsPoint(FPoint coord) const { return bbox().contains(coord); }
-
 	int firstChar() const { return m_firstChar; }
 	void setFirstChar(int c) { m_firstChar = c; }
 	int lastChar() const { return m_lastChar; }
@@ -84,7 +90,7 @@ public:
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
 	}
 	
-	virtual void render(ScPainter* p) = 0;
+	virtual void render(ScPainter* p, const StoryText& text) = 0;
 	//	virtual void render(ScPainter* p, const RenderOptions& renderOptions) const = 0;
 	//	virtual qreal naturalWidth() const { return width(); }
 	//	virtual qreal naturalHeight() const { return height(); }
@@ -114,7 +120,7 @@ public:
 	void addBox(const Box* box);
 	Box* addBox(uint i);
 	Box* removeBox(uint i);
-	void render(ScPainter* p);
+	void render(ScPainter* p, const StoryText& text);
 };
 
 
@@ -134,7 +140,7 @@ public:
 	int pointToPosition(FPoint coord) const;
 	FRect boundingBox(int pos, uint len = 1) const { return bbox(); }
 //	QList<const Box*> pathForPos(int pos) const;
-    void render(ScPainter* p);
+	void render(ScPainter* p, const StoryText& text);
 };
 
 
