@@ -85,12 +85,12 @@ void TextLayout::removeLastLine ()
 	delete last;
 }
 
-void TextLayout::render(ScPainter *p)
+void TextLayout::render(ScPainter *p, const StoryText &text)
 {
 
      p->save();
 
-     m_lines->render(p);
+	 m_lines->render(p, text);
      p->restore();
 }
 

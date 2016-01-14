@@ -38,13 +38,13 @@ int GroupBox::pointToPosition(FPoint coord) const
 	return -1;
 }
 
-void GroupBox::render(ScPainter *p)
+void GroupBox::render(ScPainter *p, const StoryText &text)
 {
 	p->translate(x(),y());
 	for (int i = 0; i < boxes().count(); i++)
 	{
 		Box* box = dynamic_cast<Box*> (boxes()[i]);
-		box->render(p);
+		box->render(p, text);
 	}
 	p->translate(-x(),-y());
 }
@@ -114,14 +114,37 @@ LineBox::LineBox()
 	m_type = T_Line;
 }
 
-void GlyphBox::render(ScPainter *p)
+void GlyphBox::render(ScPainter *p, const StoryText &text)
 {
-	p->save();
-	p->translate(x(),y());
 	const CharStyle& style(glyphs.style());
 	const ScFace font = style.font();
+	bool selected = text.selected(m_firstChar) || text.selected(m_lastChar);
+
+	p->save();
+	p->translate(x(),y());
+
+	if (style.fillColor() != CommonStrings::None)
+	{
+		p->setFillMode(ScPainter::Solid);
+		QColor tmp;
+		//SetQColor(&tmp, style.fillColor(), style.fillShade());
+		p->setBrush(tmp);
+	}
+	else
+		p->setFillMode(ScPainter::None);
+	if (selected/*((selected && m_isSelected) || ((NextBox != 0 || BackBox != 0) && selected)) && (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable)*/)
+	{
+		// set text color to highlight if its selected
+		p->setBrush(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
+	}
+	if (style.strokeColor() != CommonStrings::None)
+	{
+		//				SetQColor(&tmp, style.strokeColor(), style.strokeShade());
+		//				p->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	}
 	for (int i = 0; i < m_glyphs.count(); ++i)
 	{
+
 		const GlyphLayout& glyphLayout(m_glyphs.at(i));
 		uint glyphId = glyphLayout.glyph;
 		FPointArray gly = font.glyphOutline(glyphId);
