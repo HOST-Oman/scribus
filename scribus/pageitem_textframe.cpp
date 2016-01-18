@@ -1433,6 +1433,26 @@ private:
 static void fillInTabLeaders(LineControl & current)
 {
 	// fill in tab leaders
+//	int runCount = current.line.lastChar - current. line.firstChar;
+	for(int i = 0; i < current.glyphRuns.count(); i++)
+	{
+		GlyphRun glyphrun = current.glyphRuns.at(i);
+		qDebug()<<"flage "<<glyphrun.flags();
+		CharStyle style(glyphrun.style());
+		if (glyphrun.hasFlag(ScLayout_TabLeaders))
+		{
+			GlyphLayout glyph = glyphrun.glyphs()[0];
+			double len = glyphrun.width();
+			double wt = glyph.xadvance;
+			int count = static_cast<int>(len / wt);
+			for(int s = 1; s < count; ++s)
+			{
+				GlyphLayout *more = new GlyphLayout();
+				more->xoffset = -len + wt * s;
+				glyphrun.appendGlyph(*more);
+			}
+		}
+	}
 #if 0
 	TODO;
 	double xPos = curLine.x;
@@ -2884,8 +2904,11 @@ void PageItem_TextFrame::layout()
 					tabs.active = false;
 				else // ???
 				{
+					currentRun.setFlag(ScLayout_TabLeaders);
 					tabs.xPos = current.xPos;
 					tTabValues = style.tabValues();
+					current.xPos -= (legacy ? 1.0 : 0.0);
+					tabs.tabGlyph = &firstGlyph;
 					if (tTabValues.isEmpty())
 					{
 						current.xPos = nextAutoTab (current, this);
@@ -2917,22 +2940,13 @@ void PageItem_TextFrame::layout()
 						// remember fill char
 						if (!tabs.fillChar.isNull())
 						{
-							//growWithTabLayout(currentRun);
-							//TabLayout * tglyph = dynamic_cast<TabLayout*>(glyphs->more);
-							//if (tglyph)
-							//{
-							//	tglyph->fillChar = tabs.fillChar;
-								firstGlyph.glyph    = font.char2CMap(tabs.fillChar);
-							//	tglyph->yoffset  = glyphs->yoffset;
-								firstGlyph.scaleV   = firstGlyph.scaleH = chs / charStyle.fontSize();
-							//	tglyph->xadvance = 0;
-							//}
+								firstGlyph.glyph    = tabs.tabGlyph->glyph;
+								firstGlyph.yoffset  = tabs.tabGlyph->yoffset;
+								firstGlyph.scaleV   = tabs.tabGlyph->scaleV;
+								firstGlyph.xadvance = 0;
 						}
 					}
-					current.xPos -= (legacy ? 1.0 : 0.0);
 					firstGlyph.xadvance = current.xPos + wide + kernVal - tabs.xPos;
-//					wide = current.xPos - RTabX;
-					tabs.tabGlyph = firstGlyph;
 				}
 			}
 
