@@ -144,7 +144,7 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 	}
 	for (int i = 0; i < m_glyphs.count(); ++i)
 	{
-
+		p->save();
 		const GlyphLayout& glyphLayout(m_glyphs.at(i));
 		uint glyphId = glyphLayout.glyph;
 		FPointArray gly = font.glyphOutline(glyphId);
@@ -184,6 +184,8 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 			}
 			p->setFillRule(fr);
 		}
+		p->restore();
+		p->translate(glyphLayout.xadvance, 0);
 	}
 	p->restore();
 
