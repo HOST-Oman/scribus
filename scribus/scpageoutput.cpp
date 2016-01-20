@@ -1613,7 +1613,6 @@ void ScPageOutput::drawItem_Table( PageItem_Table* item, ScPainterExBase* painte
 
 void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase* painter, QRect cullingArea )
 {
-	const GlyphBox* lincon = item->asTextFrame()->m_gb;
 	QTransform wm;
 	QPoint pt1, pt2;
 	FPoint ColBound;
