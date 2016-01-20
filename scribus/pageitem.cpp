@@ -2655,10 +2655,8 @@ double PageItem::layoutGlyphs(const QString& chars, GlyphRun& glyphrun)
 		}
 		if (layout.xadvance > 0)
 			layout.xadvance += tracking;
-		
-		glyphrun.glyphs().append(layout);
-		
-		if (i>0)
+
+		if (!glyphrun.glyphs().isEmpty())
 		{
 			GlyphLayout& lastLayout(glyphrun.glyphs().last());
 			lastLayout.xadvance += font.glyphKerning(lastLayout.glyph, layout.glyph, style.fontSize() / 10) * lastLayout.scaleH;
@@ -2666,6 +2664,9 @@ double PageItem::layoutGlyphs(const QString& chars, GlyphRun& glyphrun)
 //			if (layout.yadvance > lastLayout.yadvance)
 //				lastLayout.yadvance = layout.yadvance;
 		}
+
+		glyphrun.glyphs().append(layout);
+
 	}
 	return retval;
 }
