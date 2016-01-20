@@ -1135,7 +1135,7 @@ void ScPageOutput::drawItem_PathText( PageItem_PathText* item, ScPainterExBase* 
 			chstr += itemText.text(a+1, 1);
 		glyphs.yadvance = 0;
 		GlyphRun runs = lincont->glyphs;
-		item->layoutGlyphs(chstr,runs);
+		item->layoutGlyphs(chstr,a ,runs);
 		//glyphs->shrink();
         if (item->itemText.hasObject(a))
 			totalTextLen += (item->itemText.object(a)->width() + item->itemText.object(a)->lineWidth()) * glyphs.scaleH;
@@ -1177,6 +1177,7 @@ void ScPageOutput::drawItem_PathText( PageItem_PathText* item, ScPainterExBase* 
 		glyphs.yadvance = 0;
 		GlyphRun runs = lincont->glyphs;
 		item->layoutGlyphs(chstr, runs);
+		item->layoutGlyphs(chstr,a , runs);
 		//glyphs->shrink();                                                           // HACK
 		// Unneeded now that glyph xadvance is set appropriately for inline objects by PageItem_TextFrame::layout() - JG
 		/*if (hl->hasObject())
