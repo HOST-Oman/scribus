@@ -134,6 +134,8 @@ public:
 		, m_glyphs(glyphrun.glyphs())
 	{
 		m_type = T_Glyphs;
+		m_firstChar = glyphrun.firstChar();
+		m_lastChar = glyphrun.lastChar();
 	}
 	const GlyphRun glyphs;
 	QList <GlyphLayout> m_glyphs;

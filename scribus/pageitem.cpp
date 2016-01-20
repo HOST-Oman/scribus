@@ -2557,7 +2557,7 @@ void PageItem::SetQColor(QColor *tmp, QString colorName, double shad)
     sets xadvance to the advance width without kerning. If more than one glyph
     is generated, kerning is included in all but the last xadvance.
 */
-double PageItem::layoutGlyphs(const QString& chars, GlyphRun& glyphrun)
+double PageItem::layoutGlyphs(const QString& chars,int index, GlyphRun& glyphrun)
 {
 	double retval = 0.0;
 
@@ -2565,6 +2565,7 @@ double PageItem::layoutGlyphs(const QString& chars, GlyphRun& glyphrun)
 	const CharStyle& style(glyphrun.style());
 	const ScFace font = style.font();
 	double asce = font.ascent(style.fontSize() / 10.0);
+
 	int chst = style.effects() & ScStyle_UserStyles;
 
 	for (int i = 0; i < chars.length(); ++i)
@@ -2664,7 +2665,8 @@ double PageItem::layoutGlyphs(const QString& chars, GlyphRun& glyphrun)
 //			if (layout.yadvance > lastLayout.yadvance)
 //				lastLayout.yadvance = layout.yadvance;
 		}
-
+		glyphrun.setFirstChar(index);
+		glyphrun.setLastChar(index);
 		glyphrun.glyphs().append(layout);
 
 	}
