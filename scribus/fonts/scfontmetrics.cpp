@@ -261,7 +261,7 @@ QPixmap FontSample(const ScFace& fnt, int s, QString ts, QColor back, bool force
 	QImage pm(w, h, QImage::Format_ARGB32_Premultiplied);
 	pen_x = 0;
 	ymax = 0.0;
-	ScPainter *p = new ScPainter(&pm, pm.width(), pm.height());
+	ScPainter *p = new ScScreenPainter(&pm, pm.width(), pm.height());
 	p->clear(back);
 	p->setFillMode(1);
 	p->setLineWidth(0.0);

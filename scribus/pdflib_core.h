@@ -42,6 +42,13 @@ class ScText;
 #endif
 
 #include "pdfwriter.h"
+class PDFPainter : public ScPainter
+{
+    virtual void drawGlyph(GlyphRun run);
+    virtual void translate();
+    virtual void restore();
+    virtual void save();
+};
 
 /**
  * PDFLibCore provides Scribus's implementation of PDF export functionality.

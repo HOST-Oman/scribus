@@ -23,117 +23,219 @@ for which a new license (GPL+exception) is in place.
 #include "fpointarray.h"
 #include "vgradient.h"
 #include "mesh.h"
+#include "sctextstruct.h"
 
 class ScPattern;
-
-typedef struct _cairo cairo_t;
-typedef struct _cairo_surface cairo_surface_t;
-typedef struct _cairo_pattern cairo_pattern_t;
 
 class SCRIBUS_API ScPainter
 {
 public:
-	ScPainter( QImage *target, unsigned int w, unsigned int h, double transparency = 1.0, int blendmode = 0 );
-	virtual ~ScPainter();
-	enum FillMode { None, Solid, Gradient, Pattern, Hatch };
-	virtual void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0);
-	virtual void endLayer();
-	virtual void setAntialiasing(bool enable);
-	virtual void begin();
-	virtual void end();
-	void clear();
-	virtual void clear( const QColor & );
-
-	// matrix manipulation
-	virtual void setWorldMatrix( const QTransform & );
-	virtual const QTransform worldMatrix();
-	virtual void setZoomFactor( double );
-	virtual double zoomFactor() { return m_zoomFactor; }
-	virtual void translate( double, double );
-	virtual void translate( const QPointF& offset );
-	virtual void rotate( double );
-	virtual void scale( double, double );
-
-	// drawing
-	virtual void moveTo( const double &, const double & );
-	virtual void lineTo( const double &, const double & );
-	virtual void curveTo( FPoint p1, FPoint p2, FPoint p3 );
-	virtual void newPath();
-	virtual void closePath();
-	virtual void fillPath();
-	virtual void strokePath();
-	virtual void setFillRule( bool fillRule );
-	virtual bool fillRule() { return m_fillRule; }
-	virtual void setFillMode( int fill );
-	virtual int  fillMode() { return m_fillMode; }
-	virtual void setStrokeMode( int stroke );
-	virtual int  strokeMode() { return m_strokeMode; }
-	virtual void setGradient( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew);
-	virtual void setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY);
-
-	virtual void setMaskMode( int mask );
-	virtual void setGradientMask( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew);
-	virtual void setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY);
-
-	virtual void set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4);
-	virtual void set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4);
-	virtual void setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5);
-	virtual void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray);
-	virtual void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches);
-
-	virtual void setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height);
-
-	virtual void setClipPath();
-
-	virtual void drawImage( QImage *image);
-	virtual void setupPolygon(FPointArray *points, bool closed = true);
-	virtual void setupSharpPolygon(FPointArray *points, bool closed = true);
-	virtual void sharpLineHelper(FPoint &pp);
-	virtual void sharpLineHelper(QPointF &pp);
-	virtual void drawPolygon();
-	virtual void drawPolyLine();
-	virtual void drawLine(FPoint start, FPoint end);
-	virtual void drawLine(const QPointF& start, const QPointF& end);
-	virtual void drawSharpLine(FPoint start, FPoint end);
-	virtual void drawSharpLine(QPointF start, QPointF end);
-	virtual void drawRect(double, double, double, double);
-	virtual void drawSharpRect(double x, double y, double w, double h);
-	virtual void drawText(QRectF area, QString text, bool filled = true, int align = 0);
-	virtual void drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth);
-	virtual void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth);
-	virtual void colorizeAlpha(QColor color);
-	virtual void colorize(QColor color);
-	virtual void blurAlpha(int radius);
-	virtual void blur(int radius);
-
-	// pen + brush
-	virtual QColor pen();
-	virtual QColor brush();
-	virtual void setPen( const QColor & );
-	virtual void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo );
-	virtual void setPenOpacity( double op );
-	virtual void setLineWidth( double w);
-	virtual void setDash(const QVector<double>& m_array, double ofs);
-	virtual void setBrush( const QColor & );
-	virtual void setBrushOpacity( double op );
-	virtual void setOpacity( double op );
-	virtual void setFont( const QFont &f );
-	virtual QFont font();
-
-	// stack management
-	virtual void save();
-	virtual void restore();
-
-
-	virtual void setRasterOp( int blendMode );
-	virtual void setBlendModeFill( int blendMode );
-	virtual void setBlendModeStroke( int blendMode );
-
 	VGradient fill_gradient;
 	VGradient stroke_gradient;
 	VGradient mask_gradient;
 	ScPattern *m_maskPattern;
 	ScPattern *m_pattern;
+
+	ScPainter() {}
+	virtual ~ScPainter() = 0;
+
+	enum FillMode { None, Solid, Gradient, Pattern, Hatch };
+	virtual void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0 ) = 0;
+	virtual void endLayer( ) = 0;
+	virtual void setAntialiasing(bool enable ) = 0;
+	virtual void begin( ) = 0;
+	virtual void end( ) = 0;
+	virtual void clear() = 0;
+	virtual void clear( const QColor & ) = 0;
+
+	// matrix manipulation
+	virtual void setWorldMatrix( const QTransform &  ) = 0;
+	virtual const QTransform worldMatrix( ) = 0;
+	virtual void setZoomFactor( double  ) = 0;
+	virtual double zoomFactor( ) = 0;
+	virtual void translate( double, double  ) = 0;
+	virtual void translate( const QPointF& offset  ) = 0;
+	virtual void rotate( double  ) = 0;
+	virtual void scale( double, double  ) = 0;
+
+	// drawing
+	virtual void moveTo( const double &, const double &  ) = 0;
+	virtual void lineTo( const double &, const double &  ) = 0;
+	virtual void curveTo( FPoint p1, FPoint p2, FPoint p3  ) = 0;
+	virtual void newPath( ) = 0;
+	virtual void closePath( ) = 0;
+	virtual void fillPath( ) = 0;
+	virtual void strokePath( ) = 0;
+	virtual void setFillRule( bool fillRule  ) = 0;
+	virtual bool fillRule( ) = 0;
+	virtual void setFillMode( int fill  ) = 0;
+	virtual int  fillMode() = 0;
+	virtual void setStrokeMode( int stroke  ) = 0;
+	virtual int  strokeMode() = 0;
+	virtual void setGradient( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew ) = 0;
+	virtual void setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY ) = 0;
+
+	virtual void setMaskMode( int mask  ) = 0;
+	virtual void setGradientMask( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew ) = 0;
+	virtual void setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY ) = 0;
+
+	virtual void set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4 ) = 0;
+	virtual void set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4 ) = 0;
+	virtual void setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5 ) = 0;
+	virtual void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray ) = 0;
+	virtual void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches ) = 0;
+
+	virtual void setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height ) = 0;
+
+	virtual void setClipPath( ) = 0;
+
+	virtual void drawImage( QImage *image ) = 0;
+	virtual void setupPolygon(FPointArray *points, bool closed = true ) = 0;
+	virtual void setupSharpPolygon(FPointArray *points, bool closed = true ) = 0;
+	virtual void sharpLineHelper(FPoint &pp ) = 0;
+	virtual void sharpLineHelper(QPointF &pp ) = 0;
+	virtual void drawPolygon( ) = 0;
+	virtual void drawPolyLine( ) = 0;
+	virtual void drawLine(FPoint start, FPoint end ) = 0;
+	virtual void drawLine(const QPointF& start, const QPointF& end ) = 0;
+	virtual void drawSharpLine(FPoint start, FPoint end ) = 0;
+	virtual void drawSharpLine(QPointF start, QPointF end ) = 0;
+	virtual void drawRect(double, double, double, double ) = 0;
+	virtual void drawSharpRect(double x, double y, double w, double h ) = 0;
+	virtual void drawText(QRectF area, QString text, bool filled = true, int align = 0 ) = 0;
+	virtual void drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth ) = 0;
+	virtual void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth ) = 0;
+	virtual void colorizeAlpha(QColor color ) = 0;
+	virtual void colorize(QColor color ) = 0;
+	virtual void blurAlpha(int radius ) = 0;
+	virtual void blur(int radius ) = 0;
+	virtual void drawGlyph(GlyphRun glyphrun ) = 0;
+	// pen + brush
+	virtual QColor pen( ) = 0;
+	virtual QColor brush( ) = 0;
+	virtual void setPen( const QColor &  ) = 0;
+	virtual void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo  ) = 0;
+	virtual void setPenOpacity( double op  ) = 0;
+	virtual void setLineWidth( double w ) = 0;
+	virtual void setDash(const QVector<double>& array, double ofs ) = 0;
+	virtual void setBrush( const QColor &  ) = 0;
+	virtual void setBrushOpacity( double op  ) = 0;
+	virtual void setOpacity( double op  ) = 0;
+	virtual void setFont( const QFont &f  ) = 0;
+	virtual QFont font( ) = 0;
+
+	// stack management
+	virtual void save( ) = 0;
+	virtual void restore( ) = 0;
+
+	virtual void setRasterOp( int blendMode  ) = 0;
+	virtual void setBlendModeFill( int blendMode  ) = 0;
+	virtual void setBlendModeStroke( int blendMode  ) = 0;
+};
+
+
+typedef struct _cairo cairo_t;
+typedef struct _cairo_surface cairo_surface_t;
+typedef struct _cairo_pattern cairo_pattern_t;
+
+class SCRIBUS_API ScScreenPainter : public ScPainter
+{
+public:
+	ScScreenPainter( QImage *target, unsigned int w, unsigned int h, double transparency = 1.0, int blendmode = 0 );
+	~ScScreenPainter();
+	void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0);
+	void endLayer();
+	void setAntialiasing(bool enable);
+	void begin();
+	void end();
+	void clear();
+	void clear( const QColor & );
+
+
+	// matrix manipulation
+	void setWorldMatrix( const QTransform & );
+	const QTransform worldMatrix();
+	void setZoomFactor( double );
+	double zoomFactor() { return m_zoomFactor; }
+	void translate( double, double );
+	void translate( const QPointF& offset );
+	void rotate( double );
+	void scale( double, double );
+
+	// drawing
+	void moveTo( const double &, const double & );
+	void lineTo( const double &, const double & );
+	void curveTo( FPoint p1, FPoint p2, FPoint p3 );
+	void newPath();
+	void closePath();
+	void fillPath();
+	void strokePath();
+	void setFillRule( bool fillRule );
+	bool fillRule() { return m_fillRule; }
+	void setFillMode( int fill );
+	int  fillMode() { return m_fillMode; }
+	void setStrokeMode( int stroke );
+	int  strokeMode() { return m_strokeMode; }
+	void setGradient( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew);
+	void setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY);
+
+	void setMaskMode( int mask );
+	void setGradientMask( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew);
+	void setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY);
+
+	void set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4);
+	void set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4);
+	void setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5);
+	void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray);
+	void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches);
+
+	void setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height);
+
+	void setClipPath();
+
+	void drawImage( QImage *image);
+	void setupPolygon(FPointArray *points, bool closed = true);
+	void setupSharpPolygon(FPointArray *points, bool closed = true);
+	void sharpLineHelper(FPoint &pp);
+	void sharpLineHelper(QPointF &pp);
+	void drawPolygon();
+	void drawPolyLine();
+	void drawLine(FPoint start, FPoint end);
+	void drawLine(const QPointF& start, const QPointF& end);
+	void drawSharpLine(FPoint start, FPoint end);
+	void drawSharpLine(QPointF start, QPointF end);
+	void drawRect(double, double, double, double);
+	void drawSharpRect(double x, double y, double w, double h);
+	void drawText(QRectF area, QString text, bool filled = true, int align = 0);
+	void drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth);
+	void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth);
+	void colorizeAlpha(QColor color);
+	void colorize(QColor color);
+	void blurAlpha(int radius);
+	void blur(int radius);
+	void drawGlyph(GlyphRun glyphrun);
+	// pen + brush
+	QColor pen();
+	QColor brush();
+	void setPen( const QColor & );
+	void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo );
+	void setPenOpacity( double op );
+	void setLineWidth( double w);
+	void setDash(const QVector<double>& array, double ofs);
+	void setBrush( const QColor & );
+	void setBrushOpacity( double op );
+	void setOpacity( double op );
+	void setFont( const QFont &f );
+	QFont font();
+
+	// stack management
+	void save();
+	void restore();
+
+
+	void setRasterOp( int blendMode );
+	void setBlendModeFill( int blendMode );
+	void setBlendModeStroke( int blendMode );
 
 private:
 	void fillPathHelper();

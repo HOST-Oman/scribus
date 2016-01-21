@@ -10,13 +10,205 @@ for which a new license (GPL+exception) is in place.
 #include "util_color.h"
 #include "util.h"
 #include "util_math.h"
-
+#include "text/specialchars.h"
 #include <cairo.h>
-
+#include"commonstrings.h"
+#include"prefsmanager.h"
 #include <math.h>
 #include <QDebug>
 
-ScPainter::ScPainter( QImage *target, unsigned int w, unsigned int h, double transparency, int blendmode )
+ScPainter::~ScPainter()
+{}
+
+void ScScreenPainter::drawGlyph(GlyphRun layout)
+{
+    const CharStyle& style(layout.style());
+    const ScFace font = style.font();
+
+    for (int i = 0; i < layout.glyphs().count(); ++i)
+    {
+        const GlyphLayout& glyphLayout(layout.glyphs()[i]);
+        uint glyph = glyphLayout.glyph;
+
+
+        if (glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBSPACE.unicode()) ||
+                 glyph == (ScFace::CONTROL_GLYPHS + 32))
+        {
+            glyph = font.char2CMap(QChar(' '));
+        }
+        else if (glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBHYPHEN.unicode()))
+        {
+            glyph = font.char2CMap(QChar('-'));
+        }
+        else if (glyph >= ScFace::CONTROL_GLYPHS || (style.effects() & ScLayout_SuppressSpace))
+        {
+            //		qDebug("drawGlyphs: skipping %d", glyph);
+            // all those are empty
+			translate(glyphLayout.xadvance, 0);
+            continue;
+        }
+
+        //	if (font.canRender(QChar(glyph)))
+        {
+            FPointArray gly = font.glyphOutline(glyph);
+            // Do underlining first so you can get typographically correct
+            // underlines when drawing a white outline
+            if (((style.effects() & ScStyle_Underline) || ((style.effects() & ScStyle_UnderlineWords) && glyph != font.char2CMap(QChar(' ')))) && (style.strokeColor() != CommonStrings::None))
+            {
+                double st, lw;
+                if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
+                {
+                    if (style.underlineOffset() != -1)
+                        st = (style.underlineOffset() / 1000.0) * (font.descent(style.fontSize() / 10.0));
+                    else
+                        st = font.underlinePos(style.fontSize() / 10.0);
+                    if (style.underlineWidth() != -1)
+                        lw = (style.underlineWidth() / 1000.0) * (style.fontSize() / 10.0);
+                    else
+                        lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+                }
+                else
+                {
+                    st = font.underlinePos(style.fontSize() / 10.0);
+                    lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+                }
+                if (style.baselineOffset() != 0)
+                    st += (style.fontSize() / 10.0) * glyphLayout.scaleV * (style.baselineOffset() / 1000.0);
+				QColor tmpC = pen();
+				setPen(brush());
+				setLineWidth(lw);
+                if (style.effects() & ScStyle_Subscript)
+					drawLine(FPoint(glyphLayout.xoffset, glyphLayout.yoffset - st),
+                                FPoint(glyphLayout.xoffset + glyphLayout.xadvance, glyphLayout.yoffset - st));
+                else
+					drawLine(FPoint(glyphLayout.xoffset, -st),
+                                FPoint(glyphLayout.xoffset + glyphLayout.xadvance, -st));
+				setPen(tmpC);
+            }
+            if (gly.size() > 3)
+            {
+                if (glyph == 0)
+                {
+                    //				qDebug() << QString("glyph 0: (%1,%2) * %3 %4 + %5").arg(glyphLayout.xoffset).arg(glyphLayout.yoffset).arg(glyphLayout.scaleH).arg(glyphLayout.scaleV).arg(glyphLayout.xadvance));
+                }
+				save();
+				translate(glyphLayout.xoffset, glyphLayout.yoffset - ((style.fontSize() / 10.0) * glyphLayout.scaleV));
+               /* if (m_isReversed)
+                {
+                    p->scale(-1, 1);
+                    p->translate(-glyphLayout.xadvance, 0);
+                }*/
+                if (style.baselineOffset() != 0)
+					translate(0, -(style.fontSize() / 10.0) * (style.baselineOffset() / 1000.0));
+                double glxSc = glyphLayout.scaleH * style.fontSize() / 100.00;
+                double glySc = glyphLayout.scaleV * style.fontSize() / 100.0;
+				scale(glxSc, glySc);
+                //			p->setFillMode(1);
+				bool fr = fillRule();
+				setFillRule(false);
+                //			double	a = gly.point(0).x();
+                //			double	b = gly.point(0).y();
+                //			double	c = gly.point(3).x();
+                //			double	d = gly.point(3).y();
+                //			qDebug() << QString("drawglyphs: %1 (%2,%3) (%4,%5) scaled %6,%7 trans %8,%9")
+                //				   .arg(gly.size()).arg(a).arg(b).arg(c).arg(d)
+                //				   .arg(p->worldMatrix().m11()).arg(p->worldMatrix().m22()).arg(p->worldMatrix().dx()).arg(p->worldMatrix().dy());
+				setupPolygon(&gly, true);
+                /*if (m_Doc->layerOutline(LayerID))
+                {
+                    p->save();
+                    p->setPen(m_Doc->layerMarker(LayerID), 0.5, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+                    p->setFillMode(ScPainter::None);
+                    p->setBrushOpacity(1.0);
+                    p->setPenOpacity(1.0);
+                    p->strokePath();
+                    p->restore();
+                    p->setFillRule(fr);
+                    p->restore();
+                    continue;
+                }*/
+                if (glyph == 0)
+                {
+					setPen(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+					setLineWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() * 2 / 10000.0);
+					strokePath();
+                }
+                else if ((font.isStroked()) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+                {
+					QColor tmp = brush();
+					setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+					setLineWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0);
+					strokePath();
+                }
+                else
+                {
+                    if ((style.effects() & ScStyle_Shadowed) && (style.strokeColor() != CommonStrings::None))
+                    {
+						save();
+						translate((style.fontSize() * glyphLayout.scaleH * style.shadowXOffset() / 10000.0) / glxSc, -(style.fontSize() * glyphLayout.scaleV * style.shadowYOffset() / 10000.0) / glySc);
+						QColor tmp = brush();
+						setBrush(pen());
+						setupPolygon(&gly, true);
+						fillPath();
+						setBrush(tmp);
+						restore();
+						setupPolygon(&gly, true);
+                    }
+                    if (style.fillColor() != CommonStrings::None)
+						fillPath();
+                    if ((style.effects() & ScStyle_Outline) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+                    {
+						setLineWidth((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) / glySc);
+						strokePath();
+                    }
+                }
+				setFillRule(fr);
+				restore();
+            }
+            else {
+                //			qDebug() << "drawGlyphs: empty glyph" << glyph;
+            }
+            if ((style.effects() & ScStyle_Strikethrough) && (style.strokeColor() != CommonStrings::None))
+            {
+                double st, lw;
+                if ((style.strikethruOffset() != -1) || (style.strikethruWidth() != -1))
+                {
+                    if (style.strikethruOffset() != -1)
+                        st = (style.strikethruOffset() / 1000.0) * (font.ascent(style.fontSize() / 10.0));
+                    else
+                        st = font.strikeoutPos(style.fontSize() / 10.0);
+                    if (style.strikethruWidth() != -1)
+                        lw = (style.strikethruWidth() / 1000.0) * (style.fontSize() / 10.0);
+                    else
+                        lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+                }
+                else
+                {
+                    st = font.strikeoutPos(style.fontSize() / 10.0);
+                    lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+                }
+                if (style.baselineOffset() != 0)
+                    st += (style.fontSize() / 10.0) * glyphLayout.scaleV * (style.baselineOffset() / 1000.0);
+				setPen(brush());
+				setLineWidth(lw);
+				drawLine(FPoint(glyphLayout.xoffset, glyphLayout.yoffset - st),
+                            FPoint(glyphLayout.xoffset + glyphLayout.xadvance, glyphLayout.yoffset - st));
+            }
+        }
+        /*	else
+         {
+         p->setLineWidth(1);
+         p->setPen(red);
+         p->setBrush(red);
+         p->setFillMode(1);
+         p->drawRect(glyphs.xoffset, glyphs.yoffset - (style.fontSize() / 10.0) * glyphs.scaleV , (style.fontSize() / 10.0) * glyphs.scaleH, (style.fontSize() / 10.0) * glyphs.scaleV);
+         }
+         */
+		 translate(glyphLayout.xadvance, 0);
+    }
+}
+
+ScScreenPainter::ScScreenPainter( QImage *target, unsigned int w, unsigned int h, double transparency, int blendmode )
 {
 	m_width = w;
 	m_height= h;
@@ -59,13 +251,13 @@ ScPainter::ScPainter( QImage *target, unsigned int w, unsigned int h, double tra
 	cairo_set_tolerance( m_cr, 0.5 );
 }
 
-ScPainter::~ScPainter()
+ScScreenPainter::~ScScreenPainter()
 {
 	cairo_surface_destroy(cairo_get_target(m_cr));
 	cairo_destroy( m_cr );
 }
 
-void ScPainter::beginLayer(double transparency, int blendmode, FPointArray *clipArray)
+void ScScreenPainter::beginLayer(double transparency, int blendmode, FPointArray *clipArray)
 {
 	layerProp la;
 	la.blendmode = m_blendMode;
@@ -97,7 +289,7 @@ void ScPainter::beginLayer(double transparency, int blendmode, FPointArray *clip
 	m_Layers.push(la);
 }
 
-void ScPainter::endLayer()
+void ScScreenPainter::endLayer()
 {
 	layerProp la;
 	if (m_Layers.count() == 0)
@@ -152,11 +344,11 @@ void ScPainter::endLayer()
 	m_maskMode = 0;
 }
 
-void ScPainter::begin()
+void ScScreenPainter::begin()
 {
 }
 
-void ScPainter::end()
+void ScScreenPainter::end()
 {
 	if (m_svgMode)
 		cairo_show_page (m_cr);
@@ -168,20 +360,20 @@ void ScPainter::end()
 	}
 }
 
-void ScPainter::clear()
+void ScScreenPainter::clear()
 {
 	if (m_imageMode)
 		m_image->fill( qRgba(255, 255, 255, 255) );
 }
 
-void ScPainter::clear( const QColor &c )
+void ScScreenPainter::clear( const QColor &c )
 {
 	QRgb cs = c.rgb();
 	if (m_imageMode)
 		m_image->fill( qRgba(qRed(cs), qGreen(cs), qBlue(cs), qAlpha(cs)) );
 }
 
-const QTransform ScPainter::worldMatrix()
+const QTransform ScScreenPainter::worldMatrix()
 {
 	cairo_matrix_t matrix;
 	cairo_get_matrix(m_cr, &matrix);
@@ -189,14 +381,14 @@ const QTransform ScPainter::worldMatrix()
 	return mat;
 }
 
-void ScPainter::setWorldMatrix( const QTransform &mat )
+void ScScreenPainter::setWorldMatrix( const QTransform &mat )
 {
 	cairo_matrix_t matrix;
 	cairo_matrix_init(&matrix, mat.m11(), mat.m12(), mat.m21(), mat.m22(), mat.dx(), mat.dy());
 	cairo_set_matrix(m_cr, &matrix);
 }
 
-void ScPainter::setAntialiasing(bool enable)
+void ScScreenPainter::setAntialiasing(bool enable)
 {
 	if (enable)
 		cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_DEFAULT);
@@ -204,75 +396,75 @@ void ScPainter::setAntialiasing(bool enable)
 		cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_NONE);
 }
 
-void ScPainter::setZoomFactor( double zoomFactor )
+void ScScreenPainter::setZoomFactor( double zoomFactor )
 {
 	m_zoomFactor = zoomFactor;
 	cairo_scale (m_cr, m_zoomFactor, m_zoomFactor);
 }
 
-void ScPainter::translate( double x, double y )
+void ScScreenPainter::translate( double x, double y )
 {
 	cairo_translate (m_cr, x, y);
 }
 
-void ScPainter::translate( const QPointF& offset )
+void ScScreenPainter::translate( const QPointF& offset )
 {
 	cairo_translate (m_cr, offset.x(), offset.y());
 }
 
-void ScPainter::rotate( double r )
+void ScScreenPainter::rotate( double r )
 {
 	cairo_rotate (m_cr, r * 3.1415927 / 180.0);
 }
 
-void ScPainter::scale( double x, double y )
+void ScScreenPainter::scale( double x, double y )
 {
 	cairo_scale (m_cr, x, y);
 	m_zoomFactor *= qMax(x, y);
 }
 
-void ScPainter::moveTo( const double &x, const double &y )
+void ScScreenPainter::moveTo( const double &x, const double &y )
 {
 	cairo_move_to( m_cr, x, y);
 }
 
 void
-ScPainter::lineTo( const double &x, const double &y )
+ScScreenPainter::lineTo( const double &x, const double &y )
 {
 	cairo_line_to( m_cr, x, y);
 }
 
-void ScPainter::curveTo( FPoint p1, FPoint p2, FPoint p3 )
+void ScScreenPainter::curveTo( FPoint p1, FPoint p2, FPoint p3 )
 {
 	cairo_curve_to(m_cr, p1.x(), p1.y(), p2.x(), p2.y(), p3.x(), p3.y());
 }
 
-void ScPainter::newPath()
+void ScScreenPainter::newPath()
 {
 	cairo_new_path( m_cr );
 }
 
-void ScPainter::closePath()
+void ScScreenPainter::closePath()
 {
 	cairo_close_path( m_cr );
 }
 
-void ScPainter::setFillRule( bool fillRule )
+void ScScreenPainter::setFillRule( bool fillRule )
 {
 	m_fillRule = fillRule;
 }
 
-void ScPainter::setFillMode( int fill )
+void ScScreenPainter::setFillMode( int fill )
 {
 	m_fillMode = fill;
 }
 
-void ScPainter::setStrokeMode( int stroke )
+void ScScreenPainter::setStrokeMode( int stroke )
 {
 	m_strokeMode = stroke;
 }
 
-void ScPainter::setGradient(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
+void ScScreenPainter::setGradient(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
 {
 	fill_gradient.setType(mode);
 	fill_gradient.setOrigin(orig);
@@ -295,12 +487,12 @@ void ScPainter::setGradient(VGradient::VGradientType mode, FPoint orig, FPoint v
 		m_gradientSkew = tan(M_PI / 180.0 * skew);
 }
 
-void ScPainter::setMaskMode(int mask)
+void ScScreenPainter::setMaskMode(int mask)
 {
 	m_maskMode = mask;
 }
 
-void ScPainter::setGradientMask(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
+void ScScreenPainter::setGradientMask(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
 {
 	mask_gradient.setType(mode);
 	mask_gradient.setOrigin(orig);
@@ -319,7 +511,7 @@ void ScPainter::setGradientMask(VGradient::VGradientType mode, FPoint orig, FPoi
 		m_mask_gradientSkew = tan(M_PI / 180.0 * skew);
 }
 
-void ScPainter::setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
+void ScScreenPainter::setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
 {
 	m_maskPattern = pattern;
 	m_mask_patternScaleX = scaleX / 100.0;
@@ -333,7 +525,7 @@ void ScPainter::setPatternMask(ScPattern *pattern, double scaleX, double scaleY,
 	m_mask_patternMirrorY = mirrorY;
 }
 
-void ScPainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4)
+void ScScreenPainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4)
 {
 	fill_gradient.setType(VGradient::fourcolor);
 	gradPatchP1 = p1;
@@ -346,7 +538,7 @@ void ScPainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FP
 	gradControlP4 = c4;
 }
 
-void ScPainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4)
+void ScScreenPainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4)
 {
 	gradPatchColor1 = col1;
 	gradPatchColor2 = col2;
@@ -354,7 +546,7 @@ void ScPainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QColor co
 	gradPatchColor4 = col4;
 }
 
-void ScPainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5)
+void ScScreenPainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5)
 {
 	fill_gradient.setType(VGradient::diamond);
 	gradPatchP1 = p1;
@@ -368,7 +560,7 @@ void ScPainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, F
 	gradControlP5 = c5;
 }
 
-void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray)
+void ScScreenPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray)
 {
 	fill_gradient.setType(VGradient::mesh);
 	meshGradientArray = meshArray;
@@ -378,7 +570,7 @@ void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QLis
 	gradPatchP4 = p4;
 }
 
-void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches)
+void ScScreenPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches)
 {
 	fill_gradient.setType(VGradient::freemesh);
 	meshGradientPatches = meshPatches;
@@ -388,7 +580,7 @@ void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QLis
 	gradPatchP4 = p4;
 }
 
-void ScPainter::setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height)
+void ScScreenPainter::setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height)
 {
 	m_hatchType = mode;
 	m_hatchDistance = distance;
@@ -400,13 +592,13 @@ void ScPainter::setHatchParameters(int mode, double distance, double angle, bool
 	m_hatchHeight = height;
 }
 
-void ScPainter::fillPath()
+void ScScreenPainter::fillPath()
 {
 	if (m_fillMode != 0)
 		fillPathHelper();
 }
 
-void ScPainter::strokePath()
+void ScScreenPainter::strokePath()
 {
 //	if( LineWidth == 0 )
 //		return;
@@ -414,22 +606,22 @@ void ScPainter::strokePath()
 		strokePathHelper();
 }
 
-QColor ScPainter::pen()
+QColor ScScreenPainter::pen()
 {
 	return m_stroke;
 }
 
-QColor ScPainter::brush()
+QColor ScScreenPainter::brush()
 {
 	return m_fill;
 }
 
-void ScPainter::setPen( const QColor &c )
+void ScScreenPainter::setPen( const QColor &c )
 {
 	m_stroke = c;
 }
 
-void ScPainter::setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo )
+void ScScreenPainter::setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo )
 {
 	m_stroke = c;
 	m_LineWidth = w;
@@ -439,63 +631,63 @@ void ScPainter::setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapSt
 	getDashArray(st, w, m_array);
 }
 
-void ScPainter::setLineWidth( double w )
+void ScScreenPainter::setLineWidth( double w )
 {
 	m_LineWidth = w;
 }
 
-void ScPainter::setPenOpacity( double op )
+void ScScreenPainter::setPenOpacity( double op )
 {
 	m_stroke_trans = op;
 }
 
 
-void ScPainter::setDash(const QVector<double>& array, double ofs)
+void ScScreenPainter::setDash(const QVector<double>& array, double ofs)
 {
 	m_array = array;
 	m_offset = ofs;
 }
 
-void ScPainter::setBrush( const QColor &c )
+void ScScreenPainter::setBrush( const QColor &c )
 {
 	m_fill = c;
 }
 
-void ScPainter::setBrushOpacity( double op )
+void ScScreenPainter::setBrushOpacity( double op )
 {
 	m_fill_trans = op;
 }
 
-void ScPainter::setOpacity( double op )
+void ScScreenPainter::setOpacity( double op )
 {
 	m_fill_trans = op;
 	m_stroke_trans = op;
 }
 
-void ScPainter::setFont( const QFont &f)
+void ScScreenPainter::setFont( const QFont &f)
 {
 	m_font = f;
 }
 
-QFont ScPainter::font()
+QFont ScScreenPainter::font()
 {
 	return m_font;
 }
 
-void ScPainter::save()
+void ScScreenPainter::save()
 {
 	cairo_save( m_cr );
 	m_zoomStack.push(m_zoomFactor);
 }
 
-void ScPainter::restore()
+void ScScreenPainter::restore()
 {
 	cairo_restore( m_cr );
 	if (!m_zoomStack.isEmpty())
 		m_zoomFactor = m_zoomStack.pop();
 }
 
-void ScPainter::setRasterOp(int blendMode)
+void ScScreenPainter::setRasterOp(int blendMode)
 {
 	if (blendMode == 0)
 		cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
@@ -541,17 +733,17 @@ void ScPainter::setRasterOp(int blendMode)
 		cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
 }
 
-void ScPainter::setBlendModeFill( int blendMode )
+void ScScreenPainter::setBlendModeFill( int blendMode )
 {
 	m_blendModeFill = blendMode;
 }
 
-void ScPainter::setBlendModeStroke( int blendMode )
+void ScScreenPainter::setBlendModeStroke( int blendMode )
 {
 	m_blendModeStroke = blendMode;
 }
 
-void ScPainter::setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
+void ScScreenPainter::setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
 {
 	m_pattern = pattern;
 	m_patternScaleX = scaleX / 100.0;
@@ -565,7 +757,7 @@ void ScPainter::setPattern(ScPattern *pattern, double scaleX, double scaleY, dou
 	m_patternMirrorY = mirrorY;
 }
 
-cairo_pattern_t * ScPainter::getMaskPattern()
+cairo_pattern_t * ScScreenPainter::getMaskPattern()
 {
 	cairo_save( m_cr );
 	cairo_pattern_t *pat;
@@ -672,7 +864,7 @@ cairo_pattern_t * ScPainter::getMaskPattern()
 	return pat;
 }
 
-void ScPainter::fillPathHelper()
+void ScScreenPainter::fillPathHelper()
 {
 	cairo_save( m_cr );
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
@@ -1569,7 +1761,7 @@ void ScPainter::fillPathHelper()
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
 }
 
-void ScPainter::strokePathHelper()
+void ScScreenPainter::strokePathHelper()
 {
 	cairo_save( m_cr );
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
@@ -1700,12 +1892,12 @@ void ScPainter::strokePathHelper()
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
 }
 
-void ScPainter::setClipPath()
+void ScScreenPainter::setClipPath()
 {
 	cairo_clip (m_cr);
 }
 
-void ScPainter::drawImage( QImage *image)
+void ScScreenPainter::drawImage( QImage *image)
 {
 	cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_NONE);
 /*
@@ -1744,7 +1936,7 @@ void ScPainter::drawImage( QImage *image)
 	cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_DEFAULT);
 }
 
-void ScPainter::setupPolygon(FPointArray *points, bool closed)
+void ScScreenPainter::setupPolygon(FPointArray *points, bool closed)
 {
 	bool nPath = true;
 	bool first = true;
@@ -1786,7 +1978,7 @@ void ScPainter::setupPolygon(FPointArray *points, bool closed)
 		cairo_close_path( m_cr );
 }
 
-void ScPainter::setupSharpPolygon(FPointArray *points, bool closed)
+void ScScreenPainter::setupSharpPolygon(FPointArray *points, bool closed)
 {
 	bool nPath = true;
 	bool first = true;
@@ -1832,7 +2024,7 @@ void ScPainter::setupSharpPolygon(FPointArray *points, bool closed)
 		cairo_close_path( m_cr );
 }
 
-void ScPainter::sharpLineHelper(FPoint &pp)
+void ScScreenPainter::sharpLineHelper(FPoint &pp)
 {
 	double x1 = pp.x();
 	double y1 = pp.y();
@@ -1843,7 +2035,7 @@ void ScPainter::sharpLineHelper(FPoint &pp)
 	pp.setXY(x1, y1);
 }
 
-void ScPainter::sharpLineHelper(QPointF &pp)
+void ScScreenPainter::sharpLineHelper(QPointF &pp)
 {
 	double x1 = pp.x();
 	double y1 = pp.y();
@@ -1855,25 +2047,17 @@ void ScPainter::sharpLineHelper(QPointF &pp)
 	pp.setY(y1);
 }
 
-void ScPainter::drawPolygon()
+void ScScreenPainter::drawPolygon()
 {
 	fillPath();
 }
 
-void ScPainter::drawPolyLine()
+void ScScreenPainter::drawPolyLine()
 {
 	strokePath();
 }
 
-void ScPainter::drawLine(FPoint start, FPoint end)
-{
-	newPath();
-	moveTo(start.x(), start.y());
-	lineTo(end.x(), end.y());
-	strokePath();
-}
-
-void ScPainter::drawLine(const QPointF& start, const QPointF& end)
+void ScScreenPainter::drawLine(FPoint start, FPoint end)
 {
 	newPath();
 	moveTo(start.x(), start.y());
@@ -1881,17 +2065,15 @@ void ScPainter::drawLine(const QPointF& start, const QPointF& end)
 	strokePath();
 }
 
-void ScPainter::drawSharpLine(FPoint start, FPoint end)
+void ScScreenPainter::drawLine(const QPointF& start, const QPointF& end)
 {
 	newPath();
-	sharpLineHelper(start);
-	sharpLineHelper(end);
 	moveTo(start.x(), start.y());
 	lineTo(end.x(), end.y());
 	strokePath();
 }
 
-void ScPainter::drawSharpLine(QPointF start, QPointF end)
+void ScScreenPainter::drawSharpLine(FPoint start, FPoint end)
 {
 	newPath();
 	sharpLineHelper(start);
@@ -1901,7 +2083,17 @@ void ScPainter::drawSharpLine(QPointF start, QPointF end)
 	strokePath();
 }
 
-void ScPainter::drawRect(double x, double y, double w, double h)
+void ScScreenPainter::drawSharpLine(QPointF start, QPointF end)
+{
+	newPath();
+	sharpLineHelper(start);
+	sharpLineHelper(end);
+	moveTo(start.x(), start.y());
+	lineTo(end.x(), end.y());
+	strokePath();
+}
+
+void ScScreenPainter::drawRect(double x, double y, double w, double h)
 {
 	newPath();
 	cairo_rectangle(m_cr, x, y, w, h);
@@ -1909,7 +2101,7 @@ void ScPainter::drawRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScPainter::drawSharpRect(double x, double y, double w, double h)
+void ScScreenPainter::drawSharpRect(double x, double y, double w, double h)
 {
 	newPath();
 	double x1 = x;
@@ -1930,7 +2122,7 @@ void ScPainter::drawSharpRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
+void ScScreenPainter::drawText(QRectF area, QString text, bool filled, int align)
 {
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
@@ -1978,7 +2170,7 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	}
 }
 
-void ScPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)
+void ScScreenPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)
 {
 	setStrokeMode(1);
 	double bezierCircle = 0.55228475;
@@ -2026,7 +2218,7 @@ void ScPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunke
 	cairo_restore( m_cr );
 }
 
-void ScPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth)
+void ScScreenPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth)
 {
 	QColor shade;
 	QColor light;
@@ -2045,7 +2237,7 @@ void ScPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken,
 	x3 = r.x() + r.width();
 	y1 = r.y() + r.height();
 	y2 = r.y();
-	setFillMode(ScPainter::Solid);
+	setFillMode(ScScreenPainter::Solid);
 	newPath();
 	moveTo(x1, y1);
 	lineTo(x1, y2);
@@ -2068,7 +2260,7 @@ void ScPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken,
 	fillPath();
 }
 
-void ScPainter::colorizeAlpha(QColor color)
+void ScScreenPainter::colorizeAlpha(QColor color)
 {
 	cairo_surface_t *data = cairo_get_group_target(m_cr);
 	cairo_surface_flush(data);
@@ -2093,7 +2285,7 @@ void ScPainter::colorizeAlpha(QColor color)
 	cairo_surface_mark_dirty(data);
 }
 
-void ScPainter::colorize(QColor color)
+void ScScreenPainter::colorize(QColor color)
 {
 	cairo_surface_t *data = cairo_get_group_target(m_cr);
 	cairo_surface_flush(data);
@@ -2128,7 +2320,7 @@ void ScPainter::colorize(QColor color)
 	cairo_surface_mark_dirty(data);
 }
 
-void ScPainter::blurAlpha(int radius)
+void ScScreenPainter::blurAlpha(int radius)
 {
 	if (radius < 1)
 		return;
@@ -2256,7 +2448,7 @@ void ScPainter::blurAlpha(int radius)
 	cairo_surface_mark_dirty(data);
 }
 
-void ScPainter::blur(int radius)
+void ScScreenPainter::blur(int radius)
 {
 	if (radius < 1)
 		return;
