@@ -250,7 +250,7 @@ void ShapeView::updateShapeList()
 		int h = it.value().height + 4;
 		QImage Ico(w, h, QImage::Format_ARGB32_Premultiplied);
 		Ico.fill(0);
-		ScPainter *painter = new ScPainter(&Ico, w, h);
+		ScPainter *painter = new ScScreenPainter(&Ico, w, h);
 		painter->setBrush(qRgb(0, 0, 0));
 		painter->setPen(qRgb(0, 0, 0), 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		painter->setFillMode(ScPainter::Solid);

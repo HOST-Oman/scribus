@@ -744,7 +744,7 @@ QPixmap AutoformButtonGroup::getIconPixmap(int nr, int pixmapSize)
 		Path.addPoint(x1, y1);
 		Path.addPoint(x2, y2);
 	}
-	ScPainter *painter = new ScPainter(&Ico, 32, 32);
+	ScPainter *painter = new ScScreenPainter(&Ico, 32, 32);
 	painter->setBrush(qRgb(238, 238, 236));
 	painter->setPen(qRgb(137, 139, 134), 2.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	painter->setFillMode(ScPainter::Solid);
