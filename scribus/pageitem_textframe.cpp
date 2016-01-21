@@ -1524,9 +1524,9 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 //	const ParagraphStyle& style(itemText.paragraphStyle(line.firstChar));
 
 	// measure natural widths for glyphs and spaces
-	for (int sof = curr.line.firstChar; sof <= curr.line.lastChar; ++sof)
+	for (int i = 0; i < curr.glyphRuns.count(); ++i)
 	{
-		GlyphRun glyphrun(curr.glyphRuns.at(sof + curr.glFirstChar));
+		GlyphRun glyphrun(curr.glyphRuns[i]);
 		
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
@@ -1538,7 +1538,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 			if (imSpace < 0.0 || imSpace > glyphrun.width())
 				imSpace = glyphrun.width();
 		}
-		if (sof != curr.line.firstChar && glyphrun.hasFlag(ScLayout_ImplicitSpace))
+		if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 										   //implicitSpace(itemText.text(sof - 1), ch))
 		{
 			spaceInsertion += 1;
@@ -1599,29 +1599,30 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 	if (curr.glyphRuns[startItem + curr.glFirstChar].hasFlag(ScLayout_DropCap))
 		startItem++;
 	// distribute whitespace on spaces and glyphs
-	GlyphLayout* lastGlyph = NULL;
-	for (int yof = startItem; yof <= curr.line.lastChar; ++yof)
+	for (int i = 0; i < curr.glyphRuns.count(); ++i)
 	{
-		GlyphRun glyphrun(curr.glyphRuns[curr.glFirstChar + yof]);
-		if (lastGlyph != NULL && glyphrun.hasFlag(ScLayout_ImplicitSpace))
+		GlyphRun& glyphrun(curr.glyphRuns[i]);
+		if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 		{
-			lastGlyph->xadvance += imSpace;
+			GlyphRun& lastRun(curr.glyphRuns[i-1]);
+			lastRun.glyphs().last().xadvance += imSpace;
 		}
 		double wide = glyphrun.width();
-		lastGlyph = &(glyphrun.glyphs().last());
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
-			for (int i = 0; i < glyphrun.glyphs().count(); ++i)
+			for (int j = 0; j < glyphrun.glyphs().count(); ++j)
 			{
-				GlyphLayout* glyph = &(glyphrun.glyphs()[i]);
-				glyph->xadvance *= glyphExtension;
-				glyph->xoffset *= glyphScale;
-				glyph->scaleH *= glyphScale;
+				GlyphLayout& glyph = glyphrun.glyphs()[j];
+				glyph.xadvance += wide * glyphExtension;
+				glyph.xoffset *= glyphScale;
+				glyph.scaleH *= glyphScale;
 			}
 		}
 		else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
 		{
-			lastGlyph->xadvance += wide * spaceExtension;
+			GlyphLayout& glyph = glyphrun.glyphs().last();
+			glyph.xadvance += wide * spaceExtension;
+
 		}
 	}
 }
@@ -2060,7 +2061,10 @@ void PageItem_TextFrame::layout()
 		for (int a = firstInFrame(); a < itLen; ++a)
 		{
 			currentCh = itemText.text(a);
-			current.glyphRuns.append(GlyphRun(&itemText.charStyle(a), itemText.flags(a)));
+			LayoutFlags runFlags = itemText.flags(a);
+			if(SpecialChars::isExpandingSpace(currentCh))
+				runFlags = static_cast<LayoutFlags>(runFlags | ScLayout_ExpandingSpace);
+			current.glyphRuns.append(GlyphRun(&itemText.charStyle(a), runFlags));
 			bool HasObject = itemText.hasObject(a);
 			PageItem* currentObject = HasObject? itemText.object(a): NULL;
 			bool HasMark = itemText.hasMark(a);
