@@ -196,7 +196,7 @@ QString ScriXmlDoc::WriteElem(ScribusDoc *doc, Selection* selection)
 	double scaleI = 50.0 / qMax(selectionWidth, selectionHeight);
 	QImage retImg = QImage(50, 50, QImage::Format_ARGB32_Premultiplied);
 	retImg.fill( qRgba(0, 0, 0, 0) );
-	ScPainter *painter = new ScPainter(&retImg, retImg.width(), retImg.height(), 1, 0);
+	ScPainter *painter = new ScScreenPainter(&retImg, retImg.width(), retImg.height(), 1, 0);
 	painter->setZoomFactor(scaleI);
 	for (int em = 0; em < emG.count(); ++em)
 	{
