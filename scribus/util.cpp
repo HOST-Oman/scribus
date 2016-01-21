@@ -440,7 +440,7 @@ void ReOrderText(ScribusDoc *currentDoc, ScribusView *view)
 	currentDoc->RePos = true;
 	QImage pgPix(10, 10, QImage::Format_ARGB32_Premultiplied);
 	QRect rd; // = QRect(0,0,9,9);
-	ScPainter *painter = new ScPainter(&pgPix, pgPix.width(), pgPix.height());
+	ScPainter *painter = new ScScreenPainter(&pgPix, pgPix.width(), pgPix.height());
 	for (int azz=0; azz<currentDoc->MasterItems.count(); ++azz)
 	{
 		PageItem *currItem = currentDoc->MasterItems.at(azz);

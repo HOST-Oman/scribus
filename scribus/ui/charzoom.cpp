@@ -22,7 +22,7 @@ CharZoom::CharZoom(QWidget* parent, uint currentChar, ScFace face)
 	
 	pixm = QPixmap(size, size);
 	QImage pix(size, size, QImage::Format_ARGB32_Premultiplied);
-	ScPainter *p = new ScPainter(&pix, size, size);
+	ScPainter *p = new ScScreenPainter(&pix, size, size);
 	p->clear();
 	pixm.fill(Qt::white);
 	QTransform chma;
