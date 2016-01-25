@@ -121,8 +121,14 @@ class GlyphRun
 	
 public:
 	GlyphRun(const CharStyle* style, LayoutFlags flags) : m_style(style), m_flags(flags) {}
-	GlyphRun(const GlyphRun& other) : m_style(other.m_style), m_flags(other.m_flags), m_glyphs(other.m_glyphs) {}
-	
+	GlyphRun(const GlyphRun& other) :
+		m_style(other.m_style),
+		m_flags(other.m_flags),
+		m_glyphs(other.m_glyphs),
+		m_firstChar(other.m_firstChar),
+		m_lastChar(other.m_lastChar)
+	{}
+
 	const CharStyle&         style()  const { return *m_style; }
 	const LayoutFlags&       flags()  const { return m_flags; }
 	LayoutFlags&             flags()        { return m_flags; }
