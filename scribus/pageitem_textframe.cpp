@@ -538,8 +538,16 @@ struct LineControl {
 		result->setFirstChar(line.firstChar);
 		result->setLastChar(line.lastChar);
 		qreal pos = line.colLeft;
-		int runCount = line.lastChar - line.firstChar;
-		for (int i = 0; i < runCount+1; ++i)
+//		int runCount = line.lastChar - line.firstChar;
+		int runCount = 0;
+		foreach (GlyphRun run, glyphRuns)
+		{
+			++runCount;
+			if (run.lastChar() == line.lastChar)
+				break;
+		}
+
+		for (int i = 0; i < runCount; ++i)
 		{
 			GlyphBox* glyphbox = createGlyphBox(glyphRuns.at(i));
 			glyphbox->moveBy(pos, 0);
@@ -1522,12 +1530,17 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 	double imSpace = -1;
 
 //	const ParagraphStyle& style(itemText.paragraphStyle(line.firstChar));
+	int runCount = 0;
+	foreach (GlyphRun glyphrun, curr.glyphRuns)
+	{
+		++runCount;
+		if (glyphrun.lastChar() == curr.line.lastChar)
+			break;
+	}
 
-	// measure natural widths for glyphs and spaces
-	for (int i = 0; i < curr.glyphRuns.count(); ++i)
+	for (int i = 0; i < runCount; ++i)
 	{
 		GlyphRun glyphrun(curr.glyphRuns[i]);
-		
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
 			glyphNatural += glyphrun.width();
@@ -1595,11 +1608,19 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 		   .arg(style.minWordTracking()).arg(style.minGlyphExtension());
 	*/
 
-	int startItem = curr.line.firstChar;
-	if (curr.glyphRuns[startItem + curr.glFirstChar].hasFlag(ScLayout_DropCap))
+	int startItem = 0;
+	if (curr.glyphRuns[startItem].hasFlag(ScLayout_DropCap))
 		startItem++;
 	// distribute whitespace on spaces and glyphs
-	for (int i = 0; i < curr.glyphRuns.count(); ++i)
+	runCount = 0;
+	foreach (GlyphRun glyphrun, curr.glyphRuns)
+	{
+		++runCount;
+		if (glyphrun.lastChar() == curr.line.lastChar)
+			break;
+	}
+
+	for (int i = startItem; i < runCount; ++i)
 	{
 		GlyphRun& glyphrun(curr.glyphRuns[i]);
 		if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
