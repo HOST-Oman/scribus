@@ -109,10 +109,136 @@ Box* GroupBox::removeBox(uint i)
 	return m_lines;
 }
 
+//void GroupBox::justify(const ParagraphStyle& style)
+//{
+//	if ((style.alignment() != ParagraphStyle::Justified) && (style.alignment() != ParagraphStyle::Extended))
+//		return;
+//	for(int i = 0; i < m_boxes.count(); i++)
+//	{
+//		m_boxes[i]->justify(style);
+//	}
+//}
+
 LineBox::LineBox()
 {
 	m_type = T_Line;
 }
+
+//void LineBox::justify(const ParagraphStyle& style)
+//{
+//	double glyphNatural = 0;
+//	double spaceNatural = 0;
+//	double glyphExtension;
+//	double spaceExtension;
+//	int spaceInsertion = 0;
+//	double imSpace = -1;
+
+//	// measure natural widths for glyphs and spaces
+//	for (int i = 0; i < m_boxes.count(); ++i)
+//	{
+//		GlyphBox *box = dynamic_cast<GlyphBox*>(m_boxes.at(i));
+//		GlyphRun run(box->glyphs);
+//		if (!run.hasFlag(ScLayout_ExpandingSpace))
+//		{
+//			glyphNatural += run.width();
+//		}
+//		else if (!run.hasFlag(ScLayout_SuppressSpace) )
+//		{
+//			spaceNatural += run.width();
+//			if (imSpace < 0.0 || imSpace > run.width())
+//				imSpace = run.width();
+//		}
+//		if (i != 0 && run.hasFlag(ScLayout_ImplicitSpace))
+//			//implicitSpace(itemText.text(sof - 1), ch))
+//		{
+//			spaceInsertion += 1;
+//		}
+//	}
+
+//	imSpace /= 2;
+
+//	// decision: prio 1: stretch glyph;  prio 2: insert spaces;  prio 3: stretch spaces
+//	if (width() < spaceNatural + glyphNatural *
+//			style.minGlyphExtension() && spaceNatural > 0)
+//	{
+//		glyphExtension = style.minGlyphExtension() - 1;
+//		spaceExtension = (width() - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+//		imSpace = 0;
+//	}
+//	else if (width() < spaceNatural + glyphNatural * style.maxGlyphExtension() && glyphNatural > 0)
+//	{
+//		spaceExtension = 0;
+//		glyphExtension = (width() - spaceNatural) / glyphNatural  - 1;
+//		imSpace = 0;
+//	}
+//	else
+//	{
+//		glyphExtension = style.maxGlyphExtension() - 1;
+//		if (spaceInsertion) {
+//			double remaining = width() - glyphNatural * (1 + glyphExtension) - spaceNatural;
+//			if (imSpace > 0) {
+//				if (remaining / spaceInsertion < imSpace) {
+//					imSpace = remaining / spaceInsertion;
+//					spaceExtension = 0;
+//				} else {
+//					spaceExtension = (remaining + spaceNatural) / (spaceNatural + spaceInsertion * imSpace) - 1;
+//					imSpace *= spaceExtension + 1;
+//				}
+//			} else {
+//				imSpace = remaining / spaceInsertion;
+//				spaceExtension = 0;
+//			}
+//		} else {
+//			if (spaceNatural > 0)
+//				spaceExtension = (width() - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+//			else
+//				spaceExtension = 0;
+//		}
+//	}
+
+//	double glyphScale = 1 + glyphExtension;
+
+//	/*
+//		qDebug() << QString("justify: line = %7 natural = %1 + %2 = %3
+//	(%4); spaces + %5%%; min=%8; glyphs + %6%%; min=%9")
+//			   .arg(spaceNatural).arg(glyphNatural).arg(spaceNatural+glyphNatural).arg(line.naturalWidth)
+//			   .arg(spaceExtension).arg(glyphExtension).arg(line.width)
+//			   .arg(style.minWordTracking()).arg(style.minGlyphExtension());
+//		*/
+
+//	int startItem = 0;
+//	if (dynamic_cast<GlyphBox*>(m_boxes[startItem])->glyphs.hasFlag(ScLayout_DropCap))
+//		startItem++;
+
+//	// distribute whitespace on spaces and glyphs
+//	for (int i = startItem; i < m_boxes.count(); ++i)
+//	{
+//		GlyphBox *box = dynamic_cast<GlyphBox*>(m_boxes.at(i));
+//		GlyphRun& run(box->glyphs);
+//		if (i != 0 && run.hasFlag(ScLayout_ImplicitSpace))
+//		{
+//			GlyphBox *lastBox = dynamic_cast<GlyphBox*>(m_boxes.at(i));
+//			GlyphRun& lastRun(lastBox->glyphs);
+//			lastRun.glyphs().last().xadvance += imSpace;
+//		}
+//		double wide = run.width();
+//		if (!run.hasFlag(ScLayout_ExpandingSpace))
+//		{
+//			for (int j = 0; j < run.glyphs().count(); ++j)
+//			{
+//				GlyphLayout& glyph = run.glyphs()[j];
+//				glyph.xadvance += wide * glyphExtension;
+//				glyph.xoffset *= glyphScale;
+//				glyph.scaleH *= glyphScale;
+//			}
+//		}
+//		else if (!run.hasFlag(ScLayout_SuppressSpace))
+//		{
+//			GlyphLayout& glyph = run.glyphs().last();
+//			glyph.xadvance += wide * spaceExtension;
+//		}
+//	}
+//}
 
 void GlyphBox::render(ScPainter *p, const StoryText &text)
 {
@@ -122,6 +248,7 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 
 	p->save();
 	p->translate(x(),y());
+	p->translate(glyphs.xoffset(), glyphs.yoffset());
 
 	if (style.fillColor() != CommonStrings::None)
 	{

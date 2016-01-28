@@ -83,8 +83,7 @@ public:
 	virtual FRect boundingBox(int pos, uint len = 1) const = 0;
 	//	virtual double ascent(int pos) const = 0;
 //	virtual QList<const Box*> pathForPos(int pos) const = 0;
-	int screenToPosition (FPoint coord) const{return 1;} // fix me
-	
+//	virtual void justify(const ParagraphStyle& style) {}
 	QList<Box*>& boxes() { return m_boxes; }
 	const QList<const Box*>& boxes() const {
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
@@ -121,6 +120,7 @@ public:
 	Box* addBox(uint i);
 	Box* removeBox(uint i);
 	void render(ScPainter* p, const StoryText& text);
+//	void justify(const ParagraphStyle& style);
 };
 
 
@@ -137,7 +137,7 @@ public:
 		m_firstChar = glyphrun.firstChar();
 		m_lastChar = glyphrun.lastChar();
 	}
-	const GlyphRun glyphs;
+	GlyphRun glyphs;
 	QList <GlyphLayout> m_glyphs;
 	int pointToPosition(FPoint coord) const;
 	FRect boundingBox(int pos, uint len = 1) const { return bbox(); }
@@ -150,7 +150,7 @@ class LineBox : public GroupBox
 {
 public:	
 	LineBox();
-
+//	void justify(const ParagraphStyle& style);
 	qreal colLeft;
 };
 
