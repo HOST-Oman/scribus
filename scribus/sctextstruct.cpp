@@ -20,7 +20,7 @@ qreal GlyphRun::width() const
     for (int i=0; i<m_glyphs.count();i++)
     {
         GlyphLayout gl = m_glyphs[i];
-        width += (gl.xadvance * gl.scaleH);
+		width += gl.xadvance;
     }
     return width;
 }
