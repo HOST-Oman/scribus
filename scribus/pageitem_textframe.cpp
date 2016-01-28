@@ -2355,7 +2355,7 @@ void PageItem_TextFrame::layout()
 				chsd = (10 * ((DropCapDrop + fontAscent) / realCharHeight));
 				chs  = (10 * ((DropCapDrop + fontAscent) / realCharAscent));
 				current.glyphRuns.last().setFlag(ScLayout_DropCap);
-				current.glyphRuns.last().glyphs()[0].yoffset -= DropCapDrop;
+				current.glyphRuns.last().setYOffset(-DropCapDrop);
 				if (HasObject)
 				{
 					chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
@@ -2813,6 +2813,8 @@ void PageItem_TextFrame::layout()
 				}
 				current.line.x = current.restartX = current.xPos;
 				current.line.y = current.yPos;
+				if (current.glyphRuns.first().hasFlag(ScLayout_DropCap))
+					current.line.y -= DropCapDrop;
 			}
 
 			//check if line must start at new Y position due to current glyph height or previous line descent
@@ -3445,7 +3447,7 @@ void PageItem_TextFrame::layout()
 							// put line back to top
 							current.line.y -= DropCapDrop;
 							//itemText.getGlyphs(current.line.firstChar)->yoffset += DropCapDrop;
-							current.glyphRuns[0].glyphs()[0].yoffset += DropCapDrop;
+							current.glyphRuns.first().setYOffset(DropCapDrop);
 						}
 						fillInTabLeaders(current);
 						//if right margin is set we temporally save line, not append it
@@ -3646,7 +3648,7 @@ void PageItem_TextFrame::layout()
 				// put line back to top
 				current.line.y -= DropCapDrop;
 				//itemText.getGlyphs(current.line.firstChar)->yoffset += DropCapDrop;
-				current.glyphRuns[0].glyphs()[0].yoffset += DropCapDrop;
+				current.glyphRuns.first().setYOffset(DropCapDrop);
 			}
 			fillInTabLeaders(current);
 			current.startOfCol = false;

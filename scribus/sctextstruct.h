@@ -118,15 +118,28 @@ class GlyphRun
 	QList<GlyphLayout> m_glyphs;
 	int m_firstChar;
 	int m_lastChar;
+	float m_xoffset;
+	float m_yoffset;
+
 	
 public:
-	GlyphRun(const CharStyle* style, LayoutFlags flags) : m_style(style), m_flags(flags) {}
+	GlyphRun(const CharStyle* style, LayoutFlags flags) :
+		m_style(style),
+		m_flags(flags),
+		m_firstChar(0),
+		m_lastChar(0),
+		m_xoffset(0),
+		m_yoffset(0)
+	{}
+
 	GlyphRun(const GlyphRun& other) :
 		m_style(other.m_style),
 		m_flags(other.m_flags),
 		m_glyphs(other.m_glyphs),
 		m_firstChar(other.m_firstChar),
-		m_lastChar(other.m_lastChar)
+		m_lastChar(other.m_lastChar),
+		m_xoffset(other.m_xoffset),
+		m_yoffset(other.m_yoffset)
 	{}
 
 	const CharStyle&         style()  const { return *m_style; }
@@ -142,6 +155,10 @@ public:
 	void setLastChar(int x)					{  m_lastChar = x; }
 	int firstChar()					const	{ return m_firstChar; }
 	int lastChar()					const	{ return m_lastChar; }
+	void setXOffset(float x)				{ m_xoffset = x; }
+	void setYOffset(float x)				{ m_yoffset = x; }
+	float xoffset()					const	{ return m_xoffset; }
+	float yoffset()					const	{ return m_yoffset; }
 	qreal width() const;
 	void insertSoftHyphen();
 	void removeSoftHyphen();
