@@ -120,6 +120,7 @@ class GlyphRun
 	int m_lastChar;
 	float m_xoffset;
 	float m_yoffset;
+	float m_xadvance;
 
 	
 public:
@@ -129,7 +130,8 @@ public:
 		m_firstChar(0),
 		m_lastChar(0),
 		m_xoffset(0),
-		m_yoffset(0)
+		m_yoffset(0),
+		m_xadvance(0)
 	{}
 
 	GlyphRun(const GlyphRun& other) :
@@ -159,6 +161,8 @@ public:
 	void setYOffset(float x)				{ m_yoffset = x; }
 	float xoffset()					const	{ return m_xoffset; }
 	float yoffset()					const	{ return m_yoffset; }
+	void setXAdvance(float x)				{ m_xadvance = x; }
+	float xAdvance()				const	{return m_xadvance; }
 	qreal width() const;
 	void insertSoftHyphen();
 	void removeSoftHyphen();
