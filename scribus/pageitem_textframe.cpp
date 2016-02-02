@@ -537,7 +537,6 @@ struct LineControl {
 		result->colLeft = line.colLeft;
 		result->setFirstChar(line.firstChar);
 		result->setLastChar(line.lastChar);
-		qreal pos = line.colLeft;
 //		int runCount = line.lastChar - line.firstChar;
 		int runCount = 0;
 		foreach (GlyphRun run, glyphRuns)
@@ -547,6 +546,7 @@ struct LineControl {
 				break;
 		}
 
+		qreal pos = 0;
 		for (int i = 0; i < runCount; ++i)
 		{
 			GlyphBox* glyphbox = createGlyphBox(glyphRuns.at(i));
@@ -2274,7 +2274,7 @@ void PageItem_TextFrame::layout()
 						   && (!itemText.hasFlag(a-1, ScLayout_SuppressSpace))))
 				{
 					current.glyphRuns.last().setFlag(ScLayout_SuppressSpace);
-					current.glyphRuns.last().glyphs()[0].xadvance = 0;
+					current.glyphRuns.last().setXAdvance(0);
 					continue;
 				}
 				else
