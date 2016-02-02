@@ -80,10 +80,14 @@ void GroupBox::addBox(const Box* box)
 	FRect newRect = box->bbox();
 	newRect.moveBy(m_x, m_y);
 	newRect = bbox().unite(newRect);
-	if (0 == m_y) m_y = newRect.y();
-	if (0 == m_x) m_x = newRect.x();
-	if (0 == m_width) m_width = newRect.width();
-	if (0 == m_descent) m_descent = newRect.height() - m_ascent;
+	if (0 == m_y)
+		m_y = newRect.y();
+	if (0 == m_x)
+		m_x = newRect.x() ;
+	if (0 == m_width)
+		m_width = newRect.width();
+	if (0 == m_descent)
+		m_descent = newRect.height() - m_ascent;
 }
 
 Box* GroupBox::addBox(uint i)
