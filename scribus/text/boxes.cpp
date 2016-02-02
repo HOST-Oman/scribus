@@ -242,7 +242,7 @@ LineBox::LineBox()
 
 void GlyphBox::render(ScPainter *p, const StoryText &text)
 {
-	const CharStyle& style(glyphs.style());
+	const CharStyle style(glyphs.style());
 	const ScFace font = style.font();
 	bool selected = text.selected(m_firstChar) || text.selected(m_lastChar);
 
