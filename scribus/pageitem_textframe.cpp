@@ -451,10 +451,10 @@ struct LineControl {
 	void updateHeightMetrics(const StoryText& itemText)
 	{
 		const CharStyle& cStyle(itemText.charStyle(line.firstChar));
-//		double scaleV = cStyle.scaleV() / 1000.0;
-//		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
-//		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
-//		line.descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
+		double scaleV = cStyle.scaleV() / 1000.0;
+		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
+		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
+		line.descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
 
 		double asce, desc;
 		line.ascent  = 0;
@@ -477,11 +477,11 @@ struct LineControl {
 			else //if ((itemText.flags(current.line.firstChar+zc) & ScLayout_DropCap) == 0)
 			{
 				asce = cStyle.font().realCharAscent(ch, cStyle.fontSize() / 10.0) * scaleV + offset;
-				desc = cStyle.font().realCharDescent(ch, cStyle.fontSize() / 10.0) * scaleV - offset;
+//				desc = cStyle.font().realCharDescent(ch, cStyle.fontSize() / 10.0) * scaleV - offset;
 			}
 			//	qDebug() << QString("checking char 'x%2' with ascender %1 > %3").arg(asce).arg(ch.unicode()).arg(result);
 			line.ascent  = qMax(line.ascent, asce);
-			line.descent = qMax(line.descent, desc);
+//			line.descent = qMax(line.descent, desc);
 		}
 	}
 
@@ -4357,7 +4357,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					if ((m_isSelected || (NextBox != 0 || BackBox != 0))
 						&& (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable))
 					{
-						selectedFrame |= QRectF(line->x() + box->x(), line->y() + box->y(), box->width(), box->height());
+						selectedFrame |= QRectF(line->x() + box->x(), line->y() + box->y() - box->descent(), box->width(), box->height());
 					}
 				}
 				// Unneeded now that glyph xadvance is set appropriately for inline objects by layout() - JG

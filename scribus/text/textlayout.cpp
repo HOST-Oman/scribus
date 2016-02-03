@@ -89,7 +89,7 @@ void TextLayout::render(ScPainter *p, const StoryText &text)
 {
 
      p->save();
-	 m_lines->moveBy(-m_lines->x(), -m_lines->y() - m_lines->descent());
+	 m_lines->moveBy(-m_lines->x(), -m_lines->y() + m_lines->descent());
 	 m_lines->render(p, text);
      p->restore();
 }
