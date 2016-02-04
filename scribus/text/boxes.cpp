@@ -63,7 +63,7 @@ FRect GroupBox::boundingBox(int pos, uint len) const
 		}
 	}
 	if (result.isValid())
-		result.moveBy(0, -y());
+		result.moveBy(x(), -y());
 	return result;
 }
 
