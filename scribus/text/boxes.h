@@ -14,6 +14,7 @@
 #include "sctextstruct.h"
 #include "scpainter.h"
 
+//class ScribusDoc;
 class StoryText;
 
 /**
@@ -40,6 +41,7 @@ protected:
 	QList<Box*> m_boxes;
 	int m_firstChar;
 	int m_lastChar;
+	ScribusDoc* m_Doc;
 	
 public:
 	Box()
@@ -48,6 +50,7 @@ public:
 		m_x = m_y = m_width = m_ascent = m_descent = 0;
 		m_firstChar = 0;
 		m_lastChar = 0;
+		m_Doc = NULL;
 	}
 	virtual ~Box() {}
 	
@@ -76,7 +79,7 @@ public:
 	int lastChar() const { return m_lastChar; }
 	void setLastChar(int c) { m_lastChar = c; }
 	bool containsPos(int pos) const { return m_firstChar <= pos && pos <= m_lastChar;}
-	
+	void setDoc(ScribusDoc* doc) { m_Doc = doc; }
 	/// returns a char position for the point coord + (m_x, m_y)
 	virtual int pointToPosition(FPoint coord) const = 0;
 	/// returns the bounding box relative to (m_x, m_y)
@@ -143,6 +146,7 @@ public:
 	FRect boundingBox(int pos, uint len = 1) const { return bbox(); }
 //	QList<const Box*> pathForPos(int pos) const;
 	void render(ScPainter* p, const StoryText& text);
+	void setQColor(QColor *tmp, QString colorName, double shad);
 };
 
 

@@ -103,16 +103,18 @@ struct LineControl {
 
 	double   maxShrink;
 	double   maxStretch;
+	ScribusDoc *doc;
 
 
 	/// remember frame dimensions and offsets
-	void init(double w, double h, const MarginStruct& extra, double lCorr)
+	void init(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d)
 	{
 		insets = extra;
 		lineCorr = lCorr;
 		frameWidth = w;
 		frameHeight = h;
 		hasDropCap = false;
+		doc = d;
 	}
 
 	/// start at column 0
@@ -536,6 +538,7 @@ struct LineControl {
 		result->colLeft = line.colLeft;
 		result->setFirstChar(line.firstChar);
 		result->setLastChar(line.lastChar);
+		result->setDoc(doc);
 //		int runCount = line.lastChar - line.firstChar;
 		int runCount = 0;
 		foreach (GlyphRun run, glyphRuns)
@@ -563,6 +566,7 @@ struct LineControl {
 	{
 		GlyphBox* result = new GlyphBox(run);
 		result->setWidth(run.width());
+		result->setDoc(doc);
 		return result;
 	}
 
@@ -1945,7 +1949,7 @@ void PageItem_TextFrame::layout()
 		lineCorr = m_lineWidth / 2.0;
 
 	LineControl current;
-	current.init(m_width, m_height, m_textDistanceMargins, lineCorr);
+	current.init(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc);
 	current.initColumns(columnWidth(), ColGap);
 	current.hyphenCount = 0;
 
