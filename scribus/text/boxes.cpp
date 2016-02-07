@@ -293,6 +293,38 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 		const GlyphLayout& glyphLayout(m_glyphs.at(i));
 		uint glyphId = glyphLayout.glyph;
 		FPointArray gly = font.glyphOutline(glyphId);
+		if (((style.effects() & ScStyle_Underline) || ((style.effects() & ScStyle_UnderlineWords) && glyphId != font.char2CMap(QChar(' ')))) && (style.strokeColor() != CommonStrings::None))
+		{
+			double st, lw;
+			if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
+			{
+				if (style.underlineOffset() != -1)
+					st = (style.underlineOffset() / 1000.0) * (font.descent(style.fontSize() / 10.0));
+				else
+					st = font.underlinePos(style.fontSize() / 10.0);
+				if (style.underlineWidth() != -1)
+					lw = (style.underlineWidth() / 1000.0) * (style.fontSize() / 10.0);
+				else
+					lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+			}
+			else
+			{
+				st = font.underlinePos(style.fontSize());
+				lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+			}
+			if (style.baselineOffset() != 0)
+				st += (style.fontSize() / 10.0) * glyphLayout.scaleV * (style.baselineOffset() / 1000.0);
+			QColor tmpC = p->pen();
+			p->setPen(p->brush());
+			p->setLineWidth(lw);
+			if (style.effects() & ScStyle_Subscript)
+				p->drawLine(FPoint(glyphLayout.xoffset, glyphLayout.yoffset - st),
+							FPoint(glyphLayout.xoffset + glyphLayout.xadvance, glyphLayout.yoffset - st));
+			else
+				p->drawLine(FPoint(glyphLayout.xoffset, -st),
+							FPoint(glyphLayout.xoffset + glyphLayout.xadvance, -st));
+			p->setPen(tmpC);
+		}
 		if (gly.size() > 3)
 		{
 			p->translate(glyphLayout.xoffset, glyphLayout.yoffset);
