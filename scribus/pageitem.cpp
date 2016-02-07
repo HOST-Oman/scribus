@@ -2565,6 +2565,7 @@ double PageItem::layoutGlyphs(const QString& chars,int firstChar, int lastChar, 
 	const CharStyle& style(glyphrun.style());
 	const ScFace font = style.font();
 	double asce = font.ascent(style.fontSize() / 10.0);
+	double dece = font.descent(style.fontSize() / 10.0);
 
 	int chst = style.effects() & ScStyle_UserStyles;
 
@@ -2627,6 +2628,7 @@ double PageItem::layoutGlyphs(const QString& chars,int firstChar, int lastChar, 
 					layout.glyph = font.char2CMap(chars[0].toUpper().unicode());
 					layout.scaleV *= smallcapsScale;
 					layout.scaleH *= smallcapsScale;
+//					layout.yoffset +=  (smallcapsScale * -(dece-2));
 				}
 			}
 		}

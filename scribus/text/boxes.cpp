@@ -130,6 +130,17 @@ LineBox::LineBox()
 	m_type = T_Line;
 }
 
+void LineBox::render(ScPainter *p, const StoryText &text)
+{
+	p->save();
+	p->translate(x(),y() + ascent());
+	for (int i = 0; i < boxes().count(); i++)
+	{
+		Box* box = boxes()[i];
+		box->render(p, text);
+	}
+	p->restore();
+}
 //void LineBox::justify(const ParagraphStyle& style)
 //{
 //	double glyphNatural = 0;
@@ -310,7 +321,7 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 			}
 			else
 			{
-				st = font.underlinePos(style.fontSize());
+				st = font.underlinePos(style.fontSize() / 10.0);
 				lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
 			}
 			if (style.baselineOffset() != 0)
