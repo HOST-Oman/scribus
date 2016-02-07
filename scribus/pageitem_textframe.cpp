@@ -2355,7 +2355,7 @@ void PageItem_TextFrame::layout()
 				chsd = (10 * ((DropCapDrop + fontAscent) / realCharHeight));
 				chs  = (10 * ((DropCapDrop + fontAscent) / realCharAscent));
 				current.glyphRuns.last().setFlag(ScLayout_DropCap);
-				current.glyphRuns.last().setYOffset(-DropCapDrop);
+				current.glyphRuns.last().setYOffset(DropCapDrop);
 				if (HasObject)
 				{
 					chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
