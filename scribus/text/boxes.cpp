@@ -380,6 +380,18 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 			}
 			else
 			{
+				if ((style.effects() & ScStyle_Shadowed) && (style.strokeColor() != CommonStrings::None))
+				{
+					p->save();
+					p->translate((style.fontSize() * glyphLayout.scaleH * style.shadowXOffset() / 10000.0) / glxSc, -(style.fontSize() * glyphLayout.scaleV * style.shadowYOffset() / 10000.0) / glySc);
+					QColor tmp = p->brush();
+					p->setBrush(p->pen());
+					p->setupPolygon(&gly, true);
+					p->fillPath();
+					p->setBrush(tmp);
+					p->restore();
+					p->setupPolygon(&gly, true);
+				}
 				if (style.fillColor() != CommonStrings::None)
 					p->fillPath();
 				if ((style.effects() & ScStyle_Outline) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
