@@ -293,9 +293,10 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 		const GlyphLayout& glyphLayout(m_glyphs.at(i));
 		uint glyphId = glyphLayout.glyph;
 		FPointArray gly = font.glyphOutline(glyphId);
+		double st, lw;
 		if (((style.effects() & ScStyle_Underline) || ((style.effects() & ScStyle_UnderlineWords) && glyphId != font.char2CMap(QChar(' ')))) && (style.strokeColor() != CommonStrings::None))
 		{
-			double st, lw;
+
 			if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
 			{
 				if (style.underlineOffset() != -1)
@@ -324,6 +325,34 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 				p->drawLine(FPoint(glyphLayout.xoffset, -st),
 							FPoint(glyphLayout.xoffset + glyphLayout.xadvance, -st));
 			p->setPen(tmpC);
+		}
+		if ((style.effects() & ScStyle_Strikethrough) && (style.strokeColor() != CommonStrings::None))
+		{
+
+			if ((style.strikethruOffset() != -1) || (style.strikethruWidth() != -1))
+			{
+				if (style.strikethruOffset() != -1)
+					st = (style.strikethruOffset() / 1000.0) * (font.ascent(style.fontSize() / 10.0));
+				else
+					st = font.strikeoutPos(style.fontSize() / 10.0);
+				if (style.strikethruWidth() != -1)
+					lw = (style.strikethruWidth() / 1000.0) * (style.fontSize() / 10.0);
+				else
+					lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+			}
+			else
+			{
+				st = font.strikeoutPos(style.fontSize() / 10) - height();
+				lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
+			}
+			if (style.baselineOffset() != 0)
+				st += (style.fontSize() / 10.0) * glyphLayout.scaleV * (style.baselineOffset() / 1000.0);
+			int oldSM = p->strokeMode();
+			p->setPen(p->brush());
+			p->setLineWidth(lw);
+			p->drawLine(FPoint(glyphLayout.xoffset, glyphLayout.yoffset - st),
+						FPoint(glyphLayout.xoffset + glyphLayout.xadvance, glyphLayout.yoffset - st));
+			p->setStrokeMode(oldSM);
 		}
 		if (gly.size() > 3)
 		{
@@ -361,6 +390,7 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 			}
 			p->setFillRule(fr);
 		}
+
 		p->restore();
 		p->translate(glyphLayout.xadvance, 0);
 	}
