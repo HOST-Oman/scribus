@@ -553,8 +553,8 @@ struct LineControl {
 		{
 			GlyphBox* glyphbox = createGlyphBox(glyphRuns.at(i));
 			glyphbox->moveBy(pos, 0);
-			glyphbox->setAscent(result->ascent() * glyphRuns.at(i).glyphs()[0].scaleV);
-			glyphbox->setDescent(result->descent() * glyphRuns.at(i).glyphs()[0].scaleV);
+			glyphbox->setAscent(result->ascent());
+			glyphbox->setDescent(result->descent());
 			pos += glyphbox->width();
 			result->addBox(glyphbox);
 
@@ -2193,6 +2193,7 @@ void PageItem_TextFrame::layout()
 				itemText.removeChars(a,1);
 				a--;
 				itLen = itemText.length();
+				current.glyphRuns.removeLast();
 				continue;
 			}
 			if (current.charsInLine == 0)
