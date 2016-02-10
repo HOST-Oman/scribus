@@ -875,6 +875,10 @@ IF (LIBREVENGE_FOUND)
 	ENDIF (LIBREVENGE_STREAM_FOUND)
 ENDIF (LIBREVENGE_FOUND)
 
+# CTL support
+pkg_check_modules(HARFBUZZ REQUIRED harfbuzz>=0.9.38 harfbuzz-icu)
+pkg_check_modules(ICU REQUIRED icu-uc)
+
 ##############################################################################################################
 ########## Include Setup                                                                            ##########
 
