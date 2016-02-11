@@ -2588,7 +2588,7 @@ double PageItem::layoutGlyphs(const QString& chars,int firstChar, int lastChar, 
 		 }
 		 else */
 		{
-			layout.glyph = font.char2CMap(chars[0].unicode());
+			layout.glyph = font.char2CMap(chars[i].unicode());
 		}
 		double tracking = 0.0;
 		if ( (flags & ScLayout_StartOfLine) == 0)
