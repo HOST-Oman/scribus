@@ -25,6 +25,9 @@ virtual:      dispatch to constituents, handle embedding (-)
 #include <QString>
 #include <utility>
 
+#include <ft2build.h>
+#include FT_FREETYPE_H
+
 #include "fpointarray.h"
 
 
@@ -184,6 +187,7 @@ public:
 		virtual GlyphMetrics glyphBBox(gid_type gl, qreal sz) const;
 		virtual bool EmbedFont(QByteArray &/*str*/)       const { return false; }
 		virtual void RawData(QByteArray & /*bb*/)      const {}
+		virtual FT_Face ftFace() const { return 0; }
 
 		virtual bool hasNames() const { return hasGlyphNames; }
 		virtual bool glyphNames(QMap<gid_type, std::pair<ucs4_type, QString> >& gList) const;
@@ -270,6 +274,9 @@ public:
 
 	/// if the fontfile contains more than one face, the index, else -1
 	int faceIndex()    const { return m_m->faceIndex; }
+
+	/// the FreeType face of this font
+	FT_Face ftFace() const { return m_m->ftFace(); }
 
 	/// path name of the document this face is local to
 	QString localForDocument()  const { return m_m->forDocument; }
