@@ -53,7 +53,7 @@ QMap<QString,QString> ScFace::ScFaceData::fontDictionary(qreal /*sz*/) const
 GlyphMetrics ScFace::ScFaceData::glyphBBox(gid_type gl, qreal sz) const
 {
 	GlyphMetrics res;
-	if (gl == 0 || gl >= CONTROL_GLYPHS)
+	if (gl >= CONTROL_GLYPHS)
 	{	res.width   = glyphWidth(gl, sz);
 		res.ascent  = (gl == 0? ascent(sz) : 0);
 		res.descent = 0;
@@ -74,8 +74,6 @@ qreal ScFace::ScFaceData::glyphWidth(gid_type gl, qreal size) const
 {
 	if (gl >= CONTROL_GLYPHS)
 		return 0.0;
-	else if (gl == 0)
-		return size;
 	else if (! m_glyphWidth.contains(gl)) {
 		loadGlyph(gl);
 	}
@@ -87,15 +85,6 @@ FPointArray ScFace::ScFaceData::glyphOutline(gid_type gl, qreal sz) const
 { 
 	if (gl >= CONTROL_GLYPHS)
 		return FPointArray();
-	else if (gl == 0) {
-		sz *= 10;
-		FPointArray sq;
-		sq.addQuadPoint(0,0,0,0,sz,0,sz,0);
-		sq.addQuadPoint(sz,0,sz,0,sz,sz,sz,sz);
-		sq.addQuadPoint(sz,sz,sz,sz,0,sz,0,sz);
-		sq.addQuadPoint(0,sz,0,sz,0,0,0,0);
-		return sq;
-	}
 	else if (! m_glyphWidth.contains(gl)) {
 		loadGlyph(gl);
 	}
@@ -108,7 +97,7 @@ FPointArray ScFace::ScFaceData::glyphOutline(gid_type gl, qreal sz) const
 
 FPoint ScFace::ScFaceData::glyphOrigin(gid_type gl, qreal sz) const
 {
-	if (gl == 0 || gl >= CONTROL_GLYPHS)
+	if (gl >= CONTROL_GLYPHS)
 		return FPoint(0,0);
 	else if (! m_glyphWidth.contains(gl)) {
 		loadGlyph(gl);
@@ -390,12 +379,9 @@ bool ScFace::canRender(QChar ch) const
 		gid_type gl = char2CMap(ch);    //  calls load()
 		if (gl >= CONTROL_GLYPHS)   //  those are always empty
 			return true;
-		else if (gl != 0) {
+		else {
 			m_m->loadGlyph(gl);
 			return ! m_m->m_glyphOutline[gl].broken; 
-		}
-		else  {
-			return false;
 		}
 	}
 }
