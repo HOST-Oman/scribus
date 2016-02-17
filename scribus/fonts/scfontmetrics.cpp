@@ -188,11 +188,7 @@ FPointArray traceGlyph(FT_Face face, ScFace::gid_type glyphIndex, int chs, qreal
 		*err = error;
 		return pts2;
 	}
-	if (glyphIndex == 0)
-	{
-		*err = true;
-		return pts2;
-	}
+
 	error = FT_Load_Glyph( face, glyphIndex, FT_LOAD_NO_HINTING | FT_LOAD_NO_BITMAP );
 	if (error)
 	{
