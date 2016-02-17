@@ -24,11 +24,20 @@ for which a new license (GPL+exception) is in place.
 #include "vgradient.h"
 #include "mesh.h"
 #include "sctextstruct.h"
+#include "util.h"
 
 class ScPattern;
 
+typedef struct _cairo cairo_t;
+typedef struct _cairo_surface cairo_surface_t;
+typedef struct _cairo_pattern cairo_pattern_t;
+
 class SCRIBUS_API ScPainter
 {
+protected:
+	double m_lineWidth;
+
+
 public:
 	VGradient fill_gradient;
 	VGradient stroke_gradient;
@@ -40,9 +49,12 @@ public:
 	virtual ~ScPainter() = 0;
 
 	enum FillMode { None, Solid, Gradient, Pattern, Hatch };
+	virtual void drawGlyph(const GlyphLayout glyphLayout, const ScFace font, double fontSize) = 0;
+	virtual void drawGlyphOutline(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double outlineWidth) = 0;
+	virtual void translate( double, double ) = 0;
 	virtual void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0 ) = 0;
 	virtual void endLayer( ) = 0;
-	virtual void setAntialiasing(bool enable ) = 0;
+	virtual void setAntialiasing(bool enable) = 0;
 	virtual void begin( ) = 0;
 	virtual void end( ) = 0;
 	virtual void clear() = 0;
@@ -109,14 +121,14 @@ public:
 	virtual void colorize(QColor color ) = 0;
 	virtual void blurAlpha(int radius ) = 0;
 	virtual void blur(int radius ) = 0;
-	virtual void drawGlyph(GlyphRun glyphrun ) = 0;
+	virtual void drawShadow(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double xoff, double yoff) = 0;
 	// pen + brush
 	virtual QColor pen( ) = 0;
 	virtual QColor brush( ) = 0;
 	virtual void setPen( const QColor &  ) = 0;
 	virtual void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo  ) = 0;
 	virtual void setPenOpacity( double op  ) = 0;
-	virtual void setLineWidth( double w ) = 0;
+	virtual void setLineWidth( double w) { m_lineWidth = w; }
 	virtual void setDash(const QVector<double>& array, double ofs ) = 0;
 	virtual void setBrush( const QColor &  ) = 0;
 	virtual void setBrushOpacity( double op  ) = 0;
@@ -133,10 +145,6 @@ public:
 	virtual void setBlendModeStroke( int blendMode  ) = 0;
 };
 
-
-typedef struct _cairo cairo_t;
-typedef struct _cairo_surface cairo_surface_t;
-typedef struct _cairo_pattern cairo_pattern_t;
 
 class SCRIBUS_API ScScreenPainter : public ScPainter
 {
@@ -170,9 +178,9 @@ public:
 	void closePath();
 	void fillPath();
 	void strokePath();
-	void setFillRule( bool fillRule );
+	void setFillRule( bool fillRule ) { m_fillRule = fillRule; }
 	bool fillRule() { return m_fillRule; }
-	void setFillMode( int fill );
+	void setFillMode( int fill ) { m_fillMode = fill; }
 	int  fillMode() { return m_fillMode; }
 	void setStrokeMode( int stroke );
 	int  strokeMode() { return m_strokeMode; }
@@ -213,14 +221,15 @@ public:
 	void colorize(QColor color);
 	void blurAlpha(int radius);
 	void blur(int radius);
-	void drawGlyph(GlyphRun glyphrun);
+	void drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize);
+	void drawShadow(const GlyphLayout gl, const ScFace font, double fontSize, double xoff, double yoff);
+	void drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth);
 	// pen + brush
 	QColor pen();
 	QColor brush();
-	void setPen( const QColor & );
+	void setPen( const QColor & ) { m_stroke = c; }
 	void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo );
 	void setPenOpacity( double op );
-	void setLineWidth( double w);
 	void setDash(const QVector<double>& array, double ofs);
 	void setBrush( const QColor & );
 	void setBrushOpacity( double op );
@@ -238,8 +247,8 @@ public:
 	void setBlendModeStroke( int blendMode );
 
 private:
-	void fillPathHelper();
-	void strokePathHelper();
+	virtual void fillPathHelper();
+	virtual void strokePathHelper();
 
 	cairo_t *m_cr;
 	struct layerProp
@@ -265,6 +274,7 @@ private:
 		bool pushed;
 		bool fillRule;
 	};
+protected:
 	cairo_pattern_t *getMaskPattern();
 	cairo_surface_t *m_imageMask;
 	QImage m_imageQ;
@@ -341,6 +351,13 @@ private:
 	double m_mask_gradientScale;
 	double m_mask_gradientSkew;
 
+	/*! \brief Zoom Factor of the Painter */
+	double m_zoomFactor;
+	bool imageMode;
+	bool layeredMode;
+	bool svgMode;
+	bool m_fillRule;
+	QColor m_stroke;
 	/*! \brief Line End Style */
 	Qt::PenCapStyle PLineEnd;
   /*! \brief Line Join Style */

@@ -295,15 +295,14 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 	}
 	if (style.strokeColor() != CommonStrings::None)
 	{
-						setQColor(&tmp, style.strokeColor(), style.strokeShade());
-						p->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		setQColor(&tmp, style.strokeColor(), style.strokeShade());
+		p->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
 	for (int i = 0; i < m_glyphs.count(); ++i)
 	{
 		p->save();
 		const GlyphLayout& glyphLayout(m_glyphs.at(i));
 		uint glyphId = glyphLayout.glyph;
-		FPointArray gly = font.glyphOutline(glyphId);
 		double st, lw;
 		if (((style.effects() & ScStyle_Underline) || ((style.effects() & ScStyle_UnderlineWords) && glyphId != font.char2CMap(QChar(' ')))) && (style.strokeColor() != CommonStrings::None))
 		{
@@ -353,7 +352,7 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 			}
 			else
 			{
-				st = font.strikeoutPos(style.fontSize() / 10) - height();
+				st = font.strikeoutPos(style.fontSize() / 10);
 				lw = qMax(font.strokeWidth(style.fontSize() / 10.0), 1.0);
 			}
 			if (style.baselineOffset() != 0)
@@ -365,55 +364,36 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 						FPoint(glyphLayout.xoffset + glyphLayout.xadvance, glyphLayout.yoffset - st));
 			p->setStrokeMode(oldSM);
 		}
-		if (gly.size() > 3)
-		{
-			p->translate(glyphLayout.xoffset, glyphLayout.yoffset);
-			if (style.baselineOffset() != 0)
-				p->translate(0, -(style.fontSize() / 10.0) * (style.baselineOffset() / 1000.0));
-			double glxSc = glyphLayout.scaleH * style.fontSize() / 100.00;
-			double glySc = glyphLayout.scaleV * style.fontSize() / 100.0;
-			p->scale(glxSc, glySc);
-			bool fr = p->fillRule();
-			p->setFillRule(false);
-			p->setupPolygon(&gly, true);
-			if (glyphId == 0)
-			{
-				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-				p->setLineWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() * 2 / 10000.0);
-				p->strokePath();
-			}
-			else if ((font.isStroked()) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
-			{
-				QColor tmp = p->brush();
-				p->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-				p->setLineWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0);
-				p->strokePath();
-			}
-			else
-			{
-				if ((style.effects() & ScStyle_Shadowed) && (style.strokeColor() != CommonStrings::None))
-				{
-					p->save();
-					p->translate((style.fontSize() * glyphLayout.scaleH * style.shadowXOffset() / 10000.0) / glxSc, -(style.fontSize() * glyphLayout.scaleV * style.shadowYOffset() / 10000.0) / glySc);
-					QColor tmp = p->brush();
-					p->setBrush(p->pen());
-					p->setupPolygon(&gly, true);
-					p->fillPath();
-					p->setBrush(tmp);
-					p->restore();
-					p->setupPolygon(&gly, true);
-				}
-				if (style.fillColor() != CommonStrings::None)
-					p->fillPath();
-				if ((style.effects() & ScStyle_Outline) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
-				{
-					p->setLineWidth((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) / glySc);
-					p->strokePath();
-				}
-			}
-			p->setFillRule(fr);
-		}
 
+		p->translate(glyphLayout.xoffset, glyphLayout.yoffset);
+		if (style.baselineOffset() != 0)
+			p->translate(0, -(style.fontSize() / 10.0) * (style.baselineOffset() / 1000.0));
+		if (glyphId == 0)
+		{
+			p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+			p->setLineWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() * 2 / 10000.0);
+			p->drawGlyph(glyphLayout, font,style.fontSize());
+		}
+		else if ((font.isStroked()) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+		{
+			QColor tmp = p->brush();
+			p->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+			p->setLineWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0);
+			p->drawGlyph(glyphLayout, font, style.fontSize());
+		}
+		else
+		{
+			if ((style.effects() & ScStyle_Shadowed) && (style.strokeColor() != CommonStrings::None))
+			{
+				p->drawShadow(glyphLayout, font, style.fontSize(), style.shadowXOffset(), style.shadowYOffset());
+			}
+			if (style.fillColor() != CommonStrings::None)
+				p->drawGlyph(glyphLayout, font, style.fontSize());
+			if ((style.effects() & ScStyle_Outline) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+			{
+				p->drawGlyphOutline(glyphLayout, font, style.fontSize(), style.outlineWidth());
+			}
+		}
 		p->restore();
 		p->translate(glyphLayout.xadvance, 0);
 	}
