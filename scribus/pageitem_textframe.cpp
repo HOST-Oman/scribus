@@ -774,7 +774,25 @@ struct LineControl {
 
 		for (int i = line.firstRun; i <= line.lastRun; ++i)
 		{
-			addBox(result, glyphRuns.at(i));
+			if (glyphRuns.at(i).rtl())
+			{
+				// Find successive RTL runs and insert them in reverse order
+				int rtlCount = 0;
+				for (int j = i; j <= line.lastRun; j++)
+				{
+					if (glyphRuns.at(j).rtl())
+						rtlCount++;
+					else
+						break;
+				}
+				for (int j = rtlCount - 1; j >= 0; j--)
+					addBox(result, glyphRuns.at(i + j));
+				i += rtlCount;
+			}
+			else
+			{
+				addBox(result, glyphRuns.at(i));
+			}
 		}
 
 		return result;
@@ -1392,6 +1410,10 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 
 		hb_shape(hbFont, hbBuffer, NULL, 0);
 
+		// Reverse RTL runs for line breaking as well as code that assumes increasing character order
+		if (textRun.dir == UBIDI_RTL)
+			hb_buffer_reverse(hbBuffer);
+
 		unsigned int count = hb_buffer_get_length(hbBuffer);
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);
 		hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(hbBuffer, NULL);
@@ -1405,6 +1427,19 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 				nextCluster = glyphs[j].cluster;
 			if (nextCluster == firstCluster)
 				nextCluster = textRun.start + textRun.len;
+
+			assert(textMap.contains(firstCluster));
+			assert(textMap.contains(nextCluster - 1));
+			int firstChar = textMap.value(firstCluster);
+			int lastChar = textMap.value(nextCluster - 1);
+
+			QChar ch = itemText.text(firstChar);
+			LayoutFlags flags = itemText.flags(firstChar);
+			const CharStyle& charStyle(itemText.charStyle(firstChar));
+
+			GlyphRun run(&charStyle, flags, firstChar, lastChar, itemText.object(firstChar), textRun.dir == UBIDI_RTL);
+			if (SpecialChars::isExpandingSpace(ch))
+				run.setFlag(ScLayout_ExpandingSpace);
 
 			GlyphLayout gl;
 			gl.glyph = glyphs[i].codepoint;
