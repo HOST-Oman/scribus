@@ -78,14 +78,16 @@ class GlyphRun
 	int m_firstChar;
 	int m_lastChar;
 	PageItem* m_object;
+	bool m_rtl;
 
 public:
-	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o)
+	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, bool rtl)
 		: m_style(style)
 		, m_flags(flags)
 		, m_firstChar(first)
 		, m_lastChar(last)
 		, m_object(o)
+		, m_rtl(rtl)
 	{}
 
 	const CharStyle&         style()  const { return *m_style; }
@@ -101,6 +103,7 @@ public:
 	void insertSoftHyphen();
 	void removeSoftHyphen();
 	PageItem* object()				const	{ return m_object; }
+	bool rtl()					const   { return m_rtl; }
 };
 
 
