@@ -4659,7 +4659,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 //			view->RefreshItem(this);
 			doUpdate = true;
 		}
-		else if ((uc[0] > QChar(31) && m_Doc->currentStyle.charStyle().font().canRender(uc[0])) || (as == 13) || (as == 30))
+		else if (uc[0] > QChar(31) || (as == 13) || (as == 30))
 		{
 			if (UndoManager::undoEnabled())
 			{
