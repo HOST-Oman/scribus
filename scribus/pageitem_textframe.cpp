@@ -1247,17 +1247,7 @@ void PageItem_TextFrame::adjustParagraphEndings ()
 	}
 }
 
-struct TextRun {
-	TextRun(int s, int l, UBiDiDirection d)
-		: start(s), len(l), dir(d)
-	{ }
-
-	int start;
-	int len;
-	UBiDiDirection dir;
-};
-
-static QList<TextRun> itemizeBiDi(QString text)
+QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeBiDi(QString text)
 {
 	QList<TextRun> textRuns;
 	UBiDi *obj = ubidi_open();
@@ -1286,6 +1276,36 @@ static QList<TextRun> itemizeBiDi(QString text)
 
 	ubidi_close(obj);
 	return textRuns;
+}
+
+QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeFonts(QList<TextRun> runs)
+{
+	QList<TextRun> newRuns;
+
+	foreach (TextRun run, runs) {
+		int start = run.start;
+		QList<TextRun> subRuns;
+
+		while (start < run.start + run.len)
+		{
+			int end = start;
+			while (end < run.start + run.len)
+			{
+				if (itemText.charStyle(end).font() != itemText.charStyle(start).font())
+					break;
+				end++;
+			}
+			if (run.dir == UBIDI_RTL)
+				subRuns.prepend(TextRun(start, end - start, run.dir));
+			else
+				subRuns.append(TextRun(start, end - start, run.dir));
+			start = end;
+		}
+
+		newRuns.append(subRuns);
+	}
+
+	return newRuns;
 }
 
 QList<GlyphRun> PageItem_TextFrame::shapeText()
@@ -1395,17 +1415,19 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		text.append(str);
 	}
 
-	QList<TextRun> textRuns = itemizeBiDi(text);
+	QList<TextRun> textRuns = itemizeFonts(itemizeBiDi(text));
 
 	QList<GlyphRun> glyphRuns;
-	CharStyle cs = itemText.charStyle(firstInFrame());
-	FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
-
-	hb_font_t *hbFont = hb_ft_font_create_referenced(cs.font().ftFace());
-	hb_buffer_t *hbBuffer = hb_buffer_create();
 
 	foreach (TextRun textRun, textRuns) {
 		QVector<uint> ucs4 = text.toUcs4();
+
+		CharStyle cs = itemText.charStyle(textRun.start);
+		FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
+
+		// TODO: move to ScFace
+		hb_font_t *hbFont = hb_ft_font_create_referenced(cs.font().ftFace());
+		hb_buffer_t *hbBuffer = hb_buffer_create();
 
 		hb_buffer_clear_contents(hbBuffer);
 		hb_buffer_add_utf32(hbBuffer, ucs4.data(), ucs4.length(), textRun.start, textRun.len);

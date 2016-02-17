@@ -161,7 +161,18 @@ public:
 	void setTextFrameHeight();
 
 private:
+	struct TextRun {
+		TextRun(int s, int l, int d)
+			: start(s), len(l), dir(d)
+		{ }
+
+		int start;
+		int len;
+		int dir;
+	};
 	QList<GlyphRun> shapeText();
+	QList<TextRun> itemizeBiDi(QString text);
+	QList<TextRun> itemizeFonts(QList<TextRun> runs);
 };
 
 #endif
