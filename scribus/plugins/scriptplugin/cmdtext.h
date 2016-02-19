@@ -263,6 +263,19 @@ May throw ValueError for an invalid alignment constant.\n\
 PyObject *scribus_setalign(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
+PyDoc_STRVAR(scribus_setdirection__doc__,
+QT_TR_NOOP("setTextDirection(direction, [\"name\"])\n\
+\n\
+Sets the text direction of the text frame \"name\" to the specified direction.\n\
+If \"name\" is not given the currently selected item is used. \"direction\" should\n\
+be one of the DIRECTION_ constants defined in this module - see dir(scribus).\n\
+\n\
+May throw ValueError for an invalid direction constant.\n\
+"));
+/*! Set direction */
+PyObject *scribus_setdirection(PyObject * /*self*/, PyObject* args);
+
+/*! docstring */
 PyDoc_STRVAR(scribus_selecttext__doc__,
 QT_TR_NOOP("selectText(start, count, [\"name\"])\n\
 \n\
