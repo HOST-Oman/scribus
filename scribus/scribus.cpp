@@ -6180,6 +6180,16 @@ void ScribusMainWindow::setNewAlignment(int a)
 	setTBvals(currItem);
 }
 
+void ScribusMainWindow::setNewDirection(int a)
+{
+	if (!HaveDoc)
+		return;
+	doc->itemSelection_SetDirection(a);
+	propertiesPalette->textPal->showDirection(a);
+	PageItem *currItem = doc->m_Selection->itemAt(0);
+	setTBvals(currItem);
+}
+
 void ScribusMainWindow::setNewParStyle(const QString& name)
 {
 	if (!HaveDoc)
@@ -6205,6 +6215,18 @@ void ScribusMainWindow::setAlignmentValue(int a)
 	for (int b=0; b<5; ++b)
 	{
 		QString actionName="align"+alignment[b];
+		if (scrActions[actionName])
+			scrActions[actionName]->setChecked(a==b);
+	}
+}
+
+void ScribusMainWindow::setDirectionValue(int a)
+{
+	propertiesPalette->textPal->showDirection(a);
+	QString direction[] = {"Left", "Right"};
+	for (int b=0; b<2; ++b)
+	{
+		QString actionName="direction"+direction[b];
 		if (scrActions[actionName])
 			scrActions[actionName]->setChecked(a==b);
 	}

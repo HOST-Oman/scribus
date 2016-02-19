@@ -476,9 +476,11 @@ public slots:
 	void updateDocument();
 
 	void setNewAlignment(int a);
+	void setNewDirection(int a);
 	void setNewParStyle(const QString& name);
 	void setNewCharStyle(const QString& name);
 	void setAlignmentValue(int a);
+	void setDirectionValue(int a);
 	void editItemsFromOutlines(PageItem *ite);
 	//0= center, 1 = top left.
 	void selectItemsFromOutlines(PageItem *ite, bool single = false, int position = 0);

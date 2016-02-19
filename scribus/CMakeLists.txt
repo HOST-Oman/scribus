@@ -307,6 +307,7 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/adjustcmsdialog.h
 	ui/aligndistribute.h
 	ui/alignselect.h
+       ui/directionselect.h
 	ui/annot.h
 	ui/annota.h
 	ui/applytemplatedialog.h
@@ -768,6 +769,7 @@ SET(SCRIBUS_SOURCES
 	ui/adjustcmsdialog.cpp
 	ui/aligndistribute.cpp
 	ui/alignselect.cpp
+       ui/directionselect.cpp
 	ui/annot.cpp
 	ui/annota.cpp
 	ui/applytemplatedialog.cpp
