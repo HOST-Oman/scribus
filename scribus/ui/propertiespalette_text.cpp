@@ -102,6 +102,7 @@ PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(paren
 	connect(fonts         , SIGNAL(fontSelected(QString )), this, SLOT(handleTextFont(QString)));
 	connect(fontSize      , SIGNAL(valueChanged(double)), this, SLOT(handleFontSize()));
 	connect(textAlignment , SIGNAL(State(int))   , this, SLOT(handleAlignment(int)));
+	connect(textDirection , SIGNAL(State(int))   , this, SLOT(handleDirection(int)));
 	connect(charStyleClear, SIGNAL(clicked()), this, SLOT(doClearCStyle()));
 	connect(paraStyleClear, SIGNAL(clicked()), this, SLOT(doClearPStyle()));
 
@@ -499,6 +500,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 	setupLineSpacingSpinbox(newCurrent.lineSpacingMode(), newCurrent.lineSpacing());
 	lineSpacingModeCombo->setCurrentIndex(newCurrent.lineSpacingMode());
 	textAlignment->setStyle(newCurrent.alignment());
+	textDirection->setStyle(newCurrent.direction());
 	
 	m_haveItem = tmp;
 }
@@ -530,6 +532,17 @@ void PropertiesPalette_Text::showAlignment(int e)
 	m_haveItem = false;
 	textAlignment->setEnabled(true);
 	textAlignment->setStyle(e);
+	m_haveItem = tmp;
+}
+
+void PropertiesPalette_Text::showDirection(int e)
+{
+	if (!m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+	bool tmp = m_haveItem;
+	m_haveItem = false;
+	textDirection->setEnabled(true);
+	textDirection->setStyle(e);
 	m_haveItem = tmp;
 }
 
@@ -576,6 +589,15 @@ void PropertiesPalette_Text::handleAlignment(int a)
 	Selection tempSelection(this, false);
 	tempSelection.addItem(m_item, true);
 	m_doc->itemSelection_SetAlignment(a, &tempSelection);
+}
+
+void PropertiesPalette_Text::handleDirection(int a)
+{
+	if (!m_haveDoc || !m_haveItem || !m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+	Selection tempSelection(this, false);
+	tempSelection.addItem(m_item, true);
+	m_doc->itemSelection_SetDirection(a, &tempSelection);
 }
 
 void PropertiesPalette_Text::handleTextFont(QString c)
@@ -659,6 +681,7 @@ void PropertiesPalette_Text::languageChange()
 	pathTextWidgets->languageChange();
 
 	textAlignment->languageChange();
+	textDirection->languageChange();
 
 	fontSize->setToolTip( tr("Font Size"));
 	
