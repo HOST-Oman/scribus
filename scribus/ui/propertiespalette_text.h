@@ -16,6 +16,7 @@ for which a new license (GPL+exception) is in place.
 #include "linecombo.h"
 #include "spalette.h"
 #include "alignselect.h"
+#include "directionselect.h"
 #include "shadebutton.h"
 #include "sclistboxpixmap.h"
 #include "scguardedptr.h"
@@ -83,6 +84,7 @@ public slots:
 	void unitChange();
 
 	void showAlignment(int e);
+	void showDirection(int e);
 	void showCharStyle(const QString& name);
 	void showFontFace(const QString&);
 	void showFontSize(double s);
@@ -105,6 +107,7 @@ public slots:
 
 private slots:
 	void handleAlignment(int a);
+	void handleDirection(int a);
 	void handleFirstLinePolicy(int);
 	void handleFontSize();
 	void handleLineSpacing();

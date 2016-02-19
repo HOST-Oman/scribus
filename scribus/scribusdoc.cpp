@@ -505,6 +505,7 @@ void ScribusDoc::init()
 	pstyle.setLineSpacingMode(ParagraphStyle::FixedLineSpacing);
 	pstyle.setLineSpacing(15);
 	pstyle.setAlignment(ParagraphStyle::Leftaligned);
+	pstyle.setDirection(ParagraphStyle::LTR);
 	pstyle.setLeftMargin(0);
 	pstyle.setFirstIndent(0);
 	pstyle.setRightMargin(0);
@@ -11686,6 +11687,18 @@ void ScribusDoc::itemSelection_SetAlignment(int s, Selection* customSelection)
 {
 	ParagraphStyle newStyle;
 	newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(s));
+	itemSelection_ApplyParagraphStyle(newStyle, customSelection);
+}
+
+void ScribusDoc::itemSelection_SetDirection(int s, Selection* customSelection)
+{
+	ParagraphStyle newStyle;
+	newStyle.setDirection(static_cast<ParagraphStyle::DirectionType>(s));
+	if (s == 0)
+		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(0));
+	else if (s == 1)
+		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(2));
+
 	itemSelection_ApplyParagraphStyle(newStyle, customSelection);
 }
 

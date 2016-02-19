@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>214</width>
-    <height>357</height>
+    <width>221</width>
+    <height>336</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -114,6 +114,9 @@
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item alignment="Qt::AlignLeft">
+      <widget class="DirectionSelect" name="textDirection" native="true"/>
+     </item>
      <item>
       <widget class="AlignSelect" name="textAlignment" native="true"/>
      </item>
@@ -124,7 +127,7 @@
        </property>
        <property name="sizeHint" stdset="0">
         <size>
-         <width>40</width>
+         <width>20</width>
          <height>20</height>
         </size>
        </property>
@@ -282,6 +285,12 @@
    <class>AlignSelect</class>
    <extends>QWidget</extends>
    <header>ui/alignselect.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>DirectionSelect</class>
+   <extends>QWidget</extends>
+   <header>ui/directionselect.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>

@@ -661,6 +661,8 @@ void Scribus150Format::putPStyle(ScXmlStreamWriter & docu, const ParagraphStyle 
 
 	if ( ! style.isInhAlignment())
 		docu.writeAttribute("ALIGN", style.alignment());
+	if ( ! style.isInhDirection())
+		docu.writeAttribute("DIRECTION", style.direction());
 	if ( ! style.isInhLineSpacingMode())
 		docu.writeAttribute("LINESPMode", style.lineSpacingMode());
 	if ( ! style.isInhLineSpacing())
