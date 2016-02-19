@@ -410,6 +410,39 @@ PyObject *scribus_setalign(PyObject* /* self */, PyObject* args)
 	Py_RETURN_NONE;
 }
 
+PyObject *scribus_setdirection(PyObject* /* self */, PyObject* args)
+{
+	char *Name = const_cast<char*>("");
+	int direction;
+	if (!PyArg_ParseTuple(args, "i|es", &direction, "utf-8", &Name))
+		return NULL;
+	if(!checkHaveDocument())
+		return NULL;
+	if ((direction > 1) || (direction < 0))
+	{
+		PyErr_SetString(PyExc_ValueError, QObject::tr("direction out of range. Use one of the scribus.DIRECTION* constants.","python error").toLocal8Bit().constData());
+		return NULL;
+	}
+	PageItem *i = GetUniqueItem(QString::fromUtf8(Name));
+	if (i == NULL)
+		return NULL;
+	if (!i->asTextFrame())
+	{
+		PyErr_SetString(WrongFrameTypeError, QObject::tr("Cannot set text direction on a non-text frame.","python error").toLocal8Bit().constData());
+		return NULL;
+	}
+	int Apm = ScCore->primaryMainWindow()->doc->appMode;
+	ScCore->primaryMainWindow()->doc->m_Selection->clear();
+	ScCore->primaryMainWindow()->doc->m_Selection->addItem(i);
+	if (i->HasSel)
+		ScCore->primaryMainWindow()->doc->appMode = modeEdit;
+	ScCore->primaryMainWindow()->setNewDirection(direction);
+	ScCore->primaryMainWindow()->doc->appMode = Apm;
+	ScCore->primaryMainWindow()->view->Deselect();
+
+	Py_RETURN_NONE;
+}
+
 PyObject *scribus_setfontsize(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
@@ -1206,5 +1239,5 @@ void cmdtextdocwarnings()
 	  << scribus_hyphenatetext__doc__ << scribus_dehyphenatetext__doc__
 	  << scribus_gettextdistances__doc__ << scribus_settextdistances__doc__
 	  << scribus_settextscalingh__doc__ << scribus_settextscalingv__doc__
-	  << scribus_setlinespacemode__doc__;
+	  << scribus_setlinespacemode__doc__ << scribus_setdirection__doc__;
 }

@@ -2619,6 +2619,10 @@ void Scribus150Format::readParagraphStyle(ScribusDoc *doc, ScXmlStreamReader& re
 	if (attrs.hasAttribute(ALIGN))
 		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt(ALIGN)));
 
+	static const QString DIRECTION("DIRECTION");
+	if (attrs.hasAttribute(DIRECTION))
+		newStyle.setDirection(static_cast<ParagraphStyle::DirectionType>(attrs.valueAsInt(DIRECTION)));
+
 	static const QString VOR("VOR");
 	if (attrs.hasAttribute(VOR))
 		newStyle.setGapBefore(attrs.valueAsDouble(VOR));
@@ -4935,6 +4939,8 @@ PageItem* Scribus150Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 		pstyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(attrs.valueAsInt("LINESPMode", 0)));
 	if (attrs.hasAttribute("ALIGN"))
 		pstyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt("ALIGN", 0)));
+	if (attrs.hasAttribute("DIRECTION"))
+		pstyle.setDirection(static_cast<ParagraphStyle::DirectionType>(attrs.valueAsInt("DIRECTION", 0)));
 	if (attrs.hasAttribute("IFONT"))
 		pstyle.charStyle().setFont(m_AvailableFonts->findFont(attrs.valueAsString("IFONT"), doc));
 	if (attrs.hasAttribute("ISIZE"))

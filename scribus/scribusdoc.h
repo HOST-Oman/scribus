@@ -1050,6 +1050,7 @@ public:
 	void itemSelection_SetLineJoin(Qt::PenJoinStyle w);
 	void itemSelection_SetLineEnd(Qt::PenCapStyle w);
 	void itemSelection_SetAlignment(int w, Selection* customSelection=0);
+	void itemSelection_SetDirection(int w, Selection* customSelection=0);
 	void itemSelection_SetLineSpacing(double w, Selection* customSelection=0);
 	void itemSelection_SetLineSpacingMode(int w, Selection* customSelection=0);
 	void itemSetFont(const QString& newFont);
