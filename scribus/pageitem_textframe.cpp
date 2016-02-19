@@ -1269,7 +1269,12 @@ static QList<TextRun> itemizeBiDi(QString text)
 	UBiDi *obj = ubidi_open();
 	UErrorCode err = U_ZERO_ERROR;
 
-	ubidi_setPara(obj, text.utf16(), -1, UBIDI_LTR, NULL, &err); // FIXME
+	UBiDiLevel parLevel = UBIDI_LTR;
+	ParagraphStyle style = itemText.paragraphStyle(firstInFrame());
+	if (style.direction() == ParagraphStyle::RTL)
+		parLevel = UBIDI_RTL;
+
+	ubidi_setPara(obj, text.utf16(), -1, parLevel, NULL, &err);
 	if (U_SUCCESS(err))
 	{
 		int32_t count = ubidi_countRuns(obj, &err);
