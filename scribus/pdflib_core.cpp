@@ -363,6 +363,7 @@ public:
 	  void setFillRule( bool fillRule )  { }
 	  bool fillRule()  { }
 	  void setFillMode( int fill )  { }
+	  int  fillMode() {}
 	  int strokeMode()  { }
 	  void setStrokeMode( int stroke )  { }
 	  void setGradient( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)  { }

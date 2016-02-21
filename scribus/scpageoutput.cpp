@@ -1616,6 +1616,7 @@ void ScPageOutput::drawItem_Table( PageItem_Table* item, ScPainterExBase* painte
 
 void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase* painter, QRect cullingArea )
 {
+#if 0
 	QTransform wm;
 	QPoint pt1, pt2;
 	FPoint ColBound;
@@ -1861,6 +1862,7 @@ void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase
 		}
 	}
 	painter->restore();
+#endif
 }
 
 void ScPageOutput::drawArrow(ScPainterExBase* painter, PageItem* item, QTransform &arrowTrans, int arrowIndex)

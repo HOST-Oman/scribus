@@ -806,6 +806,7 @@ void XPSExPlug::processImageItem(double xOffset, double yOffset, PageItem *Item,
 
 void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
 {
+#if 0
 	const GlyphBox* lincon = Item->asTextFrame()->m_gb;
 	if (Item->isAnnotation())
 		return;
@@ -1375,10 +1376,12 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			parentElem.appendChild(grp2);
 		}
 	}
+#endif
 }
 
 void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
 {
+#if 0
 	const GlyphBox* lincon = Item->asTextFrame()->m_gb;
 	QDomElement grp = p_docu.createElement("Canvas");
 	QTransform mpx;
@@ -1630,6 +1633,7 @@ void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *It
 	}
 	parentElem.appendChild(grp);
 	return;
+#endif
 }
 
 void XPSExPlug::processSymbolItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
