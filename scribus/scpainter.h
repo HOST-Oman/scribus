@@ -51,7 +51,6 @@ public:
 	enum FillMode { None, Solid, Gradient, Pattern, Hatch };
 	virtual void drawGlyph(const GlyphLayout glyphLayout, const ScFace font, double fontSize) = 0;
 	virtual void drawGlyphOutline(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double outlineWidth) = 0;
-	virtual void translate( double, double ) = 0;
 	virtual void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0 ) = 0;
 	virtual void endLayer( ) = 0;
 	virtual void setAntialiasing(bool enable) = 0;
@@ -227,11 +226,11 @@ public:
 	// pen + brush
 	QColor pen();
 	QColor brush();
-	void setPen( const QColor & ) { m_stroke = c; }
+	void setPen( const QColor &c ) { m_stroke = c; }
 	void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo );
 	void setPenOpacity( double op );
 	void setDash(const QVector<double>& array, double ofs);
-	void setBrush( const QColor & );
+	void setBrush( const QColor &c ) { m_fill = c; }
 	void setBrushOpacity( double op );
 	void setOpacity( double op );
 	void setFont( const QFont &f );
@@ -356,8 +355,6 @@ protected:
 	bool imageMode;
 	bool layeredMode;
 	bool svgMode;
-	bool m_fillRule;
-	QColor m_stroke;
 	/*! \brief Line End Style */
 	Qt::PenCapStyle PLineEnd;
   /*! \brief Line Join Style */
@@ -366,7 +363,6 @@ protected:
 	QVector<double> m_array;
 	double m_offset;
 	/*! \brief Zoom Factor of the Painter */
-	double m_zoomFactor;
 	bool m_imageMode;
 	bool m_layeredMode;
 	bool m_svgMode;
