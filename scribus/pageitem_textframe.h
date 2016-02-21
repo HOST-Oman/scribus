@@ -76,8 +76,9 @@ struct LineSpec
 	int firstChar;
 	int lastChar;
 	qreal naturalWidth;
+	bool isFirstLine;
+	qreal height;
 };
-
 
 class SCRIBUS_API PageItem_TextFrame : public PageItem
 {

@@ -5059,6 +5059,7 @@ void PSLib::SetColor(const ScColor& farb, double shade, int *h, int *s, int *v, 
  */
 void PSLib::setTextSt(ScribusDoc* Doc, PageItem* ite, uint argh, ScPage* pg, bool sep, bool farb, bool master)
 {
+#if 0
 	const GlyphBox* item = ite->asTextFrame()->m_gb;
 //	qDebug() << QString("pslib setTextSt: ownPage=%1 pageNr=%2 OnMasterPage=%3;").arg(ite->OwnPage).arg(pg->pageNr()).arg(ite->OnMasterPage);
 	int tabCc = 0;
@@ -5348,6 +5349,7 @@ void PSLib::setTextSt(ScribusDoc* Doc, PageItem* ite, uint argh, ScPage* pg, boo
 			tabDist = CurX;
 		}
 	}
+#endif
 }
 
 void PSLib::setTextCh(ScribusDoc* Doc, PageItem* ite, double x, double y, uint argh, uint doh, QChar chstr, const GlyphLayout glyphs, const CharStyle& cstyle, const ParagraphStyle& pstyle, ScPage* pg, bool sep, bool farb, bool master)

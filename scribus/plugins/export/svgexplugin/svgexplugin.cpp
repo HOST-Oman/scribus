@@ -1146,6 +1146,7 @@ QDomElement SVGExPlug::processImageItem(PageItem *Item, QString trans, QString f
 
 QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fill, QString stroke)
 {
+#if 0
 	const GlyphBox* lincon = Item->asTextFrame()->m_gb ;
 	QDomElement ob;
 	ob = docu.createElement("g");
@@ -1564,6 +1565,7 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 		}
 	}
 	return ob;
+#endif
 }
 
 QDomElement SVGExPlug::processPathTextItem(PageItem *Item, QString trans, QString stroke)
