@@ -35,7 +35,7 @@ typedef struct _cairo_pattern cairo_pattern_t;
 class SCRIBUS_API ScPainter
 {
 protected:
-	double m_lineWidth;
+	double m_LineWidth;
 
 
 public:
@@ -45,7 +45,10 @@ public:
 	ScPattern *m_maskPattern;
 	ScPattern *m_pattern;
 
-	ScPainter() {}
+	ScPainter() :
+		m_LineWidth(1.0)
+	{}
+
 	virtual ~ScPainter() = 0;
 
 	enum FillMode { None, Solid, Gradient, Pattern, Hatch };
@@ -127,7 +130,7 @@ public:
 	virtual void setPen( const QColor &  ) = 0;
 	virtual void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo  ) = 0;
 	virtual void setPenOpacity( double op  ) = 0;
-	virtual void setLineWidth( double w) { m_lineWidth = w; }
+	virtual void setLineWidth( double w) { m_LineWidth = w; }
 	virtual void setDash(const QVector<double>& array, double ofs ) = 0;
 	virtual void setBrush( const QColor &  ) = 0;
 	virtual void setBrushOpacity( double op  ) = 0;
@@ -335,7 +338,6 @@ protected:
 	/*! \brief Stroking */
 	QColor m_stroke;
 	double m_stroke_trans;
-	double m_LineWidth;
 	int m_strokeMode;				// 0 = none, 1 = solid, 2 = gradient 3 = pattern
 	int m_maskMode;				// 0 = none, 1 = gradient 2 = pattern
 	double m_mask_patternScaleX;
