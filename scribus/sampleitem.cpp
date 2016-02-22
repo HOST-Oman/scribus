@@ -292,7 +292,7 @@ QPixmap SampleItem::getSample(int width, int height)
 
 	PageItem_TextFrame *previewItem = new PageItem_TextFrame(m_Doc, 0, 0, width, height, 0, "__whiteforpreviewbg__", "__whiteforpreview__");
 	QImage pm(width, height, QImage::Format_ARGB32);
-	ScPainter *painter = new ScScreenPainter(&pm, width, height, 1.0, 0);
+	ScPainter *painter = new ScImagePainter(&pm, width, height, 1.0, 0);
 	painter->setZoomFactor(PrefsManager::instance()->appPrefs.displayPrefs.displayScale);
 
 	if (m_Doc->UsedFonts.contains(m_tmpStyle.charStyle().font().scName()))
