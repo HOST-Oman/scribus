@@ -22,48 +22,6 @@ for which a new license (GPL+exception) is in place.
 ScPainter::~ScPainter()
 {}
 
-void ScScreenPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize)
-{
-	save();
-	cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font.ftFace(), 0);
-	cairo_set_font_face(m_cr, face);
-	cairo_set_font_size(m_cr, gl.scaleH * fontSize / 10.0);
-	cairo_glyph_t glyph = { gl.glyph, 0, 0 };
-	bool fr = fillRule();
-	setFillRule(false);
-	cairo_show_glyphs(m_cr, &glyph, 1);
-	setFillRule(fr);
-	cairo_font_face_destroy(face);
-	restore();
-}
-
-void ScScreenPainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth)
-{
-	save();
-	cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font.ftFace(), 0);
-	cairo_set_font_face(m_cr, face);
-	cairo_set_font_size(m_cr, gl.scaleH * fontSize / 10.0);
-	cairo_glyph_t glyph = { gl.glyph, 0, 0 };
-	bool fr = fillRule();
-	setFillRule(false);
-	setLineWidth(fontSize * gl.scaleV * outlineWidth / 10000.0);
-	cairo_glyph_path(m_cr, &glyph, 1);
-	strokePath();
-	setFillRule(fr);
-	cairo_font_face_destroy(face);
-	restore();
-}
-
-void ScScreenPainter::drawGlyphShadow(const GlyphLayout gl, const ScFace font, double fontSize, double xoff, double yoff)
-{
-	save();
-	QColor tmp = brush();
-	translate((fontSize * gl.scaleH * xoff / 10000.0), -(fontSize * gl.scaleV * yoff / 10000.0));
-	setBrush(pen());
-	drawGlyph(gl, font, fontSize);
-	setBrush(tmp);
-	restore();
-}
 
 ScScreenPainter::ScScreenPainter( QImage *target, unsigned int w, unsigned int h, double transparency, int blendmode )
 {
@@ -2091,6 +2049,49 @@ void ScScreenPainter::drawShadePanel(const QRectF &r, const QColor color, bool s
 	closePath();
 	setBrush(light);
 	fillPath();
+}
+
+void ScScreenPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize)
+{
+	save();
+	cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font.ftFace(), 0);
+	cairo_set_font_face(m_cr, face);
+	cairo_set_font_size(m_cr, gl.scaleH * fontSize / 10.0);
+	cairo_glyph_t glyph = { gl.glyph, 0, 0 };
+	bool fr = fillRule();
+	setFillRule(false);
+	cairo_show_glyphs(m_cr, &glyph, 1);
+	setFillRule(fr);
+	cairo_font_face_destroy(face);
+	restore();
+}
+
+void ScScreenPainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth)
+{
+	save();
+	cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font.ftFace(), 0);
+	cairo_set_font_face(m_cr, face);
+	cairo_set_font_size(m_cr, gl.scaleH * fontSize / 10.0);
+	cairo_glyph_t glyph = { gl.glyph, 0, 0 };
+	bool fr = fillRule();
+	setFillRule(false);
+	setLineWidth(fontSize * gl.scaleV * outlineWidth / 10000.0);
+	cairo_glyph_path(m_cr, &glyph, 1);
+	strokePath();
+	setFillRule(fr);
+	cairo_font_face_destroy(face);
+	restore();
+}
+
+void ScScreenPainter::drawGlyphShadow(const GlyphLayout gl, const ScFace font, double fontSize, double xoff, double yoff)
+{
+	save();
+	QColor tmp = brush();
+	translate((fontSize * gl.scaleH * xoff / 10000.0), -(fontSize * gl.scaleV * yoff / 10000.0));
+	setBrush(pen());
+	drawGlyph(gl, font, fontSize);
+	setBrush(tmp);
+	restore();
 }
 
 void ScScreenPainter::colorizeAlpha(QColor color)
