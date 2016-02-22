@@ -3000,7 +3000,7 @@ void ScribusView::FromPathText()
 
 void ScribusView::TextToPath()
 {
-#if 0
+#if 0 // FIXME-HOST
 	if (Doc->appMode == modeEditClip)
 		requestMode(submodeEndNodeEdit);
 	Selection tmpSelection(this, false);
