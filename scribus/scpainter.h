@@ -150,11 +150,11 @@ public:
 };
 
 
-class SCRIBUS_API ScScreenPainter : public ScPainter
+class SCRIBUS_API ScImagePainter : public ScPainter
 {
 public:
-	ScScreenPainter( QImage *target, unsigned int w, unsigned int h, double transparency = 1.0, int blendmode = 0 );
-	~ScScreenPainter();
+	ScImagePainter( QImage *target, unsigned int w, unsigned int h, double transparency = 1.0, int blendmode = 0 );
+	~ScImagePainter();
 	void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0);
 	void endLayer();
 	void setAntialiasing(bool enable);
