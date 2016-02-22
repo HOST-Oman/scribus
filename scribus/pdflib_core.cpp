@@ -326,7 +326,7 @@ public:
 			}
 		}
 	}
-	void drawShadow(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double xoff, double yoff)  { }
+	void drawGlyphShadow(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double xoff, double yoff)  { }
 
 	QByteArray getBuffer() { return m_Buffer; }
 

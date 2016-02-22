@@ -385,7 +385,7 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 		{
 			if ((style.effects() & ScStyle_Shadowed) && (style.strokeColor() != CommonStrings::None))
 			{
-				p->drawShadow(glyphLayout, font, style.fontSize(), style.shadowXOffset(), style.shadowYOffset());
+				p->drawGlyphShadow(glyphLayout, font, style.fontSize(), style.shadowXOffset(), style.shadowYOffset());
 			}
 			if (style.fillColor() != CommonStrings::None)
 				p->drawGlyph(glyphLayout, font, style.fontSize());

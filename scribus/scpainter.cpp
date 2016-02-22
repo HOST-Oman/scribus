@@ -54,7 +54,7 @@ void ScScreenPainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, 
 	restore();
 }
 
-void ScScreenPainter::drawShadow(const GlyphLayout gl, const ScFace font, double fontSize, double xoff, double yoff)
+void ScScreenPainter::drawGlyphShadow(const GlyphLayout gl, const ScFace font, double fontSize, double xoff, double yoff)
 {
 	save();
 	uint glyphId = gl.glyph;
