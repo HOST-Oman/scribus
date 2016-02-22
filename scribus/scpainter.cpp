@@ -19,6 +19,13 @@ for which a new license (GPL+exception) is in place.
 #include <QDebug>
 
 
+ScPainter::ScPainter() :
+	m_LineWidth(1.0),
+	fill_gradient(VGradient::linear),
+	stroke_gradient(VGradient::linear),
+	mask_gradient(VGradient::linear)
+{}
+
 ScPainter::~ScPainter()
 {}
 
@@ -47,8 +54,6 @@ ScImagePainter::ScImagePainter( QImage *target, unsigned int w, unsigned int h, 
 	mf_outlined = false;
 	PLineEnd = Qt::FlatCap;
 	PLineJoin = Qt::MiterJoin;
-	fill_gradient = VGradient(VGradient::linear);
-	stroke_gradient = VGradient(VGradient::linear);
 	setHatchParameters(0, 2, 0, false, QColor(), QColor(), 0.0, 0.0);
 	m_zoomFactor = 1;
 	m_layeredMode = true;
