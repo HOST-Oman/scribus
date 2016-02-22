@@ -94,7 +94,6 @@ public:
 	
 	virtual void clearContents();
 	virtual void truncateContents();
-	const GlyphBox* m_gb;
 	/**
 	* \brief Handle keyboard interaction with the text frame while in edit mode
 	* @param k key event

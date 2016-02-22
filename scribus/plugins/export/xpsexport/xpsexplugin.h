@@ -120,7 +120,7 @@ private:
 	struct txtRunItem
 	{
 		QChar chr;
-		GlyphLayout glyphs;
+		GlyphLayout* glyphs;
 		CharStyle style;
 		int index;
 		double CurX;
