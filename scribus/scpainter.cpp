@@ -87,7 +87,6 @@ ScScreenPainter::ScScreenPainter( QImage *target, unsigned int w, unsigned int h
 	m_stroke_trans = 1.0;
 	m_fillRule = true;
 	m_fillMode = 1;
-	m_LineWidth = 1.0;
 	m_offset = 0;
 	m_layerTransparency = transparency;
 	m_blendMode = blendmode;

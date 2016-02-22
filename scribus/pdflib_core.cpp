@@ -239,7 +239,7 @@ public:
 			{
 
 
-					m_Buffer2 += FToStr(m_lineWidth)+" w\n[] 0 d\n0 J\n0 j\n";
+					m_Buffer2 += FToStr(m_LineWidth)+" w\n[] 0 d\n0 J\n0 j\n";
 					m_Buffer2 += StrokeColor;
 
 				FPointArray gly = font.glyphOutline(glyph);
@@ -287,7 +287,7 @@ public:
 				bool nPath = true;
 				FPoint np;
 					m_Buffer2 += "q\n";
-					m_Buffer2 += FToStr(m_lineWidth)+" w\n[] 0 d\n0 J\n0 j\n";
+					m_Buffer2 += FToStr(m_LineWidth)+" w\n[] 0 d\n0 J\n0 j\n";
 				if (gly.size() > 3)
 				{
 					for (int poi=0; poi<gly.size()-3; poi += 4)
@@ -391,7 +391,7 @@ public:
 	  void drawPolyLine()  { }
 	  void drawLine(FPoint start, FPoint end)
 	  {
-		  m_Buffer2 += FToStr(m_lineWidth) + " w\n";
+		  m_Buffer2 += FToStr(m_LineWidth) + " w\n";
 		  m_Buffer2 += FToStr(start.x()) + " " + FToStr(start.y())+" m\n";
 		  m_Buffer2 += FToStr(end.x()) + " "+ FToStr(end.y()) + " l\n";
 		  m_Buffer2 += "S\n";
