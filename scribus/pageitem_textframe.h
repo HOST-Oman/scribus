@@ -26,12 +26,12 @@ for which a new license (GPL+exception) is in place.
 #include <QRectF>
 #include <QString>
 #include <QKeyEvent>
-#include <text/boxes.h>
+
 #include "scribusapi.h"
 #include "pageitem.h"
 #include "marks.h"
 #include "notesstyles.h"
-#include <util_math.h>
+
 class PageItem_NoteFrame;
 class ScPainter;
 class ScribusDoc;
@@ -41,44 +41,6 @@ typedef QMap<PageItem_NoteFrame*, QList<TextNote *> > NotesInFrameMap;
 
 //cezaryece: I remove static statement and made it public as this function is used also by PageItem_NoteFrame
 double calculateLineSpacing (const ParagraphStyle &style, PageItem *item);
-
-static const bool legacy = true;
-enum TabStatus {
-	TabNONE    = 0,
-	TabLEFT    = TabNONE,
-	TabRIGHT   = 1,
-	TabPOINT   = 2,
-	TabCOMMA   = 3,
-	TabCENTER  = 4
-};
-
-
-/**
-fields which describe what type of tab is currently active
- */
-struct TabControl {
-	bool         active;
-	int          status;
-	double       xPos;
-	QChar        fillChar;
-	GlyphLayout* tabGlyph;
-};
-
-struct LineSpec
-{
-	qreal x;
-	qreal y;
-	qreal width;
-	qreal ascent;
-	qreal descent;
-	qreal colLeft;
-
-	int firstChar;
-	int lastChar;
-	qreal naturalWidth;
-	bool isFirstLine;
-	qreal height;
-};
 
 class SCRIBUS_API PageItem_TextFrame : public PageItem
 {
@@ -94,6 +56,7 @@ public:
 	
 	virtual void clearContents();
 	virtual void truncateContents();
+	
 	/**
 	* \brief Handle keyboard interaction with the text frame while in edit mode
 	* @param k key event
