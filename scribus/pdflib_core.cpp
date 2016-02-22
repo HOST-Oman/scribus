@@ -4107,7 +4107,7 @@ QByteArray PDFLibCore::PDF_PutSoftShadow(PageItem* ite, const ScPage *pag)
 	ite->setFillTransparency(transF);
 	ite->setLineTransparency(transS);
 	QImage imgC = imgA.copy(-pixelRadius, -pixelRadius, imgA.width() + 2 * pixelRadius, imgA.height() + 2 * pixelRadius); // Add border
-	ScPainter *p = new ScScreenPainter(&imgC, imgC.width(), imgC.height(), 1, 0);
+	ScPainter *p = new ScImagePainter(&imgC, imgC.width(), imgC.height(), 1, 0);
 	p->setZoomFactor(softShadowDPI / 72.0);
 	p->save();
 	p->blur(pixelRadius);
@@ -4116,7 +4116,7 @@ QByteArray PDFLibCore::PDF_PutSoftShadow(PageItem* ite, const ScPage *pag)
 	delete p;
 	if (ite->softShadowErasedByObject())
 	{
-		ScPainter *p = new ScScreenPainter(&imgC, imgC.width(), imgC.height(), 1, 0);
+		ScPainter *p = new ScImagePainter(&imgC, imgC.width(), imgC.height(), 1, 0);
 		p->translate(pixelRadius, pixelRadius);
 		p->translate(-ite->softShadowXOffset() * (softShadowDPI / 72.0), -ite->softShadowYOffset() * (softShadowDPI / 72.0));
 		p->beginLayer(1.0, 18);
