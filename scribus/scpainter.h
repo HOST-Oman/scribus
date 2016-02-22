@@ -42,13 +42,8 @@ public:
 	VGradient fill_gradient;
 	VGradient stroke_gradient;
 	VGradient mask_gradient;
-	ScPattern *m_maskPattern;
-	ScPattern *m_pattern;
 
-	ScPainter() :
-		m_LineWidth(1.0)
-	{}
-
+	ScPainter();
 	virtual ~ScPainter() = 0;
 
 	enum FillMode { None, Solid, Gradient, Pattern, Hatch };
@@ -284,6 +279,9 @@ protected:
 	cairo_pattern_t *getMaskPattern();
 	cairo_surface_t *m_imageMask;
 	QImage m_imageQ;
+
+	ScPattern *m_maskPattern;
+	ScPattern *m_pattern;
 
 	QStack<layerProp> m_Layers;
 	QStack<double> m_zoomStack;
