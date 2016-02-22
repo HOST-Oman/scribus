@@ -459,6 +459,7 @@ struct LineControl {
 		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
 		line.descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
 
+#if 0
 		double asce, desc;
 		line.ascent  = 0;
 		line.descent = 0;
@@ -486,6 +487,7 @@ struct LineControl {
 			line.ascent  = qMax(line.ascent, asce);
 //			line.descent = qMax(line.descent, desc);
 		}
+#endif
 	}
 
 // yPos should not be changed when all line is already calculated - at new y position there can be overflow!!!
