@@ -391,12 +391,14 @@ public:
 	  void drawPolyLine()  { }
 	  void drawLine(FPoint start, FPoint end)
 	  {
-		  m_Buffer2 += FToStr(m_LineWidth) + " w\n";
-		  m_Buffer2 += FToStr(start.x()) + " " + FToStr(start.y())+" m\n";
-		  m_Buffer2 += FToStr(end.x()) + " "+ FToStr(end.y()) + " l\n";
+		  m_Buffer2 += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
+		  m_Buffer2 += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
 		  m_Buffer2 += "S\n";
 	  }
-	  void drawLine(const QPointF& start, const QPointF& end)  { }
+	  void drawLine(const QPointF& start, const QPointF& end)
+	  {
+		  drawLine(FPoint(start), FPoint(end));
+	  }
 	  void drawSharpLine(FPoint start, FPoint end)  { }
 	  void drawSharpLine(QPointF start, QPointF end)  { }
 	  void drawRect(double, double, double, double)  { }
