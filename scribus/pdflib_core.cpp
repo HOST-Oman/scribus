@@ -5709,7 +5709,7 @@ QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 	ScPainter* p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset());
 	ite->textLayout.render(p, ite->itemText);
 	return dynamic_cast<PdfPainter*>(p)->getBuffer();
-#if 0
+#if 0 // FIXME-HOST
 	int tabCc = 0;
 	int savedOwnPage = ite->OwnPage;
 	double tabDist = ite->textToFrameDistLeft();
@@ -6086,7 +6086,7 @@ QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 
 bool PDFLibCore::setTextCh(PageItem *ite, uint PNr, double x, double y, uint d, QByteArray &tmp, QByteArray &tmp2, const CharStyle& style, GlyphLayout *glyphs, PathData* pdata, const ParagraphStyle& pstyle, const ScPage* pag)
 {
-#if 0
+#if 0 // FIXME-HOST
 	QByteArray output;
 	QByteArray FillColor = "";
 	QByteArray StrokeColor = "";

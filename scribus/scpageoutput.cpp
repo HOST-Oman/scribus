@@ -1085,7 +1085,7 @@ void ScPageOutput::drawItem_Line( PageItem_Line* item, ScPainterExBase* painter,
 
 void ScPageOutput::drawItem_PathText( PageItem_PathText* item, ScPainterExBase* painter, QRect clip )
 {
-#if 0
+#if 0 // FIXME-HOST
 	QString chstr;
 	//ScText *hl;
 	FPoint point = FPoint(0, 0);
@@ -1615,7 +1615,7 @@ void ScPageOutput::drawItem_Table( PageItem_Table* item, ScPainterExBase* painte
 
 void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase* painter, QRect cullingArea )
 {
-#if 0
+#if 0 // FIXME-HOST
 	QTransform wm;
 	QPoint pt1, pt2;
 	FPoint ColBound;

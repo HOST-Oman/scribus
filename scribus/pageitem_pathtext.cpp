@@ -71,7 +71,7 @@ void PageItem_PathText::layout()
 
 void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 {
-#if 0
+#if 0 // FIXME-HOST
 	itemText.invalidateAll();
 	firstChar = 0;
 	MaxChars = 0;
