@@ -2675,10 +2675,9 @@ double PageItem::layoutGlyphs(const QString& chars,int firstChar, int lastChar, 
 	return retval;
 }
 
-
 void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flags, GlyphLayout& glyphs)
 {
-#if 0
+#if 0 // FIXME-HOST
 	uint glyph = glyphs.glyph;
 	const ScFace font = style.font();
 	if ((m_Doc->guidesPrefs().showControls) &&

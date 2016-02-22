@@ -2170,7 +2170,7 @@ bool PSLib::ProcessItem(ScribusDoc* Doc, ScPage* a, PageItem* c, uint PNr, bool 
                 const CharStyle & style(c->asPathText()->itemRenderText.charStyle(d));
 				const PathData& pdata(c->textLayout.point(d));
 //              const GlyphLayout* glyphs(c->asPathText()->itemRenderText.getGlyphs(d));
-                const GlyphLayout* glyphs; // FIXME
+                const GlyphLayout* glyphs; // FIXME-HOST
                 PageItem* embItem = c->asPathText()->itemRenderText.hasObject(d)?
                                           c->asPathText()->itemRenderText.object(d) : NULL;
                 
@@ -3284,7 +3284,7 @@ bool PSLib::ProcessMasterPageLayer(ScribusDoc* Doc, ScPage* page, ScLayer& layer
 						continue;
                     const PathData& pdata(ite->textLayout.point(d));
 //                  const GlyphLayout* glyphs(ite->asPathText()->itemRenderText.getGlyphs(d));
-                    const GlyphLayout* glyphs; // FIXME
+                    const GlyphLayout* glyphs; // FIXME-HOST
                     PageItem* embItem = ite->asPathText()->itemRenderText.hasObject(d)?
                                               ite->asPathText()->itemRenderText.object(d) : NULL;
                     
@@ -5058,7 +5058,7 @@ void PSLib::SetColor(const ScColor& farb, double shade, int *h, int *s, int *v, 
  */
 void PSLib::setTextSt(ScribusDoc* Doc, PageItem* ite, uint argh, ScPage* pg, bool sep, bool farb, bool master)
 {
-#if 0
+#if 0 // FIXME-HOST
 //	qDebug() << QString("pslib setTextSt: ownPage=%1 pageNr=%2 OnMasterPage=%3;").arg(ite->OwnPage).arg(pg->pageNr()).arg(ite->OnMasterPage);
 	int tabCc = 0;
 	int savedOwnPage = ite->OwnPage;
@@ -5355,7 +5355,7 @@ void PSLib::setTextSt(ScribusDoc* Doc, PageItem* ite, uint argh, ScPage* pg, boo
 
 void PSLib::setTextCh(ScribusDoc* Doc, PageItem* ite, double x, double y, uint argh, uint doh, QChar chstr, const GlyphLayout* glyphs, const CharStyle& cstyle, const ParagraphStyle& pstyle, ScPage* pg, bool sep, bool farb, bool master)
 {
-#if 0
+#if 0 // FIXME-HOST
 	//QChar chstr = hl->ch;
 	//const CharStyle & cstyle(*hl);
 	//const GlyphLayout* glyphs(&(hl->glyph));
