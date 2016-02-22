@@ -66,7 +66,369 @@ for which a new license (GPL+exception) is in place.
 
 using namespace std;
 
+PageItem_TextFrame::PageItem_TextFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
+	: PageItem(pa, PageItem::TextFrame, x, y, w, h, w2, fill, outline)
+{
+	invalid = true;
+	firstChar = 0;
+	cursorBiasBackward = false;
+	unicodeTextEditMode = false;
+	unicodeInputCount = 0;
+	unicodeInputString = "";
+	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
+	verticalAlign = 0;
+	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
+}
 
+PageItem_TextFrame::PageItem_TextFrame(const PageItem & p) : PageItem(p)
+{
+	invalid = true;
+	cursorBiasBackward = false;
+	unicodeTextEditMode = false;
+	unicodeInputCount = 0;
+	unicodeInputString = "";
+	m_notesFramesMap.clear();
+	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
+	verticalAlign = 0;
+	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
+}
+
+static QRegion itemShape(PageItem* docItem, double xOffset, double yOffset)
+{
+	QRegion res;
+	QTransform pp;
+	if (docItem->isGroupChild())
+		pp.translate(docItem->gXpos, docItem->gYpos);
+	else
+		pp.translate(docItem->xPos() - xOffset, docItem->yPos() - yOffset);
+	pp.rotate(docItem->rotation());
+	if (docItem->textFlowUsesBoundingBox())
+	{
+		QRectF bb = docItem->getVisualBoundingRect();
+		if (docItem->isGroupChild())
+		{
+			bb.translate(-docItem->xPos(), -docItem->yPos());
+			bb.translate(docItem->gXpos, docItem->gYpos);
+		}
+		res = QRegion(bb.toRect());
+	}
+	else if ((docItem->textFlowUsesImageClipping()) && (docItem->imageClip.size() != 0))
+	{
+		QList<uint> Segs;
+		QPolygon Clip2 = FlattenPath(docItem->imageClip, Segs);
+		res = QRegion(pp.map(Clip2)).intersected(QRegion(pp.map(docItem->Clip)));
+	}
+	else if ((docItem->textFlowUsesContourLine()) && (docItem->ContourLine.size() != 0))
+	{
+		QList<uint> Segs;
+		QPolygon Clip2 = FlattenPath(docItem->ContourLine, Segs);
+		res = QRegion(pp.map(Clip2));
+	}
+	else
+	{
+		if (docItem->isSymbol() || docItem->isGroup())
+		{
+			if (docItem->imageFlippedH())
+			{
+				pp.translate(docItem->width(), 0);
+				pp.scale(-1, 1);
+			}
+			if (docItem->imageFlippedV())
+			{
+				pp.translate(0, docItem->height());
+				pp.scale(1, -1);
+			}
+		}
+		if ((((docItem->lineColor() != CommonStrings::None) || (!docItem->patternStrokeVal.isEmpty()) || (docItem->GrTypeStroke > 0)) && (docItem->lineWidth() > 1)) || (!docItem->NamedLStyle.isEmpty()))
+		{
+			QVector<double> m_array;
+			QPainterPath ppa;
+			QPainterPath result;
+			if (docItem->itemType() == PageItem::PolyLine)
+				ppa = docItem->PoLine.toQPainterPath(false);
+			else
+				ppa = docItem->PoLine.toQPainterPath(true);
+			if (docItem->NamedLStyle.isEmpty())
+			{
+				QPainterPathStroker stroke;
+				stroke.setCapStyle(docItem->lineEnd());
+				stroke.setJoinStyle(docItem->lineJoin());
+				stroke.setDashPattern(Qt::SolidLine);
+				stroke.setWidth(docItem->lineWidth());
+				result = stroke.createStroke(ppa);
+			}
+			else
+			{
+				multiLine ml = docItem->doc()->MLineStyles[docItem->NamedLStyle];
+				int ind = ml.size()-1;
+				if ((ml[ind].Color != CommonStrings::None) && (ml[ind].Width != 0))
+				{
+					QPainterPathStroker stroke;
+					stroke.setCapStyle(static_cast<Qt::PenCapStyle>(ml[ind].LineEnd));
+					stroke.setJoinStyle(static_cast<Qt::PenJoinStyle>(ml[ind].LineJoin));
+					stroke.setDashPattern(Qt::SolidLine);
+					stroke.setWidth(ml[ind].Width);
+					result = stroke.createStroke(ppa);
+				}
+			}
+			res = QRegion(pp.map(docItem->Clip));
+			QList<QPolygonF> pl = result.toSubpathPolygons();
+			for (int b = 0; b < pl.count(); b++)
+			{
+				res = res.united(QRegion(pp.map(pl[b].toPolygon())));
+			}
+		}
+		else
+			res = QRegion(pp.map(docItem->Clip));
+	}
+	return  res;
+}
+
+QRegion PageItem_TextFrame::calcAvailableRegion()
+{
+	QRegion result(this->Clip);
+	if ((!isEmbedded) || (isGroupChild()))
+	{
+		bool invertible(false);
+		QTransform canvasToLocalMat;
+		if (isGroupChild())
+			canvasToLocalMat.translate(gXpos, gYpos);
+		else
+			canvasToLocalMat.translate(m_xPos, m_yPos);
+		canvasToLocalMat.rotate(m_rotation);
+		canvasToLocalMat = canvasToLocalMat.inverted(&invertible);
+
+		if (!invertible) return QRegion();
+
+		int LayerLev = m_Doc->layerLevelFromID(LayerID);
+		uint docItemsCount=m_Doc->Items->count();
+		ScPage* Mp=0;
+		ScPage* Dp=0;
+		PageItem* docItem=0;
+		int LayerLevItem;
+		QList<PageItem*> thisList;
+		if (!OnMasterPage.isEmpty())
+		{
+			if ((savedOwnPage == -1) || (savedOwnPage >= signed(m_Doc->Pages->count())))
+				return result;
+			Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
+			Dp = m_Doc->Pages->at(savedOwnPage);
+			if (isGroupChild())
+				thisList = Parent->asGroupFrame()->groupItemList;
+			else
+				thisList = m_Doc->MasterItems;
+			int thisid = thisList.indexOf(this);
+			for (int a = 0; a < m_Doc->MasterItems.count(); ++a)
+			{
+				docItem = m_Doc->MasterItems.at(a);
+				// #10642 : masterpage items interact only with items placed on same masterpage
+				if (docItem->OnMasterPage != OnMasterPage)
+					continue;
+				int did = m_Doc->MasterItems.indexOf(docItem);
+				LayerLevItem = m_Doc->layerLevelFromID(docItem->LayerID);
+				if (((did > thisid) && (docItem->LayerID == LayerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->LayerID)))
+				{
+					if (docItem->textFlowAroundObject())
+					{
+						QRegion itemRgn = itemShape(docItem, Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset());
+						result = result.subtracted( canvasToLocalMat.map(itemRgn) );
+					}
+				}
+			} // for all masterItems
+			// (JG) #6009 : disable possible interaction between master text frames and normal frames
+			// which have the text flow option set
+			/*if (!m_Doc->masterPageMode())
+			{
+				for (uint a = 0; a < docItemsCount; ++a)
+				{
+					docItem = m_Doc->Items->at(a);
+					Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
+					Dp = m_Doc->Pages->at(OwnPage);
+					if ((docItem->textFlowAroundObject()) && (docItem->OwnPage == OwnPage))
+					{
+						result = result.subtract(itemShape(docItem, m_Doc->view(), Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset()));
+					}
+				} // for all docItems
+			} // if (! masterPageMode) */
+		} // if (!OnMasterPage.isEmpty())
+		else
+		{
+			int thisid = 0;
+			if (isGroupChild())
+			{
+				thisid = Parent->asGroupFrame()->groupItemList.indexOf(this);
+				docItemsCount = Parent->asGroupFrame()->groupItemList.count();
+				for (uint a = 0; a < docItemsCount; ++a)
+				{
+					docItem = Parent->asGroupFrame()->groupItemList.at(a);
+					int did = Parent->asGroupFrame()->groupItemList.indexOf(docItem);
+					if (did > thisid)
+					{
+						if (docItem->textFlowAroundObject())
+						{
+							QRegion itemRgn = itemShape(docItem, 0, 0);
+							result = result.subtracted( canvasToLocalMat.map(itemRgn) );
+						}
+					}
+				}
+			}
+			else
+			{
+				thisid = m_Doc->Items->indexOf(this);
+				for (uint a = 0; a < docItemsCount; ++a)
+				{
+					docItem = m_Doc->Items->at(a);
+					int did = m_Doc->Items->indexOf(docItem);
+					LayerLevItem = m_Doc->layerLevelFromID(docItem->LayerID);
+					if (((did > thisid) && (docItem->LayerID == LayerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->LayerID)))
+					{
+						if (docItem->textFlowAroundObject())
+						{
+							QRegion itemRgn = itemShape(docItem, 0, 0);
+							result = result.subtracted( canvasToLocalMat.map(itemRgn) );
+						}
+					}
+				}
+			} // for all docItems
+		} // if(OnMasterPage.isEmpty()
+	} // if(!Embedded)
+	//else
+	//	qDebug() << "QRegion empty";
+	return result;
+}
+
+void PageItem_TextFrame::setShadow()
+{
+	if (OnMasterPage.isEmpty())
+		return;
+
+	QString newShadow = m_Doc->masterPageMode() ? OnMasterPage : QString::number(OwnPage);
+	if (newShadow != m_currentShadow) {
+		if (m_currentShadow == OnMasterPage) {
+			// masterpage was edited, clear all shadows
+			m_shadows.clear();
+		}
+		if (!m_shadows.contains(newShadow)) {
+			if (!m_shadows.contains(OnMasterPage)) {
+				m_shadows[OnMasterPage] = itemText;
+//				const ParagraphStyle& pstyle(shadows[OnMasterPage].paragraphStyle(0));
+//				qDebug() << QString("Pageitem_Textframe: style of master: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
+//				qDebug() << QString("Pageitem_Textframe: shadow itemText->%1").arg(OnMasterPage);
+			}
+			if (newShadow != OnMasterPage) {
+				m_shadows[newShadow] = m_shadows[OnMasterPage].copy();
+//				const ParagraphStyle& pstyle(shadows[newShadow].paragraphStyle(0));
+//				qDebug() << QString("Pageitem_Textframe: style of shadow copy: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
+			}
+//			qDebug() << QString("Pageitem_Textframe: shadow %1<-%2").arg(newShadow).arg(OnMasterPage);
+		}
+		itemText = m_shadows[newShadow];
+//		const ParagraphStyle& pstyle(itemText.paragraphStyle(0));
+//		qDebug() << QString("Pageitem_Textframe: style of shadow: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
+		invalid = true;
+		m_currentShadow = newShadow;
+	}
+}
+/*
+static void debugLineLayout(const StoryText& itemText, const LineSpec& line)
+{
+	QFile debugFile(QDir::homePath() + "/Desktop/debug_line.csv");
+	debugFile.open(QIODevice::WriteOnly);
+
+	QTextStream stream(&debugFile);
+	stream.setRealNumberNotation(QTextStream::FixedNotation);
+	stream.setRealNumberPrecision(7);
+
+	stream << "xoffset"  << "\t";
+	stream << "yoffset"  << "\t";
+	stream << "xadvance" << "\t";
+	stream << "yadvance" << "\t";
+	stream << "scaleH"   << "\t";
+	stream << "scaleV"   << "\t";
+	stream << "\n";
+
+	for (int zc = line.firstChar; zc < line.lastChar; ++zc)
+	{
+		const ScText* item = itemText.item(zc);
+
+		stream << item->glyph.xoffset  << "\t";
+		stream << item->glyph.yoffset  << "\t";
+		stream << item->glyph.xadvance << "\t";
+		stream << item->glyph.yadvance << "\t";
+		stream << item->glyph.scaleH   << "\t";
+		stream << item->glyph.scaleV   << "\t";
+		stream << "\n";
+	}
+
+	debugFile.close();
+}
+
+static void dumpIt(const ParagraphStyle& pstyle, QString indent = QString("->"))
+{
+	QString db = QString("%6%1/%2 @ %3: %4--%5 linespa%6: %7 align%8")
+		   .arg(pstyle.name())
+		   .arg(pstyle.parent())
+		   .arg( (unsigned long int) &pstyle)
+		   .arg(pstyle.leftMargin())
+		   .arg(pstyle.rightMargin())
+		   .arg(indent)
+		   .arg(pstyle.lineSpacingMode())
+		   .arg(pstyle.lineSpacing())
+		   .arg(pstyle.alignment());
+	qDebug() << db;
+	static QString more("  ");
+	if (pstyle.hasParent())
+		dumpIt(*dynamic_cast<const ParagraphStyle*>(pstyle.parentStyle()), more + indent);
+}
+*/
+static const bool legacy = true;
+
+/*
+static void layoutDropCap(GlyphLayout layout, double curX, double curY, double offsetX, double offsetY, double dropCapDrop)
+{
+}
+*/
+
+enum TabStatus {
+	TabNONE    = 0,
+	TabLEFT    = TabNONE,
+	TabRIGHT   = 1,
+	TabPOINT   = 2,
+	TabCOMMA   = 3,
+	TabCENTER  = 4
+};
+
+
+/**
+fields which describe what type of tab is currently active
+ */
+struct TabControl {
+	bool         active;
+	int          status;
+	double       xPos;
+	QChar        fillChar;
+	GlyphLayout* tabGlyph;
+};
+
+struct LineSpec
+{
+	qreal x;
+	qreal y;
+	qreal width;
+	qreal ascent;
+	qreal descent;
+	qreal colLeft;
+
+	int firstChar;
+	int lastChar;
+	qreal naturalWidth;
+	bool isFirstLine;
+	qreal height;
+};
+
+/**
+fields which describe how the current line is placed into the frame
+*/
 struct LineControl {
 	LineSpec line;
 	QList<GlyphRun> glyphRuns;
@@ -260,9 +622,9 @@ struct LineControl {
 	{
 		bool res;
 		if (legacy)
-			res = (ceil(xPos + lineCorr - maxShrink) + ceil(moreSpace)) >= floor(colRight);
+			res = ceil(xPos + lineCorr - maxShrink) + ceil(moreSpace) >= floor(colRight);
 		else
-			res =( ceil(xPos - maxShrink)  + ceil(moreSpace)) >= floor(colRight);
+			res = ceil(xPos - maxShrink)  + ceil(moreSpace) >= floor(colRight);
 		return res;
 	}
 
@@ -580,332 +942,6 @@ private:
 	double lineCorr;
 };
 
-PageItem_TextFrame::PageItem_TextFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
-	: PageItem(pa, PageItem::TextFrame, x, y, w, h, w2, fill, outline)
-{
-	invalid = true;
-	firstChar = 0;
-	cursorBiasBackward = false;
-	unicodeTextEditMode = false;
-	unicodeInputCount = 0;
-	unicodeInputString = "";
-	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
-	verticalAlign = 0;
-	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
-}
-
-PageItem_TextFrame::PageItem_TextFrame(const PageItem & p) : PageItem(p)
-{
-	invalid = true;
-	cursorBiasBackward = false;
-	unicodeTextEditMode = false;
-	unicodeInputCount = 0;
-	unicodeInputString = "";
-	m_notesFramesMap.clear();
-	m_origAnnotPos = QRectF(xPos(), yPos(), width(), height());
-	verticalAlign = 0;
-	connect(&itemText,SIGNAL(changed()), this, SLOT(slotInvalidateLayout()));
-}
-
-static QRegion itemShape(PageItem* docItem, double xOffset, double yOffset)
-{
-	QRegion res;
-	QTransform pp;
-	if (docItem->isGroupChild())
-		pp.translate(docItem->gXpos, docItem->gYpos);
-	else
-		pp.translate(docItem->xPos() - xOffset, docItem->yPos() - yOffset);
-	pp.rotate(docItem->rotation());
-	if (docItem->textFlowUsesBoundingBox())
-	{
-		QRectF bb = docItem->getVisualBoundingRect();
-		if (docItem->isGroupChild())
-		{
-			bb.translate(-docItem->xPos(), -docItem->yPos());
-			bb.translate(docItem->gXpos, docItem->gYpos);
-		}
-		res = QRegion(bb.toRect());
-	}
-	else if ((docItem->textFlowUsesImageClipping()) && (docItem->imageClip.size() != 0))
-	{
-		QList<uint> Segs;
-		QPolygon Clip2 = FlattenPath(docItem->imageClip, Segs);
-		res = QRegion(pp.map(Clip2)).intersected(QRegion(pp.map(docItem->Clip)));
-	}
-	else if ((docItem->textFlowUsesContourLine()) && (docItem->ContourLine.size() != 0))
-	{
-		QList<uint> Segs;
-		QPolygon Clip2 = FlattenPath(docItem->ContourLine, Segs);
-		res = QRegion(pp.map(Clip2));
-	}
-	else
-	{
-		if (docItem->isSymbol() || docItem->isGroup())
-		{
-			if (docItem->imageFlippedH())
-			{
-				pp.translate(docItem->width(), 0);
-				pp.scale(-1, 1);
-			}
-			if (docItem->imageFlippedV())
-			{
-				pp.translate(0, docItem->height());
-				pp.scale(1, -1);
-			}
-		}
-		if ((((docItem->lineColor() != CommonStrings::None) || (!docItem->patternStrokeVal.isEmpty()) || (docItem->GrTypeStroke > 0)) && (docItem->lineWidth() > 1)) || (!docItem->NamedLStyle.isEmpty()))
-		{
-			QVector<double> m_array;
-			QPainterPath ppa;
-			QPainterPath result;
-			if (docItem->itemType() == PageItem::PolyLine)
-				ppa = docItem->PoLine.toQPainterPath(false);
-			else
-				ppa = docItem->PoLine.toQPainterPath(true);
-			if (docItem->NamedLStyle.isEmpty())
-			{
-				QPainterPathStroker stroke;
-				stroke.setCapStyle(docItem->lineEnd());
-				stroke.setJoinStyle(docItem->lineJoin());
-				stroke.setDashPattern(Qt::SolidLine);
-				stroke.setWidth(docItem->lineWidth());
-				result = stroke.createStroke(ppa);
-			}
-			else
-			{
-				multiLine ml = docItem->doc()->MLineStyles[docItem->NamedLStyle];
-				int ind = ml.size()-1;
-				if ((ml[ind].Color != CommonStrings::None) && (ml[ind].Width != 0))
-				{
-					QPainterPathStroker stroke;
-					stroke.setCapStyle(static_cast<Qt::PenCapStyle>(ml[ind].LineEnd));
-					stroke.setJoinStyle(static_cast<Qt::PenJoinStyle>(ml[ind].LineJoin));
-					stroke.setDashPattern(Qt::SolidLine);
-					stroke.setWidth(ml[ind].Width);
-					result = stroke.createStroke(ppa);
-				}
-			}
-			res = QRegion(pp.map(docItem->Clip));
-			QList<QPolygonF> pl = result.toSubpathPolygons();
-			for (int b = 0; b < pl.count(); b++)
-			{
-				res = res.united(QRegion(pp.map(pl[b].toPolygon())));
-			}
-		}
-		else
-			res = QRegion(pp.map(docItem->Clip));
-	}
-	return  res;
-}
-
-QRegion PageItem_TextFrame::calcAvailableRegion()
-{
-	QRegion result(this->Clip);
-	if ((!isEmbedded) || (isGroupChild()))
-	{
-		bool invertible(false);
-		QTransform canvasToLocalMat;
-		if (isGroupChild())
-			canvasToLocalMat.translate(gXpos, gYpos);
-		else
-			canvasToLocalMat.translate(m_xPos, m_yPos);
-		canvasToLocalMat.rotate(m_rotation);
-		canvasToLocalMat = canvasToLocalMat.inverted(&invertible);
-
-		if (!invertible) return QRegion();
-
-		int LayerLev = m_Doc->layerLevelFromID(LayerID);
-		uint docItemsCount=m_Doc->Items->count();
-		ScPage* Mp=0;
-		ScPage* Dp=0;
-		PageItem* docItem=0;
-		int LayerLevItem;
-		QList<PageItem*> thisList;
-		if (!OnMasterPage.isEmpty())
-		{
-			if ((savedOwnPage == -1) || (savedOwnPage >= signed(m_Doc->Pages->count())))
-				return result;
-			Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
-			Dp = m_Doc->Pages->at(savedOwnPage);
-			if (isGroupChild())
-				thisList = Parent->asGroupFrame()->groupItemList;
-			else
-				thisList = m_Doc->MasterItems;
-			int thisid = thisList.indexOf(this);
-			for (int a = 0; a < m_Doc->MasterItems.count(); ++a)
-			{
-				docItem = m_Doc->MasterItems.at(a);
-				// #10642 : masterpage items interact only with items placed on same masterpage
-				if (docItem->OnMasterPage != OnMasterPage)
-					continue;
-				int did = m_Doc->MasterItems.indexOf(docItem);
-				LayerLevItem = m_Doc->layerLevelFromID(docItem->LayerID);
-				if (((did > thisid) && (docItem->LayerID == LayerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->LayerID)))
-				{
-					if (docItem->textFlowAroundObject())
-					{
-						QRegion itemRgn = itemShape(docItem, Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset());
-						result = result.subtracted( canvasToLocalMat.map(itemRgn) );
-					}
-				}
-			} // for all masterItems
-			// (JG) #6009 : disable possible interaction between master text frames and normal frames
-			// which have the text flow option set
-			/*if (!m_Doc->masterPageMode())
-			{
-				for (uint a = 0; a < docItemsCount; ++a)
-				{
-					docItem = m_Doc->Items->at(a);
-					Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
-					Dp = m_Doc->Pages->at(OwnPage);
-					if ((docItem->textFlowAroundObject()) && (docItem->OwnPage == OwnPage))
-					{
-						result = result.subtract(itemShape(docItem, m_Doc->view(), Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset()));
-					}
-				} // for all docItems
-			} // if (! masterPageMode) */
-		} // if (!OnMasterPage.isEmpty())
-		else
-		{
-			int thisid = 0;
-			if (isGroupChild())
-			{
-				thisid = Parent->asGroupFrame()->groupItemList.indexOf(this);
-				docItemsCount = Parent->asGroupFrame()->groupItemList.count();
-				for (uint a = 0; a < docItemsCount; ++a)
-				{
-					docItem = Parent->asGroupFrame()->groupItemList.at(a);
-					int did = Parent->asGroupFrame()->groupItemList.indexOf(docItem);
-					if (did > thisid)
-					{
-						if (docItem->textFlowAroundObject())
-						{
-							QRegion itemRgn = itemShape(docItem, 0, 0);
-							result = result.subtracted( canvasToLocalMat.map(itemRgn) );
-						}
-					}
-				}
-			}
-			else
-			{
-				thisid = m_Doc->Items->indexOf(this);
-				for (uint a = 0; a < docItemsCount; ++a)
-				{
-					docItem = m_Doc->Items->at(a);
-					int did = m_Doc->Items->indexOf(docItem);
-					LayerLevItem = m_Doc->layerLevelFromID(docItem->LayerID);
-					if (((did > thisid) && (docItem->LayerID == LayerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->LayerID)))
-					{
-						if (docItem->textFlowAroundObject())
-						{
-							QRegion itemRgn = itemShape(docItem, 0, 0);
-							result = result.subtracted( canvasToLocalMat.map(itemRgn) );
-						}
-					}
-				}
-			} // for all docItems
-		} // if(OnMasterPage.isEmpty()
-	} // if(!Embedded)
-	//else
-	//	qDebug() << "QRegion empty";
-	return result;
-}
-
-void PageItem_TextFrame::setShadow()
-{
-	if (OnMasterPage.isEmpty())
-		return;
-
-	QString newShadow = m_Doc->masterPageMode() ? OnMasterPage : QString::number(OwnPage);
-	if (newShadow != m_currentShadow) {
-		if (m_currentShadow == OnMasterPage) {
-			// masterpage was edited, clear all shadows
-			m_shadows.clear();
-		}
-		if (!m_shadows.contains(newShadow)) {
-			if (!m_shadows.contains(OnMasterPage)) {
-				m_shadows[OnMasterPage] = itemText;
-//				const ParagraphStyle& pstyle(shadows[OnMasterPage].paragraphStyle(0));
-//				qDebug() << QString("Pageitem_Textframe: style of master: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
-//				qDebug() << QString("Pageitem_Textframe: shadow itemText->%1").arg(OnMasterPage);
-			}
-			if (newShadow != OnMasterPage) {
-				m_shadows[newShadow] = m_shadows[OnMasterPage].copy();
-//				const ParagraphStyle& pstyle(shadows[newShadow].paragraphStyle(0));
-//				qDebug() << QString("Pageitem_Textframe: style of shadow copy: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
-			}
-//			qDebug() << QString("Pageitem_Textframe: shadow %1<-%2").arg(newShadow).arg(OnMasterPage);
-		}
-		itemText = m_shadows[newShadow];
-//		const ParagraphStyle& pstyle(itemText.paragraphStyle(0));
-//		qDebug() << QString("Pageitem_Textframe: style of shadow: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
-		invalid = true;
-		m_currentShadow = newShadow;
-	}
-}
-/*
-static void debugLineLayout(const StoryText& itemText, const LineSpec& line)
-{
-	QFile debugFile(QDir::homePath() + "/Desktop/debug_line.csv");
-	debugFile.open(QIODevice::WriteOnly);
-
-	QTextStream stream(&debugFile);
-	stream.setRealNumberNotation(QTextStream::FixedNotation);
-	stream.setRealNumberPrecision(7);
-
-	stream << "xoffset"  << "\t";
-	stream << "yoffset"  << "\t";
-	stream << "xadvance" << "\t";
-	stream << "yadvance" << "\t";
-	stream << "scaleH"   << "\t";
-	stream << "scaleV"   << "\t";
-	stream << "\n";
-
-	for (int zc = line.firstChar; zc < line.lastChar; ++zc)
-	{
-		const ScText* item = itemText.item(zc);
-
-		stream << item->glyph.xoffset  << "\t";
-		stream << item->glyph.yoffset  << "\t";
-		stream << item->glyph.xadvance << "\t";
-		stream << item->glyph.yadvance << "\t";
-		stream << item->glyph.scaleH   << "\t";
-		stream << item->glyph.scaleV   << "\t";
-		stream << "\n";
-	}
-
-	debugFile.close();
-}
-
-static void dumpIt(const ParagraphStyle& pstyle, QString indent = QString("->"))
-{
-	QString db = QString("%6%1/%2 @ %3: %4--%5 linespa%6: %7 align%8")
-		   .arg(pstyle.name())
-		   .arg(pstyle.parent())
-		   .arg( (unsigned long int) &pstyle)
-		   .arg(pstyle.leftMargin())
-		   .arg(pstyle.rightMargin())
-		   .arg(indent)
-		   .arg(pstyle.lineSpacingMode())
-		   .arg(pstyle.lineSpacing())
-		   .arg(pstyle.alignment());
-	qDebug() << db;
-	static QString more("  ");
-	if (pstyle.hasParent())
-		dumpIt(*dynamic_cast<const ParagraphStyle*>(pstyle.parentStyle()), more + indent);
-}
-*/
-//static const bool legacy = true;
-
-/*
-static void layoutDropCap(GlyphLayout layout, double curX, double curY, double offsetX, double offsetY, double dropCapDrop)
-{
-}
-*/
-
-
-
-
 /**
  Clones the tab fill char as often as necssary after all distances are known
  */
@@ -1002,7 +1038,6 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 	int spaceInsertion = 0;
 	double imSpace = -1;
 
-//	const ParagraphStyle& style(itemText.paragraphStyle(line.firstChar));
 	int runCount = 0;
 	foreach (GlyphRun glyphrun, curr.glyphRuns)
 	{
@@ -1137,43 +1172,43 @@ static void indentLine(const ParagraphStyle& style, LineControl& curr, double le
 }
 
 //defined but not used
-/// calculate how much the first char should stick out to the left
-static double opticalLeftMargin(const StoryText& itemText, const LineSpec& line)
-{
-	int b = line.firstChar;
-	while (b < line.lastChar && (itemText.flags(b) & ScLayout_SuppressSpace))
-		   ++b;
-
-	double chs = itemText.charStyle(b).fontSize() * (itemText.charStyle(b).scaleH() / 1000.0);
-	QChar chr = itemText.text(b);
-	double leftCorr = itemText.charStyle(b).font().realCharWidth(chr, chs / 10.0);
-	if (QString("'´`").indexOf(chr) >= 0
-		|| chr == QChar(0x2018) // quote 6
-		|| chr == QChar(0x2019) // quote 9
-		|| chr == QChar(0x201a) // lower quote 9
-		|| chr == QChar(0x201b) // upper reversed 9 6
-		|| chr == QChar(0x2039) // single guillemet <
-		|| chr == QChar(0x203a) // single guillemet >
-		)
-		leftCorr *= -0.7;
-	else if (QString("\"").indexOf(chr) >= 0
-			 || chr == QChar(0x00ab) // guillemet <<
-			 || chr == QChar(0x00bb) // guillemet >>
-			 || chr == QChar(0x201c) // quote 66
-			 || chr == QChar(0x201d) // quote 99
-			 || chr == QChar(0x201e) // lower quote 99
-			 || chr == QChar(0x201f) // upper reversed 99
-			 )
-		leftCorr *= -0.5;
-	else {
-		leftCorr = itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0, chr);
-		leftCorr -= itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0);
-//				double leftCorr2 = itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0, chr);
-//				leftCorr2 -= itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0);
-//				leftCorr = qMin(leftCorr, leftCorr2);
-	}
-	return leftCorr;
-}
+///// calculate how much the first char should stick out to the left
+//static double opticalLeftMargin(const StoryText& itemText, const LineSpec& line)
+//{
+//	int b = line.firstChar;
+//	while (b < line.lastChar && (itemText.flags(b) & ScLayout_SuppressSpace))
+//		   ++b;
+//
+//	double chs = itemText.charStyle(b).fontSize() * (itemText.charStyle(b).scaleH() / 1000.0);
+//	QChar chr = itemText.text(b);
+//	double leftCorr = itemText.charStyle(b).font().realCharWidth(chr, chs / 10.0);
+//	if (QString("'´`").indexOf(chr) >= 0
+//		|| chr == QChar(0x2018) // quote 6
+//		|| chr == QChar(0x2019) // quote 9
+//		|| chr == QChar(0x201a) // lower quote 9
+//		|| chr == QChar(0x201b) // upper reversed 9 6
+//		|| chr == QChar(0x2039) // single guillemet <
+//		|| chr == QChar(0x203a) // single guillemet >
+//		)
+//		leftCorr *= -0.7;
+//	else if (QString("\"").indexOf(chr) >= 0
+//			 || chr == QChar(0x00ab) // guillemet <<
+//			 || chr == QChar(0x00bb) // guillemet >>
+//			 || chr == QChar(0x201c) // quote 66
+//			 || chr == QChar(0x201d) // quote 99
+//			 || chr == QChar(0x201e) // lower quote 99
+//			 || chr == QChar(0x201f) // upper reversed 99
+//			 )
+//		leftCorr *= -0.5;
+//	else {
+//		leftCorr = itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0, chr);
+//		leftCorr -= itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0);
+////				double leftCorr2 = itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0, chr);
+////				leftCorr2 -= itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0);
+////				leftCorr = qMin(leftCorr, leftCorr2);
+//	}
+//	return leftCorr;
+//}
 
 /// calculate how much the last char should stick out to the right
 static double opticalRightMargin(const StoryText& itemText, const LineSpec& line)
@@ -1550,8 +1585,7 @@ void PageItem_TextFrame::layout()
 		int regionMinY = 0, regionMaxY= 0;
 
 		double autoLeftIndent = 0.0;
-		
-// TODO: this condition need to be write again to integerate harfbuzz
+
 		for (int a = firstInFrame(); a < itLen; ++a)
 		{
 			currentCh = itemText.text(a);
@@ -2480,7 +2514,6 @@ void PageItem_TextFrame::layout()
 			if ((current.isEndOfLine(style.rightMargin() + hyphWidth)) || current.isEndOfCol(realDesc) || SpecialChars::isBreak(currentCh, Cols > 1) || (current.xPos - current.maxShrink + hyphWidth) >= current.mustLineEnd)
 			{
 
-				outs = true;
 				//end of row reached - right column, end of column, break char or line must end
 				if (current.charsInLine == 0 && !current.afterOverflow && !SpecialChars::isBreak(currentCh, Cols > 1))
 				{
@@ -2524,6 +2557,7 @@ void PageItem_TextFrame::layout()
 					inOverflow = false;
 					continue;
 				}
+				outs = true;
 
 				current.addLine = true;
 				current.lastInRowLine = true;
