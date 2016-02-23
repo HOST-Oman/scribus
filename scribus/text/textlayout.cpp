@@ -111,7 +111,7 @@ void TextLayout::setStory(StoryText *story)
 
 int TextLayout::startOfLine(int pos) const
 {
-	for (int i=0; i < lines(); ++i) {
+	for (uint i=0; i < lines(); ++i) {
 		const LineBox* ls = line(i);
 		if (ls->firstChar() <= pos && pos <= ls->lastChar())
 			return ls->firstChar();
@@ -121,7 +121,7 @@ int TextLayout::startOfLine(int pos) const
 
 int TextLayout::endOfLine(int pos) const
 {
-	for (int i=0; i < lines(); ++i) {
+	for (uint i=0; i < lines(); ++i) {
 		const LineBox* ls = line(i);
 		if (ls->containsPos(pos))
 			return story()->text(ls->lastChar()) == SpecialChars::PARSEP ? ls->lastChar() :
@@ -132,7 +132,7 @@ int TextLayout::endOfLine(int pos) const
 
 int TextLayout::prevLine(int pos) const
 {
-	for (int i=0; i < lines(); ++i)
+	for (uint i=0; i < lines(); ++i)
 	{
 		// find line for pos
 		const LineBox* ls = line(i);
@@ -164,7 +164,7 @@ int TextLayout::prevLine(int pos) const
 
 int TextLayout::nextLine(int pos) const
 {
-	for (int i=0; i < lines(); ++i)
+	for (uint i=0; i < lines(); ++i)
 	{
 		// find line for pos
 		const LineBox* ls = line(i);
