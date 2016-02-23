@@ -325,7 +325,17 @@ public:
 			}
 		}
 	}
-	void drawGlyphShadow(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double xoff, double yoff)  { }
+	void drawGlyphShadow(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double xoff, double yoff)
+	{
+		save();
+//		QColor tmp = brush();
+		translate((fontSize * yoff / 10000.0), -(fontSize * xoff / 10000.0));
+//		setBrush(pen());
+		drawGlyph(glyphLayout, font, fontSize);
+//		setBrush(tmp);
+		restore();
+
+	}
 
 	QByteArray getBuffer() { return m_Buffer; }
 
