@@ -37,6 +37,69 @@ struct PathData
 	float PDx;
 };
 
+struct TextLayoutColor
+{
+	QString color;
+	double shade;
+
+	TextLayoutColor()
+		: color("")
+		, shade(0)
+	{ }
+
+	TextLayoutColor(QString c, double s)
+		: color(c)
+		, shade(s)
+	{ }
+};
+
+class SCRIBUS_API TextLayoutPainter
+{
+public:
+	TextLayoutPainter() { }
+	virtual ~TextLayoutPainter();
+
+	virtual void setFont(const ScFace font);
+	virtual ScFace font();
+
+	virtual void setFontSize(double size);
+	virtual double fontSize();
+
+	virtual void setPen(TextLayoutColor c);
+	virtual TextLayoutColor pen();
+
+	virtual void setBrush(TextLayoutColor c);
+	virtual TextLayoutColor brush();
+
+	virtual void setStrokeWidth(double w);
+	virtual double strokeWidth();
+
+	virtual void translate(double x, double y);
+	virtual double x();
+	virtual double y();
+
+	virtual void drawGlyph(const GlyphLayout gl) = 0;
+	virtual void drawGlyphOutline(const GlyphLayout gl) = 0;
+	virtual void drawLine(QPointF start, QPointF end) = 0;
+
+	virtual void save();
+	virtual void restore();
+
+private:
+	struct State
+	{
+		ScFace font;
+		double fontSize;
+		TextLayoutColor pen;
+		TextLayoutColor brush;
+		double strokeWidth;
+		double x;
+		double y;
+	};
+
+	State m_state;
+	QStack<State> m_stack;
+};
 
 /**
 	This class manages the physical layout of a textframe, ie. its line 
@@ -54,7 +117,7 @@ public:
 	StoryText* story() { return m_story; }
 	const StoryText* story() const { return m_story; }
 	void setStory(StoryText* story);
-	void render(ScPainter *p, const StoryText& text);
+	void render(TextLayoutPainter *p, const StoryText& text);
 	int startOfLine(int pos) const;
 	int endOfLine(int pos) const;
 	int prevLine(int pos) const;
