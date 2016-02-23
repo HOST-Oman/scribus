@@ -136,9 +136,7 @@ public:
 		m_item(ite),
 		m_PNr(PNr),
 		m_UsedFontsP(UsedFontsP),
-		m_pdfState(),
 		m_baseLine(baseLine)
-
 	{}
 
 	~PdfPainter() {}
@@ -446,7 +444,7 @@ public:
 	  }
 	  void restore()
 	  {
-		m_stateStack.pop();
+		m_pdfState = m_stateStack.pop();
 	  }
 
 
