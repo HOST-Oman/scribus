@@ -3302,6 +3302,77 @@ bool PageItem_TextFrame::isValidChainFromBegin()
 	return true;
 }
 
+class TextFramePainter: public TextLayoutPainter
+{
+public:
+	TextFramePainter(ScPainter *p, PageItem *item)
+		: m_painter(p)
+		, m_item(item)
+	{ }
+
+	~TextFramePainter()
+	{ }
+
+	void setPen(TextLayoutColor c)
+	{
+		TextLayoutPainter::setPen(c);
+		QColor tmp;
+		m_item->SetQColor(&tmp, c.color, c.shade);
+		m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	}
+
+	void setBrush(TextLayoutColor c)
+	{
+		TextLayoutPainter::setBrush(c);
+		QColor tmp;
+		m_item->SetQColor(&tmp, c.color, c.shade);
+		m_painter->setBrush(tmp);
+	}
+
+	void setStrokeWidth(double w)
+	{
+		TextLayoutPainter::setStrokeWidth(w);
+		m_painter->setLineWidth(w);
+	}
+
+	void translate(double x, double y)
+	{
+		TextLayoutPainter::translate(x, y);
+		m_painter->translate(x, y);
+	}
+
+	void save()
+	{
+		TextLayoutPainter::save();
+		m_painter->save();
+	}
+
+	void restore()
+	{
+		TextLayoutPainter::restore();
+		m_painter->restore();
+	}
+
+	void drawGlyph(const GlyphLayout gl)
+	{
+		m_painter->drawGlyph(gl, font(), fontSize());
+	}
+
+	void drawGlyphOutline(const GlyphLayout gl)
+	{
+		m_painter->drawGlyphOutline(gl, font(), fontSize(), strokeWidth());
+	}
+
+	void drawLine(QPointF start, QPointF end)
+	{
+		m_painter->drawLine(start, end);
+	}
+
+private:
+	ScPainter *m_painter;
+	PageItem *m_item;
+};
+
 void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 {
 	if (invalid)
@@ -3889,7 +3960,9 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			p->restore();//RE3
 			//	End of selection
 		}
-		textLayout.render(p, itemText);
+		TextLayoutPainter *painter = new TextFramePainter(p, this);
+		textLayout.render(painter, itemText);
+		delete painter;
 	}
 	m_textDistanceMargins=savedTextDistanceMargins;
 	p->restore();//RE1

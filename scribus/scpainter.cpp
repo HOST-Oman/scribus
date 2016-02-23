@@ -2106,22 +2106,11 @@ void ScImagePainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, d
 	setupPolygon(&outline, true);
 	if (outline.size() > 3)
 	{
-		setLineWidth((fontSize * gl.scaleV * outlineWidth / 10000.0) / scaleV);
+		setLineWidth(outlineWidth);
 		strokePath();
 	}
 
 	setFillRule(fr);
-	restore();
-}
-
-void ScImagePainter::drawGlyphShadow(const GlyphLayout gl, const ScFace font, double fontSize, double xoff, double yoff)
-{
-	save();
-	QColor tmp = brush();
-	translate((fontSize * gl.scaleH * xoff / 10000.0), -(fontSize * gl.scaleV * yoff / 10000.0));
-	setBrush(pen());
-	drawGlyph(gl, font, fontSize);
-	setBrush(tmp);
 	restore();
 }
 

@@ -111,23 +111,14 @@ static inline QByteArray FToStr(double c)
 	return QByteArray::number(v, 'f', 5);
 }
 
-class PdfPainter : public ScPainter
+class PdfPainter: public TextLayoutPainter
 {
-	struct PdfState
-	{
-		float x;
-		float y;
-		PdfState(): x(0), y(0) {}
-	};
-
 	QByteArray& m_Buffer;
 	QByteArray& m_Buffer2;
 	PageItem* m_item;
 	uint m_PNr;
 	QMap<QString, PdfFont>  m_UsedFontsP;
 	double m_baseLine;
-	QStack<PdfState> m_stateStack;
-	PdfState m_pdfState;
 
 public:
 	PdfPainter(PageItem *ite, uint PNr, QMap<QString, PdfFont>  UsedFontsP,  double baseLine, QByteArray x= "") :
@@ -141,15 +132,12 @@ public:
 
 	~PdfPainter() {}
 
-	float x() { return m_pdfState.x; }
-	float y() { return m_pdfState.y; }
-
-	void drawGlyph(const GlyphLayout glyphLayout, const ScFace font, double fontSize)
+	void drawGlyph(const GlyphLayout glyphLayout)
 	{
 	//	QByteArray output;
 		QByteArray FillColor = "";
 		QByteArray StrokeColor = "";
-		PdfFont pdfFont = m_UsedFontsP[font.replacementName()];
+		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
 		uint glyph = glyphLayout.glyph;
 		if (pdfFont.method == Use_XForm)
 		{
@@ -163,10 +151,10 @@ public:
 //				}
 //				else
 //				{
-					m_Buffer2 += FToStr(fontSize / 10.0)+" 0 0 "+FToStr(fontSize / 10.0)+" 0 "+FToStr(fontSize / 10.0)+" cm\n";
+					m_Buffer2 += FToStr(fontSize() / 10.0)+" 0 0 "+FToStr(fontSize() / 10.0)+" 0 "+FToStr(fontSize() / 10.0)+" cm\n";
 //				}
 				if (glyphLayout.scaleV != 1.0)
-					m_Buffer2 += "1 0 0 1 0 "+FToStr( (((fontSize / 10.0) - (fontSize / 10.0) * (glyphLayout.scaleV)) / (fontSize / 10.0)) * -1)+" cm\n";
+					m_Buffer2 += "1 0 0 1 0 "+FToStr( (((fontSize() / 10.0) - (fontSize() / 10.0) * (glyphLayout.scaleV)) / (fontSize() / 10.0)) * -1)+" cm\n";
 				m_Buffer2 += FToStr(qMax(glyphLayout.scaleH, 0.1))+" 0 0 "+FToStr(qMax(glyphLayout.scaleV, 0.1))+" 0 0 cm\n";
 				m_Buffer2 += pdfFont.name + Pdf::toPdf(glyph)+" Do\n";
 				m_Buffer2 += "Q\n";
@@ -196,9 +184,9 @@ public:
 				break;
 			}
 			if (fontNr == 65535)
-				m_Buffer+= pdfFont.name + " " + FToStr(fontSize / 10.0)+" Tf\n";
+				m_Buffer+= pdfFont.name + " " + FToStr(fontSize() / 10.0)+" Tf\n";
 			else
-				m_Buffer += pdfFont.name+"S"+Pdf::toPdf(fontNr) + " "+FToStr(fontSize / 10.0)+" Tf\n";
+				m_Buffer += pdfFont.name+"S"+Pdf::toPdf(fontNr) + " "+FToStr(fontSize() / 10.0)+" Tf\n";
 			m_Buffer += StrokeColor;
 			m_Buffer += FillColor;
 
@@ -209,7 +197,7 @@ public:
 			if (!m_item->asPathText())
 			{
 
-				m_Buffer +=  FToStr(qMax(glyphLayout.scaleH, 0.1))+" 0 0 "+FToStr(qMax(glyphLayout.scaleV, 0.1))+" "+FToStr(x()+ glyphLayout.xoffset)+" "+FToStr(-y()- glyphLayout.yoffset+(fontSize / 10.0) * (m_baseLine / 1000.0))+" Tm\n";
+				m_Buffer +=  FToStr(qMax(glyphLayout.scaleH, 0.1))+" 0 0 "+FToStr(qMax(glyphLayout.scaleV, 0.1))+" "+FToStr(x()+ glyphLayout.xoffset)+" "+FToStr(-y()- glyphLayout.yoffset+(fontSize() / 10.0) * (m_baseLine / 1000.0))+" Tm\n";
 			}
 			else
 			{
@@ -232,20 +220,20 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double outlineWidth)
+	void drawGlyphOutline(const GlyphLayout glyphLayout)
 	{
 		QByteArray StrokeColor = "";
-		PdfFont pdfFont = m_UsedFontsP[font.replacementName()];
+		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
 		uint glyph = glyphLayout.glyph;
 		if (pdfFont.method == Use_XForm)
 		{
 			{
 
 
-					m_Buffer2 += FToStr(m_LineWidth)+" w\n[] 0 d\n0 J\n0 j\n";
+					m_Buffer2 += FToStr(strokeWidth())+" w\n[] 0 d\n0 J\n0 j\n";
 					m_Buffer2 += StrokeColor;
 
-				FPointArray gly = font.glyphOutline(glyph);
+				FPointArray gly = font().glyphOutline(glyph);
 				QTransform mat;
 				mat.scale(0.1, 0.1);
 				gly.map(mat);
@@ -283,14 +271,14 @@ public:
 		else
 		{
 			{
-				FPointArray gly = font.glyphOutline(glyph);
+				FPointArray gly = font().glyphOutline(glyph);
 				QTransform mat;
 				mat.scale(0.1, 0.1);
 				gly.map(mat);
 				bool nPath = true;
 				FPoint np;
 					m_Buffer2 += "q\n";
-					m_Buffer2 += FToStr(m_LineWidth)+" w\n[] 0 d\n0 J\n0 j\n";
+					m_Buffer2 += FToStr(strokeWidth())+" w\n[] 0 d\n0 J\n0 j\n";
 				if (gly.size() > 3)
 				{
 					for (int poi=0; poi<gly.size()-3; poi += 4)
@@ -321,7 +309,7 @@ public:
 			m_Buffer += "0 Tr\n";
 			if (!m_item->asPathText())
 			{
-				m_Buffer +=  FToStr(qMax(glyphLayout.scaleH, 0.1))+" 0 0 "+FToStr(qMax(glyphLayout.scaleV, 0.1))+" "+FToStr(x()+ glyphLayout.xoffset)+" "+FToStr(-y()- glyphLayout.yoffset+(fontSize / 10.0) * (m_baseLine / 1000.0))+" Tm\n";
+				m_Buffer +=  FToStr(qMax(glyphLayout.scaleH, 0.1))+" 0 0 "+FToStr(qMax(glyphLayout.scaleV, 0.1))+" "+FToStr(x()+ glyphLayout.xoffset)+" "+FToStr(-y()- glyphLayout.yoffset+(fontSize() / 10.0) * (m_baseLine / 1000.0))+" Tm\n";
 			}
 			else
 			{
@@ -329,129 +317,16 @@ public:
 			}
 		}
 	}
-	void drawGlyphShadow(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double xoff, double yoff)
-	{
-		save();
-//		QColor tmp = brush();
-		translate((fontSize * yoff / 10000.0), -(fontSize * xoff / 10000.0));
-//		setBrush(pen());
-		drawGlyph(glyphLayout, font, fontSize);
-//		setBrush(tmp);
-		restore();
-
-	}
 
 	QByteArray getBuffer() { return m_Buffer; }
 
-	void translate( double x, double y )
-	{
-		m_pdfState.x += x;
-		m_pdfState.y += y;
-	}
-	void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0) { }
-	  void endLayer()  { }
-	  void setAntialiasing(bool enable)  { }
-	  void begin()  { }
-	  void end()  { }
-	  void clear()  { }
-	  void clear( const QColor & )  { }
-
-   // matrix manipulation
-	  void setWorldMatrix( const QTransform & )  { }
-	  const QTransform worldMatrix()  { }
-	  void setZoomFactor( double )  { }
-	  double zoomFactor()  { }
-	  void translate( const QPointF& offset )  { }
-	  void rotate( double )  { }
-	  void scale( double, double )  { }
-
    // drawing
-	  void moveTo( const double &, const double & )  { }
-	  void lineTo( const double &, const double & )  { }
-	  void curveTo( FPoint p1, FPoint p2, FPoint p3 )  { }
-	  void newPath()  { }
-	  void closePath()  { }
-	  void fillPath()  { }
-	  void strokePath()  { }
-	  void setFillRule( bool fillRule )  { }
-	  bool fillRule()  { }
-	  void setFillMode( int fill )  { }
-	  int  fillMode() {}
-	  int strokeMode()  { }
-	  void setStrokeMode( int stroke )  { }
-	  void setGradient( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)  { }
-	  void setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)  { }
-
-	  void setMaskMode( int mask ){}
-	  void setGradientMask( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)  { }
-	  void setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)  { }
-	  void set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4)  { }
-	  void set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4)  { }
-	  void setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5)  { }
-	  void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray)  { }
-	  void setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches)  { }
-
-	  void setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height)  { }
-
-	  void setClipPath()  { }
-
-	  void drawImage( QImage *image)  { }
-	  void setupPolygon(FPointArray *points, bool closed = true)  { }
-	  void setupSharpPolygon(FPointArray *points, bool closed = true)  { }
-	  void sharpLineHelper(FPoint &pp)  { }
-	  void sharpLineHelper(QPointF &pp)  { }
-	  void drawPolygon()  { }
-	  void drawPolyLine()  { }
-	  void drawLine(FPoint start, FPoint end)
+	  void drawLine(QPointF start, QPointF end)
 	  {
 		  m_Buffer2 += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
 		  m_Buffer2 += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
 		  m_Buffer2 += "S\n";
 	  }
-	  void drawLine(const QPointF& start, const QPointF& end)
-	  {
-		  drawLine(FPoint(start), FPoint(end));
-	  }
-	  void drawSharpLine(FPoint start, FPoint end)  { }
-	  void drawSharpLine(QPointF start, QPointF end)  { }
-	  void drawRect(double, double, double, double)  { }
-	  void drawSharpRect(double x, double y, double w, double h)  { }
-	  void drawText(QRectF area, QString text, bool filled = true, int align = 0)  { }
-	  void drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)  { }
-	  void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth)  { }
-	  void colorizeAlpha(QColor color)  { }
-	  void colorize(QColor color)  { }
-	  void blurAlpha(int radius)  { }
-	  void blur(int radius)  { }
-
-   // pen + brush
-	QColor pen()  { }
-	QColor brush()  { }
-	  void setPen( const QColor & )  { }
-	  void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo )  { }
-	  void setPenOpacity( double op )  { }
-	  void setDash(const QVector<double>& array, double ofs)  { }
-	  void setBrush( const QColor & )  { }
-	  void setBrushOpacity( double op )  { }
-	  void setOpacity( double op )  { }
-	  void setFont( const QFont &f )  { }
-	QFont font()  { }
-
-   // stack management
-	  void save()
-	  {
-		m_stateStack.push(m_pdfState);
-	  }
-	  void restore()
-	  {
-		m_pdfState = m_stateStack.pop();
-	  }
-
-
-	  void setRasterOp( int blendMode )  { }
-	  void setBlendModeFill( int blendMode )  { }
-	  void setBlendModeStroke( int blendMode )  { }
-
 };
 
 PDFLibCore::PDFLibCore(ScribusDoc & docu)
@@ -5723,7 +5598,7 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 // Return a PDF substring representing a PageItem's text
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
-	ScPainter* p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset());
+	TextLayoutPainter* p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset());
 	ite->textLayout.render(p, ite->itemText);
 	return dynamic_cast<PdfPainter*>(p)->getBuffer();
 #if 0 // FIXME-HOST
