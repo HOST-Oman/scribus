@@ -2059,6 +2059,27 @@ void ScImagePainter::drawShadePanel(const QRectF &r, const QColor color, bool su
 void ScImagePainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize)
 {
 	save();
+
+	double r, g, b;
+	m_fill.getRgbF(&r, &g, &b);
+	if (m_maskMode > 0)
+	{
+		cairo_pattern_t *pat = getMaskPattern();
+		cairo_set_source_rgb( m_cr, r, g, b );
+		setRasterOp(m_blendModeFill);
+		cairo_clip_preserve(m_cr);
+		cairo_mask(m_cr, pat);
+		if ((m_maskMode == 2) || (m_maskMode == 4) || (m_maskMode == 5) || (m_maskMode == 6))
+			cairo_surface_destroy(m_imageMask);
+		cairo_pattern_destroy(pat);
+	}
+	else
+	{
+		cairo_set_source_rgba( m_cr, r, g, b, m_fill_trans );
+		setRasterOp(m_blendModeFill);
+		cairo_fill_preserve(m_cr);
+	}
+
 	cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font.ftFace(), 0);
 	cairo_set_font_face(m_cr, face);
 	cairo_set_font_size(m_cr, gl.scaleH * fontSize / 10.0);
@@ -2068,6 +2089,7 @@ void ScImagePainter::drawGlyph(const GlyphLayout gl, const ScFace font, double f
 	cairo_show_glyphs(m_cr, &glyph, 1);
 	setFillRule(fr);
 	cairo_font_face_destroy(face);
+
 	restore();
 }
 
