@@ -14,7 +14,6 @@
 #include "sctextstruct.h"
 #include "scpainter.h"
 
-//class ScribusDoc;
 class StoryText;
 
 /**
@@ -54,76 +53,91 @@ public:
 	}
 	virtual ~Box() {}
 	
-	//	virtual GlyphBox* asGlyphBox() { return NULL; }
-	//	virtual const BoxGroup* asBoxGroup()  const { return NULL; }
-	//	virtual InlineBox* asInlineBox() { return NULL; }
-	//	virtual PathBox* asPathBox() { return NULL; }
+//	virtual GlyphBox* asGlyphBox() { return NULL; }
+//	virtual const BoxGroup* asBoxGroup()  const { return NULL; }
+//	virtual InlineBox* asInlineBox() { return NULL; }
+//	virtual PathBox* asPathBox() { return NULL; }
 	
 	qreal x() const { return m_x; }
 	qreal y() const { return m_y; }
 	void moveTo (double x, double y) { m_x = x, m_y = y; }
 	void moveBy (double x, double y) { m_x += x, m_y += y; }
+
 	qreal width() const { return m_width; }
 	void addWidth(double w) { m_width += w; }
 	void setWidth(double w) { m_width = w; }
+
 	qreal height() const { return m_ascent - m_descent; }
 	void setHeight(double h, double vBase) { m_ascent = h * (1-vBase); m_descent = h * vBase; }
+
 	qreal ascent() const { return m_ascent; }
 	qreal descent() const { return m_descent; }
 	void setAscent(double a) { m_ascent = a; }
 	void setDescent(double d) { m_descent = d; }
+
 	FRect bbox() const { return FRect(m_x, m_y, m_width, height()); }
+	/// returns the bounding box relative to (m_x, m_y)
+	virtual FRect boundingBox(int pos, uint len = 1) const = 0;
+
 	bool containsPoint(FPoint coord) const { return bbox().contains(coord); }
+	bool containsPos(int pos) const { return m_firstChar <= pos && pos <= m_lastChar;}
+	/// returns a char position for the point coord + (m_x, m_y)
+	virtual int pointToPosition(FPoint coord) const = 0;
+
 	int firstChar() const { return m_firstChar; }
 	void setFirstChar(int c) { m_firstChar = c; }
 	int lastChar() const { return m_lastChar; }
 	void setLastChar(int c) { m_lastChar = c; }
-	bool containsPos(int pos) const { return m_firstChar <= pos && pos <= m_lastChar;}
+
 	void setDoc(ScribusDoc* doc) { m_Doc = doc; }
-	/// returns a char position for the point coord + (m_x, m_y)
-	virtual int pointToPosition(FPoint coord) const = 0;
-	/// returns the bounding box relative to (m_x, m_y)
-	virtual FRect boundingBox(int pos, uint len = 1) const = 0;
-	//	virtual double ascent(int pos) const = 0;
+
 //	virtual QList<const Box*> pathForPos(int pos) const = 0;
 //	virtual void justify(const ParagraphStyle& style) {}
+
 	QList<Box*>& boxes() { return m_boxes; }
 	const QList<const Box*>& boxes() const {
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
 	}
 	
 	virtual void render(ScPainter* p, const StoryText& text) = 0;
-	//	virtual void render(ScPainter* p, const RenderOptions& renderOptions) const = 0;
-	//	virtual qreal naturalWidth() const { return width(); }
-	//	virtual qreal naturalHeight() const { return height(); }
-	//	virtual qreal minWidth() const { return width(); }
-	//	virtual qreal minHeight() const { return height(); }
-	//	virtual qreal maxWidth() const { return width(); }
-	//	virtual qreal maxHeight() const { return height(); }
-	//	virtual void  justifyLine(qreal width) {}
-	//	virtual void  justifyBlock(qreal width) {}
-	//
-	//	virtual QString toString() const = 0;
-	//	virtual void renderPDF(QTextStream &cStr, const QMap<QString, QString>& fontMap) const = 0;
+//	virtual void render(ScPainter* p, const RenderOptions& renderOptions) const = 0;
+//	virtual qreal naturalWidth() const { return width(); }
+//	virtual qreal naturalHeight() const { return height(); }
+//	virtual qreal minWidth() const { return width(); }
+//	virtual qreal minHeight() const { return height(); }
+//	virtual qreal maxWidth() const { return width(); }
+//	virtual qreal maxHeight() const { return height(); }
+//	virtual void  justifyLine(qreal width) {}
+//	virtual void  justifyBlock(qreal width) {}
+
+//	virtual QString toString() const = 0;
+//	virtual void renderPDF(QTextStream &cStr, const QMap<QString, QString>& fontMap) const = 0;
 };
 
 
 class GroupBox : public Box
 {
 public:
-	GroupBox();
+	GroupBox()
+	{
+		m_type = T_Block;
+		m_firstChar = 0;
+		m_lastChar = -1;
+	}
 	
 	int pointToPosition(FPoint coord) const;
 	FRect boundingBox(int pos, uint len = 1) const;
 //	QList<const Box*> pathForPos(int pos) const;
 
-	GroupBox* m_lines;
-	Box* m_last;
 	void addBox(const Box* box);
 	Box* addBox(uint i);
 	Box* removeBox(uint i);
 	void render(ScPainter* p, const StoryText& text);
 //	void justify(const ParagraphStyle& style);
+
+private:
+	Box* m_last;
+	GroupBox* m_lines;
 };
 
 
@@ -131,38 +145,42 @@ class GlyphBox : public Box
 {
 	
 public:
-	GlyphBox(const CharStyle* style, LayoutFlags flags) : glyphs(style, flags) {m_type = T_Glyphs;}
-	GlyphBox(const GlyphRun& glyphrun)
-		: glyphs(glyphrun)
-		, m_glyphs(glyphrun.glyphs())
+	GlyphBox(const CharStyle* style, LayoutFlags flags) : m_glyphRun(style, flags) {m_type = T_Glyphs;}
+	GlyphBox(const GlyphRun& run)
+		: m_glyphRun(run)
 	{
 		m_type = T_Glyphs;
-		m_firstChar = glyphrun.firstChar();
-		m_lastChar = glyphrun.lastChar();
+		m_firstChar = run.firstChar();
+		m_lastChar = run.lastChar();
 	}
-	GlyphRun glyphs;
-	QList <GlyphLayout> m_glyphs;
-	int pointToPosition(FPoint coord) const;
+
 	FRect boundingBox(int pos, uint len = 1) const
 	{
 		return bbox();
 	}
+
 //	QList<const Box*> pathForPos(int pos) const;
 	void render(ScPainter* p, const StoryText& text);
+	int pointToPosition(FPoint coord) const;
+
+private:
 	void setQColor(QColor *tmp, QString colorName, double shad);
+
+	GlyphRun m_glyphRun;
 };
 
 
 class LineBox : public GroupBox
 {
 public:	
-	LineBox();
+	LineBox()
+	{
+		m_type = T_Line;
+	}
+
 	void render(ScPainter* p, const StoryText& text);
 //	void justify(const ParagraphStyle& style);
 	qreal colLeft;
 };
-
-
-
 
 #endif /* defined(__Scribus__boxes__) */
