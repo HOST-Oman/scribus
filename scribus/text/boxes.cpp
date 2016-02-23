@@ -17,13 +17,6 @@
 #include "sccolorengine.h"
 #include "colorblind.h"
 
-GroupBox::GroupBox()
-{
-	m_firstChar = 0;
-	m_lastChar = -1;
-}
-
-
 int GroupBox::pointToPosition(FPoint coord) const
 {
 	FPoint rel = coord - FPoint(m_x, m_y);
@@ -115,20 +108,17 @@ Box* GroupBox::removeBox(uint i)
 	return m_lines;
 }
 
-//void GroupBox::justify(const ParagraphStyle& style)
-//{
-//	if ((style.alignment() != ParagraphStyle::Justified) && (style.alignment() != ParagraphStyle::Extended))
-//		return;
-//	for(int i = 0; i < m_boxes.count(); i++)
-//	{
-//		m_boxes[i]->justify(style);
-//	}
-//}
-
-LineBox::LineBox()
+#if 0
+void GroupBox::justify(const ParagraphStyle& style)
 {
-	m_type = T_Line;
+	if ((style.alignment() != ParagraphStyle::Justified) && (style.alignment() != ParagraphStyle::Extended))
+		return;
+	for(int i = 0; i < m_boxes.count(); i++)
+	{
+		m_boxes[i]->justify(style);
+	}
 }
+#endif
 
 void LineBox::render(ScPainter *p, const StoryText &text)
 {
@@ -141,121 +131,125 @@ void LineBox::render(ScPainter *p, const StoryText &text)
 	}
 	p->restore();
 }
-//void LineBox::justify(const ParagraphStyle& style)
-//{
-//	double glyphNatural = 0;
-//	double spaceNatural = 0;
-//	double glyphExtension;
-//	double spaceExtension;
-//	int spaceInsertion = 0;
-//	double imSpace = -1;
 
-//	// measure natural widths for glyphs and spaces
-//	for (int i = 0; i < m_boxes.count(); ++i)
-//	{
-//		GlyphBox *box = dynamic_cast<GlyphBox*>(m_boxes.at(i));
-//		GlyphRun run(box->glyphs);
-//		if (!run.hasFlag(ScLayout_ExpandingSpace))
-//		{
-//			glyphNatural += run.width();
-//		}
-//		else if (!run.hasFlag(ScLayout_SuppressSpace) )
-//		{
-//			spaceNatural += run.width();
-//			if (imSpace < 0.0 || imSpace > run.width())
-//				imSpace = run.width();
-//		}
-//		if (i != 0 && run.hasFlag(ScLayout_ImplicitSpace))
-//			//implicitSpace(itemText.text(sof - 1), ch))
-//		{
-//			spaceInsertion += 1;
-//		}
-//	}
+#if 0
+void LineBox::justify(const ParagraphStyle& style)
+{
+	double glyphNatural = 0;
+	double spaceNatural = 0;
+	double glyphExtension;
+	double spaceExtension;
+	int spaceInsertion = 0;
+	double imSpace = -1;
 
-//	imSpace /= 2;
+	// measure natural widths for glyphs and spaces
+	for (int i = 0; i < m_boxes.count(); ++i)
+	{
+		GlyphBox *box = dynamic_cast<GlyphBox*>(m_boxes.at(i));
+		GlyphRun run(box->glyphs);
+		if (!run.hasFlag(ScLayout_ExpandingSpace))
+		{
+			glyphNatural += run.width();
+		}
+		else if (!run.hasFlag(ScLayout_SuppressSpace) )
+		{
+			spaceNatural += run.width();
+			if (imSpace < 0.0 || imSpace > run.width())
+				imSpace = run.width();
+		}
+		if (i != 0 && run.hasFlag(ScLayout_ImplicitSpace))
+			//implicitSpace(itemText.text(sof - 1), ch))
+		{
+			spaceInsertion += 1;
+		}
+	}
 
-//	// decision: prio 1: stretch glyph;  prio 2: insert spaces;  prio 3: stretch spaces
-//	if (width() < spaceNatural + glyphNatural *
-//			style.minGlyphExtension() && spaceNatural > 0)
-//	{
-//		glyphExtension = style.minGlyphExtension() - 1;
-//		spaceExtension = (width() - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
-//		imSpace = 0;
-//	}
-//	else if (width() < spaceNatural + glyphNatural * style.maxGlyphExtension() && glyphNatural > 0)
-//	{
-//		spaceExtension = 0;
-//		glyphExtension = (width() - spaceNatural) / glyphNatural  - 1;
-//		imSpace = 0;
-//	}
-//	else
-//	{
-//		glyphExtension = style.maxGlyphExtension() - 1;
-//		if (spaceInsertion) {
-//			double remaining = width() - glyphNatural * (1 + glyphExtension) - spaceNatural;
-//			if (imSpace > 0) {
-//				if (remaining / spaceInsertion < imSpace) {
-//					imSpace = remaining / spaceInsertion;
-//					spaceExtension = 0;
-//				} else {
-//					spaceExtension = (remaining + spaceNatural) / (spaceNatural + spaceInsertion * imSpace) - 1;
-//					imSpace *= spaceExtension + 1;
-//				}
-//			} else {
-//				imSpace = remaining / spaceInsertion;
-//				spaceExtension = 0;
-//			}
-//		} else {
-//			if (spaceNatural > 0)
-//				spaceExtension = (width() - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
-//			else
-//				spaceExtension = 0;
-//		}
-//	}
+	imSpace /= 2;
 
-//	double glyphScale = 1 + glyphExtension;
+	// decision: prio 1: stretch glyph;  prio 2: insert spaces;  prio 3: stretch spaces
+	if (width() < spaceNatural + glyphNatural *
+			style.minGlyphExtension() && spaceNatural > 0)
+	{
+		glyphExtension = style.minGlyphExtension() - 1;
+		spaceExtension = (width() - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+		imSpace = 0;
+	}
+	else if (width() < spaceNatural + glyphNatural * style.maxGlyphExtension() && glyphNatural > 0)
+	{
+		spaceExtension = 0;
+		glyphExtension = (width() - spaceNatural) / glyphNatural  - 1;
+		imSpace = 0;
+	}
+	else
+	{
+		glyphExtension = style.maxGlyphExtension() - 1;
+		if (spaceInsertion) {
+			double remaining = width() - glyphNatural * (1 + glyphExtension) - spaceNatural;
+			if (imSpace > 0) {
+				if (remaining / spaceInsertion < imSpace) {
+					imSpace = remaining / spaceInsertion;
+					spaceExtension = 0;
+				} else {
+					spaceExtension = (remaining + spaceNatural) / (spaceNatural + spaceInsertion * imSpace) - 1;
+					imSpace *= spaceExtension + 1;
+				}
+			} else {
+				imSpace = remaining / spaceInsertion;
+				spaceExtension = 0;
+			}
+		} else {
+			if (spaceNatural > 0)
+				spaceExtension = (width() - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+			else
+				spaceExtension = 0;
+		}
+	}
 
-//	/*
-//		qDebug() << QString("justify: line = %7 natural = %1 + %2 = %3
-//	(%4); spaces + %5%%; min=%8; glyphs + %6%%; min=%9")
-//			   .arg(spaceNatural).arg(glyphNatural).arg(spaceNatural+glyphNatural).arg(line.naturalWidth)
-//			   .arg(spaceExtension).arg(glyphExtension).arg(line.width)
-//			   .arg(style.minWordTracking()).arg(style.minGlyphExtension());
-//		*/
+	double glyphScale = 1 + glyphExtension;
 
-//	int startItem = 0;
-//	if (dynamic_cast<GlyphBox*>(m_boxes[startItem])->glyphs.hasFlag(ScLayout_DropCap))
-//		startItem++;
+	/*
+		qDebug() << QString("justify: line = %7 natural = %1 + %2 = %3
+	(%4); spaces + %5%%; min=%8; glyphs + %6%%; min=%9")
+			   .arg(spaceNatural).arg(glyphNatural).arg(spaceNatural+glyphNatural).arg(line.naturalWidth)
+			   .arg(spaceExtension).arg(glyphExtension).arg(line.width)
+			   .arg(style.minWordTracking()).arg(style.minGlyphExtension());
+		*/
 
-//	// distribute whitespace on spaces and glyphs
-//	for (int i = startItem; i < m_boxes.count(); ++i)
-//	{
-//		GlyphBox *box = dynamic_cast<GlyphBox*>(m_boxes.at(i));
-//		GlyphRun& run(box->glyphs);
-//		if (i != 0 && run.hasFlag(ScLayout_ImplicitSpace))
-//		{
-//			GlyphBox *lastBox = dynamic_cast<GlyphBox*>(m_boxes.at(i));
-//			GlyphRun& lastRun(lastBox->glyphs);
-//			lastRun.glyphs().last().xadvance += imSpace;
-//		}
-//		double wide = run.width();
-//		if (!run.hasFlag(ScLayout_ExpandingSpace))
-//		{
-//			for (int j = 0; j < run.glyphs().count(); ++j)
-//			{
-//				GlyphLayout& glyph = run.glyphs()[j];
-//				glyph.xadvance += wide * glyphExtension;
-//				glyph.xoffset *= glyphScale;
-//				glyph.scaleH *= glyphScale;
-//			}
-//		}
-//		else if (!run.hasFlag(ScLayout_SuppressSpace))
-//		{
-//			GlyphLayout& glyph = run.glyphs().last();
-//			glyph.xadvance += wide * spaceExtension;
-//		}
-//	}
-//}
+	int startItem = 0;
+	if (dynamic_cast<GlyphBox*>(m_boxes[startItem])->glyphs.hasFlag(ScLayout_DropCap))
+		startItem++;
+
+	// distribute whitespace on spaces and glyphs
+	for (int i = startItem; i < m_boxes.count(); ++i)
+	{
+		GlyphBox *box = dynamic_cast<GlyphBox*>(m_boxes.at(i));
+		GlyphRun& run(box->glyphs);
+		if (i != 0 && run.hasFlag(ScLayout_ImplicitSpace))
+		{
+			GlyphBox *lastBox = dynamic_cast<GlyphBox*>(m_boxes.at(i));
+			GlyphRun& lastRun(lastBox->glyphs);
+			lastRun.glyphs().last().xadvance += imSpace;
+		}
+		double wide = run.width();
+		if (!run.hasFlag(ScLayout_ExpandingSpace))
+		{
+			for (int j = 0; j < run.glyphs().count(); ++j)
+			{
+				GlyphLayout& glyph = run.glyphs()[j];
+				glyph.xadvance += wide * glyphExtension;
+				glyph.xoffset *= glyphScale;
+				glyph.scaleH *= glyphScale;
+			}
+		}
+		else if (!run.hasFlag(ScLayout_SuppressSpace))
+		{
+			GlyphLayout& glyph = run.glyphs().last();
+			glyph.xadvance += wide * spaceExtension;
+		}
+	}
+}
+#endif
+
 void GlyphBox::setQColor(QColor *tmp, QString colorName, double shad)
 {
 	if (colorName == CommonStrings::None)
@@ -272,13 +266,13 @@ void GlyphBox::setQColor(QColor *tmp, QString colorName, double shad)
 
 void GlyphBox::render(ScPainter *p, const StoryText &text)
 {
-	const CharStyle style(glyphs.style());
+	const CharStyle style(m_glyphRun.style());
 	const ScFace font = style.font();
 	bool selected = text.selected(m_firstChar) || text.selected(m_lastChar);
 
 	p->save();
 	p->translate(x(),y());
-	p->translate(glyphs.xoffset(), glyphs.yoffset());
+	p->translate(m_glyphRun.xoffset(), m_glyphRun.yoffset());
 	QColor tmp;
 	if (style.fillColor() != CommonStrings::None)
 	{
@@ -296,10 +290,11 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 		setQColor(&tmp, style.strokeColor(), style.strokeShade());
 		p->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
-	for (int i = 0; i < m_glyphs.count(); ++i)
+
+	for (int i = 0; i < m_glyphRun.glyphs().count(); ++i)
 	{
 		p->save();
-		const GlyphLayout& glyphLayout(m_glyphs.at(i));
+		const GlyphLayout& glyphLayout(m_glyphRun.glyphs().at(i));
 		uint glyphId = glyphLayout.glyph;
 		double st, lw;
 		if (((style.effects() & ScStyle_Underline) || ((style.effects() & ScStyle_UnderlineWords) && glyphId != font.char2CMap(QChar(' ')))) && (style.strokeColor() != CommonStrings::None))
@@ -402,9 +397,10 @@ int GlyphBox::pointToPosition(FPoint coord) const
 {
 	qreal relX = coord.x() - m_x;
 	qreal xPos = 0.0;
-	for (int i = 0; i < m_glyphs.length(); ++i)
+
+	for (int i = 0; i < m_glyphRun.glyphs().length(); ++i)
 	{
-		qreal width = m_glyphs.at(i).xadvance;
+		qreal width = m_glyphRun.glyphs().at(i).xadvance;
 		if (xPos <= relX && relX <= xPos + width)
 		{
 			return m_firstChar + i; // FIXME: use clusters
