@@ -115,7 +115,6 @@ public:
 	virtual void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth ) = 0;
 	virtual void drawGlyph(const GlyphLayout glyphLayout, const ScFace font, double fontSize) = 0;
 	virtual void drawGlyphOutline(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double outlineWidth) = 0;
-	virtual void drawGlyphShadow(const GlyphLayout glyphLayout, const ScFace font, double fontSize, double xoff, double yoff) = 0;
 	virtual void colorizeAlpha(QColor color ) = 0;
 	virtual void colorize(QColor color ) = 0;
 	virtual void blurAlpha(int radius ) = 0;
@@ -218,7 +217,6 @@ public:
 	void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth);
 	void drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize);
 	void drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth);
-	void drawGlyphShadow(const GlyphLayout gl, const ScFace font, double fontSize, double xoff, double yoff);
 	void colorizeAlpha(QColor color);
 	void colorize(QColor color);
 	void blurAlpha(int radius);

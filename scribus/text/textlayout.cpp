@@ -26,6 +26,86 @@
 #include "boxes.h"
 
 
+TextLayoutPainter::~TextLayoutPainter()
+{ }
+
+void TextLayoutPainter::setFont(const ScFace font)
+{
+	m_state.font = font;
+}
+
+ScFace TextLayoutPainter::font()
+{
+	return m_state.font;
+}
+
+void TextLayoutPainter::setFontSize(double size)
+{
+	m_state.fontSize = size;
+}
+
+double TextLayoutPainter::fontSize()
+{
+	return m_state.fontSize;
+}
+
+void TextLayoutPainter::setPen(TextLayoutColor color)
+{
+	m_state.pen = color;
+}
+
+TextLayoutColor TextLayoutPainter::pen()
+{
+	return m_state.pen;
+}
+
+void TextLayoutPainter::setBrush(TextLayoutColor color)
+{
+	m_state.brush = color;
+}
+
+TextLayoutColor TextLayoutPainter::brush()
+{
+	return m_state.brush;
+}
+
+void TextLayoutPainter::setStrokeWidth(double w)
+{
+	m_state.strokeWidth = w;
+}
+
+double TextLayoutPainter::strokeWidth()
+{
+	return m_state.strokeWidth;
+}
+
+void TextLayoutPainter::translate(double x, double y)
+{
+	m_state.x += x;
+	m_state.y += y;
+}
+
+double TextLayoutPainter::x()
+{
+	return m_state.x;
+}
+
+double TextLayoutPainter::y()
+{
+	return m_state.y;
+}
+
+void TextLayoutPainter::save()
+{
+	m_stack.push(m_state);
+}
+
+void TextLayoutPainter::restore()
+{
+	m_state = m_stack.pop();
+}
+
+
 
 TextLayout::TextLayout(StoryText* text, PageItem* frame)
 {
@@ -85,9 +165,8 @@ void TextLayout::removeLastLine ()
 	delete last;
 }
 
-void TextLayout::render(ScPainter *p, const StoryText &text)
+void TextLayout::render(TextLayoutPainter *p, const StoryText &text)
 {
-
      p->save();
 	 m_lines->moveBy(-m_lines->x(), -m_lines->y() + m_lines->descent());
 	 m_lines->render(p, text);
@@ -321,4 +400,3 @@ FRect TextLayout::boundingBox(int pos, uint len) const
 
 	return result;
 }
-
