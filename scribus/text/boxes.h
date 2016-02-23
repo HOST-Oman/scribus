@@ -15,6 +15,7 @@
 #include "scpainter.h"
 
 class StoryText;
+class TextLayoutPainter;
 
 /**
  class Box has a similar role as TeX's boxes. Scribus packs glyph runs into GlyphBoxes, GlyphBoxes and InlineBoxes into LineBoxes and LineBoxes into GroupBox(T_Block). (and in the future: math atoms, tables & table cells, ...)
@@ -99,7 +100,7 @@ public:
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
 	}
 	
-	virtual void render(ScPainter* p, const StoryText& text) = 0;
+	virtual void render(TextLayoutPainter *p, const StoryText& text) = 0;
 //	virtual void render(ScPainter* p, const RenderOptions& renderOptions) const = 0;
 //	virtual qreal naturalWidth() const { return width(); }
 //	virtual qreal naturalHeight() const { return height(); }
@@ -132,7 +133,7 @@ public:
 	void addBox(const Box* box);
 	Box* addBox(uint i);
 	Box* removeBox(uint i);
-	void render(ScPainter* p, const StoryText& text);
+	void render(TextLayoutPainter *p, const StoryText& text);
 //	void justify(const ParagraphStyle& style);
 
 private:
@@ -160,7 +161,7 @@ public:
 	}
 
 //	QList<const Box*> pathForPos(int pos) const;
-	void render(ScPainter* p, const StoryText& text);
+	void render(TextLayoutPainter *p, const StoryText& text);
 	int pointToPosition(FPoint coord) const;
 
 	GlyphRun glyphRun() const { return m_glyphRun; }
@@ -181,7 +182,7 @@ public:
 		m_type = T_Line;
 	}
 
-	void render(ScPainter* p, const StoryText& text);
+	void render(TextLayoutPainter *p, const StoryText& text);
 //	void justify(const ParagraphStyle& style);
 	qreal colLeft;
 };
