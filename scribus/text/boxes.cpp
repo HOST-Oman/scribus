@@ -286,8 +286,6 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 		setQColor(&tmp, style.fillColor(), style.fillShade());
 		p->setBrush(tmp);
 	}
-	else
-		p->setFillMode(ScPainter::None);
 	if (selected/*((selected && m_isSelected) || ((NextBox != 0 || BackBox != 0) && selected)) && (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable)*/)
 	{
 		// set text color to highlight if its selected
@@ -378,8 +376,7 @@ void GlyphBox::render(ScPainter *p, const StoryText &text)
 		{
 			QColor tmp = p->brush();
 			p->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-			p->setLineWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0);
-			p->drawGlyph(glyphLayout, font, style.fontSize());
+			p->drawGlyphOutline(glyphLayout, font, style.fontSize(), style.outlineWidth());
 		}
 		else
 		{
