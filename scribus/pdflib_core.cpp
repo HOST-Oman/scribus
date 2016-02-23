@@ -113,15 +113,21 @@ static inline QByteArray FToStr(double c)
 
 class PdfPainter : public ScPainter
 {
+	struct PdfState
+	{
+		float x;
+		float y;
+		PdfState(): x(0), y(0) {}
+	};
+
 	QByteArray& m_Buffer;
 	QByteArray& m_Buffer2;
 	PageItem* m_item;
 	uint m_PNr;
 	QMap<QString, PdfFont>  m_UsedFontsP;
 	double m_baseLine;
-	float m_x;
-	float m_y;
-	QStack<float> xy;
+	QStack<PdfState> m_stateStack;
+	PdfState m_pdfState;
 
 public:
 	PdfPainter(PageItem *ite, uint PNr, QMap<QString, PdfFont>  UsedFontsP,  double baseLine, QByteArray x= "") :
@@ -130,15 +136,15 @@ public:
 		m_item(ite),
 		m_PNr(PNr),
 		m_UsedFontsP(UsedFontsP),
-		m_baseLine(baseLine),
-		m_x(0),
-		m_y(0)
+		m_pdfState(),
+		m_baseLine(baseLine)
+
 	{}
 
 	~PdfPainter() {}
 
-	float x() { return m_x; }
-	float y() { return m_y; }
+	float x() { return m_pdfState.x; }
+	float y() { return m_pdfState.y; }
 
 	void drawGlyph(const GlyphLayout glyphLayout, const ScFace font, double fontSize)
 	{
@@ -341,8 +347,8 @@ public:
 
 	void translate( double x, double y )
 	{
-		m_x += x;
-		m_y += y;
+		m_pdfState.x += x;
+		m_pdfState.y += y;
 	}
 	void beginLayer(double transparency, int blendmode, FPointArray *clipArray = 0) { }
 	  void endLayer()  { }
@@ -436,13 +442,11 @@ public:
    // stack management
 	  void save()
 	  {
-		xy.push(m_x);
-		xy.push(m_y);
+		m_stateStack.push(m_pdfState);
 	  }
 	  void restore()
 	  {
-		  m_y = xy.pop();
-		  m_x = xy.pop();
+		m_stateStack.pop();
 	  }
 
 
