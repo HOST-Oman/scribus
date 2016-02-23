@@ -163,6 +163,9 @@ public:
 	void render(ScPainter* p, const StoryText& text);
 	int pointToPosition(FPoint coord) const;
 
+	GlyphRun glyphRun() const { return m_glyphRun; }
+	ScFace font() const { return m_glyphRun.style().font(); }
+
 private:
 	void setQColor(QColor *tmp, QString colorName, double shad);
 
