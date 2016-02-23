@@ -2096,17 +2096,21 @@ void ScImagePainter::drawGlyph(const GlyphLayout gl, const ScFace font, double f
 void ScImagePainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth)
 {
 	save();
-	cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font.ftFace(), 0);
-	cairo_set_font_face(m_cr, face);
-	cairo_set_font_size(m_cr, gl.scaleH * fontSize / 10.0);
-	cairo_glyph_t glyph = { gl.glyph, 0, 0 };
 	bool fr = fillRule();
 	setFillRule(false);
-	setLineWidth(fontSize * gl.scaleV * outlineWidth / 10000.0);
-	cairo_glyph_path(m_cr, &glyph, 1);
-	strokePath();
+
+	FPointArray outline = font.glyphOutline(gl.glyph);
+	double scaleH = gl.scaleH * fontSize / 100.00;
+	double scaleV = gl.scaleV * fontSize / 100.00;
+	scale(scaleH, scaleV);
+	setupPolygon(&outline, true);
+	if (outline.size() > 3)
+	{
+		setLineWidth((fontSize * gl.scaleV * outlineWidth / 10000.0) / scaleV);
+		strokePath();
+	}
+
 	setFillRule(fr);
-	cairo_font_face_destroy(face);
 	restore();
 }
 
