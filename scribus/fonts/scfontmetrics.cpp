@@ -210,7 +210,7 @@ FPointArray traceGlyph(FT_Face face, ScFace::gid_type glyphIndex, int chs, qreal
 	QTransform ma;
 	ma.scale(0.01, -0.01);
 	pts.map(ma);
-	pts.translate(0, chs);
+//	pts.translate(0, chs);
 	pts2.putPoints(0, pts.size()-2, pts, 0);
 
 	return pts2;
