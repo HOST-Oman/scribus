@@ -42,6 +42,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "actionmanager.h"
 #include "appmodes.h"
+#include "text/boxes.h"
 #include "canvas.h"
 #include "colorblind.h"
 #include "commonstrings.h"
@@ -4491,6 +4492,25 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 	if (!it->isTextFrame() && !it->isPathText())
 		return;
 
+	for (uint i = 0; i < it->textLayout.lines(); i++)
+	{
+		const LineBox* line = it->textLayout.line(i);
+		foreach (const Box* box, line->boxes())
+		{
+			const GlyphBox* glyphBox = dynamic_cast<const GlyphBox*>(box);
+			if (glyphBox)
+			{
+				const ScFace font = glyphBox->font();
+				foreach (GlyphLayout gl, glyphBox->glyphRun().glyphs())
+				{
+					FPointArray gly(font.glyphOutline(gl.glyph));
+					if (!font.replacementName().isEmpty())
+						Really[font.replacementName()].insert(gl.glyph, gly);
+				}
+			}
+		}
+	}
+#if 0
 	FPointArray gly;
 	QChar chstr;
 
@@ -4660,6 +4680,7 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 				Really[it->itemText.charStyle(e).font().replacementName()].insert(gl, gly);
 		}
 	}
+#endif
 }
 
 
