@@ -76,8 +76,8 @@ void DirectionSelect::languageChange()
         RTL->setToolTip("");
 
 
-        LTR->setToolTip( tr("LTR"));
-        RTL->setToolTip( tr("RTL"));
+        LTR->setToolTip( tr("Left to right paragraph"));
+        RTL->setToolTip( tr("Right to left paragraph"));
 
 }
 
