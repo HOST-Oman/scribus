@@ -43,6 +43,8 @@ class ScText;
 
 #include "pdfwriter.h"
 
+class PdfPainter;
+
 /**
  * PDFLibCore provides Scribus's implementation of PDF export functionality.
  *
@@ -58,6 +60,8 @@ class ScText;
 class PDFLibCore : public QObject
 {
 	Q_OBJECT
+
+friend class PdfPainter;
 
 public:
 	explicit PDFLibCore(ScribusDoc & docu);
