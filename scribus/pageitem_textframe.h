@@ -172,7 +172,7 @@ private:
 	};
 	QList<GlyphRun> shapeText();
 	QList<TextRun> itemizeBiDi(QString text);
-	QList<TextRun> itemizeFonts(QList<TextRun> runs);
+	QList<TextRun> itemizeFonts(QList<TextRun> runs, QMap<int, int> textMap);
 };
 
 #endif
