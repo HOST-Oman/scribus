@@ -37,7 +37,7 @@ void ArrowChooser::rebuildList(QList<ArrowDesc> *arrowStyles)
 	{
 		QImage image(22, 22, QImage::Format_ARGB32_Premultiplied);
 		image.fill(0);
-		ScPainter *painter = new ScImagePainter(&image, 22, 22);
+		ScPainter *painter = new ScPainter(&image, 22, 22);
 //		painter->clear();
 		painter->setBrush(qRgb(0, 0, 0));
 		painter->setPen(qRgb(0, 0, 0), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
