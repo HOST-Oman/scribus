@@ -1146,8 +1146,8 @@ QDomElement SVGExPlug::processImageItem(PageItem *Item, QString trans, QString f
 
 QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fill, QString stroke)
 {
-#if 0 // FIXME-HOST
 	QDomElement ob;
+#if 0 // FIXME-HOST
 	ob = docu.createElement("g");
 	ob.setAttribute("transform", trans);
 	if ((Item->fillColor() != CommonStrings::None) || (Item->GrType != 0))
@@ -1564,14 +1564,14 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 			}
 		}
 	}
-	return ob;
 #endif
+	return ob;
 }
 
 QDomElement SVGExPlug::processPathTextItem(PageItem *Item, QString trans, QString stroke)
 {
-#if 0 // FIXME-HOST
 	QDomElement ob;
+#if 0 // FIXME-HOST
 	ob = docu.createElement("g");
 	ob.setAttribute("transform", trans);
 	if (Item->PoShow)
@@ -1814,8 +1814,8 @@ QDomElement SVGExPlug::processPathTextItem(PageItem *Item, QString trans, QStrin
 			}
 		}
 	}
-	return ob;
 #endif
+	return ob;
 }
 
 QDomElement SVGExPlug::processInlineItem(double xpos, double ypos, QTransform &finalMat, PageItem* embItem, const CharStyle & charStyle, bool pathT, QString trans)
