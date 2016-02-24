@@ -10,27 +10,14 @@ for which a new license (GPL+exception) is in place.
 #include "util_color.h"
 #include "util.h"
 #include "util_math.h"
-#include "text/specialchars.h"
+
 #include <cairo.h>
 #include <cairo-ft.h>
-#include"commonstrings.h"
-#include"prefsmanager.h"
+
 #include <math.h>
 #include <QDebug>
 
-
-ScPainter::ScPainter() :
-	m_LineWidth(1.0),
-	fill_gradient(VGradient::linear),
-	stroke_gradient(VGradient::linear),
-	mask_gradient(VGradient::linear)
-{}
-
-ScPainter::~ScPainter()
-{}
-
-
-ScImagePainter::ScImagePainter( QImage *target, unsigned int w, unsigned int h, double transparency, int blendmode )
+ScPainter::ScPainter( QImage *target, unsigned int w, unsigned int h, double transparency, int blendmode )
 {
 	m_width = w;
 	m_height= h;
@@ -42,6 +29,7 @@ ScImagePainter::ScImagePainter( QImage *target, unsigned int w, unsigned int h, 
 	m_stroke_trans = 1.0;
 	m_fillRule = true;
 	m_fillMode = 1;
+	m_LineWidth = 1.0;
 	m_offset = 0;
 	m_layerTransparency = transparency;
 	m_blendMode = blendmode;
@@ -54,6 +42,8 @@ ScImagePainter::ScImagePainter( QImage *target, unsigned int w, unsigned int h, 
 	mf_outlined = false;
 	PLineEnd = Qt::FlatCap;
 	PLineJoin = Qt::MiterJoin;
+	fill_gradient = VGradient(VGradient::linear);
+	stroke_gradient = VGradient(VGradient::linear);
 	setHatchParameters(0, 2, 0, false, QColor(), QColor(), 0.0, 0.0);
 	m_zoomFactor = 1;
 	m_layeredMode = true;
@@ -70,13 +60,13 @@ ScImagePainter::ScImagePainter( QImage *target, unsigned int w, unsigned int h, 
 	cairo_set_tolerance( m_cr, 0.5 );
 }
 
-ScImagePainter::~ScImagePainter()
+ScPainter::~ScPainter()
 {
 	cairo_surface_destroy(cairo_get_target(m_cr));
 	cairo_destroy( m_cr );
 }
 
-void ScImagePainter::beginLayer(double transparency, int blendmode, FPointArray *clipArray)
+void ScPainter::beginLayer(double transparency, int blendmode, FPointArray *clipArray)
 {
 	layerProp la;
 	la.blendmode = m_blendMode;
@@ -108,7 +98,7 @@ void ScImagePainter::beginLayer(double transparency, int blendmode, FPointArray 
 	m_Layers.push(la);
 }
 
-void ScImagePainter::endLayer()
+void ScPainter::endLayer()
 {
 	layerProp la;
 	if (m_Layers.count() == 0)
@@ -163,11 +153,11 @@ void ScImagePainter::endLayer()
 	m_maskMode = 0;
 }
 
-void ScImagePainter::begin()
+void ScPainter::begin()
 {
 }
 
-void ScImagePainter::end()
+void ScPainter::end()
 {
 	if (m_svgMode)
 		cairo_show_page (m_cr);
@@ -179,20 +169,20 @@ void ScImagePainter::end()
 	}
 }
 
-void ScImagePainter::clear()
+void ScPainter::clear()
 {
 	if (m_imageMode)
 		m_image->fill( qRgba(255, 255, 255, 255) );
 }
 
-void ScImagePainter::clear( const QColor &c )
+void ScPainter::clear( const QColor &c )
 {
 	QRgb cs = c.rgb();
 	if (m_imageMode)
 		m_image->fill( qRgba(qRed(cs), qGreen(cs), qBlue(cs), qAlpha(cs)) );
 }
 
-const QTransform ScImagePainter::worldMatrix()
+const QTransform ScPainter::worldMatrix()
 {
 	cairo_matrix_t matrix;
 	cairo_get_matrix(m_cr, &matrix);
@@ -200,14 +190,14 @@ const QTransform ScImagePainter::worldMatrix()
 	return mat;
 }
 
-void ScImagePainter::setWorldMatrix( const QTransform &mat )
+void ScPainter::setWorldMatrix( const QTransform &mat )
 {
 	cairo_matrix_t matrix;
 	cairo_matrix_init(&matrix, mat.m11(), mat.m12(), mat.m21(), mat.m22(), mat.dx(), mat.dy());
 	cairo_set_matrix(m_cr, &matrix);
 }
 
-void ScImagePainter::setAntialiasing(bool enable)
+void ScPainter::setAntialiasing(bool enable)
 {
 	if (enable)
 		cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_DEFAULT);
@@ -215,65 +205,75 @@ void ScImagePainter::setAntialiasing(bool enable)
 		cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_NONE);
 }
 
-void ScImagePainter::setZoomFactor( double zoomFactor )
+void ScPainter::setZoomFactor( double zoomFactor )
 {
 	m_zoomFactor = zoomFactor;
 	cairo_scale (m_cr, m_zoomFactor, m_zoomFactor);
 }
 
-void ScImagePainter::translate( double x, double y )
+void ScPainter::translate( double x, double y )
 {
 	cairo_translate (m_cr, x, y);
 }
 
-void ScImagePainter::translate( const QPointF& offset )
+void ScPainter::translate( const QPointF& offset )
 {
 	cairo_translate (m_cr, offset.x(), offset.y());
 }
 
-void ScImagePainter::rotate( double r )
+void ScPainter::rotate( double r )
 {
 	cairo_rotate (m_cr, r * 3.1415927 / 180.0);
 }
 
-void ScImagePainter::scale( double x, double y )
+void ScPainter::scale( double x, double y )
 {
 	cairo_scale (m_cr, x, y);
 	m_zoomFactor *= qMax(x, y);
 }
 
-void ScImagePainter::moveTo( const double &x, const double &y )
+void ScPainter::moveTo( const double &x, const double &y )
 {
 	cairo_move_to( m_cr, x, y);
 }
 
 void
-ScImagePainter::lineTo( const double &x, const double &y )
+ScPainter::lineTo( const double &x, const double &y )
 {
 	cairo_line_to( m_cr, x, y);
 }
 
-void ScImagePainter::curveTo( FPoint p1, FPoint p2, FPoint p3 )
+void ScPainter::curveTo( FPoint p1, FPoint p2, FPoint p3 )
 {
 	cairo_curve_to(m_cr, p1.x(), p1.y(), p2.x(), p2.y(), p3.x(), p3.y());
 }
 
-void ScImagePainter::newPath()
+void ScPainter::newPath()
 {
 	cairo_new_path( m_cr );
 }
 
-void ScImagePainter::closePath()
+void ScPainter::closePath()
 {
 	cairo_close_path( m_cr );
 }
 
-void ScImagePainter::setStrokeMode( int stroke )
+void ScPainter::setFillRule( bool fillRule )
+{
+	m_fillRule = fillRule;
+}
+
+void ScPainter::setFillMode( int fill )
+{
+	m_fillMode = fill;
+}
+
+void ScPainter::setStrokeMode( int stroke )
 {
 	m_strokeMode = stroke;
 }
 
-void ScImagePainter::setGradient(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
+void ScPainter::setGradient(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
 {
 	fill_gradient.setType(mode);
 	fill_gradient.setOrigin(orig);
@@ -296,12 +296,12 @@ void ScImagePainter::setGradient(VGradient::VGradientType mode, FPoint orig, FPo
 		m_gradientSkew = tan(M_PI / 180.0 * skew);
 }
 
-void ScImagePainter::setMaskMode(int mask)
+void ScPainter::setMaskMode(int mask)
 {
 	m_maskMode = mask;
 }
 
-void ScImagePainter::setGradientMask(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
+void ScPainter::setGradientMask(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
 {
 	mask_gradient.setType(mode);
 	mask_gradient.setOrigin(orig);
@@ -320,7 +320,7 @@ void ScImagePainter::setGradientMask(VGradient::VGradientType mode, FPoint orig,
 		m_mask_gradientSkew = tan(M_PI / 180.0 * skew);
 }
 
-void ScImagePainter::setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
+void ScPainter::setPatternMask(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
 {
 	m_maskPattern = pattern;
 	m_mask_patternScaleX = scaleX / 100.0;
@@ -334,7 +334,7 @@ void ScImagePainter::setPatternMask(ScPattern *pattern, double scaleX, double sc
 	m_mask_patternMirrorY = mirrorY;
 }
 
-void ScImagePainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4)
+void ScPainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4)
 {
 	fill_gradient.setType(VGradient::fourcolor);
 	gradPatchP1 = p1;
@@ -347,7 +347,7 @@ void ScImagePainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p
 	gradControlP4 = c4;
 }
 
-void ScImagePainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4)
+void ScPainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4)
 {
 	gradPatchColor1 = col1;
 	gradPatchColor2 = col2;
@@ -355,7 +355,7 @@ void ScImagePainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QCol
 	gradPatchColor4 = col4;
 }
 
-void ScImagePainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5)
+void ScPainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5)
 {
 	fill_gradient.setType(VGradient::diamond);
 	gradPatchP1 = p1;
@@ -369,7 +369,7 @@ void ScImagePainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint 
 	gradControlP5 = c5;
 }
 
-void ScImagePainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray)
+void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<meshPoint> > meshArray)
 {
 	fill_gradient.setType(VGradient::mesh);
 	meshGradientArray = meshArray;
@@ -379,7 +379,7 @@ void ScImagePainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4,
 	gradPatchP4 = p4;
 }
 
-void ScImagePainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches)
+void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches)
 {
 	fill_gradient.setType(VGradient::freemesh);
 	meshGradientPatches = meshPatches;
@@ -389,7 +389,7 @@ void ScImagePainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4,
 	gradPatchP4 = p4;
 }
 
-void ScImagePainter::setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height)
+void ScPainter::setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height)
 {
 	m_hatchType = mode;
 	m_hatchDistance = distance;
@@ -401,13 +401,13 @@ void ScImagePainter::setHatchParameters(int mode, double distance, double angle,
 	m_hatchHeight = height;
 }
 
-void ScImagePainter::fillPath()
+void ScPainter::fillPath()
 {
 	if (m_fillMode != 0)
 		fillPathHelper();
 }
 
-void ScImagePainter::strokePath()
+void ScPainter::strokePath()
 {
 //	if( LineWidth == 0 )
 //		return;
@@ -415,7 +415,22 @@ void ScImagePainter::strokePath()
 		strokePathHelper();
 }
 
-void ScImagePainter::setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo )
+QColor ScPainter::pen()
+{
+	return m_stroke;
+}
+
+QColor ScPainter::brush()
+{
+	return m_fill;
+}
+
+void ScPainter::setPen( const QColor &c )
+{
+	m_stroke = c;
+}
+
+void ScPainter::setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo )
 {
 	m_stroke = c;
 	m_LineWidth = w;
@@ -425,64 +440,63 @@ void ScImagePainter::setPen( const QColor &c, double w, Qt::PenStyle st, Qt::Pen
 	getDashArray(st, w, m_array);
 }
 
-QColor ScImagePainter::pen()
+void ScPainter::setLineWidth( double w )
 {
-	return m_stroke;
+	m_LineWidth = w;
 }
 
-QColor ScImagePainter::brush()
-{
-	return m_fill;
-}
-
-void ScImagePainter::setPenOpacity( double op )
+void ScPainter::setPenOpacity( double op )
 {
 	m_stroke_trans = op;
 }
 
 
-void ScImagePainter::setDash(const QVector<double>& array, double ofs)
+void ScPainter::setDash(const QVector<double>& array, double ofs)
 {
 	m_array = array;
 	m_offset = ofs;
 }
 
+void ScPainter::setBrush( const QColor &c )
+{
+	m_fill = c;
+}
 
-void ScImagePainter::setBrushOpacity( double op )
+void ScPainter::setBrushOpacity( double op )
 {
 	m_fill_trans = op;
 }
 
-void ScImagePainter::setOpacity( double op )
+void ScPainter::setOpacity( double op )
 {
 	m_fill_trans = op;
 	m_stroke_trans = op;
 }
 
-void ScImagePainter::setFont( const QFont &f)
+void ScPainter::setFont( const QFont &f)
 {
 	m_font = f;
 }
 
-QFont ScImagePainter::font()
+QFont ScPainter::font()
 {
 	return m_font;
 }
 
-void ScImagePainter::save()
+void ScPainter::save()
 {
 	cairo_save( m_cr );
 	m_zoomStack.push(m_zoomFactor);
 }
 
-void ScImagePainter::restore()
+void ScPainter::restore()
 {
 	cairo_restore( m_cr );
 	if (!m_zoomStack.isEmpty())
 		m_zoomFactor = m_zoomStack.pop();
 }
 
-void ScImagePainter::setRasterOp(int blendMode)
+void ScPainter::setRasterOp(int blendMode)
 {
 	if (blendMode == 0)
 		cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
@@ -528,17 +542,17 @@ void ScImagePainter::setRasterOp(int blendMode)
 		cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
 }
 
-void ScImagePainter::setBlendModeFill( int blendMode )
+void ScPainter::setBlendModeFill( int blendMode )
 {
 	m_blendModeFill = blendMode;
 }
 
-void ScImagePainter::setBlendModeStroke( int blendMode )
+void ScPainter::setBlendModeStroke( int blendMode )
 {
 	m_blendModeStroke = blendMode;
 }
 
-void ScImagePainter::setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
+void ScPainter::setPattern(ScPattern *pattern, double scaleX, double scaleY, double offsetX, double offsetY, double rotation, double skewX, double skewY, bool mirrorX, bool mirrorY)
 {
 	m_pattern = pattern;
 	m_patternScaleX = scaleX / 100.0;
@@ -552,7 +566,7 @@ void ScImagePainter::setPattern(ScPattern *pattern, double scaleX, double scaleY
 	m_patternMirrorY = mirrorY;
 }
 
-cairo_pattern_t * ScImagePainter::getMaskPattern()
+cairo_pattern_t * ScPainter::getMaskPattern()
 {
 	cairo_save( m_cr );
 	cairo_pattern_t *pat;
@@ -659,7 +673,7 @@ cairo_pattern_t * ScImagePainter::getMaskPattern()
 	return pat;
 }
 
-void ScImagePainter::fillPathHelper()
+void ScPainter::fillPathHelper()
 {
 	cairo_save( m_cr );
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
@@ -1556,7 +1570,7 @@ void ScImagePainter::fillPathHelper()
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
 }
 
-void ScImagePainter::strokePathHelper()
+void ScPainter::strokePathHelper()
 {
 	cairo_save( m_cr );
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
@@ -1687,12 +1701,12 @@ void ScImagePainter::strokePathHelper()
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
 }
 
-void ScImagePainter::setClipPath()
+void ScPainter::setClipPath()
 {
 	cairo_clip (m_cr);
 }
 
-void ScImagePainter::drawImage( QImage *image)
+void ScPainter::drawImage( QImage *image)
 {
 	cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_NONE);
 /*
@@ -1731,7 +1745,7 @@ void ScImagePainter::drawImage( QImage *image)
 	cairo_set_antialias(m_cr, CAIRO_ANTIALIAS_DEFAULT);
 }
 
-void ScImagePainter::setupPolygon(FPointArray *points, bool closed)
+void ScPainter::setupPolygon(FPointArray *points, bool closed)
 {
 	bool nPath = true;
 	bool first = true;
@@ -1773,7 +1787,7 @@ void ScImagePainter::setupPolygon(FPointArray *points, bool closed)
 		cairo_close_path( m_cr );
 }
 
-void ScImagePainter::setupSharpPolygon(FPointArray *points, bool closed)
+void ScPainter::setupSharpPolygon(FPointArray *points, bool closed)
 {
 	bool nPath = true;
 	bool first = true;
@@ -1819,7 +1833,7 @@ void ScImagePainter::setupSharpPolygon(FPointArray *points, bool closed)
 		cairo_close_path( m_cr );
 }
 
-void ScImagePainter::sharpLineHelper(FPoint &pp)
+void ScPainter::sharpLineHelper(FPoint &pp)
 {
 	double x1 = pp.x();
 	double y1 = pp.y();
@@ -1830,7 +1844,7 @@ void ScImagePainter::sharpLineHelper(FPoint &pp)
 	pp.setXY(x1, y1);
 }
 
-void ScImagePainter::sharpLineHelper(QPointF &pp)
+void ScPainter::sharpLineHelper(QPointF &pp)
 {
 	double x1 = pp.x();
 	double y1 = pp.y();
@@ -1842,25 +1856,17 @@ void ScImagePainter::sharpLineHelper(QPointF &pp)
 	pp.setY(y1);
 }
 
-void ScImagePainter::drawPolygon()
+void ScPainter::drawPolygon()
 {
 	fillPath();
 }
 
-void ScImagePainter::drawPolyLine()
+void ScPainter::drawPolyLine()
 {
 	strokePath();
 }
 
-void ScImagePainter::drawLine(FPoint start, FPoint end)
-{
-	newPath();
-	moveTo(start.x(), start.y());
-	lineTo(end.x(), end.y());
-	strokePath();
-}
-
-void ScImagePainter::drawLine(const QPointF& start, const QPointF& end)
+void ScPainter::drawLine(FPoint start, FPoint end)
 {
 	newPath();
 	moveTo(start.x(), start.y());
@@ -1868,17 +1874,15 @@ void ScImagePainter::drawLine(const QPointF& start, const QPointF& end)
 	strokePath();
 }
 
-void ScImagePainter::drawSharpLine(FPoint start, FPoint end)
+void ScPainter::drawLine(const QPointF& start, const QPointF& end)
 {
 	newPath();
-	sharpLineHelper(start);
-	sharpLineHelper(end);
 	moveTo(start.x(), start.y());
 	lineTo(end.x(), end.y());
 	strokePath();
 }
 
-void ScImagePainter::drawSharpLine(QPointF start, QPointF end)
+void ScPainter::drawSharpLine(FPoint start, FPoint end)
 {
 	newPath();
 	sharpLineHelper(start);
@@ -1888,7 +1892,17 @@ void ScImagePainter::drawSharpLine(QPointF start, QPointF end)
 	strokePath();
 }
 
-void ScImagePainter::drawRect(double x, double y, double w, double h)
+void ScPainter::drawSharpLine(QPointF start, QPointF end)
+{
+	newPath();
+	sharpLineHelper(start);
+	sharpLineHelper(end);
+	moveTo(start.x(), start.y());
+	lineTo(end.x(), end.y());
+	strokePath();
+}
+
+void ScPainter::drawRect(double x, double y, double w, double h)
 {
 	newPath();
 	cairo_rectangle(m_cr, x, y, w, h);
@@ -1896,7 +1910,7 @@ void ScImagePainter::drawRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScImagePainter::drawSharpRect(double x, double y, double w, double h)
+void ScPainter::drawSharpRect(double x, double y, double w, double h)
 {
 	newPath();
 	double x1 = x;
@@ -1917,9 +1931,9 @@ void ScImagePainter::drawSharpRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScImagePainter::drawText(QRectF area, QString text, bool filled, int align)
+void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 {
-	// FIXME: This uses Cairo "Toy text API" which does not support complex text layout.
+	// FIXME-HOST: This uses Cairo "Toy text API" which does not support complex text layout.
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
 	double x;
@@ -1966,7 +1980,7 @@ void ScImagePainter::drawText(QRectF area, QString text, bool filled, int align)
 	}
 }
 
-void ScImagePainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)
+void ScPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)
 {
 	setStrokeMode(1);
 	double bezierCircle = 0.55228475;
@@ -2014,7 +2028,7 @@ void ScImagePainter::drawShadeCircle(const QRectF &re, const QColor color, bool 
 	cairo_restore( m_cr );
 }
 
-void ScImagePainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth)
+void ScPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth)
 {
 	QColor shade;
 	QColor light;
@@ -2033,7 +2047,7 @@ void ScImagePainter::drawShadePanel(const QRectF &r, const QColor color, bool su
 	x3 = r.x() + r.width();
 	y1 = r.y() + r.height();
 	y2 = r.y();
-	setFillMode(ScImagePainter::Solid);
+	setFillMode(ScPainter::Solid);
 	newPath();
 	moveTo(x1, y1);
 	lineTo(x1, y2);
@@ -2056,7 +2070,7 @@ void ScImagePainter::drawShadePanel(const QRectF &r, const QColor color, bool su
 	fillPath();
 }
 
-void ScImagePainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize)
+void ScPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize)
 {
 	save();
 
@@ -2093,7 +2107,7 @@ void ScImagePainter::drawGlyph(const GlyphLayout gl, const ScFace font, double f
 	restore();
 }
 
-void ScImagePainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth)
+void ScPainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth)
 {
 	save();
 	bool fr = fillRule();
@@ -2114,7 +2128,7 @@ void ScImagePainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, d
 	restore();
 }
 
-void ScImagePainter::colorizeAlpha(QColor color)
+void ScPainter::colorizeAlpha(QColor color)
 {
 	cairo_surface_t *data = cairo_get_group_target(m_cr);
 	cairo_surface_flush(data);
@@ -2139,7 +2153,7 @@ void ScImagePainter::colorizeAlpha(QColor color)
 	cairo_surface_mark_dirty(data);
 }
 
-void ScImagePainter::colorize(QColor color)
+void ScPainter::colorize(QColor color)
 {
 	cairo_surface_t *data = cairo_get_group_target(m_cr);
 	cairo_surface_flush(data);
@@ -2174,7 +2188,7 @@ void ScImagePainter::colorize(QColor color)
 	cairo_surface_mark_dirty(data);
 }
 
-void ScImagePainter::blurAlpha(int radius)
+void ScPainter::blurAlpha(int radius)
 {
 	if (radius < 1)
 		return;
@@ -2302,7 +2316,7 @@ void ScImagePainter::blurAlpha(int radius)
 	cairo_surface_mark_dirty(data);
 }
 
-void ScImagePainter::blur(int radius)
+void ScPainter::blur(int radius)
 {
 	if (radius < 1)
 		return;
@@ -2514,6 +2528,3 @@ void ScImagePainter::blur(int radius)
 	delete [] stack;
 	cairo_surface_mark_dirty(data);
 }
-
-
-

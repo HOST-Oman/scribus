@@ -2633,7 +2633,7 @@ QImage ScribusView::MPageToPixmap(QString name, int maxGr, bool drawFrame)
 		m_canvas->setPreviewMode(true);
 		m_canvas->setForcedRedraw(true);
 		pm = QImage(clipw, cliph, QImage::Format_ARGB32_Premultiplied);
-		ScPainter *painter = new ScImagePainter(&pm, pm.width(), pm.height(), 1.0, 0);
+		ScPainter *painter = new ScPainter(&pm, pm.width(), pm.height(), 1.0, 0);
 		painter->clear(Doc->paperColor());
 		painter->translate(-clipx, -clipy);
 		painter->setLineWidth(1);
@@ -2716,7 +2716,7 @@ QImage ScribusView::PageToPixmap(int Nr, int maxGr, bool drawFrame, bool drawBac
 	Doc->setMasterPageMode(false);
 	Doc->setLoading(true);
 	Doc->setCurrentPage(Doc->DocPages.at(Nr));
-	ScPainter *painter = new ScImagePainter(&im, im.width(), im.height(), 1.0, 0);
+	ScPainter *painter = new ScPainter(&im, im.width(), im.height(), 1.0, 0);
 	if (drawBackground)
 		painter->clear(Doc->paperColor());
 	painter->translate(-clipx, -clipy);
