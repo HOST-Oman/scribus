@@ -2441,7 +2441,7 @@ QImage PageItem::DrawObj_toImage(double maxSize, int options)
 	m_Doc->guidesPrefs().framesShown = false;
 	QImage retImg = QImage(qMax(qRound(igWidth * sc), 1), qMax(qRound(igHeight * sc), 1), QImage::Format_ARGB32_Premultiplied);
 	retImg.fill( qRgba(0, 0, 0, 0) );
-	ScPainter *painter = new ScImagePainter(&retImg, retImg.width(), retImg.height(), 1, 0);
+	ScPainter *painter = new ScPainter(&retImg, retImg.width(), retImg.height(), 1, 0);
 	painter->setZoomFactor(sc);
 	painter->save();
 	painter->translate(igXpos, igYpos);
@@ -2470,7 +2470,7 @@ QImage PageItem::DrawObj_toImage(QList<PageItem*> &emG, double scaling)
 	m_Doc->guidesPrefs().framesShown = false;
 	QImage retImg = QImage(qRound(gWidth * scaling), qRound(gHeight * scaling), QImage::Format_ARGB32_Premultiplied);
 	retImg.fill( qRgba(0, 0, 0, 0) );
-	ScPainter *painter = new ScImagePainter(&retImg, retImg.width(), retImg.height(), 1, 0);
+	ScPainter *painter = new ScPainter(&retImg, retImg.width(), retImg.height(), 1, 0);
 	painter->setZoomFactor(scaling);
 	for (int em = 0; em < emG.count(); ++em)
 	{

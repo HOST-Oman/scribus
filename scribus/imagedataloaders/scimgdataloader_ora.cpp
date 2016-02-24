@@ -106,7 +106,7 @@ bool ScImgDataLoader_ORA::loadPicture(const QString& fn, int /*page*/, int /*res
 						return false;
 					}
 					m_image.fill( qRgba(0, 0, 0, 0) );
-					ScPainter *painter = new ScImagePainter(&m_image, m_image.width(), m_image.height(), 1, 0);
+					ScPainter *painter = new ScPainter(&m_image, m_image.width(), m_image.height(), 1, 0);
 					painter->setZoomFactor(1);
 					for(QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
 					{
