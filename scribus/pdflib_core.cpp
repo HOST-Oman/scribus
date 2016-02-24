@@ -113,21 +113,21 @@ static inline QByteArray FToStr(double c)
 
 class PdfPainter: public TextLayoutPainter
 {
-	QByteArray& m_Buffer;
-	QByteArray& m_Buffer2;
+	QByteArray m_Buffer;
 	PageItem* m_item;
 	uint m_PNr;
 	QMap<QString, PdfFont>  m_UsedFontsP;
 	double m_baseLine;
+	PDFLibCore *m_Pdf;
 
 public:
-	PdfPainter(PageItem *ite, uint PNr, QMap<QString, PdfFont>  UsedFontsP,  double baseLine, QByteArray x= "") :
-		m_Buffer(x),
-		m_Buffer2(x),
+	PdfPainter(PageItem *ite, uint PNr, QMap<QString, PdfFont>  UsedFontsP,  double baseLine, PDFLibCore *pdf) :
+		m_Buffer(),
 		m_item(ite),
 		m_PNr(PNr),
 		m_UsedFontsP(UsedFontsP),
-		m_baseLine(baseLine)
+		m_baseLine(baseLine),
+		m_Pdf(pdf)
 	{}
 
 	~PdfPainter() {}
@@ -135,15 +135,15 @@ public:
 	void drawGlyph(const GlyphLayout glyphLayout)
 	{
 	//	QByteArray output;
-		QByteArray FillColor = "";
-		QByteArray StrokeColor = "";
+		QByteArray FillColor = m_Pdf->putColor(brush().color, brush().shade, true);
+		QByteArray StrokeColor = m_Pdf->putColor(pen().color, pen().shade, true);
 		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
 		uint glyph = glyphLayout.glyph;
 		if (pdfFont.method == Use_XForm)
 		{
 			{
-				m_Buffer2 += FillColor;
-				m_Buffer2 += "q\n";
+				m_Buffer += FillColor;
+				m_Buffer += "q\n";
 
 //				if (!m_item->asPathText())
 //				{
@@ -151,19 +151,19 @@ public:
 //				}
 //				else
 //				{
-					m_Buffer2 += FToStr(fontSize() / 10.0)+" 0 0 "+FToStr(fontSize() / 10.0)+" 0 "+FToStr(fontSize() / 10.0)+" cm\n";
+					m_Buffer += FToStr(fontSize() / 10.0)+" 0 0 "+FToStr(fontSize() / 10.0)+" 0 "+FToStr(fontSize() / 10.0)+" cm\n";
 //				}
 				if (glyphLayout.scaleV != 1.0)
-					m_Buffer2 += "1 0 0 1 0 "+FToStr( (((fontSize() / 10.0) - (fontSize() / 10.0) * (glyphLayout.scaleV)) / (fontSize() / 10.0)) * -1)+" cm\n";
-				m_Buffer2 += FToStr(qMax(glyphLayout.scaleH, 0.1))+" 0 0 "+FToStr(qMax(glyphLayout.scaleV, 0.1))+" 0 0 cm\n";
-				m_Buffer2 += pdfFont.name + Pdf::toPdf(glyph)+" Do\n";
-				m_Buffer2 += "Q\n";
+					m_Buffer += "1 0 0 1 0 "+FToStr( (((fontSize() / 10.0) - (fontSize() / 10.0) * (glyphLayout.scaleV)) / (fontSize() / 10.0)) * -1)+" cm\n";
+				m_Buffer += FToStr(qMax(glyphLayout.scaleH, 0.1))+" 0 0 "+FToStr(qMax(glyphLayout.scaleV, 0.1))+" 0 0 cm\n";
+				m_Buffer += pdfFont.name + Pdf::toPdf(glyph)+" Do\n";
+				m_Buffer += "Q\n";
 			}
 		}
 		else
 		{
-			m_Buffer2 += StrokeColor;
-			m_Buffer2 += FillColor;
+			m_Buffer += StrokeColor;
+			m_Buffer += FillColor;
 			uint gid = glyphLayout.glyph;
 			uint fontNr = 65535;
 			switch (pdfFont.encoding)
@@ -230,8 +230,8 @@ public:
 			{
 
 
-					m_Buffer2 += FToStr(strokeWidth())+" w\n[] 0 d\n0 J\n0 j\n";
-					m_Buffer2 += StrokeColor;
+					m_Buffer += FToStr(strokeWidth())+" w\n[] 0 d\n0 J\n0 j\n";
+					m_Buffer += StrokeColor;
 
 				FPointArray gly = font().glyphOutline(glyph);
 				QTransform mat;
@@ -245,27 +245,27 @@ public:
 					{
 						if (gly.isMarker(poi))
 						{
-							m_Buffer2 += "h\n";
+							m_Buffer += "h\n";
 							nPath = true;
 							continue;
 						}
 						if (nPath)
 						{
 							np = gly.point(poi);
-							m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" m\n";
+							m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" m\n";
 							nPath = false;
 						}
 						np = gly.point(poi+1);
-						m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" ";
+						m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" ";
 						np = gly.point(poi+3);
-						m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" ";
+						m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" ";
 						np = gly.point(poi+2);
-						m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" c\n";
+						m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" c\n";
 					}
 				}
-				m_Buffer2 += "h s\n";
+				m_Buffer += "h s\n";
 			}
-			m_Buffer2 += "Q\n";
+			m_Buffer += "Q\n";
 
 		}
 		else
@@ -277,34 +277,34 @@ public:
 				gly.map(mat);
 				bool nPath = true;
 				FPoint np;
-					m_Buffer2 += "q\n";
-					m_Buffer2 += FToStr(strokeWidth())+" w\n[] 0 d\n0 J\n0 j\n";
+					m_Buffer += "q\n";
+					m_Buffer += FToStr(strokeWidth())+" w\n[] 0 d\n0 J\n0 j\n";
 				if (gly.size() > 3)
 				{
 					for (int poi=0; poi<gly.size()-3; poi += 4)
 					{
 						if (gly.isMarker(poi))
 						{
-							m_Buffer2 += "h\n";
+							m_Buffer += "h\n";
 							nPath = true;
 							continue;
 						}
 						if (nPath)
 						{
 							np = gly.point(poi);
-							m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" m\n";
+							m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" m\n";
 							nPath = false;
 						}
 						np = gly.point(poi+1);
-						m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" ";
+						m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" ";
 						np = gly.point(poi+3);
-						m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" ";
+						m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" ";
 						np = gly.point(poi+2);
-						m_Buffer2 += FToStr(np.x())+" "+FToStr(-np.y())+" c\n";
+						m_Buffer += FToStr(np.x())+" "+FToStr(-np.y())+" c\n";
 					}
 				}
-				m_Buffer2 += "h s\n";
-				m_Buffer2 += "Q\n";
+				m_Buffer += "h s\n";
+				m_Buffer += "Q\n";
 			}
 			m_Buffer += "0 Tr\n";
 			if (!m_item->asPathText())
@@ -323,9 +323,9 @@ public:
    // drawing
 	  void drawLine(QPointF start, QPointF end)
 	  {
-		  m_Buffer2 += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
-		  m_Buffer2 += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
-		  m_Buffer2 += "S\n";
+		  m_Buffer += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
+		  m_Buffer += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
+		  m_Buffer += "S\n";
 	  }
 };
 
@@ -5593,7 +5593,7 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 // Return a PDF substring representing a PageItem's text
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
-	TextLayoutPainter* p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset());
+	TextLayoutPainter* p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset(), this);
 	ite->textLayout.render(p, ite->itemText);
 	return dynamic_cast<PdfPainter*>(p)->getBuffer();
 #if 0 // FIXME-HOST
