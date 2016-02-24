@@ -903,7 +903,6 @@ struct LineControl {
 		result->colLeft = line.colLeft;
 		result->setFirstChar(line.firstChar);
 		result->setLastChar(line.lastChar);
-		result->setDoc(doc);
 //		int runCount = line.lastChar - line.firstChar;
 		int runCount = 0;
 		foreach (GlyphRun run, glyphRuns)
@@ -931,7 +930,6 @@ struct LineControl {
 	{
 		GlyphBox* result = new GlyphBox(run);
 		result->setWidth(run.width());
-		result->setDoc(doc);
 		return result;
 	}
 

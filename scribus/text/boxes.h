@@ -41,7 +41,6 @@ protected:
 	QList<Box*> m_boxes;
 	int m_firstChar;
 	int m_lastChar;
-	ScribusDoc* m_Doc;
 	
 public:
 	Box()
@@ -50,7 +49,6 @@ public:
 		m_x = m_y = m_width = m_ascent = m_descent = 0;
 		m_firstChar = 0;
 		m_lastChar = 0;
-		m_Doc = NULL;
 	}
 	virtual ~Box() {}
 	
@@ -89,8 +87,6 @@ public:
 	void setFirstChar(int c) { m_firstChar = c; }
 	int lastChar() const { return m_lastChar; }
 	void setLastChar(int c) { m_lastChar = c; }
-
-	void setDoc(ScribusDoc* doc) { m_Doc = doc; }
 
 //	virtual QList<const Box*> pathForPos(int pos) const = 0;
 //	virtual void justify(const ParagraphStyle& style) {}
@@ -168,8 +164,6 @@ public:
 	ScFace font() const { return m_glyphRun.style().font(); }
 
 private:
-	void setQColor(QColor *tmp, QString colorName, double shad);
-
 	GlyphRun m_glyphRun;
 };
 
