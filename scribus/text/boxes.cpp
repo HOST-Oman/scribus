@@ -250,20 +250,6 @@ void LineBox::justify(const ParagraphStyle& style)
 }
 #endif
 
-void GlyphBox::setQColor(QColor *tmp, QString colorName, double shad)
-{
-	if (colorName == CommonStrings::None)
-		return;
-
-	const ScColor& col = m_Doc->PageColors[colorName];
-	*tmp = ScColorEngine::getShadeColorProof(col, m_Doc, shad);
-	if (m_Doc->viewAsPreview)
-	{
-		VisionDefectColor defect;
-		*tmp = defect.convertDefect(*tmp, m_Doc->previewVisual);
-	}
-}
-
 void GlyphBox::render(TextLayoutPainter *p, const StoryText &text)
 {
 	const CharStyle style(m_glyphRun.style());
