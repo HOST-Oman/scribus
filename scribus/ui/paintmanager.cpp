@@ -228,7 +228,7 @@ QTreeWidgetItem* PaintManagerDialog::updateGradientList(QString addedName)
 		pb.begin(&pixm);
 		pb.fillRect(0, 0, 48, 12, b);
 		pb.end();
-		ScPainter *p = new ScImagePainter(&pixm, 48, 12);
+		ScPainter *p = new ScPainter(&pixm, 48, 12);
 		p->setPen(Qt::black, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		p->setFillMode(2);
 		p->fill_gradient = gr;

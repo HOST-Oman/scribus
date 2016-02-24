@@ -61,7 +61,7 @@ void DashPreview::paintEvent(QPaintEvent *e)
 		StopM.clear();
 	int pWidth = width()-20;
 	QImage pixm(pWidth, 10, QImage::Format_ARGB32_Premultiplied);
-	ScPainter *p = new ScImagePainter(&pixm, pWidth, 10);
+	ScPainter *p = new ScPainter(&pixm, pWidth, 10);
 	p->clear(QColor(128, 128, 128));
 	double startX = 0.0;
 	p->setLineWidth(0);
