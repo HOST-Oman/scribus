@@ -2074,6 +2074,7 @@ void ScPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSi
 {
 	save();
 
+#if 0
 	double r, g, b;
 	m_fill.getRgbF(&r, &g, &b);
 	if (m_maskMode > 0)
@@ -2103,6 +2104,20 @@ void ScPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSi
 	cairo_show_glyphs(m_cr, &glyph, 1);
 	setFillRule(fr);
 	cairo_font_face_destroy(face);
+#else
+	bool fr = fillRule();
+	setFillRule(false);
+
+	FPointArray outline = font.glyphOutline(gl.glyph);
+	double scaleH = gl.scaleH * fontSize / 100.00;
+	double scaleV = gl.scaleV * fontSize / 100.00;
+	scale(scaleH, scaleV);
+	setupPolygon(&outline, true);
+	if (outline.size() > 3)
+		fillPath();
+
+	setFillRule(fr);
+#endif
 
 	restore();
 }
