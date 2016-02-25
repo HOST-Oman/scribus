@@ -3311,17 +3311,17 @@ public:
 	~TextFramePainter()
 	{ }
 
-	void setPen(TextLayoutColor c)
+	void setStrokeColor(TextLayoutColor c)
 	{
-		TextLayoutPainter::setPen(c);
+		TextLayoutPainter::setStrokeColor(c);
 		QColor tmp;
 		m_item->SetQColor(&tmp, c.color, c.shade);
 		m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
 
-	void setBrush(TextLayoutColor c)
+	void setFillColor(TextLayoutColor c)
 	{
-		TextLayoutPainter::setBrush(c);
+		TextLayoutPainter::setFillColor(c);
 		QColor tmp;
 		m_item->SetQColor(&tmp, c.color, c.shade);
 		m_painter->setBrush(tmp);
