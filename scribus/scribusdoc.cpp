@@ -4495,7 +4495,14 @@ public:
 		: m_really(Really)
 	{}
 
-	void drawGlyph(GlyphLayout gl)
+	void drawGlyph(GlyphLayout gl) { collectGlyph(gl); }
+	void drawGlyphOutline(GlyphLayout gl) { collectGlyph(gl); }
+
+	// we don't need this one
+	void drawLine(QPointF, QPointF) {}
+
+private:
+	void collectGlyph(GlyphLayout gl)
 	{
 		if (!font().replacementName().isEmpty())
 		{
@@ -4504,11 +4511,6 @@ public:
 		}
 	}
 
-	// we don't need those
-	void drawGlyphOutline(GlyphLayout) {}
-	void drawLine(QPointF, QPointF) {}
-
-private:
 	QMap<QString, QMap<uint, FPointArray> > & m_really;
 };
 
