@@ -270,7 +270,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text)
 	if (selected/*((selected && m_isSelected) || ((NextBox != 0 || BackBox != 0) && selected)) && (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable)*/)
 	{
 		// set text color to highlight if its selected
-		p->setFillColor(TextLayoutColor(qApp->palette().color(QPalette::Active, QPalette::HighlightedText).name(), 1.0));
+		p->setFillColor(TextLayoutColor(qApp->palette().color(QPalette::Active, QPalette::HighlightedText).name()));
 	}
 	if (style.strokeColor() != CommonStrings::None)
 	{
@@ -352,7 +352,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text)
 			p->translate(0, -(style.fontSize() / 10.0) * (style.baselineOffset() / 1000.0));
 		if (glyphId == 0)
 		{
-			p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name(), 1.0));
+			p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name()));
 			p->setStrokeWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() * 2 / 10000.0);
 			p->drawGlyph(glyphLayout);
 		}
