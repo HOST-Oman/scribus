@@ -4486,30 +4486,40 @@ void ScribusDoc::getUsedFonts(QMap<QString, QMap<uint, FPointArray> > & Really)
 	}
 }
 
+// a special painter that does not actually paint anything,
+// but collects the glyphs used in the frame.
+class UsedGlyphsPainter: public TextLayoutPainter
+{
+public:
+	UsedGlyphsPainter(QMap<QString, QMap<uint, FPointArray> > & Really)
+		: m_really(Really)
+	{}
+
+	void drawGlyph(GlyphLayout gl)
+	{
+		if (!font().replacementName().isEmpty())
+		{
+			FPointArray outline(font().glyphOutline(gl.glyph));
+			m_really[font().replacementName()].insert(gl.glyph, outline);
+		}
+	}
+
+	// we don't need those
+	void drawGlyphOutline(GlyphLayout) {}
+	void drawLine(QPointF, QPointF) {}
+
+private:
+	QMap<QString, QMap<uint, FPointArray> > & m_really;
+};
 
 void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPointArray> > & Really, uint lc)
 {
 	if (!it->isTextFrame() && !it->isPathText())
 		return;
 
-	for (uint i = 0; i < it->textLayout.lines(); i++)
-	{
-		const LineBox* line = it->textLayout.line(i);
-		foreach (const Box* box, line->boxes())
-		{
-			const GlyphBox* glyphBox = dynamic_cast<const GlyphBox*>(box);
-			if (glyphBox)
-			{
-				const ScFace font = glyphBox->font();
-				foreach (GlyphLayout gl, glyphBox->glyphRun().glyphs())
-				{
-					FPointArray gly(font.glyphOutline(gl.glyph));
-					if (!font.replacementName().isEmpty())
-						Really[font.replacementName()].insert(gl.glyph, gly);
-				}
-			}
-		}
-	}
+	TextLayoutPainter *p = new UsedGlyphsPainter(Really);
+	it->textLayout.render(p, it->itemText);
+	delete p;
 #if 0
 	FPointArray gly;
 	QChar chstr;
