@@ -43,11 +43,11 @@ struct TextLayoutColor
 	double shade;
 
 	TextLayoutColor()
-		: color("")
-		, shade(0)
+		: color("Black")
+		, shade(100)
 	{ }
 
-	TextLayoutColor(QString c, double s)
+	TextLayoutColor(QString c, double s=100)
 		: color(c)
 		, shade(s)
 	{ }
