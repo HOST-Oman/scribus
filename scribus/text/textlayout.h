@@ -65,11 +65,11 @@ public:
 	virtual void setFontSize(double size);
 	virtual double fontSize();
 
-	virtual void setPen(TextLayoutColor c);
-	virtual TextLayoutColor pen();
+	virtual void setStrokeColor(TextLayoutColor c);
+	virtual TextLayoutColor strokeColor();
 
-	virtual void setBrush(TextLayoutColor c);
-	virtual TextLayoutColor brush();
+	virtual void setFillColor(TextLayoutColor c);
+	virtual TextLayoutColor fillColor();
 
 	virtual void setStrokeWidth(double w);
 	virtual double strokeWidth();
@@ -90,8 +90,8 @@ private:
 	{
 		ScFace font;
 		double fontSize;
-		TextLayoutColor pen;
-		TextLayoutColor brush;
+		TextLayoutColor strokeColor;
+		TextLayoutColor fillColor;
 		double strokeWidth;
 		double x;
 		double y;

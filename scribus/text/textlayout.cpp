@@ -49,24 +49,24 @@ double TextLayoutPainter::fontSize()
 	return m_state.fontSize;
 }
 
-void TextLayoutPainter::setPen(TextLayoutColor color)
+void TextLayoutPainter::setStrokeColor(TextLayoutColor color)
 {
-	m_state.pen = color;
+	m_state.strokeColor = color;
 }
 
-TextLayoutColor TextLayoutPainter::pen()
+TextLayoutColor TextLayoutPainter::strokeColor()
 {
-	return m_state.pen;
+	return m_state.strokeColor;
 }
 
-void TextLayoutPainter::setBrush(TextLayoutColor color)
+void TextLayoutPainter::setFillColor(TextLayoutColor color)
 {
-	m_state.brush = color;
+	m_state.fillColor = color;
 }
 
-TextLayoutColor TextLayoutPainter::brush()
+TextLayoutColor TextLayoutPainter::fillColor()
 {
-	return m_state.brush;
+	return m_state.fillColor;
 }
 
 void TextLayoutPainter::setStrokeWidth(double w)
