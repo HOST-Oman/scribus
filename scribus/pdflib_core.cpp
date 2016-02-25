@@ -137,8 +137,8 @@ public:
 	void drawGlyph(const GlyphLayout glyphLayout)
 	{
 	//	QByteArray output;
-		QByteArray FillColor = m_Pdf->putColor(brush().color, brush().shade, true);
-		QByteArray StrokeColor = m_Pdf->putColor(pen().color, pen().shade, false);
+		QByteArray FillColor = m_Pdf->putColor(fillColor().color, fillColor().shade, true);
+		QByteArray StrokeColor = m_Pdf->putColor(strokeColor().color, strokeColor().shade, false);
 		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
 		uint glyph = glyphLayout.glyph;
 		if (pdfFont.method == Use_XForm)
@@ -328,7 +328,7 @@ public:
    // drawing
 	  void drawLine(QPointF start, QPointF end)
 	  {
-		  m_pathBuffer += m_Pdf->putColor(brush().color, brush().shade, false);
+		  m_pathBuffer += m_Pdf->putColor(fillColor().color, fillColor().shade, false);
 		  m_pathBuffer += FToStr(strokeWidth())+" w\n";
 		  m_pathBuffer += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
 		  m_pathBuffer += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
