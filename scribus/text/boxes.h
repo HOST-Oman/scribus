@@ -138,6 +138,20 @@ private:
 };
 
 
+class LineBox : public GroupBox
+{
+public:
+	LineBox()
+	{
+		m_type = T_Line;
+	}
+
+	void render(TextLayoutPainter *p, const StoryText& text);
+//	void justify(const ParagraphStyle& style);
+	qreal colLeft;
+};
+
+
 class GlyphBox : public Box
 {
 	
@@ -165,20 +179,6 @@ public:
 
 private:
 	GlyphRun m_glyphRun;
-};
-
-
-class LineBox : public GroupBox
-{
-public:	
-	LineBox()
-	{
-		m_type = T_Line;
-	}
-
-	void render(TextLayoutPainter *p, const StoryText& text);
-//	void justify(const ParagraphStyle& style);
-	qreal colLeft;
 };
 
 #endif /* defined(__Scribus__boxes__) */
