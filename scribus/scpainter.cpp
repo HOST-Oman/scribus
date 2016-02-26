@@ -2097,7 +2097,7 @@ void ScPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSi
 
 	cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font.ftFace(), 0);
 	cairo_set_font_face(m_cr, face);
-	cairo_set_font_size(m_cr, gl.scaleH * fontSize / 10.0);
+	cairo_set_font_size(m_cr, gl.scaleH * fontSize);
 	cairo_glyph_t glyph = { gl.glyph, 0, 0 };
 	bool fr = fillRule();
 	setFillRule(false);
@@ -2109,8 +2109,8 @@ void ScPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSi
 	setFillRule(false);
 
 	FPointArray outline = font.glyphOutline(gl.glyph);
-	double scaleH = gl.scaleH * fontSize / 100.00;
-	double scaleV = gl.scaleV * fontSize / 100.00;
+	double scaleH = gl.scaleH * fontSize / 10.0;
+	double scaleV = gl.scaleV * fontSize / 10.0;
 	scale(scaleH, scaleV);
 	setupPolygon(&outline, true);
 	if (outline.size() > 3)
@@ -2129,8 +2129,8 @@ void ScPainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, double
 	setFillRule(false);
 
 	FPointArray outline = font.glyphOutline(gl.glyph);
-	double scaleH = gl.scaleH * fontSize / 100.00;
-	double scaleV = gl.scaleV * fontSize / 100.00;
+	double scaleH = gl.scaleH * fontSize / 10.0;
+	double scaleV = gl.scaleV * fontSize / 10.0;
 	scale(scaleH, scaleV);
 	setupPolygon(&outline, true);
 	if (outline.size() > 3)
