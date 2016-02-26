@@ -199,8 +199,8 @@ public:
 
 			if (!FillColor.isEmpty())
 				m_glyphBuffer += FillColor;
-			else
-				m_glyphBuffer += "0 Tr\n";
+
+			m_glyphBuffer += "0 Tr\n";
 
 			if (!m_item->asPathText())
 				m_glyphBuffer +=  FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " " + FToStr(x()) + " " + FToStr(-y()) + " Tm\n";
@@ -304,7 +304,7 @@ public:
 		}
 		else
 		{
-			if (StrokeColor.isEmpty())
+			if (!StrokeColor.isEmpty())
 				m_pathBuffer += StrokeColor;
 
 			uint gid = gl.glyph;
