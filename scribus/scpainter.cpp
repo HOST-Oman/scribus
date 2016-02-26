@@ -2073,6 +2073,7 @@ void ScPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken,
 void ScPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSize)
 {
 	save();
+	translate(0, -(fontSize * gl.scaleV));
 
 #if 0
 	double r, g, b;
@@ -2125,6 +2126,8 @@ void ScPainter::drawGlyph(const GlyphLayout gl, const ScFace font, double fontSi
 void ScPainter::drawGlyphOutline(const GlyphLayout gl, const ScFace font, double fontSize, double outlineWidth)
 {
 	save();
+	translate(0, -(fontSize * gl.scaleV));
+
 	bool fr = fillRule();
 	setFillRule(false);
 
