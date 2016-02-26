@@ -282,7 +282,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 		const GlyphLayout& glyphLayout(m_glyphRun.glyphs().at(i));
 		uint glyphId = glyphLayout.glyph;
 		double st, lw;
-		if (((style.effects() & ScStyle_Underline) || ((style.effects() & ScStyle_UnderlineWords) && glyphId != font().char2CMap(QChar(' ')))) && (style.strokeColor() != CommonStrings::None))
+		if ((style.effects() & ScStyle_Underline) && (style.strokeColor() != CommonStrings::None))
 		{
 
 			if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
