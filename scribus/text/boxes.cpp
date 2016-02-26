@@ -20,12 +20,11 @@
 int GroupBox::pointToPosition(FPoint coord) const
 {
 	FPoint rel = coord - FPoint(m_x, m_y);
-	for (int i=0; i < m_boxes.count(); ++i)
+	foreach (const Box *box, boxes())
 	{
-		Box* b = m_boxes[i];
-		if (b->containsPoint(rel))
+		if (box->containsPoint(rel))
 		{
-			int result = b->pointToPosition(rel);
+			int result = box->pointToPosition(rel);
 			if (result >= 0)
 				return result;
 		}
@@ -33,13 +32,12 @@ int GroupBox::pointToPosition(FPoint coord) const
 	return -1;
 }
 
-void GroupBox::render(TextLayoutPainter *p, const StoryText &text)
+void GroupBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	p->save();
 	p->translate(x(),y());
-	for (int i = 0; i < boxes().count(); i++)
+	foreach (const Box *box, boxes())
 	{
-		Box* box = dynamic_cast<Box*> (boxes()[i]);
 		box->render(p, text);
 	}
 	p->restore();
@@ -48,12 +46,11 @@ void GroupBox::render(TextLayoutPainter *p, const StoryText &text)
 FRect GroupBox::boundingBox(int pos, uint len) const
 {
 	FRect result;
-	for (int i=0; i < m_boxes.count(); ++i)
+	foreach (const Box *box, boxes())
 	{
-		Box* b = m_boxes[i];
-		if (b->containsPos(pos))
+		if (box->containsPos(pos))
 		{
-			result = result.unite(b->boundingBox(pos, len));
+			result = result.unite(box->boundingBox(pos, len));
 		}
 	}
 	if (result.isValid())
@@ -121,13 +118,12 @@ void GroupBox::justify(const ParagraphStyle& style)
 }
 #endif
 
-void LineBox::render(TextLayoutPainter *p, const StoryText &text)
+void LineBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	p->save();
 	p->translate(x(),y() + ascent());
-	for (int i = 0; i < boxes().count(); i++)
+	foreach (const Box *box, boxes())
 	{
-		Box* box = boxes()[i];
 		box->render(p, text);
 	}
 	p->restore();
@@ -251,7 +247,7 @@ void LineBox::justify(const ParagraphStyle& style)
 }
 #endif
 
-void GlyphBox::render(TextLayoutPainter *p, const StoryText &text)
+void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	const CharStyle style(m_glyphRun.style());
 	const ScFace font = style.font();
