@@ -326,13 +326,13 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 			{
 				p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name()));
 				p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() * 2 / 10000.0);
-				p->drawGlyphOutline(gl);
+				p->drawGlyphOutline(gl, false);
 			}
 			else if ((font().isStroked()) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 			{
 				p->setStrokeColor(p->fillColor());
 				p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0);
-				p->drawGlyphOutline(gl);
+				p->drawGlyphOutline(gl, false);
 			}
 			else
 			{
@@ -346,13 +346,14 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 					p->drawGlyph(gl);
 					p->restore();
 				}
-				if (hasFillColor)
-					p->drawGlyph(gl);
+
 				if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 				{
 					p->setStrokeWidth((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) / glySc);
-					p->drawGlyphOutline(gl);
+					p->drawGlyphOutline(gl, hasFillColor);
 				}
+				else if (hasFillColor)
+					p->drawGlyph(gl);
 			}
 			p->restore();
 		}

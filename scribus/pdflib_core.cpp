@@ -230,7 +230,7 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
 		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
@@ -392,7 +392,7 @@ public:
 			else
 			{
 				m_glyphBuffer += FToStr(strokeWidth()) + " w ";
-				if (!FillColor.isEmpty())
+				if (fill)
 					m_glyphBuffer += "2 Tr\n";
 				else
 					m_glyphBuffer += "1 Tr\n";
