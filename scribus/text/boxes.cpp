@@ -275,10 +275,9 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 		p->setFillColor(TextLayoutColor(qApp->palette().color(QPalette::Active, QPalette::HighlightedText).name()));
 	}
 
-	for (int i = 0; i < m_glyphRun.glyphs().count(); ++i)
+	foreach (const GlyphLayout gl, m_glyphRun.glyphs())
 	{
 		p->save();
-		const GlyphLayout& gl(m_glyphRun.glyphs().at(i));
 
 		// Do underlining first so you can get typographically correct
 		// underlines when drawing a white outline
