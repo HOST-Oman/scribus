@@ -5706,9 +5706,9 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 // Return a PDF substring representing a PageItem's text
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
-	TextLayoutPainter* p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset(), this);
+	PdfPainter *p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset(), this);
 	ite->textLayout.render(p, ite->itemText);
-	QByteArray buffer = dynamic_cast<PdfPainter*>(p)->getBuffer();
+	QByteArray buffer = p->getBuffer();
 	delete p;
 	return buffer;
 #if 0 // FIXME-HOST
