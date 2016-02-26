@@ -5713,7 +5713,9 @@ QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
 	TextLayoutPainter* p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset(), this);
 	ite->textLayout.render(p, ite->itemText);
-	return dynamic_cast<PdfPainter*>(p)->getBuffer();
+	QByteArray buffer = dynamic_cast<PdfPainter*>(p)->getBuffer();
+	delete p;
+	return buffer;
 #if 0 // FIXME-HOST
 	int tabCc = 0;
 	int savedOwnPage = ite->OwnPage;
