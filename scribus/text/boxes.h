@@ -96,7 +96,7 @@ public:
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
 	}
 	
-	virtual void render(TextLayoutPainter *p, const StoryText& text) = 0;
+	virtual void render(TextLayoutPainter *p, const StoryText& text) const = 0;
 //	virtual void render(ScPainter* p, const RenderOptions& renderOptions) const = 0;
 //	virtual qreal naturalWidth() const { return width(); }
 //	virtual qreal naturalHeight() const { return height(); }
@@ -129,7 +129,7 @@ public:
 	void addBox(const Box* box);
 	Box* addBox(uint i);
 	Box* removeBox(uint i);
-	void render(TextLayoutPainter *p, const StoryText& text);
+	void render(TextLayoutPainter *p, const StoryText& text) const;
 //	void justify(const ParagraphStyle& style);
 
 private:
@@ -146,7 +146,7 @@ public:
 		m_type = T_Line;
 	}
 
-	void render(TextLayoutPainter *p, const StoryText& text);
+	void render(TextLayoutPainter *p, const StoryText& text) const;
 //	void justify(const ParagraphStyle& style);
 	qreal colLeft;
 };
@@ -171,7 +171,7 @@ public:
 	}
 
 //	QList<const Box*> pathForPos(int pos) const;
-	void render(TextLayoutPainter *p, const StoryText& text);
+	void render(TextLayoutPainter *p, const StoryText& text) const;
 	int pointToPosition(FPoint coord) const;
 
 	GlyphRun glyphRun() const { return m_glyphRun; }
