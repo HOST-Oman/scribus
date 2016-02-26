@@ -252,6 +252,8 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	const CharStyle style(m_glyphRun.style());
 	double fontSize = style.fontSize() / 10.0;
 	bool selected = text.selected(m_firstChar) || text.selected(m_lastChar);
+	bool hasFillColor = style.fillColor() != CommonStrings::None;
+	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
 
 	p->save();
 
@@ -261,7 +263,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	p->translate(x(), y());
 	p->translate(m_glyphRun.xoffset(), m_glyphRun.yoffset());
 
-	if (style.fillColor() != CommonStrings::None)
+	if (hasFillColor)
 	{
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
 	}
@@ -270,7 +272,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 		// set text color to highlight if its selected
 		p->setFillColor(TextLayoutColor(qApp->palette().color(QPalette::Active, QPalette::HighlightedText).name()));
 	}
-	if (style.strokeColor() != CommonStrings::None)
+	if (hasStrokeColor)
 	{
 		p->setStrokeWidth(1);
 		p->setStrokeColor(TextLayoutColor(style.strokeColor(), style.strokeShade()));
@@ -282,7 +284,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 		const GlyphLayout& glyphLayout(m_glyphRun.glyphs().at(i));
 		uint glyphId = glyphLayout.glyph;
 		double st, lw;
-		if ((style.effects() & ScStyle_Underline) && (style.strokeColor() != CommonStrings::None))
+		if ((style.effects() & ScStyle_Underline) && hasStrokeColor)
 		{
 
 			if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
@@ -314,7 +316,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 							QPointF(glyphLayout.xoffset + glyphLayout.xadvance, -st));
 			p->restore();
 		}
-		if ((style.effects() & ScStyle_Strikethrough) && (style.strokeColor() != CommonStrings::None))
+		if ((style.effects() & ScStyle_Strikethrough) && hasStrokeColor)
 		{
 
 			if ((style.strikethruOffset() != -1) || (style.strikethruWidth() != -1))
@@ -355,7 +357,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 			p->setStrokeWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() * 2 / 10000.0);
 			p->drawGlyph(glyphLayout);
 		}
-		else if ((font().isStroked()) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+		else if ((font().isStroked()) && hasStrokeColor && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
 		{
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) / scaleV);
@@ -363,7 +365,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 		}
 		else
 		{
-			if ((style.effects() & ScStyle_Shadowed) && (style.strokeColor() != CommonStrings::None))
+			if ((style.effects() & ScStyle_Shadowed) && hasStrokeColor)
 			{
 				double xoff = style.fontSize() * glyphLayout.scaleH * style.shadowXOffset() / 10000.0;
 				double yoff = style.fontSize() * glyphLayout.scaleV * style.shadowYOffset() / 10000.0;
@@ -373,9 +375,9 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 				p->drawGlyph(glyphLayout);
 				p->restore();
 			}
-			if (style.fillColor() != CommonStrings::None)
+			if (hasFillColor)
 				p->drawGlyph(glyphLayout);
-			if ((style.effects() & ScStyle_Outline) && (style.strokeColor() != CommonStrings::None) && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+			if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
 			{
 				p->setStrokeWidth((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) / scaleV);
 				p->drawGlyphOutline(glyphLayout);
