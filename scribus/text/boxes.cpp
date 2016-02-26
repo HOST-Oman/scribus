@@ -35,7 +35,7 @@ int GroupBox::pointToPosition(FPoint coord) const
 void GroupBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	p->save();
-	p->translate(x(),y());
+	p->translate(x(), y());
 	foreach (const Box *box, boxes())
 	{
 		box->render(p, text);
@@ -76,7 +76,7 @@ void GroupBox::addBox(const Box* box)
 	if (0 == m_y)
 		m_y = newRect.y();
 	if (0 == m_x)
-		m_x = newRect.x() ;
+		m_x = newRect.x();
 	if (0 == m_width)
 		m_width = newRect.width();
 	if (0 == m_descent)
@@ -121,7 +121,7 @@ void GroupBox::justify(const ParagraphStyle& style)
 void LineBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	p->save();
-	p->translate(x(),y() + ascent());
+	p->translate(x(), y() + ascent());
 	foreach (const Box *box, boxes())
 	{
 		box->render(p, text);
@@ -258,8 +258,9 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	p->setFont(font);
 	p->setFontSize(style.fontSize() / 10.0);
 
-	p->translate(x(),y());
+	p->translate(x(), y());
 	p->translate(m_glyphRun.xoffset(), m_glyphRun.yoffset());
+
 	if (style.fillColor() != CommonStrings::None)
 	{
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
@@ -334,6 +335,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 			}
 			if (style.baselineOffset() != 0)
 				st += (style.fontSize() / 10.0) * glyphLayout.scaleV * (style.baselineOffset() / 1000.0);
+
 			p->save();
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(lw);
@@ -379,11 +381,12 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 				p->drawGlyphOutline(glyphLayout);
 			}
 		}
+
 		p->restore();
 		p->translate(glyphLayout.xadvance, 0);
 	}
-	p->restore();
 
+	p->restore();
 }
 
 int GlyphBox::pointToPosition(FPoint coord) const
