@@ -1596,6 +1596,17 @@ void PageItem_TextFrame::layout()
 			bool HasMark = itemText.hasMark(a);
 			Mark* mark = itemText.mark(a);
 
+			if (itemText.charStyle(a).effects() & ScStyle_UnderlineWords)
+			{
+				CharStyle tmp(itemText.charStyle(a));
+				StyleFlag effects = tmp.effects();
+				if (!currentCh.isSpace())
+					effects |= ScStyle_Underline;
+				effects &= ~ScStyle_UnderlineWords;
+				tmp.setFeatures(effects.featureList());
+				itemText.applyCharStyle(a, 1, tmp);
+			}
+
 			if (HasMark)
 			{
 				//show control characters for marks
