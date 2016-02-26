@@ -267,6 +267,8 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	{
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
 	}
+
+	// FIXME-HOST: this should move to TextFramePainter
 	if (selected/*((selected && m_isSelected) || ((NextBox != 0 || BackBox != 0) && selected)) && (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable)*/)
 	{
 		// set text color to highlight if its selected
