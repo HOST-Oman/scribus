@@ -4504,7 +4504,7 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(GlyphLayout gl) { drawGlyph(gl); }
+	void drawGlyphOutline(GlyphLayout gl, bool) { drawGlyph(gl); }
 
 	// we don't need this one
 	void drawLine(QPointF, QPointF) {}
