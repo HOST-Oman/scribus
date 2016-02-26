@@ -278,8 +278,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	for (int i = 0; i < m_glyphRun.glyphs().count(); ++i)
 	{
 		p->save();
-		const GlyphLayout& glyphLayout(m_glyphRun.glyphs().at(i));
-		uint glyphId = glyphLayout.glyph;
+		const GlyphLayout& gl(m_glyphRun.glyphs().at(i));
 
 		// Do underlining first so you can get typographically correct
 		// underlines when drawing a white outline
@@ -303,59 +302,57 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 				lw = qMax(font().strokeWidth(fontSize), 1.0);
 			}
 			if (style.baselineOffset() != 0)
-				st += fontSize * glyphLayout.scaleV * (style.baselineOffset() / 1000.0);
+				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
 			p->save();
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(lw);
 			if (style.effects() & ScStyle_Subscript)
-				p->drawLine(QPointF(glyphLayout.xoffset, glyphLayout.yoffset - st),
-							QPointF(glyphLayout.xoffset + glyphLayout.xadvance, glyphLayout.yoffset - st));
+				p->drawLine(QPointF(gl.xoffset, gl.yoffset - st), QPointF(gl.xoffset + gl.xadvance, gl.yoffset - st));
 			else
-				p->drawLine(QPointF(glyphLayout.xoffset, -st),
-							QPointF(glyphLayout.xoffset + glyphLayout.xadvance, -st));
+				p->drawLine(QPointF(gl.xoffset, -st), QPointF(gl.xoffset + gl.xadvance, -st));
 			p->restore();
 		}
 
-		if (glyphId <= ScFace::CONTROL_GLYPHS)
+		if (gl.glyph <= ScFace::CONTROL_GLYPHS)
 		{
 			p->save();
-			p->translate(glyphLayout.xoffset, glyphLayout.yoffset);
+			p->translate(gl.xoffset, gl.yoffset);
 
 			if (style.baselineOffset() != 0)
 				p->translate(0, -fontSize * (style.baselineOffset() / 1000.0));
-			double glxSc = glyphLayout.scaleH * style.fontSize() / 100.0;
-			double glySc = glyphLayout.scaleV * style.fontSize() / 100.0;
+			double glxSc = gl.scaleH * style.fontSize() / 100.0;
+			double glySc = gl.scaleV * style.fontSize() / 100.0;
 
-			if (glyphId == 0)
+			if (gl.glyph == 0)
 			{
 				p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name()));
-				p->setStrokeWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() * 2 / 10000.0);
-				p->drawGlyphOutline(glyphLayout);
+				p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() * 2 / 10000.0);
+				p->drawGlyphOutline(gl);
 			}
-			else if ((font().isStroked()) && hasStrokeColor && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+			else if ((font().isStroked()) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 			{
 				p->setStrokeColor(p->fillColor());
-				p->setStrokeWidth(style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0);
-				p->drawGlyphOutline(glyphLayout);
+				p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0);
+				p->drawGlyphOutline(gl);
 			}
 			else
 			{
 				if ((style.effects() & ScStyle_Shadowed) && hasStrokeColor)
 				{
-					double xoff = (style.fontSize() * glyphLayout.scaleH * style.shadowXOffset() / 10000.0) / glxSc;
-					double yoff = (style.fontSize() * glyphLayout.scaleV * style.shadowYOffset() / 10000.0) / glySc;
+					double xoff = (style.fontSize() * gl.scaleH * style.shadowXOffset() / 10000.0) / glxSc;
+					double yoff = (style.fontSize() * gl.scaleV * style.shadowYOffset() / 10000.0) / glySc;
 					p->save();
 					p->translate(xoff, -yoff);
 					p->setFillColor(p->strokeColor());
-					p->drawGlyph(glyphLayout);
+					p->drawGlyph(gl);
 					p->restore();
 				}
 				if (hasFillColor)
-					p->drawGlyph(glyphLayout);
-				if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) != 0))
+					p->drawGlyph(gl);
+				if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 				{
-					p->setStrokeWidth((style.fontSize() * glyphLayout.scaleV * style.outlineWidth() / 10000.0) / glySc);
-					p->drawGlyphOutline(glyphLayout);
+					p->setStrokeWidth((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) / glySc);
+					p->drawGlyphOutline(gl);
 				}
 			}
 			p->restore();
@@ -381,17 +378,16 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 				lw = qMax(font().strokeWidth(fontSize), 1.0);
 			}
 			if (style.baselineOffset() != 0)
-				st += fontSize * glyphLayout.scaleV * (style.baselineOffset() / 1000.0);
+				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
 			p->save();
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(lw);
-			p->drawLine(QPointF(glyphLayout.xoffset, glyphLayout.yoffset - st),
-						QPointF(glyphLayout.xoffset + glyphLayout.xadvance, glyphLayout.yoffset - st));
+			p->drawLine(QPointF(gl.xoffset, gl.yoffset - st), QPointF(gl.xoffset + gl.xadvance, gl.yoffset - st));
 			p->restore();
 		}
 
 		p->restore();
-		p->translate(glyphLayout.xadvance, 0);
+		p->translate(gl.xadvance, 0);
 	}
 
 	p->restore();
