@@ -427,20 +427,19 @@ public:
 		}
 	}
 
+	void drawLine(QPointF start, QPointF end)
+	{
+		m_pathBuffer += m_Pdf->putColor(fillColor().color, fillColor().shade, false);
+		m_pathBuffer += FToStr(strokeWidth())+" w\n";
+		m_pathBuffer += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
+		m_pathBuffer += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
+		m_pathBuffer += "S\n";
+	}
+
 	QByteArray getBuffer()
 	{
 		return "BT\n" + m_glyphBuffer + "ET\n" + m_pathBuffer;
 	}
-
-   // drawing
-	  void drawLine(QPointF start, QPointF end)
-	  {
-		  m_pathBuffer += m_Pdf->putColor(fillColor().color, fillColor().shade, false);
-		  m_pathBuffer += FToStr(strokeWidth())+" w\n";
-		  m_pathBuffer += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
-		  m_pathBuffer += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
-		  m_pathBuffer += "S\n";
-	  }
 };
 
 PDFLibCore::PDFLibCore(ScribusDoc & docu)
