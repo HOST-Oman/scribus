@@ -35,13 +35,14 @@ int GroupBox::pointToPosition(FPoint coord) const
 
 void GroupBox::render(TextLayoutPainter *p, const StoryText &text)
 {
+	p->save();
 	p->translate(x(),y());
 	for (int i = 0; i < boxes().count(); i++)
 	{
 		Box* box = dynamic_cast<Box*> (boxes()[i]);
 		box->render(p, text);
 	}
-	p->translate(-x(),-y());
+	p->restore();
 }
 
 FRect GroupBox::boundingBox(int pos, uint len) const
