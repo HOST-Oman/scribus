@@ -140,9 +140,9 @@ public:
 		QByteArray StrokeColor;
 		QByteArray FillColor;
 
-		if (!StrokeColor.isEmpty())
+		if (strokeColor().color != CommonStrings::None)
 			StrokeColor = m_Pdf->putColor(strokeColor().color, strokeColor().shade, false);
-		if (!FillColor.isEmpty())
+		if (fillColor().color != CommonStrings::None)
 			FillColor = m_Pdf->putColor(fillColor().color, fillColor().shade, true);
 
 		if (pdfFont.method == Use_XForm)
