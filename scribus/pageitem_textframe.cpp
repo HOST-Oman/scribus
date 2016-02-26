@@ -3367,9 +3367,11 @@ public:
 		m_painter->drawGlyph(gl, font(), fontSize());
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
 		m_painter->drawGlyphOutline(gl, font(), fontSize(), strokeWidth());
+		if (fill)
+			drawGlyph(gl);
 	}
 
 	void drawLine(QPointF start, QPointF end)
