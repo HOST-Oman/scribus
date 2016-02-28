@@ -132,7 +132,7 @@ public:
 
 	~PdfPainter() {}
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout gl, bool)
 	{
 		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
@@ -214,7 +214,7 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
 	{
 		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
