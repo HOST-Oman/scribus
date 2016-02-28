@@ -151,14 +151,10 @@ public:
 				m_pathBuffer += FillColor;
 
 			m_pathBuffer += "q\n";
-
-			if (!m_item->asPathText())
-				m_glyphBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " " + FToStr(x()) + " " + FToStr(-y()) + " Tm\n";
-			else
-				m_pathBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " 0 " + FToStr(fontSize()) + " cm\n";
+			m_glyphBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " " + FToStr(x()) + " " + FToStr(y()) + " cm\n";
 
 			if (gl.scaleV != 1.0)
-				m_pathBuffer += "1 0 0 1 0 " + FToStr(((fontSize() - fontSize() * (gl.scaleV)) / fontSize()) * -1) + " cm\n";
+				m_pathBuffer += "1 0 0 1 0 " + FToStr(((fontSize() - fontSize() * gl.scaleV) / fontSize()) * -1) + " cm\n";
 
 			m_pathBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " 0 0 cm\n";
 
@@ -201,11 +197,7 @@ public:
 				m_glyphBuffer += FillColor;
 
 			m_glyphBuffer += "0 Tr\n";
-
-			if (!m_item->asPathText())
-				m_glyphBuffer +=  FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " " + FToStr(x()) + " " + FToStr(-y()) + " Tm\n";
-			else
-				m_glyphBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " 0 0 Tm\n";
+			m_glyphBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " " + FToStr(x()) + " " + FToStr(-y()) + " Tm\n";
 
 			if (pdfFont.method != Use_Type3 || !FillColor.isEmpty())
 			{
@@ -222,12 +214,6 @@ public:
 				}
 			}
 		}
-
-		if (m_item->asPathText())
-		{
-			m_glyphBuffer += "ET\n" + m_pathBuffer + "Q\n";
-			m_pathBuffer = "";
-		}
 	}
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill)
@@ -238,7 +224,7 @@ public:
 
 		if (strokeColor().color != CommonStrings::None)
 			StrokeColor = m_Pdf->putColor(strokeColor().color, strokeColor().shade, false);
-		if (fillColor().color != CommonStrings::None)
+		if (fill && fillColor().color != CommonStrings::None)
 			FillColor = m_Pdf->putColor(fillColor().color, fillColor().shade, true);
 
 		if (pdfFont.method == Use_XForm)
@@ -253,11 +239,7 @@ public:
 				m_pathBuffer += FillColor;
 
 			m_pathBuffer += "q\n";
-
-			if (!m_item->asPathText())
-				m_glyphBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " " + FToStr(x()) + " " + FToStr(-y()) + " Tm\n";
-			else
-				m_pathBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " 0 " + FToStr(fontSize()) + " cm\n";
+			m_glyphBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " " + FToStr(x()) + " " + FToStr(y()) + " cm\n";
 
 			if (gl.scaleV != 1.0)
 				m_pathBuffer += "1 0 0 1 0 " + FToStr(((fontSize() - fontSize() * (gl.scaleV)) / fontSize()) * -1) + " cm\n";
@@ -267,17 +249,17 @@ public:
 			if (!FillColor.isEmpty())
 				m_pathBuffer += pdfFont.name + Pdf::toPdf(gl.glyph) + " Do\n";
 
-			FPointArray gly = font().glyphOutline(gl.glyph);
+			FPointArray outline = font().glyphOutline(gl.glyph);
 			QTransform mat;
 			mat.scale(0.1, 0.1);
-			gly.map(mat);
+			outline.map(mat);
 			bool nPath = true;
 			FPoint np;
-			if (gly.size() > 3)
+			if (outline.size() > 3)
 			{
-				for (int poi = 0; poi < gly.size()-3; poi += 4)
+				for (int poi = 0; poi < outline.size() - 3; poi += 4)
 				{
-					if (gly.isMarker(poi))
+					if (outline.isMarker(poi))
 					{
 						m_pathBuffer += "h\n";
 						nPath = true;
@@ -286,16 +268,16 @@ public:
 
 					if (nPath)
 					{
-						np = gly.point(poi);
+						np = outline.point(poi);
 						m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " m\n";
 						nPath = false;
 					}
 
-					np = gly.point(poi + 1);
+					np = outline.point(poi + 1);
 					m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " ";
-					np = gly.point(poi + 3);
+					np = outline.point(poi + 3);
 					m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " ";
-					np = gly.point(poi + 2);
+					np = outline.point(poi + 2);
 					m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " c\n";
 				}
 			}
@@ -342,29 +324,25 @@ public:
 			{
 				m_pathBuffer += "q\n";
 				m_pathBuffer += FToStr(strokeWidth()) + " w\n[] 0 d\n0 J\n0 j\n";
-
-				if (!m_item->asPathText())
-					m_pathBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " "+ FToStr(x()) + " " + FToStr(y()) + " cm\n";
-				else
-					m_pathBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " 0 " + FToStr(fontSize()) + " cm\n";
+				m_pathBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " "+ FToStr(x()) + " " + FToStr(y()) + " cm\n";
 
 				if (gl.scaleV != 1.0)
-					m_pathBuffer += "1 0 0 1 0 " + FToStr( ((fontSize() - fontSize() * (gl.scaleV)) / fontSize()) * -1) + " cm\n";
+					m_pathBuffer += "1 0 0 1 0 " + FToStr(((fontSize() - fontSize() * gl.scaleV) / fontSize()) * -1) + " cm\n";
 
 				m_pathBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " 0 0 cm\n";
 
 				/* paint outline */
-				FPointArray gly =font().glyphOutline(gl.glyph);
+				FPointArray outline = font().glyphOutline(gl.glyph);
 				QTransform mat;
 				mat.scale(0.1, 0.1);
-				gly.map(mat);
+				outline.map(mat);
 				bool nPath = true;
 				FPoint np;
-				if (gly.size() > 3)
+				if (outline.size() > 3)
 				{
-					for (int poi = 0; poi < gly.size()-3; poi += 4)
+					for (int poi = 0; poi < outline.size() - 3; poi += 4)
 					{
-						if (gly.isMarker(poi))
+						if (outline.isMarker(poi))
 						{
 							m_pathBuffer += "h\n";
 							nPath = true;
@@ -373,16 +351,16 @@ public:
 
 						if (nPath)
 						{
-							np = gly.point(poi);
+							np = outline.point(poi);
 							m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " m\n";
 							nPath = false;
 						}
 
-						np = gly.point(poi + 1);
+						np = outline.point(poi + 1);
 						m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " ";
-						np = gly.point(poi + 3);
+						np = outline.point(poi + 3);
 						m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " ";
-						np = gly.point(poi + 2);
+						np = outline.point(poi + 2);
 						m_pathBuffer += FToStr(np.x()) + " " + FToStr(-np.y()) + " c\n";
 					}
 				}
@@ -398,10 +376,7 @@ public:
 					m_glyphBuffer += "1 Tr\n";
 			}
 
-			if (!m_item->asPathText())
-				m_glyphBuffer +=  FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " " + FToStr(x()) + " " + FToStr(-y()) + " Tm\n";
-			else
-				m_glyphBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " 0 0 Tm\n";
+			m_glyphBuffer += FToStr(qMax(gl.scaleH, 0.1)) + " 0 0 " + FToStr(qMax(gl.scaleV, 0.1)) + " " + FToStr(x()) + " " + FToStr(-y()) + " Tm\n";
 
 			if (pdfFont.method != Use_Type3 || !FillColor.isEmpty())
 			{
@@ -417,13 +392,6 @@ public:
 					break;
 				}
 			}
-
-		}
-
-		if (m_item->asPathText())
-		{
-			m_glyphBuffer += "ET\n" + m_pathBuffer + "Q\n";
-			m_pathBuffer = "";
 		}
 	}
 
