@@ -3379,6 +3379,15 @@ public:
 		m_painter->drawLine(start, end);
 	}
 
+	void drawRect(QRectF rect)
+	{
+		m_painter->save();
+		m_painter->setFillMode(1);
+		m_painter->setStrokeMode(1);
+		m_painter->drawRect(x() + rect.x(), y() + rect.y(), rect.width(), rect.height());
+		m_painter->restore();
+	}
+
 private:
 	ScPainter *m_painter;
 	PageItem *m_item;
