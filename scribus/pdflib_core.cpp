@@ -408,6 +408,23 @@ public:
 	{
 		return "BT\n" + m_glyphBuffer + "ET\n" + m_pathBuffer;
 	}
+
+	void drawRect(QRectF rect)
+	{
+		double rectX = x() + rect.x();
+		double rectY = -y() - rect.y();
+		m_glyphBuffer += "q\n";
+		m_glyphBuffer += "n\n";
+		m_glyphBuffer += m_Pdf->SetPathAndClip(m_item);
+		m_glyphBuffer += m_Pdf->putColor(fillColor().color, fillColor().shade, true);
+		m_glyphBuffer += m_Pdf->putColor(strokeColor().color, strokeColor().shade, false);
+		m_glyphBuffer += FToStr(rectX) + " " + FToStr(rectY) + " m\n";
+		m_glyphBuffer += FToStr(rectX + rect.width()) + " " + FToStr(rectY) + " l\n";
+		m_glyphBuffer += FToStr(rectX + rect.width()) + " " + FToStr(rectY - rect.height()) + " l\n";
+		m_glyphBuffer += FToStr(rectX) + " " + FToStr(rectY - rect.height()) + " l\n";
+		m_glyphBuffer += "h\nf\n";
+		m_glyphBuffer += "Q\n";
+	}
 };
 
 PDFLibCore::PDFLibCore(ScribusDoc & docu)
