@@ -118,17 +118,15 @@ class PdfPainter: public TextLayoutPainter
 	PageItem* m_item;
 	uint m_PNr;
 	QMap<QString, PdfFont>  m_UsedFontsP;
-	double m_baseLine;
 	PDFLibCore *m_Pdf;
 
 public:
-	PdfPainter(PageItem *ite, uint PNr, QMap<QString, PdfFont>  UsedFontsP,  double baseLine, PDFLibCore *pdf) :
+	PdfPainter(PageItem *ite, uint PNr, QMap<QString, PdfFont>  UsedFontsP, PDFLibCore *pdf) :
 		m_glyphBuffer(),
 		m_pathBuffer(),
 		m_item(ite),
 		m_PNr(PNr),
 		m_UsedFontsP(UsedFontsP),
-		m_baseLine(baseLine),
 		m_Pdf(pdf)
 	{}
 
@@ -5696,7 +5694,7 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 // Return a PDF substring representing a PageItem's text
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
-	PdfPainter *p = new PdfPainter(ite, PNr,UsedFontsP, ite->itemText.charStyle().baselineOffset(), this);
+	PdfPainter *p = new PdfPainter(ite, PNr, UsedFontsP, this);
 	ite->textLayout.render(p, ite->itemText);
 	QByteArray buffer = p->getBuffer();
 	delete p;
