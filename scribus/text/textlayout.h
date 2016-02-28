@@ -78,8 +78,8 @@ public:
 	virtual double x();
 	virtual double y();
 
-	virtual void drawGlyph(const GlyphLayout gl) = 0;
-	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill) = 0;
+	virtual void drawGlyph(const GlyphLayout gl, bool selected) = 0;
+	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected) = 0;
 	virtual void drawLine(QPointF start, QPointF end) = 0;
 	virtual void drawRect(QRectF rect) = 0;
 
