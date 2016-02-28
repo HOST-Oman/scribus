@@ -254,6 +254,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	bool selected = text.selected(m_firstChar) || text.selected(m_lastChar);
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
 	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
+	bool hasBackColor = style.backColor() != CommonStrings::None;
 
 	p->save();
 
@@ -273,6 +274,15 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	{
 		// set text color to highlight if its selected
 		p->setFillColor(TextLayoutColor(qApp->palette().color(QPalette::Active, QPalette::HighlightedText).name()));
+	}
+	if (hasBackColor)
+	{
+		TextLayoutColor backColor(style.backColor(), style.backShade());
+		p->save();
+		p->setFillColor(backColor);
+		p->setStrokeColor(backColor);
+		p->drawRect(QRectF(0, -ascent(), width(), height()));
+		p->restore();
 	}
 
 	foreach (const GlyphLayout gl, m_glyphRun.glyphs())
