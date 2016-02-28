@@ -251,7 +251,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	const CharStyle style(m_glyphRun.style());
 	double fontSize = style.fontSize() / 10.0;
-	bool selected = text.selected(m_firstChar) || text.selected(m_lastChar);
+	bool selected = text.selected(m_firstChar) || text.selected(m_lastChar); // FIXME-HOST: this should move to TextFramePainter
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
 	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
 	bool hasBackColor = style.backColor() != CommonStrings::None;
@@ -268,13 +268,6 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
 	if (hasStrokeColor)
 		p->setStrokeColor(TextLayoutColor(style.strokeColor(), style.strokeShade()));
-
-	// FIXME-HOST: this should move to TextFramePainter
-	if (selected/*((selected && m_isSelected) || ((NextBox != 0 || BackBox != 0) && selected)) && (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable)*/)
-	{
-		// set text color to highlight if its selected
-		p->setFillColor(TextLayoutColor(qApp->palette().color(QPalette::Active, QPalette::HighlightedText).name()));
-	}
 
 	if (hasBackColor)
 	{
@@ -337,13 +330,13 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 			{
 				p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name()));
 				p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() * 2 / 10000.0);
-				p->drawGlyphOutline(gl, false);
+				p->drawGlyphOutline(gl, false, selected);
 			}
 			else if ((font().isStroked()) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 			{
 				p->setStrokeColor(p->fillColor());
 				p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0);
-				p->drawGlyphOutline(gl, false);
+				p->drawGlyphOutline(gl, false, selected);
 			}
 			else
 			{
@@ -354,17 +347,17 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 					p->save();
 					p->translate(xoff, -yoff);
 					p->setFillColor(p->strokeColor());
-					p->drawGlyph(gl);
+					p->drawGlyph(gl, false);
 					p->restore();
 				}
 
 				if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 				{
 					p->setStrokeWidth((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) / glySc);
-					p->drawGlyphOutline(gl, hasFillColor);
+					p->drawGlyphOutline(gl, hasFillColor, selected);
 				}
 				else if (hasFillColor)
-					p->drawGlyph(gl);
+					p->drawGlyph(gl, selected);
 			}
 			p->restore();
 		}

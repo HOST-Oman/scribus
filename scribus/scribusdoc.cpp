@@ -4507,7 +4507,7 @@ public:
 		: m_really(Really)
 	{}
 
-	void drawGlyph(GlyphLayout gl)
+	void drawGlyph(GlyphLayout gl, bool)
 	{
 		if (!font().replacementName().isEmpty())
 		{
@@ -4516,7 +4516,7 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(GlyphLayout gl, bool) { drawGlyph(gl); }
+	void drawGlyphOutline(GlyphLayout gl, bool, bool) { drawGlyph(gl, false); }
 
 	// we don't need this one
 	void drawLine(QPointF, QPointF) {}
