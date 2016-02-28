@@ -3362,16 +3362,22 @@ public:
 		m_painter->restore();
 	}
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout gl, bool selected)
 	{
+		m_painter->save();
+		setSelectionHighlight(selected);
 		m_painter->drawGlyph(gl, font(), fontSize());
+		m_painter->restore();
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected)
 	{
+		m_painter->save();
+		setSelectionHighlight(selected);
 		m_painter->drawGlyphOutline(gl, font(), fontSize(), strokeWidth());
 		if (fill)
-			drawGlyph(gl);
+			drawGlyph(gl, selected);
+		m_painter->restore();
 	}
 
 	void drawLine(QPointF start, QPointF end)
@@ -3389,6 +3395,15 @@ public:
 	}
 
 private:
+	void setSelectionHighlight(bool selected)
+	{
+		if (((selected && m_item->isSelected()) || ((m_item->nextInChain() != 0 || m_item->prevInChain() != 0) && selected)) && (m_item->doc()->appMode == modeEdit || m_item->doc()->appMode == modeEditTable))
+		{
+			// set text color to highlight if its selected
+			m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
+		}
+	}
+
 	ScPainter *m_painter;
 	PageItem *m_item;
 };
