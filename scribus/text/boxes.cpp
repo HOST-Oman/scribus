@@ -275,6 +275,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 		// set text color to highlight if its selected
 		p->setFillColor(TextLayoutColor(qApp->palette().color(QPalette::Active, QPalette::HighlightedText).name()));
 	}
+
 	if (hasBackColor)
 	{
 		TextLayoutColor backColor(style.backColor(), style.backShade());
