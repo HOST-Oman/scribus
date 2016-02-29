@@ -121,11 +121,10 @@ class PdfPainter: public TextLayoutPainter
 	PDFLibCore *m_Pdf;
 
 public:
-	PdfPainter(PageItem *ite, QMap<QString, PdfFont>  UsedFontsP, PDFLibCore *pdf) :
+	PdfPainter(PageItem *ite, PDFLibCore *pdf) :
 		m_glyphBuffer(),
 		m_pathBuffer(),
 		m_item(ite),
-		m_UsedFontsP(UsedFontsP),
 		m_Pdf(pdf)
 	{}
 
@@ -133,7 +132,7 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
-		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
+		PdfFont pdfFont = m_Pdf->UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
 		QByteArray FillColor;
 
@@ -215,7 +214,7 @@ public:
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
 	{
-		PdfFont pdfFont = m_UsedFontsP[font().replacementName()];
+		PdfFont pdfFont = m_Pdf->UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
 		QByteArray FillColor;
 
@@ -5688,7 +5687,7 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 // Return a PDF substring representing a PageItem's text
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
-	PdfPainter *p = new PdfPainter(ite, UsedFontsP, this);
+	PdfPainter *p = new PdfPainter(ite, this);
 	ite->textLayout.render(p, ite->itemText);
 	QByteArray buffer = p->getBuffer();
 	delete p;
