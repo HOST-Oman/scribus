@@ -3322,49 +3322,10 @@ public:
 	~TextFramePainter()
 	{ }
 
-	void setStrokeColor(TextLayoutColor c)
-	{
-		TextLayoutPainter::setStrokeColor(c);
-		QColor tmp;
-		m_item->SetQColor(&tmp, c.color, c.shade);
-		m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-	}
-
-	void setFillColor(TextLayoutColor c)
-	{
-		TextLayoutPainter::setFillColor(c);
-		QColor tmp;
-		m_item->SetQColor(&tmp, c.color, c.shade);
-		m_painter->setBrush(tmp);
-	}
-
-	void setStrokeWidth(double w)
-	{
-		TextLayoutPainter::setStrokeWidth(w);
-		m_painter->setLineWidth(w);
-	}
-
-	void translate(double x, double y)
-	{
-		TextLayoutPainter::translate(x, y);
-		m_painter->translate(x, y);
-	}
-
-	void save()
-	{
-		TextLayoutPainter::save();
-		m_painter->save();
-	}
-
-	void restore()
-	{
-		TextLayoutPainter::restore();
-		m_painter->restore();
-	}
-
 	void drawGlyph(const GlyphLayout gl, bool selected)
 	{
 		m_painter->save();
+		setupState();
 		setSelectionHighlight(selected);
 		m_painter->drawGlyph(gl, font(), fontSize());
 		m_painter->restore();
@@ -3373,6 +3334,7 @@ public:
 	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected)
 	{
 		m_painter->save();
+		setupState();
 		setSelectionHighlight(selected);
 		m_painter->drawGlyphOutline(gl, font(), fontSize(), strokeWidth());
 		if (fill)
@@ -3382,12 +3344,16 @@ public:
 
 	void drawLine(QPointF start, QPointF end)
 	{
+		m_painter->save();
+		setupState();
 		m_painter->drawLine(start, end);
+		m_painter->restore();
 	}
 
 	void drawRect(QRectF rect)
 	{
 		m_painter->save();
+		setupState();
 		m_painter->setFillMode(1);
 		m_painter->setStrokeMode(1);
 		m_painter->drawRect(x() + rect.x(), y() + rect.y(), rect.width(), rect.height());
@@ -3402,6 +3368,17 @@ private:
 			// set text color to highlight if its selected
 			m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
 		}
+	}
+
+	void setupState()
+	{
+		m_painter->translate(x(), y());
+		m_painter->setLineWidth(strokeWidth());
+		QColor tmp;
+		m_item->SetQColor(&tmp, fillColor().color, fillColor().shade);
+		m_painter->setBrush(tmp);
+		m_item->SetQColor(&tmp, strokeColor().color, strokeColor().shade);
+		m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
 
 	ScPainter *m_painter;
