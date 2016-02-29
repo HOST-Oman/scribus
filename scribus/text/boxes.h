@@ -181,4 +181,14 @@ private:
 	GlyphRun m_glyphRun;
 };
 
+class InlineItemBox : public Box
+{
+	PageItem m_item;
+
+	InlineItemBox(PageItem item) : m_item(item)
+	{
+		m_type = T_InlineItem;
+	}
+	void render(TextLayoutPainter *p, const StoryText& text) const;
+};
 #endif /* defined(__Scribus__boxes__) */
