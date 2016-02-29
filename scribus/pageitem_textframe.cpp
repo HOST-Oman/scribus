@@ -3322,6 +3322,24 @@ public:
 	~TextFramePainter()
 	{ }
 
+	void translate(double xp, double yp)
+	{
+		TextLayoutPainter::translate(xp, yp);
+		m_painter->translate(xp, yp);
+	}
+
+	void save()
+	{
+		TextLayoutPainter::save();
+		m_painter->save();
+	}
+
+	void restore()
+	{
+		TextLayoutPainter::restore();
+		m_painter->restore();
+	}
+
 	void drawGlyph(const GlyphLayout gl, bool selected)
 	{
 		m_painter->save();
@@ -3356,7 +3374,7 @@ public:
 		setupState();
 		m_painter->setFillMode(1);
 		m_painter->setStrokeMode(1);
-		m_painter->drawRect(x() + rect.x(), y() + rect.y(), rect.width(), rect.height());
+		m_painter->drawRect(rect.x(), rect.y(), rect.width(), rect.height());
 		m_painter->restore();
 	}
 
@@ -3372,7 +3390,6 @@ private:
 
 	void setupState()
 	{
-		m_painter->translate(x(), y());
 		m_painter->setLineWidth(strokeWidth());
 		QColor tmp;
 		m_item->SetQColor(&tmp, fillColor().color, fillColor().shade);
