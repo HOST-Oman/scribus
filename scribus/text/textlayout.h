@@ -96,6 +96,13 @@ private:
 		double strokeWidth;
 		double x;
 		double y;
+
+		State()
+			: fontSize(0)
+			, strokeWidth(0)
+			, x(0)
+			, y(0)
+		{}
 	};
 
 	State m_state;
