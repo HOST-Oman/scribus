@@ -118,28 +118,28 @@ class PdfPainter: public TextLayoutPainter
 	PageItem* m_item;
 	uint m_PNr;
 	QMap<QString, PdfFont>  m_UsedFontsP;
-	PDFLibCore *m_Pdf;
+	PDFLibCore *m_pdf;
 
 public:
 	PdfPainter(PageItem *ite, PDFLibCore *pdf) :
 		m_glyphBuffer(),
 		m_pathBuffer(),
 		m_item(ite),
-		m_Pdf(pdf)
+		m_pdf(pdf)
 	{}
 
 	~PdfPainter() {}
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
-		PdfFont pdfFont = m_Pdf->UsedFontsP[font().replacementName()];
+		PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
 		QByteArray FillColor;
 
 		if (strokeColor().color != CommonStrings::None)
-			StrokeColor = m_Pdf->putColor(strokeColor().color, strokeColor().shade, false);
+			StrokeColor = m_pdf->putColor(strokeColor().color, strokeColor().shade, false);
 		if (fillColor().color != CommonStrings::None)
-			FillColor = m_Pdf->putColor(fillColor().color, fillColor().shade, true);
+			FillColor = m_pdf->putColor(fillColor().color, fillColor().shade, true);
 
 		if (pdfFont.method == Use_XForm)
 		{
@@ -214,14 +214,14 @@ public:
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
 	{
-		PdfFont pdfFont = m_Pdf->UsedFontsP[font().replacementName()];
+		PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
 		QByteArray FillColor;
 
 		if (strokeColor().color != CommonStrings::None)
-			StrokeColor = m_Pdf->putColor(strokeColor().color, strokeColor().shade, false);
+			StrokeColor = m_pdf->putColor(strokeColor().color, strokeColor().shade, false);
 		if (fill && fillColor().color != CommonStrings::None)
-			FillColor = m_Pdf->putColor(fillColor().color, fillColor().shade, true);
+			FillColor = m_pdf->putColor(fillColor().color, fillColor().shade, true);
 
 		if (pdfFont.method == Use_XForm)
 		{
@@ -393,7 +393,7 @@ public:
 
 	void drawLine(QPointF start, QPointF end)
 	{
-		m_pathBuffer += m_Pdf->putColor(fillColor().color, fillColor().shade, false);
+		m_pathBuffer += m_pdf->putColor(fillColor().color, fillColor().shade, false);
 		m_pathBuffer += FToStr(strokeWidth())+" w\n";
 		m_pathBuffer += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
 		m_pathBuffer += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
@@ -411,9 +411,9 @@ public:
 		double rectY = -y() - rect.y();
 		m_glyphBuffer += "q\n";
 		m_glyphBuffer += "n\n";
-		m_glyphBuffer += m_Pdf->SetPathAndClip(m_item);
-		m_glyphBuffer += m_Pdf->putColor(fillColor().color, fillColor().shade, true);
-		m_glyphBuffer += m_Pdf->putColor(strokeColor().color, strokeColor().shade, false);
+		m_glyphBuffer += m_pdf->SetPathAndClip(m_item);
+		m_glyphBuffer += m_pdf->putColor(fillColor().color, fillColor().shade, true);
+		m_glyphBuffer += m_pdf->putColor(strokeColor().color, strokeColor().shade, false);
 		m_glyphBuffer += FToStr(rectX) + " " + FToStr(rectY) + " m\n";
 		m_glyphBuffer += FToStr(rectX + rect.width()) + " " + FToStr(rectY) + " l\n";
 		m_glyphBuffer += FToStr(rectX + rect.width()) + " " + FToStr(rectY - rect.height()) + " l\n";
