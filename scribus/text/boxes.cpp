@@ -413,3 +413,8 @@ int GlyphBox::pointToPosition(FPoint coord) const
 	}
 	return -1;
 }
+
+void InlineItemBox::render(TextLayoutPainter *p, const StoryText& text) const
+{
+
+}
