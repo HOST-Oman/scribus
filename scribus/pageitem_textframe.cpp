@@ -2580,7 +2580,6 @@ void PageItem_TextFrame::layout()
 					if (current.isEmpty)
 					{
 						current.line.x = current.xPos = realEnd;
-						a--;
 						i--;
 						current.startLine(i+1);
 						if (!current.wasFirstInRow)
