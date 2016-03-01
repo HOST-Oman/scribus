@@ -2653,7 +2653,6 @@ double PageItem::layoutGlyphs(const CharStyle& style, const QString& chars, Layo
 
 void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flags, GlyphLayout& glyphs)
 {
-#if 0 // FIXME-HOST
 	uint glyph = glyphs.glyph;
 	const ScFace font = style.font();
 	if ((m_Doc->guidesPrefs().showControls) &&
@@ -2744,11 +2743,6 @@ void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flag
 			p->fillPath();
 		}
 		p->setBrush(oldBrush);
-		if (glyphs.more)
-		{
-			p->translate(glyphs.xadvance, 0);
-			drawGlyphs(p, style, ScLayout_None, *glyphs.more);
-		}			
 		return;
 	}
 	else if (glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBSPACE.unicode()) ||
@@ -2760,11 +2754,6 @@ void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flag
 	if (glyph >= ScFace::CONTROL_GLYPHS || (style.effects() & ScLayout_SuppressSpace)) {
 //		qDebug("drawGlyphs: skipping %d", glyph);
 		// all those are empty
-		if (glyphs.more)
-		{
-			p->translate(glyphs.xadvance, 0);
-			drawGlyphs(p, style, ScLayout_None, *glyphs.more);
-		}			
 		return;
 	}
 //	if (font.canRender(QChar(glyph)))
@@ -2845,11 +2834,6 @@ void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flag
 				p->restore();
 				p->setFillRule(fr);
 				p->restore();
-				if (glyphs.more)
-				{
-					p->translate(glyphs.xadvance, 0);
-					drawGlyphs(p, style, ScLayout_None, *glyphs.more);
-				}
 				return;
 			}
 			if (glyph == 0)
@@ -2933,12 +2917,6 @@ void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flag
 		p->drawRect(glyphs.xoffset, glyphs.yoffset - (style.fontSize() / 10.0) * glyphs.scaleV , (style.fontSize() / 10.0) * glyphs.scaleH, (style.fontSize() / 10.0) * glyphs.scaleV);
 	}
 	*/	
-	if (glyphs.more)
-	{
-		p->translate(glyphs.xadvance, 0);
-		drawGlyphs(p, style, ScLayout_None, *glyphs.more);
-	}
-#endif
 }
 
 void PageItem::DrawPolyL(QPainter *p, QPolygon pts)
