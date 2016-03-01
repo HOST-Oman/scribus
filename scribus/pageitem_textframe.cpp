@@ -435,7 +435,6 @@ struct LineControl {
 	LineSpec line;
 	QList<GlyphRun> glyphRuns;
 	bool     isEmpty;
-	int      charsInLine;
 	int      hyphenCount;
 	double   colWidth;
 	double   colGap;
@@ -516,7 +515,6 @@ struct LineControl {
 	void startLine(int first, int firstRun)
 	{
 		glyphRuns.clear();
-		charsInLine = 0;
 		isEmpty = true;
 		line.x = xPos;
 		line.y = yPos;
@@ -2683,7 +2681,6 @@ void PageItem_TextFrame::layout()
 			if (a != firstInFrame() && implicitBreak(itemText.text(a - 1), itemText.text(a)))
 				current.rememberBreak(a - 1, i -1, breakPos);
 
-			current.charsInLine = a - current.line.firstChar + 1;
 			current.isEmpty = (a - current.line.firstChar + 1) == 0;
 
 			if (tabs.active)
@@ -2790,7 +2787,6 @@ void PageItem_TextFrame::layout()
 					assert( a >= 0 );
 					assert( a < itemText.length() );
 					//glyphs = itemText.getGlyphs(a);
-					current.charsInLine = a - current.line.firstChar + 1;
 					current.isEmpty = (a - current.line.firstChar + 1) == 0;
 					if (current.addLine)
 					{
