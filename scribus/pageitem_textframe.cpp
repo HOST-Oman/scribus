@@ -2263,7 +2263,7 @@ void PageItem_TextFrame::layout()
 					current.restartX = current.xPos;
 					lastLineY = current.yPos;
 					current.rowDesc = 0;
-					a--;
+					i--;
 					current.recalculateY = true;
 					current.addLeftIndent = true;
 					continue;
