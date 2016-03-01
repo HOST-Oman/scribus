@@ -2614,7 +2614,7 @@ void PageItem_TextFrame::layout()
 						{
 							if (current.afterOverflow)
 							{
-								if (current.breakIndex < 0)
+								if (current.breakRunIndex < 0)
 								{
 									current.lastInRowLine = true;
 									current.mustLineEnd = current.line.x;
