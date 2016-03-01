@@ -1071,7 +1071,7 @@ static void indentLine(const ParagraphStyle& style, LineControl& curr, double le
 //
 //	double chs = itemText.charStyle(b).fontSize() * (itemText.charStyle(b).scaleH() / 1000.0);
 //	QChar chr = itemText.text(b);
-//	double leftCorr = itemText.charStyle(b).font().charWidth(chr, chs / 10.0);
+//	double leftCorr = itemText.charStyle(b).font().realCharWidth(chr, chs / 10.0);
 //	if (QString("'´`").indexOf(chr) >= 0
 //		|| chr == QChar(0x2018) // quote 6
 //		|| chr == QChar(0x2019) // quote 9
@@ -1114,7 +1114,7 @@ static double opticalRightMargin(const StoryText& itemText, const LineSpec& line
 		double chs = chStyle.fontSize() * (chStyle.scaleH() / 1000.0);
 		QChar chr = itemText.hasFlag(b, ScLayout_SoftHyphenVisible) ?
 			QChar('-') : itemText.text(b);
-		double rightCorr = chStyle.font().charWidth(chr, chs / 10.0);
+		double rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
 		if (QString("-,.`´'~").indexOf(chr) >= 0
 			|| chr == QChar(0x2018)
 			|| chr == QChar(0x2019)
@@ -4800,7 +4800,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 //			view->RefreshItem(this);
 			doUpdate = true;
 		}
-		else if (uc[0] > QChar(31) || (as == 13) || (as == 30))
+		else if ((uc[0] > QChar(31) && m_Doc->currentStyle.charStyle().font().canRender(uc[0])) || (as == 13) || (as == 30))
 		{
 			if (UndoManager::undoEnabled())
 			{
