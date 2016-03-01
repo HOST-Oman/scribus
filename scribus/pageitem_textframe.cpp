@@ -807,8 +807,6 @@ struct LineControl {
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
 		result->colLeft = line.colLeft;
-		result->setFirstChar(line.firstChar);
-		result->setLastChar(line.lastChar);
 
 		int runCount = line.lastRun - line.firstRun + 1;
 
