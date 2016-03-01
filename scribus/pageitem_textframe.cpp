@@ -1483,7 +1483,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 			if (gl.glyph == 0)
 				gl.glyph = cs.font().char2CMap(ch);
 			gl.xoffset = positions[i].x_offset / 10.0;
-			gl.yoffset = positions[i].y_offset / 10.0;
+			gl.yoffset = -positions[i].y_offset / 10.0;
 			gl.xadvance = positions[i].x_advance / 10.0;
 			gl.yadvance = positions[i].y_advance / 10.0;
 
