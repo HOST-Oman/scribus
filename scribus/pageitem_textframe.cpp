@@ -452,8 +452,6 @@ struct LineControl {
 	double   leftIndent;
 	double   rightMargin;
 	double   mustLineEnd;
-	int      restartIndex;  //index of char where line computing should be restarted
-	int      restartRowIndex;  //index of char where row of text is started
 	int      restartRunIndex;  //index of glyph run where line computing should be restarted
 	int      restartRowRunIndex;  //index of glyph run where row of text is started
 	double   restartX; //starting X position of line if must be restarted
@@ -512,13 +510,13 @@ struct LineControl {
 	/**
 		init fields for a new line at current position
 	 */
-	void startLine(int first, int firstRun)
+	void startLine(int firstRun)
 	{
 		glyphRuns.clear();
 		isEmpty = true;
 		line.x = xPos;
 		line.y = yPos;
-		line.firstChar = first;
+		line.firstChar = -1;
 		line.lastChar = 0;
 		line.firstRun = firstRun;
 		line.lastRun = 0;
@@ -605,7 +603,7 @@ struct LineControl {
 			yPos++;
 		recalculateY = recalcY;
 		xPos = restartX = colLeft;
-		startLine(restartRowIndex, restartRowRunIndex);
+		startLine(restartRowRunIndex);
 		addLeftIndent = true;
 		afterOverflow = false;
 		return restartRowRunIndex - 1;
@@ -616,7 +614,7 @@ struct LineControl {
 		recalculateY = recalcY;
 		addLine = add;
 		xPos = restartX;
-		startLine(restartIndex, restartRunIndex);
+		startLine(restartRunIndex);
 		afterOverflow = false;
 
 		return restartRunIndex - 1;
@@ -1583,13 +1581,12 @@ void PageItem_TextFrame::layout()
 			desc = -itemText.defaultStyle().charStyle().font().descent(itemText.defaultStyle().charStyle().fontSize() / 10.0);
 			current.yPos = itemText.defaultStyle().lineSpacing() + m_textDistanceMargins.top() + lineCorr - desc;
 		}
-		current.startLine(firstInFrame(), 0);
+		current.startLine(0);
 
 		outs = false;
 		OFs = 0;
 		MaxChars = 0;
 		double realEnd = 0;
-		current.restartIndex = current.restartRowIndex = firstInFrame();
 		current.restartRunIndex = current.restartRowRunIndex = 0;
 		current.afterOverflow = false;
 		current.addLine = false;
@@ -1624,6 +1621,9 @@ void PageItem_TextFrame::layout()
 
 			int a = currentRun.firstChar();
 			currentCh = itemText.text(a);
+
+			if (current.line.firstChar < 0)
+				current.line.firstChar = a;
 
 			bool HasObject = itemText.hasObject(a);
 			PageItem* currentObject = HasObject? itemText.object(a): NULL;
@@ -2473,7 +2473,7 @@ void PageItem_TextFrame::layout()
 				{
 					//no glyphs in line, so start new row
 					if (SpecialChars::isBreak(currentCh, Cols > 1))
-						current.restartRowIndex = a +1;
+						current.restartRowRunIndex = i + 1;
 					i = current.restartRow(true);
 					inOverflow = false;
 					outs = false;
@@ -2583,7 +2583,7 @@ void PageItem_TextFrame::layout()
 					{
 						current.line.x = current.xPos = realEnd;
 						a--;
-						current.startLine(a+1, i+1);
+						current.startLine(i+1);
 						if (!current.wasFirstInRow)
 							current.addLeftIndent = true;
 						if (current.hasDropCap && DropLinesCount == 0 && !current.afterOverflow)
@@ -2916,9 +2916,8 @@ void PageItem_TextFrame::layout()
 						//if right margin is set we temporally save line, not append it
 						textLayout.appendLine(current.createLineBox());
 						setMaxY(maxYDesc);
-						current.restartIndex = current.line.lastChar +1;
 						current.restartRunIndex = current.line.lastRun + 1;
-						a = current.restartIndex -1;
+						a = current.line.lastChar;
 						i = current.restartRunIndex - 1;
 						current.rowDesc = qMax(current.rowDesc,current.yPos + current.line.descent);
 						if (!current.lastInRowLine)
@@ -2963,7 +2962,6 @@ void PageItem_TextFrame::layout()
 					}
 					lastLineY = current.rowDesc;
 					current.mustLineEnd = current.colRight;
-					current.restartRowIndex = current.restartIndex;
 					current.restartRowRunIndex = current.restartRunIndex;
 				}
 				if ( SpecialChars::isBreak(itemText.text(a)) )
@@ -2986,7 +2984,8 @@ void PageItem_TextFrame::layout()
 				outs = false;
 				current.addLine = false;
 				current.lastInRowLine = false;
-				current.startLine(a+1, i+1);
+				current.startLine(i+1);
+				current.line.firstChar = a + 1;
 				if (goNoRoom)
 				{
 					goNoRoom = false;
