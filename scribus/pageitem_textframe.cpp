@@ -434,7 +434,6 @@ fields which describe how the current line is placed into the frame
 struct LineControl {
 	LineSpec line;
 	QList<GlyphRun> glyphRuns;
-	int      glFirstChar;
 	int      charsInLine;
 	int      hyphenCount;
 	double   colWidth;
@@ -517,11 +516,9 @@ struct LineControl {
 	{
 		glyphRuns.clear();
 		charsInLine = 0;
-		glFirstChar = 0;
 		line.x = xPos;
 		line.y = yPos;
 		line.firstChar = first;
-		glFirstChar = -first;
 		line.lastChar = 0;
 		line.firstRun = firstRun;
 		line.lastRun = 0;
