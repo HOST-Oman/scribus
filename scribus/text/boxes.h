@@ -79,14 +79,12 @@ public:
 	virtual FRect boundingBox(int pos, uint len = 1) const = 0;
 
 	bool containsPoint(FPoint coord) const { return bbox().contains(coord); }
-	bool containsPos(int pos) const { return m_firstChar <= pos && pos <= m_lastChar;}
+	bool containsPos(int pos) const { return firstChar() <= pos && pos <= lastChar(); }
 	/// returns a char position for the point coord + (m_x, m_y)
 	virtual int pointToPosition(FPoint coord) const = 0;
 
 	int firstChar() const { return m_firstChar; }
-	void setFirstChar(int c) { m_firstChar = c; }
 	int lastChar() const { return m_lastChar; }
-	void setLastChar(int c) { m_lastChar = c; }
 
 //	virtual QList<const Box*> pathForPos(int pos) const = 0;
 //	virtual void justify(const ParagraphStyle& style) {}
