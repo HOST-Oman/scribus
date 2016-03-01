@@ -434,6 +434,7 @@ fields which describe how the current line is placed into the frame
 struct LineControl {
 	LineSpec line;
 	QList<GlyphRun> glyphRuns;
+	bool     isEmpty;
 	int      charsInLine;
 	int      hyphenCount;
 	double   colWidth;
@@ -516,6 +517,7 @@ struct LineControl {
 	{
 		glyphRuns.clear();
 		charsInLine = 0;
+		isEmpty = true;
 		line.x = xPos;
 		line.y = yPos;
 		line.firstChar = first;
@@ -1662,7 +1664,7 @@ void PageItem_TextFrame::layout()
 				}
 			}
 
-			if (current.charsInLine == 0)
+			if (current.isEmpty)
 				opticalMargins = style.opticalMargins();
 			//-->#13490
 			if (isNoteFrame() && !HasMark)
@@ -1734,7 +1736,7 @@ void PageItem_TextFrame::layout()
 			if (legacy)
 			{
 				// unless at begin of par (eeks)
-				if ( (current.charsInLine == 0) && (SpecialChars::isBreakingSpace(currentCh))
+				if ( (current.isEmpty) && (SpecialChars::isBreakingSpace(currentCh))
 					 && (a > 0 && ! SpecialChars::isBreak(itemText.text(a-1)))
 					 && ! (a > 0 && SpecialChars::isBreakingSpace(itemText.text(a-1))
 						   && (!itemText.hasFlag(a-1, ScLayout_SuppressSpace))))
@@ -1748,7 +1750,7 @@ void PageItem_TextFrame::layout()
 			}
 			else // from 134 on use NBSPACE for this effect
 			{
-				if ( current.charsInLine == 0 && (SpecialChars::isBreakingSpace(currentCh) || currentCh.isSpace()))
+				if ( current.isEmpty && (SpecialChars::isBreakingSpace(currentCh) || currentCh.isSpace()))
 				{
 					currentRun.setFlag(ScLayout_SuppressSpace);
 					currentRun.glyphs()[0].xadvance = 0;
@@ -1757,7 +1759,7 @@ void PageItem_TextFrame::layout()
 				else
 					itemText.clearFlag(a, ScLayout_SuppressSpace);
 			}
-			if (current.charsInLine == 0)
+			if (current.isEmpty)
 			{
 				if (style.rightMargin() == 0)
 				{
@@ -1834,7 +1836,7 @@ void PageItem_TextFrame::layout()
 					chs = charStyle.fontSize();
 			}
 			// set StartOfLine (and find tracking?)
-			if (current.charsInLine == 0)
+			if (current.isEmpty)
 			{
 				currentRun.setFlag(ScLayout_StartOfLine);
 				kernVal = 0;
@@ -2028,7 +2030,7 @@ void PageItem_TextFrame::layout()
 //			if (BulNumMode)
 //				hl->glyph.last()->xadvance += style.parEffectOffset();
 			//check for Y position at beginning of line
-			if (current.charsInLine == 0 && !current.afterOverflow)
+			if (current.isEmpty && !current.afterOverflow)
 			{
 				if (current.recalculateY)
 				{
@@ -2142,7 +2144,7 @@ void PageItem_TextFrame::layout()
 				regionMaxY = static_cast<int>(floor(current.yPos + desc));
 			}
 
-			if (current.charsInLine == 0 && !current.afterOverflow)
+			if (current.isEmpty && !current.afterOverflow)
 			{
 				//start a new line
 				goNoRoom = false;
@@ -2469,7 +2471,7 @@ void PageItem_TextFrame::layout()
 			{
 
 				//end of row reached - right column, end of column, break char or line must end
-				if (current.charsInLine == 0 && !current.afterOverflow && !SpecialChars::isBreak(currentCh, Cols > 1))
+				if (current.isEmpty && !current.afterOverflow && !SpecialChars::isBreak(currentCh, Cols > 1))
 				{
 					//no glyphs in line, so start new row
 					if (SpecialChars::isBreak(currentCh, Cols > 1))
@@ -2523,7 +2525,7 @@ void PageItem_TextFrame::layout()
 			else
 			{
 				int charStart, charEnd;
-				if (current.charsInLine == 0)
+				if (current.isEmpty)
 				{
 					charStart = static_cast<int>(floor(current.line.x));
 					charEnd = static_cast<int>(ceil(current.xPos));
@@ -2579,7 +2581,7 @@ void PageItem_TextFrame::layout()
 				}
 				if (outs)
 				{
-					if (current.charsInLine == 0)
+					if (current.isEmpty)
 					{
 						current.line.x = current.xPos = realEnd;
 						a--;
@@ -2682,6 +2684,7 @@ void PageItem_TextFrame::layout()
 				current.rememberBreak(a - 1, i -1, breakPos);
 
 			current.charsInLine = a - current.line.firstChar + 1;
+			current.isEmpty = (a - current.line.firstChar + 1) == 0;
 
 			if (tabs.active)
 			{
@@ -2788,6 +2791,7 @@ void PageItem_TextFrame::layout()
 					assert( a < itemText.length() );
 					//glyphs = itemText.getGlyphs(a);
 					current.charsInLine = a - current.line.firstChar + 1;
+					current.isEmpty = (a - current.line.firstChar + 1) == 0;
 					if (current.addLine)
 					{
 						// go back to last break position
@@ -2888,7 +2892,7 @@ void PageItem_TextFrame::layout()
 					current.updateHeightMetrics(itemText);
 					if (current.isEndOfCol(current.line.descent))
 					{
-						if (current.charsInLine == 0 || current.column+1 == Cols)
+						if (current.isEmpty || current.column+1 == Cols)
 						{
 							goNoRoom = true;
 							MaxChars = a + 1;
@@ -2901,7 +2905,7 @@ void PageItem_TextFrame::layout()
 				}
 				else
 					setMaxY(maxYDesc);
-				if (current.line.firstRun <= current.line.lastRun && current.charsInLine > 0)
+				if (current.line.firstRun <= current.line.lastRun && !current.isEmpty)
 				{
 					if (current.addLine && current.breakIndex >= 0)
 					{
@@ -3044,7 +3048,7 @@ void PageItem_TextFrame::layout()
 		}
 // end of itemText
 // now place the last line
-		if (current.charsInLine > 0 )
+		if (!current.isEmpty)
 		{
 			int a = itemText.length()-1;
 			int i = glyphRuns.length() - 1;
