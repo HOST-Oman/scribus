@@ -3104,7 +3104,7 @@ void PageItem_TextFrame::layout()
 					&&  (itemText.text(a) == SpecialChars::LINEBREAK ||
 						 itemText.text(a) == SpecialChars::FRAMEBREAK ||
 						 itemText.text(a) == SpecialChars::COLBREAK)
-					&&  !itemText.text(current.line.firstChar + current.charsInLine-1).isSpace()))
+					&&  !itemText.text(a).isSpace()))
 			{
 				justifyLine(style, current);
 			}
