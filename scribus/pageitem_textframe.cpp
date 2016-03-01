@@ -2583,6 +2583,7 @@ void PageItem_TextFrame::layout()
 					{
 						current.line.x = current.xPos = realEnd;
 						a--;
+						i--;
 						current.startLine(i+1);
 						if (!current.wasFirstInRow)
 							current.addLeftIndent = true;
