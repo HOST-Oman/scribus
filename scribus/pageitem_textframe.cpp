@@ -558,7 +558,7 @@ struct LineControl {
 			//maxShrink = 0;
 
 			// check if we already have a better break
-			if (breakIndex >= 0)
+			if (breakRunIndex >= 0)
 			{
 				double oldLooseness = qAbs(colRight - breakXPos);
 
@@ -2480,7 +2480,7 @@ void PageItem_TextFrame::layout()
 					continue;
 				}
 				//there we have some glyphs
-				if (current.breakIndex < 0)
+				if (current.breakRunIndex < 0)
 				{
 					//force break
 					if (!SpecialChars::isBreak(currentCh, Cols > 1))
@@ -2596,7 +2596,7 @@ void PageItem_TextFrame::layout()
 						outs = false;
 						continue;
 					}
-					if (current.breakIndex < 0)
+					if (current.breakRunIndex < 0)
 					{
 						a--;
 						i--;
@@ -2904,7 +2904,7 @@ void PageItem_TextFrame::layout()
 					setMaxY(maxYDesc);
 				if (current.line.firstRun <= current.line.lastRun && !current.isEmpty)
 				{
-					if (current.addLine && current.breakIndex >= 0)
+					if (current.addLine && current.breakRunIndex >= 0)
 					{
 						if (itemText.charStyle(current.line.firstChar).effects() & ScLayout_DropCap)
 						{
