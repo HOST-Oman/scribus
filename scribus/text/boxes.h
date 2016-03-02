@@ -74,11 +74,11 @@ public:
 	void setAscent(double a) { m_ascent = a; }
 	void setDescent(double d) { m_descent = d; }
 
-	FRect bbox() const { return FRect(m_x, m_y, m_width, height()); }
+	QRectF bbox() const { return QRectF(m_x, m_y, m_width, height()); }
 	/// returns the bounding box relative to (m_x, m_y)
 	virtual FRect boundingBox(int pos, uint len = 1) const = 0;
 
-	bool containsPoint(FPoint coord) const { return bbox().contains(coord); }
+	virtual bool containsPoint(FPoint coord) const { return bbox().contains(coord.toQPointF()); }
 	bool containsPos(int pos) const { return firstChar() <= pos && pos <= lastChar(); }
 	/// returns a char position for the point coord + (m_x, m_y)
 	virtual int pointToPosition(FPoint coord) const = 0;
@@ -144,6 +144,8 @@ public:
 		m_type = T_Line;
 	}
 
+	int pointToPosition(FPoint coord) const;
+	bool containsPoint(FPoint coord) const;
 	void render(TextLayoutPainter *p, const StoryText& text) const;
 //	void justify(const ParagraphStyle& style);
 	qreal colLeft;
@@ -165,7 +167,11 @@ public:
 
 	FRect boundingBox(int pos, uint len = 1) const
 	{
-		return bbox();
+		FPoint topLeft(bbox().x(), bbox().y());
+		FSize size(bbox().width(), bbox().height());
+		FRect newbox(topLeft, size);
+
+		return newbox;
 	}
 
 //	QList<const Box*> pathForPos(int pos) const;
@@ -193,7 +199,14 @@ public:
 	}
 
 	void render(TextLayoutPainter *p, const StoryText& text) const;
-	FRect boundingBox(int pos, uint len = 1) const { return bbox(); }
+	FRect boundingBox(int pos, uint len = 1) const
+	{
+		FPoint topLeft(bbox().x(), bbox().y());
+		FSize size(bbox().width(), bbox().height());
+		FRect newbox(topLeft, size);
+
+		return newbox;
+	}
 	int pointToPosition(FPoint coord) const;
 };
 #endif /* defined(__Scribus__boxes__) */
