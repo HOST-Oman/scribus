@@ -121,6 +121,7 @@ class GlyphRun
 	float m_xoffset;
 	float m_yoffset;
 	float m_xadvance;
+	PageItem* m_object;
 
 	
 public:
@@ -131,7 +132,8 @@ public:
 		m_lastChar(0),
 		m_xoffset(0),
 		m_yoffset(0),
-		m_xadvance(0)
+		m_xadvance(0),
+		m_object(NULL)
 	{}
 
 	GlyphRun(const GlyphRun& other) :
@@ -141,7 +143,8 @@ public:
 		m_firstChar(other.m_firstChar),
 		m_lastChar(other.m_lastChar),
 		m_xoffset(other.m_xoffset),
-		m_yoffset(other.m_yoffset)
+		m_yoffset(other.m_yoffset),
+		m_object(other.m_object)
 	{}
 
 	const CharStyle&         style()  const { return *m_style; }
@@ -166,6 +169,8 @@ public:
 	qreal width() const;
 	void insertSoftHyphen();
 	void removeSoftHyphen();
+	void setObject(PageItem* obj)			{ m_object = obj; }
+	PageItem* object()				const	{ return m_object; }
 	
 };
 

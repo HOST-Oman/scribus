@@ -4521,6 +4521,7 @@ public:
 	// we don't need this one
 	void drawLine(QPointF, QPointF) {}
 	void drawRect(QRectF) {}
+	void drawObject(PageItem*, CharStyle) {}
 
 private:
 	QMap<QString, QMap<uint, FPointArray> > & m_really;

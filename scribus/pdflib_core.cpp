@@ -421,6 +421,9 @@ public:
 		m_glyphBuffer += "h\nf\n";
 		m_glyphBuffer += "Q\n";
 	}
+
+	void drawObject(PageItem*, CharStyle)
+	{}
 };
 
 PDFLibCore::PDFLibCore(ScribusDoc & docu)
