@@ -3331,20 +3331,66 @@ public:
 	void drawGlyph(const GlyphLayout gl, bool selected)
 	{
 		m_painter->save();
+		bool fr = m_painter->fillRule();
+		m_painter->setFillRule(false);
+
 		setupState();
 		setSelectionHighlight(selected);
-		m_painter->drawGlyph(gl, font(), fontSize());
+
+#if 0
+		cairo_t* cr = m_painter->m_cr;
+		double r, g, b;
+		m_painter->brush().getRgbF(&r, &g, &b);
+		cairo_set_source_rgba(cr, r, g, b, m_painter->m_fill_trans);
+		m_painter->setRasterOp(m_painter->m_blendModeFill);
+		cairo_fill_preserve(cr);
+
+		cairo_font_face_t *face = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+		cairo_set_font_face(cr, face);
+		cairo_set_font_size(cr, gl.scaleH * fontSize());
+		cairo_glyph_t glyph = { gl.glyph, 0, 0 };
+		cairo_show_glyphs(cr, &glyph, 1);
+		cairo_font_face_destroy(face);
+#else
+		m_painter->translate(0, -(fontSize() * gl.scaleV));
+		FPointArray outline = font().glyphOutline(gl.glyph);
+		double scaleH = gl.scaleH * fontSize() / 10.0;
+		double scaleV = gl.scaleV * fontSize() / 10.0;
+		m_painter->scale(scaleH, scaleV);
+		m_painter->setupPolygon(&outline, true);
+		if (outline.size() > 3)
+			m_painter->fillPath();
+#endif
+
+		m_painter->setFillRule(fr);
 		m_painter->restore();
 	}
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected)
 	{
 		m_painter->save();
+		bool fr = m_painter->fillRule();
+		m_painter->setFillRule(false);
+
 		setupState();
 		setSelectionHighlight(selected);
-		m_painter->drawGlyphOutline(gl, font(), fontSize(), strokeWidth());
+		m_painter->translate(0, -(fontSize() * gl.scaleV));
+
+		FPointArray outline = font().glyphOutline(gl.glyph);
+		double scaleH = gl.scaleH * fontSize() / 10.0;
+		double scaleV = gl.scaleV * fontSize() / 10.0;
+		m_painter->scale(scaleH, scaleV);
+		m_painter->setupPolygon(&outline, true);
+		if (outline.size() > 3)
+		{
+			m_painter->setLineWidth(strokeWidth());
+			m_painter->strokePath();
+		}
+
 		if (fill)
 			drawGlyph(gl, selected);
+
+		m_painter->setFillRule(fr);
 		m_painter->restore();
 	}
 
