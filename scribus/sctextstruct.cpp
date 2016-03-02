@@ -17,6 +17,11 @@ for which a new license (GPL+exception) is in place.
 qreal GlyphRun::width() const
 {
     qreal width=0;
+	if (m_object)
+	{
+		return m_object->width() + m_object->lineWidth();
+	}
+
     for (int i=0; i<m_glyphs.count();i++)
     {
         GlyphLayout gl = m_glyphs[i];
