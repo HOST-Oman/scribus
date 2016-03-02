@@ -181,12 +181,17 @@ private:
 
 class InlineItemBox : public Box
 {
-	PageItem m_item;
+	PageItem* m_item;
+	CharStyle m_style;
 
-	InlineItemBox(PageItem item) : m_item(item)
+public:
+	InlineItemBox(PageItem* item, CharStyle style)
+		: m_item(item)
+		, m_style(style)
 	{
 		m_type = T_InlineItem;
 	}
+
 	void render(TextLayoutPainter *p, const StoryText& text) const;
 };
 #endif /* defined(__Scribus__boxes__) */
