@@ -70,9 +70,9 @@ void GroupBox::addBox(const Box* box)
 	if (0 == m_ascent)
 		m_ascent = box->ascent();
 
-	FRect newRect = box->bbox();
-	newRect.moveBy(m_x, m_y);
-	newRect = bbox().unite(newRect);
+	QRectF newRect = box->bbox();
+	newRect.moveTo(box->x() + m_x, box->x() + m_y);
+	newRect = bbox().united(newRect);
 	if (0 == m_y)
 		m_y = newRect.y();
 	if (0 == m_x)
@@ -117,6 +117,37 @@ void GroupBox::justify(const ParagraphStyle& style)
 	}
 }
 #endif
+
+int LineBox::pointToPosition(FPoint coord) const
+{
+	int position = GroupBox::pointToPosition(coord);
+	if (position < 0)
+	{
+		if (containsPoint(coord))
+		{
+			if (coord.x() < x())
+				position = firstChar();
+			else
+				position = lastChar();
+		}
+	}
+
+	return position;
+}
+
+bool LineBox::containsPoint(FPoint coord) const
+{
+	bool found = Box::containsPoint(coord);
+	if (!found)
+	{
+		if (bbox().contains(QPointF(0, coord.y())))
+		{
+			found = true;
+		}
+	}
+
+	return found;
+}
 
 void LineBox::render(TextLayoutPainter *p, const StoryText &text) const
 {

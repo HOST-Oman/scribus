@@ -1651,8 +1651,14 @@ bool ScribusView::slotSetCurs(int x, int y)
 			point.setX(textFrame->width() - point.x());
 		if (textFrame->imageFlippedV())
 			point.setY(textFrame->height() - point.y());
-		textFrame->itemText.setCursorPosition(textFrame->itemText.length() == 0 ? 0 :
-			textFrame->textLayout.screenToPosition(point));
+		if (textFrame->itemText.length() == 0)
+			textFrame->itemText.setCursorPosition(0);
+		else
+		{
+			int result = textFrame->textLayout.screenToPosition(point);
+			if (result >= 0)
+				textFrame->itemText.setCursorPosition(result);
+		}
 
 		if (textFrame->itemText.length() > 0)
 		{

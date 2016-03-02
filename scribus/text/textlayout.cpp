@@ -303,8 +303,7 @@ int TextLayout::endOfFrame() const
 int TextLayout::screenToPosition(FPoint coord) const
 {
 	int result = m_lines->pointToPosition(coord /*- FPoint(m_frame->xPos(), m_frame->yPos())*/);
-	if (result >= 0)
-		return result;
+	return result;
 #if 0
 	qreal maxx = coord.x() - 1.0;
 	for (unsigned int i=0; i < lines(); ++i)
@@ -336,8 +335,8 @@ int TextLayout::screenToPosition(FPoint coord) const
 		else if (xpos < ls.x + 0.01 && maxx >= coord.x()) // check for empty line
 			return ls.firstChar;
 	}
-#endif
 	return qMax(endOfFrame(), startOfFrame());
+#endif
 }
 
 
