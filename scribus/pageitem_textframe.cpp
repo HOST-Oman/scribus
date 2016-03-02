@@ -582,7 +582,7 @@ struct LineControl {
 			breakXPos += glyphRuns.at(i).width();
 		// #8194, #8717 : update line ascent and descent with sensible values
 		// so that endOfLine() returns correct result
-		updateHeightMetrics();
+		updateHeightMetrics(itemText);
 		// #9060 : update line offset too
 	//	updateLineOffset(itemText, style, offsetPolicy);
 	}
@@ -719,9 +719,9 @@ struct LineControl {
 		return qMin(EndX2, maxX);
 	}
 
-	void updateHeightMetrics()
+	void updateHeightMetrics(const StoryText& itemText)
 	{
-		const CharStyle& cStyle(glyphRuns.first().style());
+		const CharStyle& cStyle(itemText.charStyle(line.firstChar));
 		double scaleV = cStyle.scaleV() / 1000.0;
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
 		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
@@ -2800,7 +2800,7 @@ void PageItem_TextFrame::layout()
 							currentRun.glyphs()[0].xadvance = 0;
 						}
 
-						current.updateHeightMetrics();
+						current.updateHeightMetrics(itemText);
 						//current.updateLineOffset(itemText, style, firstLineOffset());
 						//current.xPos = current.breakXPos;
 						EndX = current.endOfLine(m_availableRegion, current.rightMargin, regionMinY, regionMaxY);
@@ -2883,7 +2883,7 @@ void PageItem_TextFrame::layout()
 				if (current.isEndOfCol(desc))
 				{
 					//check if really line extends bottom margin
-					current.updateHeightMetrics();
+					current.updateHeightMetrics(itemText);
 					if (current.isEndOfCol(current.line.descent))
 					{
 						if (current.isEmpty || current.column+1 == Cols)
@@ -2903,7 +2903,7 @@ void PageItem_TextFrame::layout()
 				{
 					if (current.addLine && current.breakRunIndex >= 0)
 					{
-						if (current.glyphRuns.first().style().effects() & ScLayout_DropCap)
+						if (itemText.charStyle(current.line.firstChar).effects() & ScLayout_DropCap)
 						{
 							// put line back to top
 							current.line.y -= DropCapDrop;
@@ -3107,7 +3107,7 @@ void PageItem_TextFrame::layout()
 					current.line.naturalWidth += opticalRightMargin(itemText, current.line);
 				indentLine(style, current, OFs);
 			}
-			if (current.glyphRuns.last().style().effects() & ScLayout_DropCap)
+			if ( itemText.charStyle(current.line.firstChar).effects() & ScLayout_DropCap )
 			{
 				// put line back to top
 				current.line.y -= DropCapDrop;
