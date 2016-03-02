@@ -414,7 +414,20 @@ int GlyphBox::pointToPosition(FPoint coord) const
 	return -1;
 }
 
-void InlineItemBox::render(TextLayoutPainter *p, const StoryText& text) const
+void ObjectBox::render(TextLayoutPainter *p, const StoryText& text) const
 {
+	p->save();
+	p->translate(x(), y());
+	p->drawObject(m_item, m_style);
+	p->restore();
+}
 
+int ObjectBox::pointToPosition(FPoint coord) const
+{
+	if (x() <= coord.x() && coord.x() <= x() + width())
+	{
+		return firstChar();
+	}
+
+	return -1;
 }

@@ -28,7 +28,7 @@ public:
 		T_Block,
 		T_Glyphs,
 		T_Path,
-		T_InlineItem
+		T_Object
 	};
 	
 protected:
@@ -179,19 +179,21 @@ private:
 	GlyphRun m_glyphRun;
 };
 
-class InlineItemBox : public Box
+class ObjectBox : public Box
 {
 	PageItem* m_item;
 	CharStyle m_style;
 
 public:
-	InlineItemBox(PageItem* item, CharStyle style)
+	ObjectBox(PageItem* item, CharStyle style)
 		: m_item(item)
 		, m_style(style)
 	{
-		m_type = T_InlineItem;
+		m_type = T_Object;
 	}
 
 	void render(TextLayoutPainter *p, const StoryText& text) const;
+	FRect boundingBox(int pos, uint len = 1) const { return bbox(); }
+	int pointToPosition(FPoint coord) const;
 };
 #endif /* defined(__Scribus__boxes__) */

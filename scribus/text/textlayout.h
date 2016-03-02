@@ -82,6 +82,7 @@ public:
 	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected) = 0;
 	virtual void drawLine(QPointF start, QPointF end) = 0;
 	virtual void drawRect(QRectF rect) = 0;
+	virtual void drawObject(PageItem*, CharStyle) = 0;
 
 	virtual void save();
 	virtual void restore();
