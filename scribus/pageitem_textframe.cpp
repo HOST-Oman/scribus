@@ -727,6 +727,19 @@ struct LineControl {
 		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
 		line.descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
 
+		double asce = 0;
+		foreach (GlyphRun run, glyphRuns)
+		{
+			double scaleV = run.style().scaleV() / 1000.0;
+			double offset = (run.style().fontSize() / 10) * (run.style().baselineOffset() / 1000.0);
+
+			if (run.object())
+			{
+				asce = (run.object()->height() + run.object()->lineWidth()) * scaleV + offset;
+			}
+
+			line.ascent = qMax(line.ascent, asce);
+		}
 #if 0
 		double asce, desc;
 		line.ascent  = 0;
@@ -811,7 +824,13 @@ struct LineControl {
 		int runCount = line.lastRun - line.firstRun + 1;
 
 		for (int i = 0; i < runCount; ++i)
-			addGlyphBox(result, glyphRuns.at(i));
+		{
+			GlyphRun run = glyphRuns.at(i);
+			if (run.object())
+				addObjectBox(result, run);
+			else
+				addGlyphBox(result, run);
+		}
 
 		return result;
 	}
@@ -822,6 +841,20 @@ struct LineControl {
 		result->setWidth(run.width());
 		result->setAscent(lineBox->ascent());
 		result->setDescent(lineBox->descent());
+		if (!lineBox->boxes().isEmpty())
+		{
+			Box* last = lineBox->boxes().last();
+			result->moveBy(last->x() + last->width(), 0);
+		}
+		lineBox->addBox(result);
+	}
+
+	void addObjectBox(LineBox *lineBox, const GlyphRun& run )
+	{
+		ObjectBox* result = new ObjectBox(run.object(), run.style());
+		result->setWidth(run.width());
+		result->setAscent(run.object()->height() - run.object()->lineWidth());
+		result->setDescent(0);
 		if (!lineBox->boxes().isEmpty())
 		{
 			Box* last = lineBox->boxes().last();
@@ -1390,6 +1423,11 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 			run.setFlag(ScLayout_ExpandingSpace);
 		run.setFirstChar(a);
 		run.setLastChar(a);
+
+		if (itemText.hasObject(a))
+		{
+			run.setObject(itemText.object(a));
+		}
 
 		GlyphLayout* layout = new GlyphLayout();
 		layoutGlyphs(run.style(), QString(ch), run.flags(), *layout);
@@ -3326,6 +3364,77 @@ public:
 		m_painter->setStrokeMode(1);
 		m_painter->drawRect(rect.x(), rect.y(), rect.width(), rect.height());
 		m_painter->restore();
+	}
+
+	void drawObject(PageItem* embedded, CharStyle style)
+	{
+		QRectF cullingArea;
+		if (!embedded)
+			return;
+		if (!m_item->m_Doc->DoDrawing)
+			return;
+
+		m_painter->save();
+		double x = embedded->xPos();
+		double y = embedded->yPos();
+		embedded->setXPos(embedded->gXpos);
+		embedded->setYPos((embedded->gHeight * (style.scaleV() / 1000.0)) + embedded->gYpos);
+		m_painter->translate((embedded->gXpos * (style.scaleH() / 1000.0)), ( - (embedded->gHeight * (style.scaleV() / 1000.0)) + embedded->gYpos * (style.scaleV() / 1000.0)));
+		if (style.baselineOffset() != 0)
+		{
+			m_painter->translate(0, -embedded->gHeight * (style.baselineOffset() / 1000.0));
+			embedded->setYPos(embedded->yPos() - embedded->gHeight * (style.baselineOffset() / 1000.0));
+		}
+		m_painter->scale(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
+		embedded->Dirty = m_item->Dirty;
+		embedded->invalid = true;
+		double pws = embedded->m_lineWidth;
+		embedded->DrawObj_Pre(m_painter);
+		switch(embedded->itemType())
+		{
+		case PageItem::ImageFrame:
+		case PageItem::TextFrame:
+		case PageItem::LatexFrame:
+		case PageItem::OSGFrame:
+		case PageItem::Polygon:
+		case PageItem::PathText:
+		case PageItem::Symbol:
+		case PageItem::Group:
+		case PageItem::RegularPolygon:
+		case PageItem::Arc:
+		case PageItem::Table:
+			embedded->DrawObj_Item(m_painter, cullingArea);
+			break;
+		case PageItem::Line:
+		case PageItem::PolyLine:
+		case PageItem::Spiral:
+			embedded->m_lineWidth = pws * qMin(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
+			embedded->DrawObj_Item(m_painter, cullingArea);
+			break;
+		default:
+			break;
+		}
+		embedded->m_lineWidth = pws * qMin(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
+		embedded->DrawObj_Post(m_painter);
+		embedded->setXPos(x);
+		embedded->setYPos(y);
+		m_painter->restore();
+		embedded->m_lineWidth = pws;
+
+		if (m_item->m_Doc->guidesPrefs().framesShown)
+		{
+			m_painter->save();
+			int fm = m_painter->fillMode();
+			m_painter->translate(0, -(embedded->height() * (style.scaleV() / 1000.0)));
+			if (style.baselineOffset() != 0)
+				m_painter->translate(0, -embedded->height() * (style.baselineOffset() / 1000.0));
+			m_painter->scale(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
+			m_painter->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor, 0, Qt::DotLine, Qt::FlatCap, Qt::MiterJoin);
+			m_painter->setFillMode(ScPainter::None);
+			m_painter->drawSharpRect(0, 0, embedded->width(), embedded->height());
+			m_painter->setFillMode(fm);
+			m_painter->restore();
+		}
 	}
 
 private:
