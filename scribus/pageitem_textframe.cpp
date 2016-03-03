@@ -2876,11 +2876,10 @@ void PageItem_TextFrame::layout()
 				{
 					if (current.addLine && current.breakRunIndex >= 0)
 					{
-						if (itemText.charStyle(current.line.firstChar).effects() & ScLayout_DropCap)
+						if (glyphRuns[current.line.firstRun].style().effects() & ScLayout_DropCap)
 						{
 							// put line back to top
 							current.line.y -= DropCapDrop;
-							//itemText.getGlyphs(current.line.firstChar)->yoffset += DropCapDrop;
 							current.glyphRuns.first().setYOffset(DropCapDrop);
 						}
 						fillInTabLeaders(current);
@@ -3080,11 +3079,10 @@ void PageItem_TextFrame::layout()
 					current.line.naturalWidth += opticalRightMargin(itemText, current.line);
 				indentLine(style, current, OFs);
 			}
-			if ( itemText.charStyle(current.line.firstChar).effects() & ScLayout_DropCap )
+			if (glyphRuns[current.line.firstRun].style().effects() & ScLayout_DropCap)
 			{
 				// put line back to top
 				current.line.y -= DropCapDrop;
-				//itemText.getGlyphs(current.line.firstChar)->yoffset += DropCapDrop;
 				current.glyphRuns.first().setYOffset(DropCapDrop);
 			}
 			fillInTabLeaders(current);
