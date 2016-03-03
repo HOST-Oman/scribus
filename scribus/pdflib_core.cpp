@@ -425,7 +425,7 @@ public:
 		m_glyphBuffer += "Q\n";
 	}
 
-	void drawObject(PageItem* embedded, CharStyle style)
+	void drawObject(PageItem* embedded)
 	{
 		if (!m_item->asPathText())
 		{
@@ -434,21 +434,12 @@ public:
 		}
 
 		m_pathBuffer += "q\n";
-		if (m_item->asPathText())
-			m_pathBuffer +=  FToStr(style.scaleH() / 1000.0)+" 0 0 "+FToStr(style.scaleV() / 1000.0)+" "+FToStr(embedded->gXpos * (style.scaleH() / 1000.0))+" "+FToStr((embedded->height() * (style.scaleV() / 1000.0)) - embedded->gYpos * (style.scaleV() / 1000.0)+embedded->gHeight * (style.baselineOffset() / 1000.0))+" cm\n";
-
-		else
-		{
-			if (style.baselineOffset() != 0)
-				m_pathBuffer +=  FToStr(style.scaleH() / 1000.0)+" 0 0 "+FToStr(style.scaleV() / 1000.0)+" "+FToStr(x() + embedded->gXpos * (style.scaleH() / 1000.0))+" "+FToStr(-y() + (embedded->height() * (style.scaleV() / 1000.0)) - embedded->gYpos * (style.scaleV() / 1000.0)+embedded->height() * (style.baselineOffset() / 1000.0))+" cm\n";
-			else
-				m_pathBuffer +=  FToStr(style.scaleH() / 1000.0)+" 0 0 "+FToStr(style.scaleV() / 1000.0)+" "+FToStr(x() + embedded->gXpos * (style.scaleH() / 1000.0))+" "+FToStr(-y() + (embedded->height() * (style.scaleV() / 1000.0)) - embedded->gYpos * (style.scaleV() / 1000.0))+" cm\n";
-		}
+		m_pathBuffer += FToStr(getScaleH()) + " 0 0 " + FToStr(getScaleV()) + " " + FToStr(x()) + " " + FToStr(-y()) + " cm\n";
 
 		QByteArray output;
 		if (!m_pdf->PDF_ProcessItem(output, embedded, m_page, m_PNr, true))
 			return;
-		m_pathBuffer +=output;
+		m_pathBuffer += output;
 		m_pathBuffer += "Q\n";
 		m_glyphBuffer += m_pathBuffer+"\n";
 		m_pathBuffer = "";
