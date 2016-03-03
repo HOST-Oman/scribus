@@ -1740,7 +1740,7 @@ void PageItem_TextFrame::layout()
 						   && (!itemText.hasFlag(a-1, ScLayout_SuppressSpace))))
 				{
 					currentRun.setFlag(ScLayout_SuppressSpace);
-					currentRun.setXAdvance(0);
+					currentRun.glyphs().first().xadvance = 0;
 					continue;
 				}
 				else
