@@ -3328,6 +3328,12 @@ public:
 		m_painter->restore();
 	}
 
+	void scale(double h, double v)
+	{
+		TextLayoutPainter::scale(h, v);
+		m_painter->scale(h, v);
+	}
+
 	void drawGlyph(const GlyphLayout gl, bool selected)
 	{
 		m_painter->save();
@@ -3412,7 +3418,7 @@ public:
 		m_painter->restore();
 	}
 
-	void drawObject(PageItem* embedded, CharStyle style)
+	void drawObject(PageItem* embedded)
 	{
 		QRectF cullingArea;
 		if (!embedded)
@@ -3421,21 +3427,12 @@ public:
 			return;
 
 		m_painter->save();
-		double x = embedded->xPos();
-		double y = embedded->yPos();
-		embedded->setXPos(embedded->gXpos);
-		embedded->setYPos((embedded->gHeight * (style.scaleV() / 1000.0)) + embedded->gYpos);
-		m_painter->translate((embedded->gXpos * (style.scaleH() / 1000.0)), ( - (embedded->gHeight * (style.scaleV() / 1000.0)) + embedded->gYpos * (style.scaleV() / 1000.0)));
-		if (style.baselineOffset() != 0)
-		{
-			m_painter->translate(0, -embedded->gHeight * (style.baselineOffset() / 1000.0));
-			embedded->setYPos(embedded->yPos() - embedded->gHeight * (style.baselineOffset() / 1000.0));
-		}
-		m_painter->scale(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
+		double pws = embedded->m_lineWidth;
+
 		embedded->Dirty = m_item->Dirty;
 		embedded->invalid = true;
-		double pws = embedded->m_lineWidth;
 		embedded->DrawObj_Pre(m_painter);
+
 		switch(embedded->itemType())
 		{
 		case PageItem::ImageFrame:
@@ -3454,33 +3451,27 @@ public:
 		case PageItem::Line:
 		case PageItem::PolyLine:
 		case PageItem::Spiral:
-			embedded->m_lineWidth = pws * qMin(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
+			embedded->m_lineWidth = pws * qMin(getScaleH(), getScaleV());
 			embedded->DrawObj_Item(m_painter, cullingArea);
 			break;
 		default:
 			break;
 		}
-		embedded->m_lineWidth = pws * qMin(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
+
+		embedded->m_lineWidth = pws * qMin(getScaleH(), getScaleV());
 		embedded->DrawObj_Post(m_painter);
-		embedded->setXPos(x);
-		embedded->setYPos(y);
-		m_painter->restore();
 		embedded->m_lineWidth = pws;
 
 		if (m_item->m_Doc->guidesPrefs().framesShown)
 		{
-			m_painter->save();
 			int fm = m_painter->fillMode();
-			m_painter->translate(0, -(embedded->height() * (style.scaleV() / 1000.0)));
-			if (style.baselineOffset() != 0)
-				m_painter->translate(0, -embedded->height() * (style.baselineOffset() / 1000.0));
-			m_painter->scale(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
 			m_painter->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor, 0, Qt::DotLine, Qt::FlatCap, Qt::MiterJoin);
 			m_painter->setFillMode(ScPainter::None);
 			m_painter->drawSharpRect(0, 0, embedded->width(), embedded->height());
 			m_painter->setFillMode(fm);
-			m_painter->restore();
 		}
+
+		m_painter->restore();
 	}
 
 private:

@@ -105,6 +105,21 @@ void TextLayoutPainter::restore()
 	m_state = m_stack.pop();
 }
 
+void TextLayoutPainter::scale(double h, double v)
+{
+	m_state.scaleH = h;
+	m_state.scaleV = v;
+}
+
+double TextLayoutPainter::getScaleV()
+{
+	return m_state.scaleV;
+}
+
+double TextLayoutPainter::getScaleH()
+{
+	return m_state.scaleH;
+}
 
 
 TextLayout::TextLayout(StoryText* text, PageItem* frame)
