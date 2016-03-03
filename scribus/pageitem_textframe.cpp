@@ -944,9 +944,9 @@ static int allowedCJKBreakBefore(QChar ch) {
 	return true;
 }
 
-static bool implicitSpace(QChar f, QChar s) {
-	return checkCJK(f) && checkCJK(s);
-}
+//static bool implicitSpace(QChar f, QChar s) {
+//	return checkCJK(f) && checkCJK(s);
+//}
 
 static bool implicitBreak(QChar f, QChar s) {
 	if (checkCJK(f) && checkCJK(s)) {
@@ -3957,7 +3957,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		for (uint ll=0; ll < textLayout.lines(); ++ll)
 		{
 			const LineBox* line = textLayout.line(ll);
-			double colStart = line->colLeft; // was CurX
+//			double colStart = line->colLeft; // was CurX
 			const ParagraphStyle& LineStyle = itemText.paragraphStyle(line->firstChar());
 			if (LineStyle.backgroundColor() != CommonStrings::None)
 			{
