@@ -118,8 +118,6 @@ class GlyphRun
 	QList<GlyphLayout> m_glyphs;
 	int m_firstChar;
 	int m_lastChar;
-	float m_xoffset;
-	float m_yoffset;
 	float m_xadvance;
 	PageItem* m_object;
 
@@ -130,8 +128,6 @@ public:
 		m_flags(flags),
 		m_firstChar(0),
 		m_lastChar(0),
-		m_xoffset(0),
-		m_yoffset(0),
 		m_xadvance(0),
 		m_object(NULL)
 	{}
@@ -142,8 +138,6 @@ public:
 		m_glyphs(other.m_glyphs),
 		m_firstChar(other.m_firstChar),
 		m_lastChar(other.m_lastChar),
-		m_xoffset(other.m_xoffset),
-		m_yoffset(other.m_yoffset),
 		m_object(other.m_object)
 	{}
 
@@ -160,10 +154,6 @@ public:
 	void setLastChar(int x)					{  m_lastChar = x; }
 	int firstChar()					const	{ return m_firstChar; }
 	int lastChar()					const	{ return m_lastChar; }
-	void setXOffset(float x)				{ m_xoffset = x; }
-	void setYOffset(float x)				{ m_yoffset = x; }
-	float xoffset()					const	{ return m_xoffset; }
-	float yoffset()					const	{ return m_yoffset; }
 	void setXAdvance(float x)				{ m_xadvance = x; }
 	float xAdvance()				const	{return m_xadvance; }
 	qreal width() const;

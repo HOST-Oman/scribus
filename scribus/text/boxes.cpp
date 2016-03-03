@@ -293,7 +293,6 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	p->setFontSize(fontSize);
 
 	p->translate(x(), y());
-	p->translate(m_glyphRun.xoffset(), m_glyphRun.yoffset());
 
 	if (hasFillColor)
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));

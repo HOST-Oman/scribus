@@ -1819,7 +1819,7 @@ void PageItem_TextFrame::layout()
 				chsd = (10 * ((DropCapDrop + fontAscent) / realCharHeight));
 				chs  = (10 * ((DropCapDrop + fontAscent) / realCharAscent));
 				currentRun.setFlag(ScLayout_DropCap);
-				currentRun.setYOffset(DropCapDrop);
+				currentRun.glyphs().first().yoffset += DropCapDrop;
 				if (HasObject)
 				{
 					chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
@@ -2880,7 +2880,7 @@ void PageItem_TextFrame::layout()
 						{
 							// put line back to top
 							current.line.y -= DropCapDrop;
-							current.glyphRuns.first().setYOffset(DropCapDrop);
+							current.glyphRuns.first().glyphs().first().yoffset += DropCapDrop;
 						}
 						fillInTabLeaders(current);
 						//if right margin is set we temporally save line, not append it
@@ -3083,7 +3083,7 @@ void PageItem_TextFrame::layout()
 			{
 				// put line back to top
 				current.line.y -= DropCapDrop;
-				current.glyphRuns.first().setYOffset(DropCapDrop);
+				current.glyphRuns.first().glyphs().first().yoffset += DropCapDrop;
 			}
 			fillInTabLeaders(current);
 			current.startOfCol = false;
