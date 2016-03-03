@@ -302,41 +302,7 @@ int TextLayout::endOfFrame() const
 
 int TextLayout::screenToPosition(FPoint coord) const
 {
-	int result = m_lines->pointToPosition(coord /*- FPoint(m_frame->xPos(), m_frame->yPos())*/);
-	return result;
-#if 0
-	qreal maxx = coord.x() - 1.0;
-	for (unsigned int i=0; i < lines(); ++i)
-	{
-		LineSpec ls = line(i);
-//		qDebug() << QString("screenToPosition: (%1,%2) -> y %3 - %4 + %5").arg(coord.x()).arg(coord.y()).arg(ls.y).arg(ls.ascent).arg(ls.descent);
-		if (ls.y + ls.descent < coord.y())
-			continue;
-		qreal xpos = ls.x;
-		for (int j = ls.firstChar; j <= ls.lastChar; ++j)
-		{
-//				qDebug() << QString("screenToPosition: (%1,%2) -> x %3 + %4").arg(coord.x()).arg(coord.y()).arg(xpos).arg(item(j)->glyph.wide());
-			qreal width = story()->getGlyphs(j)->wide();
-			xpos += width;
-			if (xpos >= coord.x())
-			{
-				if (story()->hasObject(j))
-					return j;
-				else
-					return xpos - width/2 > coord.x() ? j : j+1;
-			}
-		}
-		if (xpos > maxx)
-			maxx = xpos;
-		if (xpos + 1.0 > coord.x()) // allow 1pt after end of line
-			return ls.lastChar + 1;
-		else if (coord.x() <= ls.x + ls.width) // last line of paragraph?
-			return ((ls.lastChar == m_lastInFrame) ? (ls.lastChar + 1) : ls.lastChar);
-		else if (xpos < ls.x + 0.01 && maxx >= coord.x()) // check for empty line
-			return ls.firstChar;
-	}
-	return qMax(endOfFrame(), startOfFrame());
-#endif
+	return m_lines->pointToPosition(coord);
 }
 
 
