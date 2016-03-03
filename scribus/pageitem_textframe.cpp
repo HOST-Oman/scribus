@@ -1662,7 +1662,7 @@ void PageItem_TextFrame::layout()
 				current.line.firstChar = a;
 
 			bool HasObject = itemText.hasObject(a);
-			PageItem* currentObject = HasObject? itemText.object(a): NULL;
+			PageItem* currentObject = itemText.object(a);
 			bool HasMark = itemText.hasMark(a);
 
 			if (itemText.charStyle(a).effects() & ScStyle_UnderlineWords)
