@@ -726,35 +726,6 @@ struct LineControl {
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
 		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
 		line.descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
-#if 0
-		double asce, desc;
-		line.ascent  = 0;
-		line.descent = 0;
-		for (int zc = 0; zc < charsInLine; ++zc)
-		{
-			QChar ch = itemText.text(line.firstChar+zc);
-			if ((ch == SpecialChars::TAB) || (ch == QChar(10))
-				|| SpecialChars::isBreak (ch, true) || (ch == SpecialChars::NBHYPHEN) || (ch.isSpace()))
-				continue;
-			const CharStyle& cStyle(itemText.charStyle(line.firstChar + zc));
-			double scaleV = cStyle.scaleV() / 1000.0;
-			double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
-
-			if (itemText.object(line.firstChar+zc) != 0)
-			{
-				asce = (itemText.object(line.firstChar+zc)->height() + itemText.object(line.firstChar+zc)->lineWidth()) * scaleV + offset;
-				desc = 0.0;
-			}
-			else //if ((itemText.flags(current.line.firstChar+zc) & ScLayout_DropCap) == 0)
-			{
-				asce = cStyle.font().realCharAscent(ch, cStyle.fontSize() / 10.0) * scaleV + offset;
-//				desc = cStyle.font().realCharDescent(ch, cStyle.fontSize() / 10.0) * scaleV - offset;
-			}
-			//	qDebug() << QString("checking char 'x%2' with ascender %1 > %3").arg(asce).arg(ch.unicode()).arg(result);
-			line.ascent  = qMax(line.ascent, asce);
-//			line.descent = qMax(line.descent, desc);
-		}
-#endif
 	}
 
 // yPos should not be changed when all line is already calculated - at new y position there can be overflow!!!
