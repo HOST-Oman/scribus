@@ -118,7 +118,6 @@ class GlyphRun
 	QList<GlyphLayout> m_glyphs;
 	int m_firstChar;
 	int m_lastChar;
-	float m_xadvance;
 	PageItem* m_object;
 
 	
@@ -128,7 +127,6 @@ public:
 		m_flags(flags),
 		m_firstChar(0),
 		m_lastChar(0),
-		m_xadvance(0),
 		m_object(NULL)
 	{}
 
@@ -154,8 +152,6 @@ public:
 	void setLastChar(int x)					{  m_lastChar = x; }
 	int firstChar()					const	{ return m_firstChar; }
 	int lastChar()					const	{ return m_lastChar; }
-	void setXAdvance(float x)				{ m_xadvance = x; }
-	float xAdvance()				const	{return m_xadvance; }
 	qreal width() const;
 	void insertSoftHyphen();
 	void removeSoftHyphen();
