@@ -1886,15 +1886,11 @@ void PageItem_TextFrame::layout()
 			GlyphLayout& firstGlyph(currentRun.glyphs().first());
 			GlyphLayout& lastGlyph(currentRun.glyphs().last());
 
-			// find out width, ascent and descent of char
-			wide = currentRun.width();
-
 			// apply cjk kerning
 			//TODO: cjk spacing and kerning should be done in layoutGlyphs!
 			if (i + 1 < glyphRuns.length())
 			{
 				GlyphRun nextRun = glyphRuns[i + 1];
-				double kern;
 				// change xadvance, xoffset according to JIS X4051
 				int nextStat = SpecialChars::getCJKAttr(itemText.text(nextRun.firstChar()));
 				if (curStat != 0)
@@ -1904,9 +1900,7 @@ void PageItem_TextFrame::layout()
 						case SpecialChars::CJK_KANJI:
 						case SpecialChars::CJK_KANA:
 						case SpecialChars::CJK_NOTOP:
-							kern = charStyle.fontSize() / 10 / 4;
-							wide += kern;
-							lastGlyph.xadvance += kern;
+							lastGlyph.xadvance += charStyle.fontSize() / 10 / 4;
 						}
 					} else {	// next char is CJK, too
 						switch(curStat & SpecialChars::CJK_CHAR_MASK){
@@ -1917,9 +1911,7 @@ void PageItem_TextFrame::layout()
 							case SpecialChars::CJK_COMMA:
 							case SpecialChars::CJK_PERIOD:
 							case SpecialChars::CJK_MIDPOINT:
-								kern = -charStyle.fontSize() / 10 / 2;
-								wide += kern;
-								lastGlyph.xadvance += kern;
+								lastGlyph.xadvance -= charStyle.fontSize() / 10 / 2;
 							}
 							break;
 						case SpecialChars::CJK_COMMA:
@@ -1927,17 +1919,13 @@ void PageItem_TextFrame::layout()
 							switch(nextStat & SpecialChars::CJK_CHAR_MASK){
 							case SpecialChars::CJK_FENCE_BEGIN:
 							case SpecialChars::CJK_FENCE_END:
-								kern = -charStyle.fontSize() / 10 / 2;
-								wide += kern;
-								lastGlyph.xadvance += kern;
+								lastGlyph.xadvance -= charStyle.fontSize() / 10 / 2;;
 							}
 							break;
 						case SpecialChars::CJK_MIDPOINT:
 							switch(nextStat & SpecialChars::CJK_CHAR_MASK){
 							case SpecialChars::CJK_FENCE_BEGIN:
-								kern = -charStyle.fontSize() / 10 / 2;
-								wide += kern;
-								lastGlyph.xadvance += kern;
+								lastGlyph.xadvance -= charStyle.fontSize() / 10 / 2;
 							}
 							break;
 						case SpecialChars::CJK_FENCE_BEGIN:
@@ -1948,10 +1936,8 @@ void PageItem_TextFrame::layout()
 								prevStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i - 1].lastChar())) & SpecialChars::CJK_CHAR_MASK;
 							}
 							if (prevStat == SpecialChars::CJK_FENCE_BEGIN){
-								kern = -charStyle.fontSize() / 10 / 2;
-								wide += kern;
-								lastGlyph.xadvance += kern;
-								lastGlyph.xoffset += kern;
+								lastGlyph.xadvance -= charStyle.fontSize() / 10 / 2;
+								lastGlyph.xoffset -= charStyle.fontSize() / 10 / 2;
 							}
 							break;
 						}
@@ -1963,13 +1949,14 @@ void PageItem_TextFrame::layout()
 						case SpecialChars::CJK_KANA:
 						case SpecialChars::CJK_NOTOP:
 							// use the size of the current char instead of the next one
-							kern = charStyle.fontSize() / 10 / 4;
-							wide += kern;
-							lastGlyph.xadvance += kern;
+							lastGlyph.xadvance += charStyle.fontSize() / 10 / 4;
 						}
 					}
 				}
 			}
+
+			// find out width, ascent and descent of char
+			wide = currentRun.width();
 
 			if (DropCmode)
 			{
@@ -1979,7 +1966,6 @@ void PageItem_TextFrame::layout()
 					double itemHeight = currentObject->height() + currentObject->lineWidth();
 					if (itemHeight == 0)
 						itemHeight = font.height(style.charStyle().fontSize() / 10.0);
-					wide = currentObject->width() + currentObject->lineWidth();
 					asce = currentObject->height() + currentObject->lineWidth();
 					realAsce = calculateLineSpacing (style, this) * DropLines;
 					firstGlyph.scaleH /= firstGlyph.scaleV;
