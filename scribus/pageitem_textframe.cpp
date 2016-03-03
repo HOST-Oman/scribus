@@ -2717,7 +2717,7 @@ void PageItem_TextFrame::layout()
 			if (a != firstInFrame() && implicitBreak(itemText.text(a - 1), itemText.text(a)))
 				current.rememberBreak(a - 1, i -1, breakPos);
 
-			current.isEmpty = (a - current.line.firstChar + 1) == 0;
+			current.isEmpty = (i - current.line.firstRun + 1) == 0;
 
 			if (tabs.active)
 			{
@@ -2823,7 +2823,7 @@ void PageItem_TextFrame::layout()
 					assert( a >= 0 );
 					assert( a < itemText.length() );
 					//glyphs = itemText.getGlyphs(a);
-					current.isEmpty = (a - current.line.firstChar + 1) == 0;
+					current.isEmpty = (i - current.line.firstRun + 1) == 0;
 					if (current.addLine)
 					{
 						// go back to last break position
