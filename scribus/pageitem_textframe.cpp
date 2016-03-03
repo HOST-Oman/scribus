@@ -1479,7 +1479,7 @@ void PageItem_TextFrame::layout()
 	QPoint pt1, pt2;
 	QRect pt;
 	double chs, chsd = 0;
-	double EndX, OFs, wide;
+	double EndX, OFs;
 	QChar currentCh;
 	ParagraphStyle style;
 	int opticalMargins = ParagraphStyle::OM_None;
@@ -1954,7 +1954,7 @@ void PageItem_TextFrame::layout()
 			}
 
 			// find out width, ascent and descent of char
-			wide = currentRun.width();
+			double wide = currentRun.width();
 
 			if (DropCmode)
 			{
