@@ -1897,15 +1897,15 @@ void PageItem_TextFrame::layout()
 				//TODO: cjk spacing and kerning should be done in layoutGlyphs!
 				
 				// apply kerning
-				if (a+1 < itemText.length())
+				if (i + 1 < glyphRuns.length())
 				{
+					GlyphRun nextRun = glyphRuns[i + 1];
 					double kern;
 					// change xadvance, xoffset according to JIS X4051
-					int nextStat = SpecialChars::getCJKAttr(itemText.text(a+1));
-					int prevStat;
+					int nextStat = SpecialChars::getCJKAttr(itemText.text(nextRun.firstChar()));
 					if (curStat != 0)
 					{	// current char is CJK
-						if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(a+1))){
+						if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(nextRun.firstChar()))){
 							switch(curStat & SpecialChars::CJK_CHAR_MASK){
 							case SpecialChars::CJK_KANJI:
 							case SpecialChars::CJK_KANA:
@@ -1947,10 +1947,11 @@ void PageItem_TextFrame::layout()
 								}
 								break;
 							case SpecialChars::CJK_FENCE_BEGIN:
+								int prevStat = 0;
 								if (i == current.line.firstRun){ // first char of the line
 									prevStat = SpecialChars::CJK_FENCE_BEGIN;
-								} else {
-									prevStat = SpecialChars::getCJKAttr(itemText.text(a-1)) & SpecialChars::CJK_CHAR_MASK;
+								} else if (i != 0) {
+									prevStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i - 1].lastChar())) & SpecialChars::CJK_CHAR_MASK;
 								}
 								if (prevStat == SpecialChars::CJK_FENCE_BEGIN){
 									kern = -charStyle.fontSize() / 10 / 2;
@@ -1960,10 +1961,9 @@ void PageItem_TextFrame::layout()
 								}
 								break;
 							}
-
 						}
 					} else {	// current char is not CJK
-						if (nextStat != 0 && !SpecialChars::isBreakingSpace(currentCh)){
+						if (nextStat != 0 && !SpecialChars::isBreakingSpace(itemText.text(currentRun.lastChar()))){
 							switch(nextStat & SpecialChars::CJK_CHAR_MASK){
 							case SpecialChars::CJK_KANJI:
 							case SpecialChars::CJK_KANA:
