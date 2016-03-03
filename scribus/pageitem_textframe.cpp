@@ -726,20 +726,6 @@ struct LineControl {
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
 		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
 		line.descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
-
-		double asce = 0;
-		foreach (GlyphRun run, glyphRuns)
-		{
-			double scaleV = run.style().scaleV() / 1000.0;
-			double offset = (run.style().fontSize() / 10) * (run.style().baselineOffset() / 1000.0);
-
-			if (run.object())
-			{
-				asce = (run.object()->height() + run.object()->lineWidth()) * scaleV + offset;
-			}
-
-			line.ascent = qMax(line.ascent, asce);
-		}
 #if 0
 		double asce, desc;
 		line.ascent  = 0;
