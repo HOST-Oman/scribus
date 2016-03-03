@@ -3328,11 +3328,11 @@ public:
 			m_painter->strokePath();
 		}
 
-		if (fill)
-			drawGlyph(gl, selected);
-
 		m_painter->setFillRule(fr);
 		m_painter->restore();
+
+		if (fill)
+			drawGlyph(gl, selected);
 	}
 
 	void drawLine(QPointF start, QPointF end)
