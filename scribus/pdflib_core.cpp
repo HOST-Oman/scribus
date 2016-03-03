@@ -116,16 +116,19 @@ class PdfPainter: public TextLayoutPainter
 	QByteArray m_glyphBuffer;
 	QByteArray m_pathBuffer;
 	PageItem* m_item;
-	uint m_PNr;
 	QMap<QString, PdfFont>  m_UsedFontsP;
 	PDFLibCore *m_pdf;
+	uint m_PNr;
+	const ScPage* m_page;
 
 public:
-	PdfPainter(PageItem *ite, PDFLibCore *pdf) :
+	PdfPainter(PageItem *ite, PDFLibCore *pdf, uint num, const ScPage* pag) :
 		m_glyphBuffer(),
 		m_pathBuffer(),
 		m_item(ite),
-		m_pdf(pdf)
+		m_pdf(pdf),
+		m_PNr(num),
+		m_page(pag)
 	{}
 
 	~PdfPainter() {}
@@ -422,8 +425,38 @@ public:
 		m_glyphBuffer += "Q\n";
 	}
 
-	void drawObject(PageItem*, CharStyle)
-	{}
+	void drawObject(PageItem* embedded, CharStyle style)
+	{
+		if (!m_item->asPathText())
+		{
+			m_glyphBuffer += "ET\n"+m_pathBuffer;
+			m_pathBuffer = "";
+		}
+
+		m_pathBuffer += "q\n";
+		if (m_item->asPathText())
+			m_pathBuffer +=  FToStr(style.scaleH() / 1000.0)+" 0 0 "+FToStr(style.scaleV() / 1000.0)+" "+FToStr(embedded->gXpos * (style.scaleH() / 1000.0))+" "+FToStr((embedded->height() * (style.scaleV() / 1000.0)) - embedded->gYpos * (style.scaleV() / 1000.0)+embedded->gHeight * (style.baselineOffset() / 1000.0))+" cm\n";
+
+		else
+		{
+			if (style.baselineOffset() != 0)
+				m_pathBuffer +=  FToStr(style.scaleH() / 1000.0)+" 0 0 "+FToStr(style.scaleV() / 1000.0)+" "+FToStr(x() + embedded->gXpos * (style.scaleH() / 1000.0))+" "+FToStr(-y() + (embedded->height() * (style.scaleV() / 1000.0)) - embedded->gYpos * (style.scaleV() / 1000.0)+embedded->height() * (style.baselineOffset() / 1000.0))+" cm\n";
+			else
+				m_pathBuffer +=  FToStr(style.scaleH() / 1000.0)+" 0 0 "+FToStr(style.scaleV() / 1000.0)+" "+FToStr(x() + embedded->gXpos * (style.scaleH() / 1000.0))+" "+FToStr(-y() + (embedded->height() * (style.scaleV() / 1000.0)) - embedded->gYpos * (style.scaleV() / 1000.0))+" cm\n";
+		}
+
+		QByteArray output;
+		if (!m_pdf->PDF_ProcessItem(output, embedded, m_page, m_PNr, true))
+			return;
+		m_pathBuffer +=output;
+		m_pathBuffer += "Q\n";
+		m_glyphBuffer += m_pathBuffer+"\n";
+		m_pathBuffer = "";
+		if (m_item->asPathText())
+			m_glyphBuffer += "Q\n";
+		else
+			m_glyphBuffer += "BT\n";
+	}
 };
 
 PDFLibCore::PDFLibCore(ScribusDoc & docu)
@@ -5695,7 +5728,7 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 // Return a PDF substring representing a PageItem's text
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
-	PdfPainter *p = new PdfPainter(ite, this);
+	PdfPainter *p = new PdfPainter(ite, this, PNr, pag);
 	ite->textLayout.render(p, ite->itemText);
 	QByteArray buffer = p->getBuffer();
 	delete p;
