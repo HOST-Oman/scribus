@@ -1312,7 +1312,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		if (itemText.hasMark(i))
 		{
 			//show control characters for marks
-//FIXME-HOST		glyphs->glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
+//FIXME HOST		glyphs->glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
 
 			mark->OwnPage = OwnPage;
 			//itemPtr and itemName set to this frame only if mark type is different than MARK2ItemType
@@ -2848,7 +2848,7 @@ void PageItem_TextFrame::layout()
 						if (itemText.hasFlag(a, ScLayout_HyphenationPossible) || itemText.text(a) == SpecialChars::SHYPHEN)
 						{
 							currentRun.insertSoftHyphen();
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 							// insert hyphen
 							if (current.lastInRowLine)
 								//increase hyphen count only for hyphens a the end of text row, omit hyphens before overflow
@@ -2865,7 +2865,7 @@ void PageItem_TextFrame::layout()
 							if (itemText.text(a) != '-')
 								current.hyphenCount = 0;
 							currentRun.removeSoftHyphen();
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 							itemText.clearFlag(a, ScLayout_SoftHyphenVisible);
 							glyphs->shrink();
 #endif

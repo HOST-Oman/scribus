@@ -251,7 +251,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	const CharStyle style(m_glyphRun.style());
 	double fontSize = style.fontSize() / 10.0;
-	bool selected = text.selected(firstChar()) || text.selected(lastChar()); // FIXME-HOST: this should move to TextFramePainter
+	bool selected = text.selected(firstChar()) || text.selected(lastChar()); // FIXME HOST: this should move to TextFramePainter
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
 	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
 	bool hasBackColor = style.backColor() != CommonStrings::None;

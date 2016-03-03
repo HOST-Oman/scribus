@@ -5700,7 +5700,7 @@ QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 	QByteArray buffer = p->getBuffer();
 	delete p;
 	return buffer;
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 	int tabCc = 0;
 	int savedOwnPage = ite->OwnPage;
 	double tabDist = ite->textToFrameDistLeft();
@@ -6078,7 +6078,7 @@ QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 bool PDFLibCore::setTextCh(PageItem *ite, uint PNr, double x, double y, uint d, QByteArray &tmp, QByteArray &tmp2, const CharStyle& style, GlyphLayout *glyphs, PathData* pdata, const ParagraphStyle& pstyle, const ScPage* pag)
 {
 	return false;
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 	QByteArray output;
 	QByteArray FillColor = "";
 	QByteArray StrokeColor = "";

@@ -1933,7 +1933,7 @@ void ScPainter::drawSharpRect(double x, double y, double w, double h)
 
 void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 {
-	// FIXME-HOST: This uses Cairo "Toy text API" which does not support complex text layout.
+	// FIXME HOST: This uses Cairo "Toy text API" which does not support complex text layout.
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
 	double x;
