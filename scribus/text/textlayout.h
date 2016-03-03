@@ -82,10 +82,13 @@ public:
 	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected) = 0;
 	virtual void drawLine(QPointF start, QPointF end) = 0;
 	virtual void drawRect(QRectF rect) = 0;
-	virtual void drawObject(PageItem*, CharStyle) = 0;
+	virtual void drawObject(PageItem* item) = 0;
 
 	virtual void save();
 	virtual void restore();
+	virtual void scale(double h, double v);
+	virtual double getScaleV();
+	virtual double getScaleH();
 
 private:
 	struct State
@@ -97,6 +100,8 @@ private:
 		double strokeWidth;
 		double x;
 		double y;
+		double scaleV;
+		double scaleH;
 
 		State()
 			: fontSize(0)
