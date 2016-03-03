@@ -1479,7 +1479,7 @@ void PageItem_TextFrame::layout()
 	QPoint pt1, pt2;
 	QRect pt;
 	double chs, chsd = 0;
-	double EndX, OFs, wide, kernVal;
+	double EndX, OFs, wide;
 	QChar currentCh;
 	ParagraphStyle style;
 	int opticalMargins = ParagraphStyle::OM_None;
@@ -1870,15 +1870,13 @@ void PageItem_TextFrame::layout()
 				else
 					chs = charStyle.fontSize();
 			}
-			// set StartOfLine (and find tracking?)
+			// set StartOfLine
 			if (current.isEmpty)
 			{
 				currentRun.setFlag(ScLayout_StartOfLine);
-				kernVal = 0;
 			}
 			else
 			{
-				kernVal = 0; // chs * charStyle.tracking() / 10000.0;
 				currentRun.clearFlag(ScLayout_StartOfLine);
 			}
 //			glyphs->yadvance = 0;
@@ -2413,7 +2411,7 @@ void PageItem_TextFrame::layout()
 								currentRun.glyphs().append(tglyph);
 						}
 					}
-					firstGlyph.xadvance = current.xPos + wide + kernVal - tabs.xPos;
+					firstGlyph.xadvance = current.xPos + wide - tabs.xPos;
 					tabs.tabGlyph = &firstGlyph;
 				}
 			}
@@ -2431,11 +2429,11 @@ void PageItem_TextFrame::layout()
 
 			if (!tabs.active) // normal case
 			{
-				current.xPos += wide+kernVal;
+				current.xPos += wide;
 			}
 			else if (tabs.active && tabs.status == TabCENTER) 	// center tab
 			{
-				current.xPos += (wide+kernVal) / 2;
+				current.xPos += wide / 2;
 				current.xPos = qMax(current.xPos, current.colLeft);
 			}
 			else // other tabs.active
@@ -2705,7 +2703,7 @@ void PageItem_TextFrame::layout()
 				if (tabs.status == TabCENTER)
 					cen = 2;
 
-				double newTabAdvance = tabs.tabGlyph->xadvance - (wide+kernVal) / cen;
+				double newTabAdvance = tabs.tabGlyph->xadvance - wide / cen;
 
 				if (newTabAdvance >= 0) {
 					tabs.tabGlyph->xadvance = newTabAdvance;
