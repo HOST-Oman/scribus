@@ -1147,7 +1147,7 @@ QDomElement SVGExPlug::processImageItem(PageItem *Item, QString trans, QString f
 QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fill, QString stroke)
 {
 	QDomElement ob;
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 	ob = docu.createElement("g");
 	ob.setAttribute("transform", trans);
 	if ((Item->fillColor() != CommonStrings::None) || (Item->GrType != 0))
@@ -1571,7 +1571,7 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 QDomElement SVGExPlug::processPathTextItem(PageItem *Item, QString trans, QString stroke)
 {
 	QDomElement ob;
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 	ob = docu.createElement("g");
 	ob.setAttribute("transform", trans);
 	if (Item->PoShow)

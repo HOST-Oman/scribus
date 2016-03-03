@@ -806,7 +806,7 @@ void XPSExPlug::processImageItem(double xOffset, double yOffset, PageItem *Item,
 
 void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
 {
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 	if (Item->isAnnotation())
 		return;
 	if (Item->GrType == 14)
@@ -1381,7 +1381,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 
 void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
 {
-#if 0 // FIXME-HOST
+#if 0 // FIXME HOST
 	QDomElement grp = p_docu.createElement("Canvas");
 	QTransform mpx;
 	mpx.translate(xOffset * conversionFactor, yOffset * conversionFactor);
