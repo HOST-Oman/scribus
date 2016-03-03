@@ -1426,7 +1426,6 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 
 		GlyphLayout* layout = new GlyphLayout();
 		layoutGlyphs(run.style(), QString(ch), run.flags(), *layout);
-		run.glyphs().append(*layout);
 
 		if (!run.glyphs().isEmpty())
 		{
@@ -1434,11 +1433,18 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 			last.xadvance += run.style().font().glyphKerning(last.glyph, layout->glyph, run.style().fontSize() / 10) * last.scaleH;
 		}
 
+		if (SpecialChars::isExpandingSpace(ch))
+		{
+			layout->xadvance *= run.style().wordTracking();
+		}
+
 		if (itemText.hasObject(a))
 		{
 			run.setObject(itemText.object(a));
 			layout->xadvance = run.width() * layout->scaleH;
 		}
+
+		run.glyphs().append(*layout);
 
 		glyphRuns.append(run);
 	}
@@ -1998,12 +2004,6 @@ void PageItem_TextFrame::layout()
 			}
 			else // !DropCMode
 			{
-				if (SpecialChars::isExpandingSpace(currentCh))
-				{
-					double wordtracking = charStyle.wordTracking();
-					firstGlyph.xadvance *= wordtracking;
-					wide *= wordtracking;
-				}
 				// find ascent / descent
 				if (HasObject)
 					desc = realDesc = 0;
