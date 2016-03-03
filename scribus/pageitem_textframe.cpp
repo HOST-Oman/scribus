@@ -1424,11 +1424,6 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		run.setFirstChar(a);
 		run.setLastChar(a);
 
-		if (itemText.hasObject(a))
-		{
-			run.setObject(itemText.object(a));
-		}
-
 		GlyphLayout* layout = new GlyphLayout();
 		layoutGlyphs(run.style(), QString(ch), run.flags(), *layout);
 		run.glyphs().append(*layout);
@@ -1437,6 +1432,12 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		{
 			GlyphLayout& last(run.glyphs().last());
 			last.xadvance += run.style().font().glyphKerning(last.glyph, layout->glyph, run.style().fontSize() / 10) * last.scaleH;
+		}
+
+		if (itemText.hasObject(a))
+		{
+			run.setObject(itemText.object(a));
+			layout->xadvance = run.width() * layout->scaleH;
 		}
 
 		glyphRuns.append(run);
@@ -1884,99 +1885,92 @@ void PageItem_TextFrame::layout()
 			
 			GlyphLayout& firstGlyph(currentRun.glyphs().first());
 			GlyphLayout& lastGlyph(currentRun.glyphs().last());
-						 
+
 			// find out width, ascent and descent of char
-			if (HasObject)
+			wide = currentRun.width();
+
+			// apply cjk kerning
+			//TODO: cjk spacing and kerning should be done in layoutGlyphs!
+			if (i + 1 < glyphRuns.length())
 			{
-				wide = currentObject->width() + currentObject->lineWidth();
-				firstGlyph.xadvance = wide * firstGlyph.scaleH;
-			}
-			else
-			{
-				wide = currentRun.width();
-				//TODO: cjk spacing and kerning should be done in layoutGlyphs!
-				
-				// apply kerning
-				if (i + 1 < glyphRuns.length())
-				{
-					GlyphRun nextRun = glyphRuns[i + 1];
-					double kern;
-					// change xadvance, xoffset according to JIS X4051
-					int nextStat = SpecialChars::getCJKAttr(itemText.text(nextRun.firstChar()));
-					if (curStat != 0)
-					{	// current char is CJK
-						if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(nextRun.firstChar()))){
-							switch(curStat & SpecialChars::CJK_CHAR_MASK){
-							case SpecialChars::CJK_KANJI:
-							case SpecialChars::CJK_KANA:
-							case SpecialChars::CJK_NOTOP:
-								kern = charStyle.fontSize() / 10 / 4;
-								wide += kern;
-								lastGlyph.xadvance += kern;
-							}
-						} else {	// next char is CJK, too
-							switch(curStat & SpecialChars::CJK_CHAR_MASK){
+				GlyphRun nextRun = glyphRuns[i + 1];
+				double kern;
+				// change xadvance, xoffset according to JIS X4051
+				int nextStat = SpecialChars::getCJKAttr(itemText.text(nextRun.firstChar()));
+				if (curStat != 0)
+				{	// current char is CJK
+					if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(nextRun.firstChar()))){
+						switch(curStat & SpecialChars::CJK_CHAR_MASK){
+						case SpecialChars::CJK_KANJI:
+						case SpecialChars::CJK_KANA:
+						case SpecialChars::CJK_NOTOP:
+							kern = charStyle.fontSize() / 10 / 4;
+							wide += kern;
+							lastGlyph.xadvance += kern;
+						}
+					} else {	// next char is CJK, too
+						switch(curStat & SpecialChars::CJK_CHAR_MASK){
+						case SpecialChars::CJK_FENCE_END:
+							switch(nextStat & SpecialChars::CJK_CHAR_MASK){
+							case SpecialChars::CJK_FENCE_BEGIN:
 							case SpecialChars::CJK_FENCE_END:
-								switch(nextStat & SpecialChars::CJK_CHAR_MASK){
-								case SpecialChars::CJK_FENCE_BEGIN:
-								case SpecialChars::CJK_FENCE_END:
-								case SpecialChars::CJK_COMMA:
-								case SpecialChars::CJK_PERIOD:
-								case SpecialChars::CJK_MIDPOINT:
-									kern = -charStyle.fontSize() / 10 / 2;
-									wide += kern;
-									lastGlyph.xadvance += kern;
-								}
-								break;
 							case SpecialChars::CJK_COMMA:
 							case SpecialChars::CJK_PERIOD:
-								switch(nextStat & SpecialChars::CJK_CHAR_MASK){
-								case SpecialChars::CJK_FENCE_BEGIN:
-								case SpecialChars::CJK_FENCE_END:
-									kern = -charStyle.fontSize() / 10 / 2;
-									wide += kern;
-									lastGlyph.xadvance += kern;
-								}
-								break;
 							case SpecialChars::CJK_MIDPOINT:
-								switch(nextStat & SpecialChars::CJK_CHAR_MASK){
-								case SpecialChars::CJK_FENCE_BEGIN:
-									kern = -charStyle.fontSize() / 10 / 2;
-									wide += kern;
-									lastGlyph.xadvance += kern;
-								}
-								break;
-							case SpecialChars::CJK_FENCE_BEGIN:
-								int prevStat = 0;
-								if (i == current.line.firstRun){ // first char of the line
-									prevStat = SpecialChars::CJK_FENCE_BEGIN;
-								} else if (i != 0) {
-									prevStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i - 1].lastChar())) & SpecialChars::CJK_CHAR_MASK;
-								}
-								if (prevStat == SpecialChars::CJK_FENCE_BEGIN){
-									kern = -charStyle.fontSize() / 10 / 2;
-									wide += kern;
-									lastGlyph.xadvance += kern;
-									lastGlyph.xoffset += kern;
-								}
-								break;
-							}
-						}
-					} else {	// current char is not CJK
-						if (nextStat != 0 && !SpecialChars::isBreakingSpace(itemText.text(currentRun.lastChar()))){
-							switch(nextStat & SpecialChars::CJK_CHAR_MASK){
-							case SpecialChars::CJK_KANJI:
-							case SpecialChars::CJK_KANA:
-							case SpecialChars::CJK_NOTOP:
-								// use the size of the current char instead of the next one
-								kern = charStyle.fontSize() / 10 / 4;
+								kern = -charStyle.fontSize() / 10 / 2;
 								wide += kern;
 								lastGlyph.xadvance += kern;
 							}
+							break;
+						case SpecialChars::CJK_COMMA:
+						case SpecialChars::CJK_PERIOD:
+							switch(nextStat & SpecialChars::CJK_CHAR_MASK){
+							case SpecialChars::CJK_FENCE_BEGIN:
+							case SpecialChars::CJK_FENCE_END:
+								kern = -charStyle.fontSize() / 10 / 2;
+								wide += kern;
+								lastGlyph.xadvance += kern;
+							}
+							break;
+						case SpecialChars::CJK_MIDPOINT:
+							switch(nextStat & SpecialChars::CJK_CHAR_MASK){
+							case SpecialChars::CJK_FENCE_BEGIN:
+								kern = -charStyle.fontSize() / 10 / 2;
+								wide += kern;
+								lastGlyph.xadvance += kern;
+							}
+							break;
+						case SpecialChars::CJK_FENCE_BEGIN:
+							int prevStat = 0;
+							if (i == current.line.firstRun){ // first char of the line
+								prevStat = SpecialChars::CJK_FENCE_BEGIN;
+							} else if (i != 0) {
+								prevStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i - 1].lastChar())) & SpecialChars::CJK_CHAR_MASK;
+							}
+							if (prevStat == SpecialChars::CJK_FENCE_BEGIN){
+								kern = -charStyle.fontSize() / 10 / 2;
+								wide += kern;
+								lastGlyph.xadvance += kern;
+								lastGlyph.xoffset += kern;
+							}
+							break;
+						}
+					}
+				} else {	// current char is not CJK
+					if (nextStat != 0 && !SpecialChars::isBreakingSpace(itemText.text(currentRun.lastChar()))){
+						switch(nextStat & SpecialChars::CJK_CHAR_MASK){
+						case SpecialChars::CJK_KANJI:
+						case SpecialChars::CJK_KANA:
+						case SpecialChars::CJK_NOTOP:
+							// use the size of the current char instead of the next one
+							kern = charStyle.fontSize() / 10 / 4;
+							wide += kern;
+							lastGlyph.xadvance += kern;
 						}
 					}
 				}
 			}
+
 			if (DropCmode)
 			{
 				// drop caps are wider...
