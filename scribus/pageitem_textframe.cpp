@@ -460,7 +460,6 @@ struct LineControl {
 	double   width;
 	double   xPos;
 	double   yPos;
-	int      breakIndex;
 	int      breakRunIndex;
 	double   breakXPos;
 
@@ -521,7 +520,6 @@ struct LineControl {
 		line.width = 0.0;
 		line.naturalWidth = 0.0;
 		line.colLeft = colLeft;
-		breakIndex = -1;
 		breakRunIndex = -1;
 		breakXPos = 0.0;
 		maxShrink = 0.0;
@@ -546,7 +544,7 @@ struct LineControl {
 	}
 
 	/// called when a possible break is passed
-	void rememberBreak(int index, int runIndex, double pos, double morespace = 0)
+	void rememberBreak(int index, double pos, double morespace = 0)
 	{
 		if (pos > colRight - morespace)
 		{
@@ -564,15 +562,13 @@ struct LineControl {
 			}
 		}
 		breakXPos = pos;
-		breakIndex = index;
-		breakRunIndex = runIndex;
+		breakRunIndex = index;
 	}
 
 	/// called when a mandatory break is found
-	void breakLine(const QList<GlyphRun> runs, const ParagraphStyle& style, FirstLineOffsetPolicy offsetPolicy, int last, int runLast)
+	void breakLine(const QList<GlyphRun> runs, const ParagraphStyle& style, FirstLineOffsetPolicy offsetPolicy, int last)
 	{
-		breakIndex = last;
-		breakRunIndex = runLast;
+		breakRunIndex = last;
 		breakXPos  = line.x;
 		for (int i = 0; i < breakRunIndex - line.firstRun; i++)
 			breakXPos += glyphRuns.at(i).width();
@@ -1764,7 +1760,6 @@ void PageItem_TextFrame::layout()
 					else
 						current.rightMargin = 0.0;
 				}
-				current.breakIndex = -1;
 				current.breakRunIndex = -1;
 				if (current.startOfCol && !current.afterOverflow && current.recalculateY)
 					current.yPos = qMax(current.yPos, m_textDistanceMargins.top());
@@ -2395,11 +2390,11 @@ void PageItem_TextFrame::layout()
 			{
 				if ( a == firstInFrame() || !SpecialChars::isBreakingSpace(itemText.text(a-1)) )
 				{
-					current.rememberBreak(a, i, breakPos, style.rightMargin());
+					current.rememberBreak(i, breakPos, style.rightMargin());
 				}
 			}
 			if  (HasObject)
-				current.rememberBreak(a, i, breakPos, style.rightMargin());
+				current.rememberBreak(i, breakPos, style.rightMargin());
 			// CJK break
 			if (i > current.line.firstRun)
 			{ // not the first char
@@ -2410,7 +2405,7 @@ void PageItem_TextFrame::layout()
 					// non-CJK char does not have CJK_NOBREAK_AFTER/CJK_NOBREAK_BEFORE
 					if ((lastStat & SpecialChars::CJK_NOBREAK_AFTER) == 0 &&
 							(curStat & SpecialChars::CJK_NOBREAK_BEFORE) == 0){
-						current.rememberBreak(a-1, i-1, breakPos, style.rightMargin());
+						current.rememberBreak(i-1, breakPos, style.rightMargin());
 					}
 				}
 
@@ -2454,7 +2449,7 @@ void PageItem_TextFrame::layout()
 						i--;
 						current.mustLineEnd = current.line.x;
 					}
-					current.breakLine(glyphRuns, style, firstLineOffset(),a, i);
+					current.breakLine(glyphRuns, style, firstLineOffset(), i);
 				}
 				if (!current.addLine && !current.lastInRowLine && current.afterOverflow)
 				{
@@ -2563,7 +2558,7 @@ void PageItem_TextFrame::layout()
 					{
 						a--;
 						i--;
-						current.breakLine(glyphRuns, style, firstLineOffset(), a, i);
+						current.breakLine(glyphRuns, style, firstLineOffset(), i);
 					}
 					//check if after overflow text can be placed
 					overflowWidth = realEnd - (current.xPos - current.maxShrink);
@@ -2632,7 +2627,7 @@ void PageItem_TextFrame::layout()
 				{
 					if ((current.hyphenCount < m_Doc->hyphConsecutiveLines()) || (m_Doc->hyphConsecutiveLines() == 0) || currentCh == SpecialChars::SHYPHEN)
 					{
-						current.rememberBreak(a, i, breakPos, style.rightMargin() + hyphWidth);
+						current.rememberBreak(i, breakPos, style.rightMargin() + hyphWidth);
 					}
 				}
 			}
@@ -2643,7 +2638,7 @@ void PageItem_TextFrame::layout()
 				goNextColumn = true;
 
 			if (a != firstInFrame() && implicitBreak(itemText.text(a - 1), itemText.text(a)))
-				current.rememberBreak(a - 1, i -1, breakPos);
+				current.rememberBreak(i -1, breakPos);
 
 			current.isEmpty = (i - current.line.firstRun + 1) == 0;
 
@@ -2689,7 +2684,7 @@ void PageItem_TextFrame::layout()
 				if (SpecialChars::isBreak(currentCh, Cols > 1))
 				{
 					// find end of line
-					current.breakLine(glyphRuns, style, firstLineOffset(), a, i);
+					current.breakLine(glyphRuns, style, firstLineOffset(), i);
 					EndX = current.endOfLine(m_availableRegion, style.rightMargin(), regionMinY, regionMaxY);
 					current.finishLine(EndX);
 					//addLine = true;
@@ -2985,7 +2980,7 @@ void PageItem_TextFrame::layout()
 				{
 					current.addLine = true;
 					current.lastInRowLine = true;
-					current.breakLine(glyphRuns, style, firstLineOffset(),a, i);
+					current.breakLine(glyphRuns, style, firstLineOffset(), i);
 				}
 				if (current.afterOverflow && !current.addLine)
 				{
@@ -2995,7 +2990,7 @@ void PageItem_TextFrame::layout()
 						continue;
 					}
 					else
-						current.breakLine(glyphRuns, style, firstLineOffset(),a, i);
+						current.breakLine(glyphRuns, style, firstLineOffset(), i);
 				}
 			}
 		}
@@ -3010,7 +3005,7 @@ void PageItem_TextFrame::layout()
 		{
 			int a = itemText.length()-1;
 			int i = glyphRuns.length() - 1;
-			current.breakLine(glyphRuns, style, firstLineOffset(), a, i);
+			current.breakLine(glyphRuns, style, firstLineOffset(), i);
 
 			if (current.startOfCol)
 			{
