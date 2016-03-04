@@ -2962,7 +2962,7 @@ void PageItem_TextFrame::layout()
 					}
 				}
 			}
-			if (a == itemText.length() -1)
+			if (i == glyphRuns.length() - 1)
 			{
 				if (!current.afterOverflow || current.addLine)
 				{
