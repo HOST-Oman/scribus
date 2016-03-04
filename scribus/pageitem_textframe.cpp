@@ -450,8 +450,8 @@ struct LineControl {
 	double   leftIndent;
 	double   rightMargin;
 	double   mustLineEnd;
-	int      restartRunIndex;  //index of glyph run where line computing should be restarted
-	int      restartRowRunIndex;  //index of glyph run where row of text is started
+	int      restartIndex;  //index of glyph run where line computing should be restarted
+	int      restartRowIndex;  //index of glyph run where row of text is started
 	double   restartX; //starting X position of line if must be restarted
 	double   rowDesc;
 
@@ -460,7 +460,7 @@ struct LineControl {
 	double   width;
 	double   xPos;
 	double   yPos;
-	int      breakRunIndex;
+	int      breakIndex;
 	double   breakXPos;
 
 	double   maxShrink;
@@ -520,7 +520,7 @@ struct LineControl {
 		line.width = 0.0;
 		line.naturalWidth = 0.0;
 		line.colLeft = colLeft;
-		breakRunIndex = -1;
+		breakIndex = -1;
 		breakXPos = 0.0;
 		maxShrink = 0.0;
 		maxStretch = 0.0;
@@ -552,7 +552,7 @@ struct LineControl {
 			//maxShrink = 0;
 
 			// check if we already have a better break
-			if (breakRunIndex >= 0)
+			if (breakIndex >= 0)
 			{
 				double oldLooseness = qAbs(colRight - breakXPos);
 
@@ -562,15 +562,15 @@ struct LineControl {
 			}
 		}
 		breakXPos = pos;
-		breakRunIndex = index;
+		breakIndex = index;
 	}
 
 	/// called when a mandatory break is found
 	void breakLine(const QList<GlyphRun> runs, const ParagraphStyle& style, FirstLineOffsetPolicy offsetPolicy, int last)
 	{
-		breakRunIndex = last;
+		breakIndex = last;
 		breakXPos  = line.x;
-		for (int i = 0; i < breakRunIndex - line.firstRun; i++)
+		for (int i = 0; i < breakIndex - line.firstRun; i++)
 			breakXPos += glyphRuns.at(i).width();
 		// #8194, #8717 : update line ascent and descent with sensible values
 		// so that endOfLine() returns correct result
@@ -582,7 +582,7 @@ struct LineControl {
 	/// use the last remembered break to set line width and itemrange
 	void finishLine(double endX)
 	{
-		line.lastRun = breakRunIndex;
+		line.lastRun = breakIndex;
 		line.naturalWidth = breakXPos - line.x;
 		line.width = endX - line.x;
 		maxShrink = maxStretch = 0;
@@ -594,10 +594,10 @@ struct LineControl {
 			yPos++;
 		recalculateY = recalcY;
 		xPos = restartX = colLeft;
-		startLine(restartRowRunIndex);
+		startLine(restartRowIndex);
 		addLeftIndent = true;
 		afterOverflow = false;
-		return restartRowRunIndex - 1;
+		return restartRowIndex - 1;
 	}
 
 	int restartLine(bool recalcY, bool add)
@@ -605,10 +605,10 @@ struct LineControl {
 		recalculateY = recalcY;
 		addLine = add;
 		xPos = restartX;
-		startLine(restartRunIndex);
+		startLine(restartIndex);
 		afterOverflow = false;
 
-		return restartRunIndex - 1;
+		return restartIndex - 1;
 	}
 
 	bool isEndOfLine(double moreSpace = 0)
@@ -1579,7 +1579,7 @@ void PageItem_TextFrame::layout()
 		OFs = 0;
 		MaxChars = 0;
 		double realEnd = 0;
-		current.restartRunIndex = current.restartRowRunIndex = 0;
+		current.restartIndex = current.restartRowIndex = 0;
 		current.afterOverflow = false;
 		current.addLine = false;
 		current.recalculateY = true;
@@ -1760,7 +1760,7 @@ void PageItem_TextFrame::layout()
 					else
 						current.rightMargin = 0.0;
 				}
-				current.breakRunIndex = -1;
+				current.breakIndex = -1;
 				if (current.startOfCol && !current.afterOverflow && current.recalculateY)
 					current.yPos = qMax(current.yPos, m_textDistanceMargins.top());
 				// more about par gap and dropcaps
@@ -2432,14 +2432,14 @@ void PageItem_TextFrame::layout()
 				{
 					//no glyphs in line, so start new row
 					if (SpecialChars::isBreak(currentCh, Cols > 1))
-						current.restartRowRunIndex = i + 1;
+						current.restartRowIndex = i + 1;
 					i = current.restartRow(true);
 					inOverflow = false;
 					outs = false;
 					continue;
 				}
 				//there we have some glyphs
-				if (current.breakRunIndex < 0)
+				if (current.breakIndex < 0)
 				{
 					//force break
 					if (!SpecialChars::isBreak(currentCh, Cols > 1))
@@ -2458,9 +2458,9 @@ void PageItem_TextFrame::layout()
 					//if we have some text here - insert text WITHOUT right margin
 					//if there is no place for text - insert text WITH right margin and end line
 					current.lastInRowLine = false;
-					if (current.line.firstRun == current.restartRunIndex)
+					if (current.line.firstRun == current.restartIndex)
 						current.lastInRowLine = true;
-					if (current.hasDropCap && DropLinesCount == 0 && current.restartRunIndex == current.restartRowRunIndex)
+					if (current.hasDropCap && DropLinesCount == 0 && current.restartIndex == current.restartRowIndex)
 					{
 						current.hasDropCap = false;
 						maxDX = 0;
@@ -2554,7 +2554,7 @@ void PageItem_TextFrame::layout()
 						outs = false;
 						continue;
 					}
-					if (current.breakRunIndex < 0)
+					if (current.breakIndex < 0)
 					{
 						a--;
 						i--;
@@ -2575,12 +2575,12 @@ void PageItem_TextFrame::layout()
 						{
 							if (current.afterOverflow)
 							{
-								if (current.breakRunIndex < 0)
+								if (current.breakIndex < 0)
 								{
 									current.lastInRowLine = true;
 									current.mustLineEnd = current.line.x;
 								}
-								else if (current.line.firstRun == current.restartRunIndex)
+								else if (current.line.firstRun == current.restartIndex)
 									current.lastInRowLine = true;
 							}
 							else
@@ -2739,9 +2739,9 @@ void PageItem_TextFrame::layout()
 				}
 				else // outs -- last char went outside the columns (or into flow-around shape)
 				{
-					if (current.breakRunIndex >= 0)
+					if (current.breakIndex >= 0)
 					{
-						i = current.breakRunIndex;
+						i = current.breakIndex;
 						a = glyphRuns[i].firstChar();
 					}
 					assert( a >= 0 );
@@ -2863,7 +2863,7 @@ void PageItem_TextFrame::layout()
 					setMaxY(maxYDesc);
 				if (current.line.firstRun <= current.line.lastRun && !current.isEmpty)
 				{
-					if (current.addLine && current.breakRunIndex >= 0)
+					if (current.addLine && current.breakIndex >= 0)
 					{
 						if (glyphRuns[current.line.firstRun].style().effects() & ScLayout_DropCap)
 						{
@@ -2875,7 +2875,7 @@ void PageItem_TextFrame::layout()
 						//if right margin is set we temporally save line, not append it
 						textLayout.appendLine(current.createLineBox());
 						setMaxY(maxYDesc);
-						current.restartRunIndex = current.line.lastRun + 1;
+						current.restartIndex = current.line.lastRun + 1;
 						i = current.line.lastRun;
 						a = glyphRuns[i].firstChar();
 						current.rowDesc = qMax(current.rowDesc,current.yPos + current.line.descent);
@@ -2921,7 +2921,7 @@ void PageItem_TextFrame::layout()
 					}
 					lastLineY = current.rowDesc;
 					current.mustLineEnd = current.colRight;
-					current.restartRowRunIndex = current.restartRunIndex;
+					current.restartRowIndex = current.restartIndex;
 				}
 				if ( SpecialChars::isBreak(itemText.text(a)) )
 				{
@@ -2984,7 +2984,7 @@ void PageItem_TextFrame::layout()
 				}
 				if (current.afterOverflow && !current.addLine)
 				{
-					if (current.restartRunIndex < current.line.firstRun)
+					if (current.restartIndex < current.line.firstRun)
 					{
 						i = current.restartLine(false,true);
 						continue;
