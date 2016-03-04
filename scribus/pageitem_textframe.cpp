@@ -2889,7 +2889,7 @@ void PageItem_TextFrame::layout()
 						setMaxY(maxYDesc);
 						current.restartRunIndex = current.line.lastRun + 1;
 						a = current.line.lastChar;
-						i = current.restartRunIndex - 1;
+						i = current.line.lastRun;
 						current.rowDesc = qMax(current.rowDesc,current.yPos + current.line.descent);
 						if (!current.lastInRowLine)
 						{
