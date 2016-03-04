@@ -1358,11 +1358,9 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		const QChar ch(text.at(i));
 		int a = textMap.value(i);
 
-		GlyphRun run(&itemText.charStyle(a), itemText.flags(a));
+		GlyphRun run(&itemText.charStyle(a), itemText.flags(a), a, a, itemText.object(a));
 		if (SpecialChars::isExpandingSpace(ch))
 			run.setFlag(ScLayout_ExpandingSpace);
-		run.setFirstChar(a);
-		run.setLastChar(a);
 
 		GlyphLayout* layout = new GlyphLayout();
 		layoutGlyphs(run.style(), QString(ch), run.flags(), *layout);
@@ -1380,7 +1378,6 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 
 		if (itemText.hasObject(a))
 		{
-			run.setObject(itemText.object(a));
 			layout->xadvance = run.width() * layout->scaleH;
 		}
 
