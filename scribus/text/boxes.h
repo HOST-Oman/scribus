@@ -163,6 +163,7 @@ public:
 		m_type = T_Glyphs;
 		m_firstChar = run.firstChar();
 		m_lastChar = run.lastChar();
+		m_width = run.width();
 	}
 
 	FRect boundingBox(int pos, uint len = 1) const
@@ -196,6 +197,7 @@ public:
 		, m_style(run.style())
 	{
 		m_type = T_Object;
+		m_width = run.width();
 	}
 
 	void render(TextLayoutPainter *p, const StoryText& text) const;
