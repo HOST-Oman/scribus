@@ -419,8 +419,6 @@ struct LineSpec
 	qreal descent;
 	qreal colLeft;
 
-	int firstChar;
-	int lastChar;
 	int firstRun;
 	int lastRun;
 	qreal naturalWidth;
@@ -516,8 +514,6 @@ struct LineControl {
 		isEmpty = true;
 		line.x = xPos;
 		line.y = yPos;
-		line.firstChar = -1;
-		line.lastChar = 0;
 		line.firstRun = firstRun;
 		line.lastRun = 0;
 		line.ascent = 0.0;
@@ -590,7 +586,6 @@ struct LineControl {
 	/// use the last remembered break to set line width and itemrange
 	void finishLine(double endX)
 	{
-		line.lastChar = breakIndex;
 		line.lastRun = breakRunIndex;
 		line.naturalWidth = breakXPos - line.x;
 		line.width = endX - line.x;
@@ -1622,9 +1617,6 @@ void PageItem_TextFrame::layout()
 
 			int a = currentRun.firstChar();
 			currentCh = itemText.text(a);
-
-			if (current.line.firstChar < 0)
-				current.line.firstChar = a;
 
 			bool HasObject = itemText.hasObject(a);
 			PageItem* currentObject = itemText.object(a);
@@ -2956,7 +2948,6 @@ void PageItem_TextFrame::layout()
 				current.addLine = false;
 				current.lastInRowLine = false;
 				current.startLine(i+1);
-				current.line.firstChar = a + 1;
 				if (goNoRoom)
 				{
 					goNoRoom = false;
