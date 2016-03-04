@@ -156,7 +156,6 @@ class GlyphBox : public Box
 {
 	
 public:
-	GlyphBox(const CharStyle* style, LayoutFlags flags) : m_glyphRun(style, flags) {m_type = T_Glyphs;}
 	GlyphBox(const GlyphRun& run)
 		: m_glyphRun(run)
 	{

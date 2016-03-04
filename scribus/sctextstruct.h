@@ -122,12 +122,12 @@ class GlyphRun
 
 	
 public:
-	GlyphRun(const CharStyle* style, LayoutFlags flags) :
-		m_style(style),
-		m_flags(flags),
-		m_firstChar(0),
-		m_lastChar(0),
-		m_object(NULL)
+	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o)
+		: m_style(style)
+		, m_flags(flags)
+		, m_firstChar(first)
+		, m_lastChar(last)
+		, m_object(o)
 	{}
 
 	GlyphRun(const GlyphRun& other) :
@@ -148,14 +148,11 @@ public:
 
 	QList<GlyphLayout>&      glyphs()       { return m_glyphs; }
 	const QList<GlyphLayout> glyphs() const { return m_glyphs; }
-	void setFirstChar(int x)				{  m_firstChar = x; }
-	void setLastChar(int x)					{  m_lastChar = x; }
 	int firstChar()					const	{ return m_firstChar; }
 	int lastChar()					const	{ return m_lastChar; }
 	qreal width() const;
 	void insertSoftHyphen();
 	void removeSoftHyphen();
-	void setObject(PageItem* obj)			{ m_object = obj; }
 	PageItem* object()				const	{ return m_object; }
 	
 };
