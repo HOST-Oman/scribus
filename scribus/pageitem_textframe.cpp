@@ -1084,19 +1084,20 @@ static void indentLine(const ParagraphStyle& style, LineControl& curr, double le
 //}
 
 /// calculate how much the last char should stick out to the right
-static double opticalRightMargin(const StoryText& itemText, const LineSpec& line)
+static double opticalRightMargin(const StoryText& itemText, const QList<GlyphRun> runs, const LineSpec& line)
 {
-	int b = line.lastChar;
-	while (b > line.firstChar &&
-		   (SpecialChars::isBreakingSpace(itemText.text(b)) || SpecialChars::isBreak(itemText.text(b)))
+	int b = line.lastRun;
+	while (b > line.firstRun &&
+		   (SpecialChars::isBreakingSpace(itemText.text(runs[b].firstChar())) ||
+			SpecialChars::isBreak(itemText.text(runs[b].firstChar())))
 		   )
 		--b;
-	if (b >= line.firstChar)
+	if (b >= line.firstRun)
 	{
-		const CharStyle& chStyle(itemText.charStyle(b));
+		const CharStyle& chStyle(runs[b].style());
 		double chs = chStyle.fontSize() * (chStyle.scaleH() / 1000.0);
-		QChar chr = itemText.hasFlag(b, ScLayout_SoftHyphenVisible) ?
-			QChar('-') : itemText.text(b);
+		QChar chr = itemText.hasFlag(runs[b].firstChar(), ScLayout_SoftHyphenVisible) ?
+			QChar('-') : itemText.text(runs[b].firstChar());
 		double rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
 		if (QString("-,.`´'~").indexOf(chr) >= 0
 			|| chr == QChar(0x2018)
@@ -2717,7 +2718,7 @@ void PageItem_TextFrame::layout()
 //					if (style.alignment() != 0)
 					{
 						if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-							current.line.width += opticalRightMargin(itemText, current.line);
+							current.line.width += opticalRightMargin(itemText, glyphRuns, current.line);
 
 						OFs = 0;
 						if (style.alignment() == ParagraphStyle::Rightaligned)
@@ -2739,7 +2740,7 @@ void PageItem_TextFrame::layout()
 						else
 						{
 							if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-								current.line.naturalWidth += opticalRightMargin(itemText, current.line);
+								current.line.naturalWidth += opticalRightMargin(itemText, glyphRuns, current.line);
 							double optiWidth = current.colRight - style.rightMargin() - style.lineSpacing()/2.0 - current.line.x;
 							if (current.line.naturalWidth > optiWidth)
 								current.line.width = qMax(current.line.width - current.maxShrink, optiWidth);
@@ -2808,7 +2809,7 @@ void PageItem_TextFrame::layout()
 
 						// Justification
 						if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-							current.line.width += opticalRightMargin(itemText, current.line);
+							current.line.width += opticalRightMargin(itemText, glyphRuns, current.line);
 						// #12565: Right alignment of hyphens
 						// The additional character width has already been taken into account
 						// above via the line break position, so it's not necessary to increase
@@ -2832,7 +2833,7 @@ void PageItem_TextFrame::layout()
 						else
 						{
 							if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-								current.line.naturalWidth += opticalRightMargin(itemText, current.line);
+								current.line.naturalWidth += opticalRightMargin(itemText, glyphRuns, current.line);
 							indentLine(style, current, OFs);
 						}
 						current.xPos = current.line.x + current.line.width;
@@ -3055,7 +3056,7 @@ void PageItem_TextFrame::layout()
 			current.finishLine(EndX);
 
 			if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-				current.line.width += opticalRightMargin(itemText, current.line);
+				current.line.width += opticalRightMargin(itemText, glyphRuns, current.line);
 
 			OFs = 0;
 			if (style.alignment() == ParagraphStyle::Rightaligned)
@@ -3076,7 +3077,7 @@ void PageItem_TextFrame::layout()
 			else
 			{
 				if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-					current.line.naturalWidth += opticalRightMargin(itemText, current.line);
+					current.line.naturalWidth += opticalRightMargin(itemText, glyphRuns, current.line);
 				indentLine(style, current, OFs);
 			}
 			if (glyphRuns[current.line.firstRun].style().effects() & ScLayout_DropCap)
