@@ -4532,9 +4532,8 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 	if (!it->isTextFrame() && !it->isPathText())
 		return;
 
-	TextLayoutPainter *p = new UsedGlyphsPainter(Really);
-	it->textLayout.render(p, it->itemText);
-	delete p;
+	UsedGlyphsPainter p(Really);
+	it->textLayout.render(&p, it->itemText);
 }
 
 
