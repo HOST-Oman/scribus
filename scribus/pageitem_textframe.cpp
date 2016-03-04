@@ -793,7 +793,6 @@ struct LineControl {
 			result->setAscent(lineBox->ascent());
 			result->setDescent(lineBox->descent());
 		}
-		result->setWidth(run.width());
 		if (!lineBox->boxes().isEmpty())
 		{
 			Box* last = lineBox->boxes().last();
