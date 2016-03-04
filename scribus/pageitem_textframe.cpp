@@ -2888,8 +2888,8 @@ void PageItem_TextFrame::layout()
 						textLayout.appendLine(current.createLineBox());
 						setMaxY(maxYDesc);
 						current.restartRunIndex = current.line.lastRun + 1;
-						a = current.line.lastChar;
 						i = current.line.lastRun;
+						a = glyphRuns[i].firstChar();
 						current.rowDesc = qMax(current.rowDesc,current.yPos + current.line.descent);
 						if (!current.lastInRowLine)
 						{
