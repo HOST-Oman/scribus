@@ -2744,10 +2744,11 @@ void PageItem_TextFrame::layout()
 				}
 				else // outs -- last char went outside the columns (or into flow-around shape)
 				{
-					if (current.breakIndex >= 0)
-						a = current.breakIndex;
 					if (current.breakRunIndex >= 0)
+					{
 						i = current.breakRunIndex;
+						a = glyphRuns[i].firstChar();
+					}
 					assert( a >= 0 );
 					assert( a < itemText.length() );
 					//glyphs = itemText.getGlyphs(a);
