@@ -71,7 +71,6 @@ void PageItem_PathText::layout()
 
 void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 {
-#if 0 // FIXME HOST
 	itemText.invalidateAll();
 	firstChar = 0;
 	MaxChars = 0;
@@ -203,7 +202,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	double wordExtra = 0;
 	for (a = firstChar; a < itemRenderText.length(); ++a)
 	{
-		GlyphLayout* glyphs = itemRenderText.getGlyphs(a);
+		GlyphLayout* glyphs = new GlyphLayout;
 		chstr = itemRenderText.text(a, 1);
 		if (chstr[0] == SpecialChars::PAGENUMBER || chstr[0] == SpecialChars::PARSEP || chstr[0] == SpecialChars::PAGECOUNT
 			|| chstr[0] == SpecialChars::TAB || chstr[0] == SpecialChars::LINEBREAK)
@@ -214,11 +213,10 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			chstr += itemRenderText.text(a+1, 1);
 		glyphs->yadvance = 0;
 		layoutGlyphs(itemRenderText.charStyle(a), chstr, itemRenderText.flags(a), *glyphs);
-		glyphs->shrink();
 		if (itemRenderText.hasObject(a))
 			totalTextLen += (itemRenderText.object(a)->width() + itemRenderText.object(a)->lineWidth()) * glyphs->scaleH;
 		else
-			totalTextLen += glyphs->wide()+itemRenderText.charStyle(a).fontSize() * itemRenderText.charStyle(a).tracking() / 10000.0;
+			totalTextLen += glyphs->xadvance+itemRenderText.charStyle(a).fontSize() * itemRenderText.charStyle(a).tracking() / 10000.0;
 	}
 	for (int segs = 0; segs < PoLine.size()-3; segs += 4)
 	{
@@ -256,7 +254,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	for (a = firstChar; a < itemRenderText.length(); ++a)
 	{
 		CurY = 0;
-		GlyphLayout* glyphs = itemRenderText.getGlyphs(a);
+		GlyphLayout* glyphs = new GlyphLayout;
 		PathData* pdata = & (textLayout.point(a));
 		chstr = itemRenderText.text(a,1);
 		if (chstr[0] == SpecialChars::PAGENUMBER || chstr[0] == SpecialChars::PARSEP || chstr[0] == SpecialChars::PAGECOUNT
@@ -266,11 +264,10 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			chstr += itemRenderText.text(a+1, 1);
 		glyphs->yadvance = 0;
 		layoutGlyphs(itemRenderText.charStyle(a), chstr, itemRenderText.flags(a), *glyphs);
-		glyphs->shrink();                                                           // HACK
 		if (itemRenderText.hasObject(a))
 			dx = (itemRenderText.object(a)->width() + itemRenderText.object(a)->lineWidth()) * glyphs->scaleH / 2.0;
 		else
-			dx = glyphs->wide() / 2.0;
+			dx = glyphs->xadvance / 2.0;
 		CurX += dx;
 
 		double currPerc = currPath.percentAtLength(CurX);
@@ -369,11 +366,10 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		if (itemRenderText.hasObject(a))
 			CurX += (itemRenderText.object(a)->width() + itemRenderText.object(a)->lineWidth()) * glyphs->scaleH + extraOffset;
 		else if (chstr[0] == SpecialChars::BLANK)
-			CurX += glyphs->wide()+itemRenderText.charStyle(a).fontSize() * itemRenderText.charStyle(a).tracking() / 10000.0 + wordExtra + extraOffset;
+			CurX += glyphs->xadvance+itemRenderText.charStyle(a).fontSize() * itemRenderText.charStyle(a).tracking() / 10000.0 + wordExtra + extraOffset;
 		else
-			CurX += glyphs->wide()+itemRenderText.charStyle(a).fontSize() *itemRenderText.charStyle(a).tracking() / 10000.0 + extraOffset;
+			CurX += glyphs->xadvance+itemRenderText.charStyle(a).fontSize() *itemRenderText.charStyle(a).tracking() / 10000.0 + extraOffset;
 	}
-#endif
 }
 
 bool PageItem_PathText::createInfoGroup(QFrame *infoGroup, QGridLayout *infoGroupLayout)
