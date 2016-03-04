@@ -3997,9 +3997,8 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			p->restore();//RE3
 			//	End of selection
 		}
-		TextLayoutPainter *painter = new TextFramePainter(p, this);
-		textLayout.render(painter, itemText);
-		delete painter;
+		TextFramePainter painter(p, this);
+		textLayout.render(&painter, itemText);
 	}
 	m_textDistanceMargins=savedTextDistanceMargins;
 	p->restore();//RE1
