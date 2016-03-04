@@ -712,6 +712,10 @@ struct LineControl {
 
 	void updateHeightMetrics(const QList<GlyphRun> runs)
 	{
+		line.ascent = line.descent = 0;
+		// Can happen when inserting a new line at end of text, WTF!
+		if (line.firstRun >= runs.length())
+			return;
 		const CharStyle& cStyle(runs[line.firstRun].style());
 		double scaleV = cStyle.scaleV() / 1000.0;
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
@@ -2931,6 +2935,7 @@ void PageItem_TextFrame::layout()
 				outs = false;
 				current.addLine = false;
 				current.lastInRowLine = false;
+				// WTF does i+1 mean here, what if i is the last run we have!
 				current.startLine(i+1);
 				if (goNoRoom)
 				{
