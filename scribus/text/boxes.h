@@ -191,9 +191,9 @@ class ObjectBox : public Box
 	CharStyle m_style;
 
 public:
-	ObjectBox(PageItem* item, CharStyle style)
-		: m_item(item)
-		, m_style(style)
+	ObjectBox(const GlyphRun& run)
+		: m_item(run.object())
+		, m_style(run.style())
 	{
 		m_type = T_Object;
 	}
