@@ -770,45 +770,37 @@ struct LineControl {
 		result->colLeft = line.colLeft;
 
 		int runCount = line.lastRun - line.firstRun + 1;
-
 		for (int i = 0; i < runCount; ++i)
 		{
-			GlyphRun run = glyphRuns.at(i);
-			if (run.object())
-				addObjectBox(result, run);
-			else
-				addGlyphBox(result, run);
+			addBox(result, glyphRuns.at(i));
 		}
 
 		return result;
 	}
 
-	void addGlyphBox(LineBox *lineBox, const GlyphRun& run)
+	void addBox(LineBox *lineBox, const GlyphRun& run)
 	{
-		GlyphBox* result = new GlyphBox(run);
+		Box* result;
+		if (run.object())
+		{
+			result = new ObjectBox(run);
+			result->setAscent(run.object()->height() - run.object()->lineWidth());
+			result->setDescent(0);
+		}
+		else
+		{
+			result = new GlyphBox(run);
+			result->setAscent(lineBox->ascent());
+			result->setDescent(lineBox->descent());
+		}
 		result->setWidth(run.width());
-		result->setAscent(lineBox->ascent());
-		result->setDescent(lineBox->descent());
 		if (!lineBox->boxes().isEmpty())
 		{
 			Box* last = lineBox->boxes().last();
 			result->moveBy(last->x() + last->width(), 0);
 		}
 		lineBox->addBox(result);
-	}
 
-	void addObjectBox(LineBox *lineBox, const GlyphRun& run )
-	{
-		ObjectBox* result = new ObjectBox(run.object(), run.style());
-		result->setWidth(run.width());
-		result->setAscent(run.object()->height() - run.object()->lineWidth());
-		result->setDescent(0);
-		if (!lineBox->boxes().isEmpty())
-		{
-			Box* last = lineBox->boxes().last();
-			result->moveBy(last->x() + last->width(), 0);
-		}
-		lineBox->addBox(result);
 	}
 
 private:
