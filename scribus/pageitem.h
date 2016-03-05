@@ -57,7 +57,6 @@ for which a new license (GPL+exception) is in place.
 
 class QFrame;
 class QGridLayout;
-class GlyphRun;
 class ResourceCollection;
 class ScPainter;
 class ScribusDoc;
