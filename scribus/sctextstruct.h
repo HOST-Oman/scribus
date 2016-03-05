@@ -69,9 +69,6 @@ struct SCRIBUS_API GlyphLayout {
 	GlyphLayout() : xadvance(0.0f), yadvance(0.0f), xoffset(0.0f), yoffset(0.0f),
 		scaleV(1.0), scaleH(1.0), glyph(0) //, more(NULL)
 	{ }
-	GlyphLayout(const GlyphLayout& o) : xadvance(o.xadvance), yadvance(o.yadvance), xoffset(o.xoffset), yoffset(o.yoffset),
-		scaleV(o.scaleH), scaleH(o.scaleV), glyph(o.glyph) //, more(NULL)
-	{ }
 //	virtual ~GlyphLayout()
 //	{ }
 //	double wide() const 
@@ -128,15 +125,6 @@ public:
 		, m_firstChar(first)
 		, m_lastChar(last)
 		, m_object(o)
-	{}
-
-	GlyphRun(const GlyphRun& other) :
-		m_style(other.m_style),
-		m_flags(other.m_flags),
-		m_glyphs(other.m_glyphs),
-		m_firstChar(other.m_firstChar),
-		m_lastChar(other.m_lastChar),
-		m_object(other.m_object)
 	{}
 
 	const CharStyle&         style()  const { return *m_style; }
