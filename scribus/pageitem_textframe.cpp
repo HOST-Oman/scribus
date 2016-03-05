@@ -2437,8 +2437,8 @@ void PageItem_TextFrame::layout()
 					if (!SpecialChars::isBreak(currentCh, Cols > 1))
 					{
 						//force line end at previouse glyph
-						a--;
 						i--;
+						a = glyphRuns[i].firstChar();
 						current.mustLineEnd = current.line.x;
 					}
 					current.breakLine(glyphRuns, style, firstLineOffset(), i);
@@ -2548,8 +2548,8 @@ void PageItem_TextFrame::layout()
 					}
 					if (current.breakIndex < 0)
 					{
-						a--;
 						i--;
+						a = glyphRuns[i].firstChar();
 						current.breakLine(glyphRuns, style, firstLineOffset(), i);
 					}
 					//check if after overflow text can be placed
