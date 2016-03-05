@@ -2736,8 +2736,8 @@ void PageItem_TextFrame::layout()
 						i = current.breakIndex;
 						a = glyphRuns[i].firstChar();
 					}
-					assert( a >= 0 );
-					assert( a < itemText.length() );
+					assert( i >= 0 );
+					assert( i < glyphRuns.length() );
 					//glyphs = itemText.getGlyphs(a);
 					current.isEmpty = (i - current.line.firstRun + 1) == 0;
 					if (current.addLine)
