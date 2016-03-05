@@ -16,13 +16,12 @@ for which a new license (GPL+exception) is in place.
 
 qreal GlyphRun::width() const
 {
-    qreal width=0;
-    for (int i=0; i<m_glyphs.count();i++)
-    {
-        GlyphLayout gl = m_glyphs[i];
+	qreal width = 0;
+	foreach (const GlyphLayout gl, m_glyphs)
+	{
 		width += gl.xadvance * gl.scaleH;
-    }
-    return width;
+	}
+	return width;
 }
 
 void GlyphRun::insertSoftHyphen()
