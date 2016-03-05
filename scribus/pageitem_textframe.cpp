@@ -821,7 +821,7 @@ static void fillInTabLeaders(LineControl & current)
 	// fill in tab leaders
 	for(int i = 0; i < current.glyphRuns.count(); i++)
 	{
-		GlyphRun& glyphRun(current.glyphRuns[i]);
+		GlyphRun& glyphRun = current.glyphRuns[i];
 		CharStyle charStyle(glyphRun.style());
 		if (glyphRun.hasFlag(ScLayout_TabLeaders))
 		{
@@ -832,7 +832,7 @@ static void fillInTabLeaders(LineControl & current)
 			glyphRun.glyphs().clear();
 			for(int cx = 0; cx < count; ++cx)
 			{
-				GlyphLayout more(tglyph);
+				GlyphLayout more = tglyph;
 				more.xadvance = width / count;
 				glyphRun.glyphs().append(more);
 			}
@@ -913,7 +913,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 
 	for (int i = 0; i < runCount; ++i)
 	{
-		GlyphRun glyphrun(curr.glyphRuns[i]);
+		GlyphRun glyphrun = curr.glyphRuns[i];
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
 			glyphNatural += glyphrun.width();
@@ -989,10 +989,10 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 
 	for (int i = startItem; i < runCount; ++i)
 	{
-		GlyphRun& glyphrun(curr.glyphRuns[i]);
+		GlyphRun& glyphrun = curr.glyphRuns[i];
 		if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 		{
-			GlyphRun& lastRun(curr.glyphRuns[i-1]);
+			GlyphRun& lastRun = curr.glyphRuns[i-1];
 			lastRun.glyphs().last().xadvance += imSpace;
 		}
 		double wide = glyphrun.width();
@@ -1597,7 +1597,7 @@ void PageItem_TextFrame::layout()
 				continue;
 
 			current.glyphRuns.append(run);
-			GlyphRun& currentRun(current.glyphRuns.last());
+			GlyphRun& currentRun = current.glyphRuns.last();
 
 			int a = currentRun.firstChar();
 			currentCh = itemText.text(a);
@@ -1820,8 +1820,8 @@ void PageItem_TextFrame::layout()
 			}
 //			glyphs->yadvance = 0;
 			
-			GlyphLayout& firstGlyph(currentRun.glyphs().first());
-			GlyphLayout& lastGlyph(currentRun.glyphs().last());
+			GlyphLayout& firstGlyph = currentRun.glyphs().first();
+			GlyphLayout& lastGlyph = currentRun.glyphs().last();
 
 			// apply cjk kerning
 			//TODO: cjk spacing and kerning should be done in layoutGlyphs!
