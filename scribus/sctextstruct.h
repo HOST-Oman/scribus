@@ -140,8 +140,6 @@ public:
 	{}
 
 	const CharStyle&         style()  const { return *m_style; }
-	const LayoutFlags&       flags()  const { return m_flags; }
-	LayoutFlags&             flags()        { return m_flags; }
 	bool       hasFlag(LayoutFlags f) const { return (m_flags & f) == f; }
 	void       setFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags | f); }
 	void     clearFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags & ~f); }
