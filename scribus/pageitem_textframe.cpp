@@ -1367,7 +1367,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 			run.setFlag(ScLayout_ExpandingSpace);
 
 		GlyphLayout* layout = new GlyphLayout();
-		layoutGlyphs(run.style(), QString(ch), run.flags(), *layout);
+		layoutGlyphs(run.style(), QString(ch), itemText.flags(a), *layout);
 
 		if (!run.glyphs().isEmpty())
 		{
