@@ -54,7 +54,6 @@ enum LayoutFlags {
 
 /**
  * This struct stores a positioned glyph. This is the result of the layout process.
- * If a char gets translated to more than one glyph, a linked list is built.
  */
 struct SCRIBUS_API GlyphLayout {
 	float xadvance;
@@ -64,48 +63,11 @@ struct SCRIBUS_API GlyphLayout {
 	double scaleV;
 	double scaleH;
 	uint glyph;
-//	GlyphLayout* more;
 	
 	GlyphLayout() : xadvance(0.0f), yadvance(0.0f), xoffset(0.0f), yoffset(0.0f),
 		scaleV(1.0), scaleH(1.0), glyph(0) //, more(NULL)
 	{ }
-//	virtual ~GlyphLayout()
-//	{ }
-//	double wide() const 
-//	{ 
-//		double ret = 0; 
-//		for(const GlyphLayout* p=this; p; p=p->more) 
-//			ret += p->xadvance; 
-//		return ret; 
-//	}
-//	GlyphLayout* last() 
-//	{ 
-//		if (more) 
-//			return more->last();
-//		else 
-//			return this;
-//	}
-//	void shrink()
-//	{
-//		if (more) {
-//			more->shrink();
-//			delete more;
-//			more = NULL;
-//		}
-//	}
-//	void grow()
-//	{
-//		if (!more) {
-//			more = new GlyphLayout();
-//		}
-//	}
-//	virtual void growWithTabLayout();
 };
-
-//struct SCRIBUS_API TabLayout : public GlyphLayout
-//{
-//	QChar fillChar;
-//};
 
 
 class GlyphRun
@@ -117,7 +79,6 @@ class GlyphRun
 	int m_lastChar;
 	PageItem* m_object;
 
-	
 public:
 	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o)
 		: m_style(style)
@@ -140,42 +101,25 @@ public:
 	void insertSoftHyphen();
 	void removeSoftHyphen();
 	PageItem* object()				const	{ return m_object; }
-	
 };
-
-
-
-
-
-
 
 
 class SCRIBUS_API ScText : public CharStyle
 {
 public:
 	ParagraphStyle* parstyle; // only for parseps
-//	GlyphLayout glyph;
 	int embedded;
 	Mark* mark;
 	QChar ch;
 	ScText() :
 		CharStyle(),
-		parstyle(NULL), // glyph(),
+		parstyle(NULL),
 		embedded(0), mark(NULL), ch() {}
 	ScText(const ScText& other) :
 		CharStyle(other),
-		parstyle(NULL), // glyph(other.glyph),
+		parstyle(NULL),
 		embedded(other.embedded), mark(NULL), ch(other.ch)
 	{
-//		glyph.more = NULL;
-//		GlyphLayout *layout = &glyph;
-//		const GlyphLayout *otherLayout = &other.glyph;
-//		while (otherLayout->more)
-//		{
-//			layout->more = new GlyphLayout(*otherLayout->more);
-//			layout       = layout->more;
-//			otherLayout  = otherLayout->more;
-//		}
 		if (other.parstyle)
 			parstyle = new ParagraphStyle(*other.parstyle);
 		if (other.mark)
