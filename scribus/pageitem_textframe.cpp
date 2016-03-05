@@ -1382,7 +1382,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 
 		if (itemText.hasObject(a))
 		{
-			layout->xadvance = run.width() * layout->scaleH;
+			layout->xadvance = itemText.object(a)->width() + itemText.object(a)->lineWidth();
 		}
 
 		run.glyphs().append(*layout);
@@ -1936,7 +1936,7 @@ void PageItem_TextFrame::layout()
 					firstGlyph.scaleH *= firstGlyph.scaleV;
 					firstGlyph.xoffset -= 0.5; //drop caps are always to far from column left edge
 				}
-				firstGlyph.xadvance = wide;
+				firstGlyph.xadvance = wide / firstGlyph.scaleH;
 				desc = realDesc = 0;
 			}
 			else // !DropCMode
