@@ -1369,9 +1369,9 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		GlyphLayout* gl = new GlyphLayout();
 		layoutGlyphs(run.style(), QString(ch), itemText.flags(a), *gl);
 
-		if (!run.glyphs().isEmpty())
+		if (!glyphRuns.isEmpty())
 		{
-			GlyphLayout& last(run.glyphs().last());
+			GlyphLayout& last = glyphRuns.last().glyphs().last();
 			last.xadvance += run.style().font().glyphKerning(last.glyph, gl->glyph, run.style().fontSize() / 10) * last.scaleH;
 		}
 
