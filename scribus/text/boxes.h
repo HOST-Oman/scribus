@@ -99,7 +99,6 @@ public:
 	}
 	
 	virtual void render(TextLayoutPainter *p, const StoryText& text) const = 0;
-//	virtual void render(ScPainter* p, const RenderOptions& renderOptions) const = 0;
 //	virtual qreal naturalWidth() const { return width(); }
 //	virtual qreal naturalHeight() const { return height(); }
 //	virtual qreal minWidth() const { return width(); }
@@ -110,7 +109,6 @@ public:
 //	virtual void  justifyBlock(qreal width) {}
 
 //	virtual QString toString() const = 0;
-//	virtual void renderPDF(QTextStream &cStr, const QMap<QString, QString>& fontMap) const = 0;
 };
 
 
