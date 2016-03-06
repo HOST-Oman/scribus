@@ -158,7 +158,7 @@ protected:
 	
 	StoryText* m_story;
     PageItem* m_frame;
-	GroupBox* m_lines;
+	GroupBox* m_box;
 	
 	QVector<PathData> m_path;
 	bool m_validLayout;

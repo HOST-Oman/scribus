@@ -131,23 +131,23 @@ TextLayout::TextLayout(StoryText* text, PageItem* frame)
 	m_magicX = 0.0;
 	m_lastMagicPos = -1;
 	
-	m_lines = new GroupBox();
+	m_box = new GroupBox();
 }
 
 TextLayout::~TextLayout()
 {
-	delete m_lines;
+	delete m_box;
 }
 
 
 uint TextLayout::lines() const
 {
-	return m_lines->boxes().count();
+	return m_box->boxes().count();
 }
 
 const LineBox* TextLayout::line(uint i) const
 {
-	return dynamic_cast<const LineBox*>(m_lines->boxes()[i]);
+	return dynamic_cast<const LineBox*>(m_box->boxes()[i]);
 }
 
 const PathData& TextLayout::point(int pos) const
@@ -164,34 +164,33 @@ PathData& TextLayout::point(int pos)
 
 
 void TextLayout::appendLine(const LineBox* ls)
-	{ 
-		assert( ls->firstChar() >= 0 );
-		assert( ls->firstChar() < story()->length() );
-//		assert( ls->lastChar() >= 0 && ls->firstChar() - ls->lastChar() < 1 );
-		assert( ls->lastChar() < story()->length() );
-		m_lines->addBox(ls);
-	}
+{
+	assert( ls->firstChar() >= 0 );
+	assert( ls->firstChar() < story()->length() );
+	assert( ls->lastChar() < story()->length() );
+	m_box->addBox(ls);
+}
 
 // Remove the last line from the list. Used when we need to backtrack on the layouting.
 void TextLayout::removeLastLine ()
 {
-	if (m_lines->boxes().isEmpty()) return;
-	Box* last = m_lines->removeBox(lines() - 1);
+	if (m_box->boxes().isEmpty()) return;
+	Box* last = m_box->removeBox(lines() - 1);
 	delete last;
 }
 
 void TextLayout::render(TextLayoutPainter *p, const StoryText &text)
 {
-     p->save();
-	 m_lines->moveBy(-m_lines->x(), -m_lines->y() + m_lines->descent());
-	 m_lines->render(p, text);
-     p->restore();
+	p->save();
+	m_box->moveBy(-m_box->x(), -m_box->y() + m_box->descent());
+	m_box->render(p, text);
+	p->restore();
 }
 
 void TextLayout::clear() 
 {
-	delete m_lines;
-	m_lines = new GroupBox();
+	delete m_box;
+	m_box = new GroupBox();
 	m_path.clear();
 	if (m_frame->asPathText() != NULL)
 		m_path.resize(story()->length());
@@ -253,7 +252,7 @@ int TextLayout::prevLine(int pos) const
 			return ls2->lastChar();
 		}
 	}
-	return m_lines->firstChar();
+	return m_box->firstChar();
 }
 
 int TextLayout::nextLine(int pos) const
@@ -286,32 +285,32 @@ int TextLayout::nextLine(int pos) const
 			return ls2->lastChar() + 1;
 		}
 	}
-	return m_lines->lastChar();
+	return m_box->lastChar();
 }
 
 int TextLayout::startOfFrame() const
 {
-	return m_lines->firstChar();
+	return m_box->firstChar();
 }
 
 int TextLayout::endOfFrame() const
 {
-	return m_lines->lastChar() + 1;
+	return m_box->lastChar() + 1;
 }
 
 
 int TextLayout::screenToPosition(FPoint coord) const
 {
-	return m_lines->pointToPosition(coord);
+	return m_box->pointToPosition(coord);
 }
 
 
 FRect TextLayout::boundingBox(int pos, uint len) const
 {
 	FRect result;
-	if (m_lines->containsPos(pos))
+	if (m_box->containsPos(pos))
 	{
-		result = m_lines->boundingBox(pos, len);
+		result = m_box->boundingBox(pos, len);
 		if (result.isValid())
 		{
 //			result.moveBy(m_frame->xPos(), m_frame->yPos());
