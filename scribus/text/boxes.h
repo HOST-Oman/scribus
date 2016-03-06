@@ -124,15 +124,14 @@ public:
 	FRect boundingBox(int pos, uint len = 1) const;
 //	QList<const Box*> pathForPos(int pos) const;
 
-	void addBox(const Box* box);
-	Box* addBox(uint i);
-	Box* removeBox(uint i);
+	virtual void addBox(const Box* box);
+	virtual void removeBox(int i);
+
 	void render(TextLayoutPainter *p, const StoryText& text) const;
 //	void justify(const ParagraphStyle& style);
 
 private:
-	Box* m_last;
-	GroupBox* m_lines;
+	void update();
 };
 
 
@@ -146,6 +145,8 @@ public:
 
 	int pointToPosition(FPoint coord) const;
 	bool containsPoint(FPoint coord) const;
+	void addBox(const Box* box);
+	void removeBox(int i);
 	void render(TextLayoutPainter *p, const StoryText& text) const;
 //	void justify(const ParagraphStyle& style);
 	qreal colLeft;
