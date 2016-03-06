@@ -6227,58 +6227,33 @@ void PageItem_TextFrame::setMaxY(double y)
 
 void PageItem_TextFrame::setTextFrameHeight()
 {
-	//ugly hack increasing min frame`s height against strange glyph painting if it is too close of bottom
-	double hackValue = 0.5;
-
 	if (textLayout.lines() <= 0)
 		return;
-	const LineBox *firstLine = textLayout.line(0);
-	const LineBox *lastLine  = textLayout.line(textLayout.lines() -1);
 
-	double y1 = firstLine->y() /*- firstLine.ascent()*/;
-	double y2 = lastLine->y()  + lastLine->descent();
-
-	const ParagraphStyle& firstLineStyle = itemText.paragraphStyle(firstLine->firstChar());
-	if (firstLineStyle.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
-		y1 -= firstLineStyle.lineSpacing();
-	else if (firstLineOffset() == FLOPRealGlyphHeight || firstLineOffset() == FLOPFontAscent)
-		y1 -= firstLine->ascent();
-	else
-		y1 -= firstLineStyle.lineSpacing();
-
-	double newHeight = ceil(y2) + m_textDistanceMargins.bottom() + hackValue;
 	if (NextBox == 0) // Vertical alignment is not used inside a text chain
 	{
-		if (verticalAlign == 1)
-			newHeight -= floor(y1);
-		else if (verticalAlign == 2)
-			newHeight = m_height - floor(y1);
-	}
+		textLayout.box()->moveTo(textLayout.box()->x(), 0);
+		double newHeight = textLayout.box()->height();
 
-	UndoTransaction undoTransaction;
-	if (UndoManager::undoEnabled() && (verticalAlign != 0))
-	{
-		QString unitSuffix = unitGetStrFromIndex(m_Doc->unitIndex());
-		int unitPrecision  = unitGetPrecisionFromIndex(m_Doc->unitIndex());
-		double unitRatio   = m_Doc->unitRatio();
-		QString owString  = QString::number(oldWidth * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
-		QString ohString  = QString::number(oldHeight * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
-		QString nwString  = QString::number(m_width * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
-		QString nhString  = QString::number(m_height * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
-		QString tooltip   = QString(Um::ResizeFromTo).arg(owString).arg(ohString).arg(nwString).arg(nhString);
-		undoTransaction = undoManager->beginTransaction(Um::Selection, Um::ITextFrame, Um::Resize, tooltip, Um::IResize);
-	}
+		UndoTransaction undoTransaction;
+		if (UndoManager::undoEnabled())
+		{
+			QString unitSuffix = unitGetStrFromIndex(m_Doc->unitIndex());
+			int unitPrecision  = unitGetPrecisionFromIndex(m_Doc->unitIndex());
+			double unitRatio   = m_Doc->unitRatio();
+			QString owString  = QString::number(oldWidth * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
+			QString ohString  = QString::number(oldHeight * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
+			QString nwString  = QString::number(m_width * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
+			QString nhString  = QString::number(m_height * unitRatio, 'f', unitPrecision) + " " + unitSuffix;
+			QString tooltip   = QString(Um::ResizeFromTo).arg(owString).arg(ohString).arg(nwString).arg(nhString);
+			undoTransaction = undoManager->beginTransaction(Um::Selection, Um::ITextFrame, Um::Resize, tooltip, Um::IResize);
+		}
 
-	if (verticalAlign != 0)
-	{
-		double newX = m_xPos + floor(y1) * cos(-m_rotation * M_PI / 180 - M_PI / 2);
-		double newY = m_yPos - floor(y1) * sin(-m_rotation * M_PI / 180 - M_PI / 2);
-		setXYPos(newX, newY);
-	}
-	setHeight(newHeight);
+		setHeight(newHeight);
 
-	if (undoTransaction)
-		undoTransaction.commit();
+		if (undoTransaction)
+			undoTransaction.commit();
+	}
 
 	updateClip();
 	invalid = true;
