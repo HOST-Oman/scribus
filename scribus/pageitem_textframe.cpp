@@ -3080,20 +3080,12 @@ void PageItem_TextFrame::layout()
 	MaxChars = itemText.length();
 	if ((verticalAlign > 0) && (NextBox == NULL))
 	{
-		int vertAlign = verticalAlign;
-		double topDist = m_textDistanceMargins.top();
-		double hAdjust = 0;
-		if (verticalAlign == 1)
-			hAdjust = (height() - (m_textDistanceMargins.bottom() + lineCorr) - maxY) / 2.0;
-		else if (verticalAlign == 2)
-			hAdjust = (height() - (m_textDistanceMargins.bottom() + lineCorr) - maxY);
+		double hAdjust = height() - textLayout.box()->height();
 		if (hAdjust > 0)
 		{
-			m_textDistanceMargins.setTop(topDist + hAdjust);
-			verticalAlign = 0;
-			layout();
-			m_textDistanceMargins.setTop(topDist);
-			verticalAlign = vertAlign;
+			if (verticalAlign == 1)
+				hAdjust /= 2;
+			textLayout.box()->moveBy(0, hAdjust);
 		}
 	}
 	invalid = false;
