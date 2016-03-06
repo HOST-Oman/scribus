@@ -150,6 +150,16 @@ const LineBox* TextLayout::line(uint i) const
 	return dynamic_cast<const LineBox*>(m_box->boxes()[i]);
 }
 
+const Box* TextLayout::box() const
+{
+	return m_box;
+}
+
+Box* TextLayout::box()
+{
+	return m_box;
+}
+
 const PathData& TextLayout::point(int pos) const
 {
 	return m_path[pos];
