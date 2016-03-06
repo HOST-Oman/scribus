@@ -26,6 +26,7 @@
 #include "sctextstruct.h"
 
 class StoryText;
+class Box;
 class GroupBox;
 class LineBox;
 
@@ -145,6 +146,8 @@ public:
 	uint lines() const;
 	
 	const LineBox*  line(uint i) const;
+	const Box* box() const;
+	Box* box();
 	const PathData& point(int pos) const;
 	PathData& point(int pos);
 
