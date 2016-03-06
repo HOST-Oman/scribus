@@ -60,50 +60,29 @@ FRect GroupBox::boundingBox(int pos, uint len) const
 
 void GroupBox::addBox(const Box* box)
 {
-	m_boxes.append(const_cast<Box*>(box));
-
-	if (box->firstChar() < m_firstChar)
-		m_firstChar = box->firstChar();
-	if (box->lastChar() > m_lastChar)
-		m_lastChar = box->lastChar();
-
-	if (0 == m_ascent)
-		m_ascent = box->ascent();
-
-	QRectF newRect = box->bbox();
-	newRect.moveTo(box->x() + m_x, box->x() + m_y);
-	newRect = bbox().united(newRect);
-	if (0 == m_y)
-		m_y = newRect.y();
-	if (0 == m_x)
-		m_x = newRect.x();
-	if (0 == m_width)
-		m_width = newRect.width();
-	if (0 == m_descent)
-		m_descent = newRect.height() - m_ascent;
+	boxes().append(const_cast<Box*>(box));
+	update();
 }
 
-Box* GroupBox::addBox(uint i)
-{	m_boxes.removeAt(i);
-	Box* result = m_boxes.at(i);
-	//TODO: recalc bounds;
-	int lastsLastChar = m_last->lastChar();
-	delete m_last;
-	if (m_lines->boxes().isEmpty()) {
-		//clear();
-		return m_lines->boxes().at(i);
-	}
-	// fix lastInFrame
-	if (m_lines->lastChar() != lastsLastChar) return m_lines->boxes().at(i);//fix me
-	m_lastChar = m_lines->boxes().last()->lastChar();
-
-	return result;
-}
-
-Box* GroupBox::removeBox(uint i)
+void GroupBox::removeBox(int i)
 {
-	delete m_lines->boxes().at(i);
-	return m_lines;
+	if (i < 0 || i > boxes().size())
+		return;
+
+	boxes().removeAt(i);
+	update();
+}
+
+void GroupBox::update()
+{
+	m_ascent = m_width = 0;
+	foreach (Box* box, boxes()) {
+		box->moveTo(box->x(), height());
+		m_firstChar = qMin(m_firstChar, box->firstChar());
+		m_lastChar = qMax(m_lastChar, box->lastChar());
+		m_width = qMax(m_width, box->width());
+		m_ascent += box->height();
+	}
 }
 
 #if 0
@@ -158,6 +137,36 @@ void LineBox::render(TextLayoutPainter *p, const StoryText &text) const
 		box->render(p, text);
 	}
 	p->restore();
+}
+
+void LineBox::addBox(const Box* box)
+{
+	m_boxes.append(const_cast<Box*>(box));
+	m_firstChar = qMin(m_firstChar, box->firstChar());
+	m_lastChar = qMax(m_lastChar, box->lastChar());
+
+	if (0 == m_ascent)
+		m_ascent = box->ascent();
+
+	QRectF newRect = box->bbox();
+	newRect.moveTo(box->x() + m_x, box->x() + m_y);
+	newRect = bbox().united(newRect);
+	if (0 == m_y)
+		m_y = newRect.y();
+	if (0 == m_x)
+		m_x = newRect.x();
+	if (0 == m_width)
+		m_width = newRect.width();
+	if (0 == m_descent)
+		m_descent = newRect.height() - m_ascent;
+}
+
+void LineBox::removeBox(int i)
+{
+	if (i < 0 || i > boxes().size())
+		return;
+
+	boxes().removeAt(i);
 }
 
 #if 0

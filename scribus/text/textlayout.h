@@ -148,7 +148,7 @@ public:
 	const PathData& point(int pos) const;
 	PathData& point(int pos);
 
-	void appendLine(const LineBox* ls);
+	void appendLine(LineBox* ls);
 	void removeLastLine ();
 
 	void clear();

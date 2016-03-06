@@ -163,26 +163,26 @@ PathData& TextLayout::point(int pos)
 }
 
 
-void TextLayout::appendLine(const LineBox* ls)
+void TextLayout::appendLine(LineBox* ls)
 {
 	assert( ls->firstChar() >= 0 );
 	assert( ls->firstChar() < story()->length() );
 	assert( ls->lastChar() < story()->length() );
+	// HACK: the ascent set by PageItem_TextFrame::layout()
+	// is useless, we reset it again based on the y position
+	ls->setAscent(ls->y() - m_box->height());
 	m_box->addBox(ls);
 }
 
 // Remove the last line from the list. Used when we need to backtrack on the layouting.
 void TextLayout::removeLastLine ()
 {
-	if (m_box->boxes().isEmpty()) return;
-	Box* last = m_box->removeBox(lines() - 1);
-	delete last;
+	m_box->removeBox(m_box->boxes().count() - 1);
 }
 
 void TextLayout::render(TextLayoutPainter *p, const StoryText &text)
 {
 	p->save();
-	m_box->moveBy(-m_box->x(), -m_box->y() + m_box->descent());
 	m_box->render(p, text);
 	p->restore();
 }
