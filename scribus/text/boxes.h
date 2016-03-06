@@ -50,7 +50,11 @@ public:
 		m_firstChar = 0;
 		m_lastChar = 0;
 	}
-	virtual ~Box() {}
+
+	virtual ~Box()
+	{
+		m_boxes.clear();
+	}
 	
 //	virtual GlyphBox* asGlyphBox() { return NULL; }
 //	virtual const BoxGroup* asBoxGroup()  const { return NULL; }
