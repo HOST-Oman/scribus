@@ -1096,6 +1096,10 @@ private:
 		m_painter->setBrush(fill);
 		ScColorShade stroke(m_item->doc()->PageColors[strokeColor().color], qRound(strokeColor().shade));
 		m_painter->setPen(stroke);
+		if (matrix() != QTransform())
+		{
+			m_painter->setWorldMatrix(matrix() * m_painter->worldMatrix());
+		}
 	}
 
 public:

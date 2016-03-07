@@ -72,6 +72,9 @@ public:
 	virtual void setSelected(bool s);
 	virtual bool selected() const;
 
+	virtual void setMatrix(QTransform);
+	virtual QTransform matrix();
+
 	virtual void drawGlyph(const GlyphLayout gl) = 0;
 	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill) = 0;
 	virtual void drawLine(QPointF start, QPointF end) = 0;
@@ -88,6 +91,7 @@ private:
 		double fontSize;
 		TextLayoutColor strokeColor;
 		TextLayoutColor fillColor;
+		QTransform matrix;
 		double strokeWidth;
 		double x;
 		double y;

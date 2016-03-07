@@ -108,6 +108,16 @@ bool TextLayoutPainter::selected() const
 	return m_stack.top().selected;
 }
 
+void TextLayoutPainter::setMatrix(QTransform matrix)
+{
+	m_stack.top().matrix = matrix;
+}
+
+QTransform TextLayoutPainter::matrix()
+{
+	return m_stack.top().matrix;
+}
+
 void TextLayoutPainter::save()
 {
 	m_stack.push(m_stack.top());

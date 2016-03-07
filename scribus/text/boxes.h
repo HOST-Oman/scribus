@@ -51,6 +51,7 @@ protected:
 	QList<Box*> m_boxes;
 	int m_firstChar;
 	int m_lastChar;
+	QTransform m_matrix;
 
 public:
 	Box()
@@ -96,6 +97,8 @@ public:
 
 	int firstChar() const { return m_firstChar == INT_MAX ? 0 : m_firstChar; }
 	int lastChar() const { return m_lastChar == INT_MIN ? 0 : m_lastChar; }
+
+	virtual void setMatrix(QTransform x) { m_matrix = x; }
 
 //	virtual QList<const Box*> pathForPos(int pos) const = 0;
 //	virtual void justify(const ParagraphStyle& style) {}
