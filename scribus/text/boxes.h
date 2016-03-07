@@ -118,8 +118,8 @@ public:
 	GroupBox()
 	{
 		m_type = T_Block;
-		m_firstChar = 0;
-		m_lastChar = -1;
+		m_firstChar = INT_MAX;
+		m_lastChar = INT_MIN;
 	}
 	
 	int pointToPosition(FPoint coord) const;
