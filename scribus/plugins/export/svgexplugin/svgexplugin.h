@@ -91,7 +91,6 @@ private:
 	QDomElement processLineItem(PageItem *Item, QString trans, QString stroke);
 	QDomElement processImageItem(PageItem *Item, QString trans, QString fill, QString stroke);
 	QDomElement processTextItem(PageItem *Item, QString trans, QString fill, QString stroke);
-	QDomElement processPathTextItem(PageItem *Item, QString trans, QString stroke);
 	QDomElement processInlineItem(PageItem* embItem, QString trans, double scaleH, double scaleV);
 	QString handleGlyph(uint gl, const ScFace font);
 	QDomElement processArrows(PageItem *Item, QDomElement line, QString trans);

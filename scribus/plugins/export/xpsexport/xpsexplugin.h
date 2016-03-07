@@ -82,7 +82,6 @@ private:
 	void processLineItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void processImageItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void processTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
-	void processPathTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void processSymbolItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void processTableItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void paintBorder(const TableBorder &border, const QPointF &start, const QPointF &end, const QPointF &startOffsetFactors, const QPointF &endOffsetFactors, QDomElement &ob);
@@ -105,6 +104,7 @@ private:
 	QString FToStr(double c);
 	QString IToStr(int c);
 	QString MatrixToStr(QTransform &mat);
+	QString MatrixToStr(QTransform &mat, double factor);
 	int hex2int(char hex);
 	bool checkForFallback(PageItem *Item);
 	ScribusDoc* m_Doc;

@@ -341,4 +341,9 @@ void ScreenPainter::setupState(bool rect)
 	m_painter->translate(x(), y());
 	if (scaleH() != 1.0 || scaleV() != 1.0)
 		m_painter->scale(scaleH(), scaleV());
+
+	if (matrix() != QTransform())
+	{
+		m_painter->setWorldMatrix(matrix() * m_painter->worldMatrix());
+	}
 }

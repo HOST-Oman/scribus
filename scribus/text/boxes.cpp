@@ -439,6 +439,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 
 	p->translate(x(), y());
 
+	p->setMatrix(m_matrix);
 
 	if (hasFillColor)
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
@@ -601,9 +602,10 @@ void ObjectBox::render(TextLayoutPainter *p) const
 
 	p->translate(x(), y() - ascent());
 	p->setScale(m_style.scaleH() / 1000.0, m_style.scaleV() / 1000.0);
+	p->setMatrix(m_matrix);
 
 	m_item->setXPos(m_item->gXpos);
-	m_item->setYPos((m_item->gHeight * m_style.scaleV()) + m_item->gYpos);
+	m_item->setYPos((m_item->gHeight * (m_style.scaleV() / 1000.0)) + m_item->gYpos);
 
 	if (m_style.baselineOffset() != 0)
 	{
