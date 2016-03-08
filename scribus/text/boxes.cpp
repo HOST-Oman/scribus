@@ -17,9 +17,9 @@
 #include "sccolorengine.h"
 #include "colorblind.h"
 
-int GroupBox::pointToPosition(FPoint coord) const
+int GroupBox::pointToPosition(QPointF coord) const
 {
-	FPoint rel = coord - FPoint(m_x, m_y);
+	QPointF rel = coord - QPointF(m_x, m_y);
 	foreach (const Box *box, boxes())
 	{
 		if (box->containsPoint(rel))
@@ -32,6 +32,21 @@ int GroupBox::pointToPosition(FPoint coord) const
 	return -1;
 }
 
+QLineF GroupBox::positionToPoint(int pos) const
+{
+	QLineF result;
+	foreach (const Box *box, boxes())
+	{
+		if (box->containsPos(pos))
+		{
+			result = box->positionToPoint(pos);
+		}
+	}
+	if (!result.isNull())
+		result.translate(x(), y());
+	return result;
+}
+
 void GroupBox::render(TextLayoutPainter *p, const StoryText &text) const
 {
 	p->save();
@@ -41,21 +56,6 @@ void GroupBox::render(TextLayoutPainter *p, const StoryText &text) const
 		box->render(p, text);
 	}
 	p->restore();
-}
-
-FRect GroupBox::boundingBox(int pos, uint len) const
-{
-	FRect result;
-	foreach (const Box *box, boxes())
-	{
-		if (box->containsPos(pos))
-		{
-			result = result.unite(box->boundingBox(pos, len));
-		}
-	}
-	if (result.isValid())
-		result.moveBy(x(), -y());
-	return result;
 }
 
 void GroupBox::addBox(const Box* box)
@@ -97,7 +97,7 @@ void GroupBox::justify(const ParagraphStyle& style)
 }
 #endif
 
-int LineBox::pointToPosition(FPoint coord) const
+int LineBox::pointToPosition(QPointF coord) const
 {
 	int position = GroupBox::pointToPosition(coord);
 	if (position < 0)
@@ -114,7 +114,22 @@ int LineBox::pointToPosition(FPoint coord) const
 	return position;
 }
 
-bool LineBox::containsPoint(FPoint coord) const
+QLineF LineBox::positionToPoint(int pos) const
+{
+	QLineF result;
+	foreach (const Box *box, boxes())
+	{
+		if (box->containsPos(pos))
+		{
+			double xPos = x() + box->x();
+			result = QLineF(xPos, y(), xPos, y() + height());
+			break;
+		}
+	}
+	return result;
+}
+
+bool LineBox::containsPoint(QPointF coord) const
 {
 	bool found = Box::containsPoint(coord);
 	if (!found)
@@ -436,7 +451,7 @@ void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
 	p->restore();
 }
 
-int GlyphBox::pointToPosition(FPoint coord) const
+int GlyphBox::pointToPosition(QPointF coord) const
 {
 	qreal relX = coord.x() - m_x;
 	qreal xPos = 0.0;
@@ -478,7 +493,7 @@ void ObjectBox::render(TextLayoutPainter *p, const StoryText& text) const
 	p->restore();
 }
 
-int ObjectBox::pointToPosition(FPoint coord) const
+int ObjectBox::pointToPosition(QPointF coord) const
 {
 	if (x() <= coord.x() && coord.x() <= x() + width())
 	{

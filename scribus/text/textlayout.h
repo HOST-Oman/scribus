@@ -140,8 +140,8 @@ public:
 	int startOfFrame() const;
 	int endOfFrame() const;
 
-	int screenToPosition(FPoint coord) const;
- 	FRect boundingBox(int pos, uint len = 1) const;
+	int pointToPosition(QPointF coord) const;
+	QLineF positionToPoint(int pos) const;
 
 	uint lines() const;
 	
