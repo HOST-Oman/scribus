@@ -244,7 +244,7 @@ int TextLayout::prevLine(int pos) const
 			if (i == 0)
 				return startOfLine(pos);
 			// find current xpos
-			qreal xpos = ls->boundingBox(pos, 1).x();
+			qreal xpos = ls->positionToPoint(pos).x1();
 			if (pos != m_lastMagicPos || xpos > m_magicX)
 				m_magicX = xpos;
 			
@@ -252,7 +252,7 @@ int TextLayout::prevLine(int pos) const
 			// find new cpos
 			for (int j = ls2->firstChar(); j <= ls2->lastChar(); ++j)
 			{
-				xpos = ls2->boundingBox(j,1).x();
+				xpos = ls2->positionToPoint(j).x1();
 				if (xpos > m_magicX) {
 					m_lastMagicPos = j;
 					return j;
@@ -276,7 +276,7 @@ int TextLayout::nextLine(int pos) const
 			if (i+1 == lines())
 				return endOfLine(pos);
 			// find current xpos
-			qreal xpos = ls->boundingBox(pos, 1).x();
+			qreal xpos = ls->positionToPoint(pos).x1();
 
 			if (pos != m_lastMagicPos || xpos > m_magicX)
 				m_magicX = xpos;
@@ -285,7 +285,7 @@ int TextLayout::nextLine(int pos) const
 			// find new cpos
 			for (int j = ls2->firstChar(); j <= ls2->lastChar(); ++j)
 			{
-				xpos = ls2->boundingBox(j, 1).x();
+				xpos = ls2->positionToPoint(j).x1();
 				if (xpos > m_magicX) {
 					m_lastMagicPos = j;
 					return j;
@@ -309,83 +309,52 @@ int TextLayout::endOfFrame() const
 }
 
 
-int TextLayout::screenToPosition(FPoint coord) const
+int TextLayout::pointToPosition(QPointF coord) const
 {
 	return m_box->pointToPosition(coord);
 }
 
 
-FRect TextLayout::boundingBox(int pos, uint len) const
+QLineF TextLayout::positionToPoint(int pos) const
 {
-	FRect result;
-	if (m_box->containsPos(pos))
-	{
-		result = m_box->boundingBox(pos, len);
-		if (result.isValid())
-		{
-//			result.moveBy(m_frame->xPos(), m_frame->yPos());
-			return result;
-		}
-	}
-	
-#if 0
-	LineBox* ls;
-	for (uint i=0; i < lines(); ++i)
-	{
-		ls = line(i);
-		if (ls->lastChar() < pos)
-			continue;
-		if (ls->firstChar() <= pos) {
-			/*
-			//if (ls.lastChar == pos && (item(pos)->effects() & ScLayout_SuppressSpace)  )
-			{
-				if (i+1 < lines())
-				{
-					ls = line(i+1);
-					result.setRect(ls.x, ls.y - ls.ascent, 1, ls.ascent + ls.descent);
-				}
-				else
-				{
-					ls = line(lines()-1);
-					const ParagraphStyle& pstyle(paragraphStyle(pos));
-					result.setRect(ls.x, ls.y + pstyle.lineSpacing() - ls.ascent, 1, ls.ascent + ls.descent);
-				}
-			}
-			else */
-			{
-				qreal xpos = ls.x;
-				for (int j = ls.firstChar; j < pos; ++j)
-				{
-					if (story()->hasObject(j))
-						xpos += (story()->object(j)->width() + story()->object(j)->lineWidth()) * story()->getGlyphs(j)->scaleH;
-					else
-						xpos += story()->getGlyphs(j)->wide();
-				}
-				qreal finalw = 1;
-				if (story()->hasObject(pos))
-					finalw = (story()->object(pos)->width() + story()->object(pos)->lineWidth()) * story()->getGlyphs(pos)->scaleH;
-				else
-					finalw = story()->getGlyphs(pos)->wide();
-				const CharStyle& cs(story()->charStyle(pos));
-				qreal desc = -cs.font().descent(cs.fontSize() / 10.0);
-				qreal asce = cs.font().ascent(cs.fontSize() / 10.0);
-				result.setRect(xpos, ls.y - asce, pos < story()->length()? finalw : 1, desc+asce);
-			}
-			return result;
-		}
-	}
-	
-#endif
-	const ParagraphStyle& pstyle(story()->paragraphStyle(qMin(pos, story()->length()))); // rather the trailing style than a segfault.
-	if (lines() > 0)
-	{
-		const LineBox* ls = line(lines()-1);
-		result.setRect(ls->x(), ls->y() + pstyle.lineSpacing() - ls->ascent(), 1, ls->height());
-	}
-	else
-	{
-		result.setRect(1, 1, 1, pstyle.lineSpacing());
-	}
+	QLineF result;
 
+	result = m_box->positionToPoint(pos);
+	if (result.isNull())
+	{
+		qreal x, y1, y2;
+		if (lines() > 0)
+		{
+			// last glyph box in last line
+			Box* line = m_box->boxes().last();
+			Box* glyph = line->boxes().last();
+			QChar ch = story()->text(glyph->lastChar());
+			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
+			{
+				// last character is a newline, draw the cursor on the next line.
+				x = dynamic_cast<LineBox*>(line)->colLeft + 1;
+				y1 = line->y() + line->height();
+				y2 = y1 + line->height();
+			}
+			else
+			{
+				// draw the cursor at the end of last line.
+				x = line->x() + glyph->x() + glyph->width();
+				y1 = line->y();
+				y2 = y1 + line->height();
+			}
+		}
+		else
+		{
+			// rather the trailing style than a segfault.
+			const ParagraphStyle& pstyle(story()->paragraphStyle(qMin(pos, story()->length())));
+			x = 1;
+			y1 = 0;
+			y2 = pstyle.lineSpacing();
+		}
+		result.setLine(x, y1, x, y2);
+		result.translate(m_box->x(), m_box->y());
+	}
+	
 	return result;
 }
