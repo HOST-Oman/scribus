@@ -1662,7 +1662,7 @@ bool ScribusView::slotSetCurs(int x, int y)
 			textFrame->itemText.setCursorPosition(0);
 		else
 		{
-			int result = textFrame->textLayout.screenToPosition(point);
+			int result = textFrame->textLayout.pointToPosition(point.toQPointF());
 			if (result >= 0)
 				textFrame->itemText.setCursorPosition(result);
 		}

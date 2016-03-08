@@ -79,13 +79,12 @@ public:
 	void setDescent(double d) { m_descent = d; }
 
 	QRectF bbox() const { return QRectF(m_x, m_y, m_width, height()); }
-	/// returns the bounding box relative to (m_x, m_y)
-	virtual FRect boundingBox(int pos, uint len = 1) const = 0;
 
-	virtual bool containsPoint(FPoint coord) const { return bbox().contains(coord.toQPointF()); }
+	virtual bool containsPoint(QPointF coord) const { return bbox().contains(coord); }
 	bool containsPos(int pos) const { return firstChar() <= pos && pos <= lastChar(); }
 	/// returns a char position for the point coord + (m_x, m_y)
-	virtual int pointToPosition(FPoint coord) const = 0;
+	virtual int pointToPosition(QPointF coord) const = 0;
+	virtual QLineF positionToPoint(int pos) const { return QLineF(); }
 
 	int firstChar() const { return m_firstChar; }
 	int lastChar() const { return m_lastChar; }
@@ -122,8 +121,8 @@ public:
 		m_lastChar = INT_MIN;
 	}
 	
-	int pointToPosition(FPoint coord) const;
-	FRect boundingBox(int pos, uint len = 1) const;
+	int pointToPosition(QPointF coord) const;
+	QLineF positionToPoint(int pos) const;
 //	QList<const Box*> pathForPos(int pos) const;
 
 	virtual void addBox(const Box* box);
@@ -145,8 +144,9 @@ public:
 		m_type = T_Line;
 	}
 
-	int pointToPosition(FPoint coord) const;
-	bool containsPoint(FPoint coord) const;
+	int pointToPosition(QPointF coord) const;
+	QLineF positionToPoint(int pos) const;
+	bool containsPoint(QPointF coord) const;
 	void addBox(const Box* box);
 	void removeBox(int i);
 	void render(TextLayoutPainter *p, const StoryText& text) const;
@@ -168,19 +168,9 @@ public:
 		m_width = run.width();
 	}
 
-	FRect boundingBox(int pos, uint len = 1) const
-	{
-		FPoint topLeft(bbox().x(), bbox().y());
-		FSize size(bbox().width(), bbox().height());
-		FRect newbox(topLeft, size);
-
-		return newbox;
-	}
-
 //	QList<const Box*> pathForPos(int pos) const;
 	void render(TextLayoutPainter *p, const StoryText& text) const;
-	int pointToPosition(FPoint coord) const;
-
+	int pointToPosition(QPointF coord) const;
 	GlyphRun glyphRun() const { return m_glyphRun; }
 	ScFace font() const { return m_glyphRun.style().font(); }
 
@@ -203,14 +193,7 @@ public:
 	}
 
 	void render(TextLayoutPainter *p, const StoryText& text) const;
-	FRect boundingBox(int pos, uint len = 1) const
-	{
-		FPoint topLeft(bbox().x(), bbox().y());
-		FSize size(bbox().width(), bbox().height());
-		FRect newbox(topLeft, size);
+	int pointToPosition(QPointF coord) const;
 
-		return newbox;
-	}
-	int pointToPosition(FPoint coord) const;
 };
 #endif /* defined(__Scribus__boxes__) */
