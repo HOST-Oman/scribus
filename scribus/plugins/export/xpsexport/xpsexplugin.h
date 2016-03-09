@@ -60,6 +60,8 @@ class XPSExPlug : public QObject
 {
     Q_OBJECT
 
+    friend class XPSPainter;
+
 public:
 	/*!
 	\author Franz Schmid
@@ -89,7 +91,7 @@ private:
 	void processSymbolStroke(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void processArrows(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void drawArrow(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, FPointArray &arrow);
-	QString embedFont(const ScFace *font, QDomElement &rel_root);
+	QString embedFont(const ScFace font, QDomElement &rel_root);
 	void GetMultiStroke(struct SingleLine *sl, QDomElement &parentElem);
 	void getStrokeStyle(PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, double xOffset, double yOffset, bool forArrow = false);
 	void getFillStyle(PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, double xOffset, double yOffset, bool withTransparency = true);
