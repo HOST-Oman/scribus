@@ -325,6 +325,7 @@ QLineF TextLayout::positionToPoint(int pos) const
 		qreal x, y1, y2;
 		if (lines() > 0)
 		{
+			// TODO: move this branch to GroupBox::positionToPoint()
 			// last glyph box in last line
 			Box* line = m_box->boxes().last();
 			Box* glyph = line->boxes().last();
