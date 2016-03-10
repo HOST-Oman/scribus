@@ -71,6 +71,7 @@ for which a new license (GPL+exception) is in place.
 #include "sccolor.h"
 #include "sccolorengine.h"
 #include "scfonts.h"
+#include "text/textlayoutpainter.h"
 #include "fonts/cff.h"
 #include "fonts/sfnt.h"
 #include "scpage.h"

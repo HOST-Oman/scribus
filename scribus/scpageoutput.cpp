@@ -31,6 +31,7 @@ for which a new license (GPL+exception) is in place.
 #include "scimage.h"
 #include "scpage.h"
 #include "scpattern.h"
+#include "text/textlayoutpainter.h"
 
 #include "scribusdoc.h"
 #include "util.h"

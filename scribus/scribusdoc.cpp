@@ -96,6 +96,7 @@ for which a new license (GPL+exception) is in place.
 #include "selection.h"
 #include "serializer.h"
 #include "tableborder.h"
+#include "text/textlayoutpainter.h"
 #include "ui/hruler.h"
 #include "ui/layers.h"
 #include "ui/mark2item.h"
