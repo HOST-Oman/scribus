@@ -2557,9 +2557,9 @@ void PageItem::SetQColor(QColor *tmp, QString colorName, double shad)
     sets xadvance to the advance width without kerning. If more than one glyph
     is generated, kerning is included in all but the last xadvance.
 */
-double PageItem::layoutGlyphs(const CharStyle& style, const QString& chars, LayoutFlags flags, GlyphLayout& layout)
+GlyphLayout PageItem::layoutGlyphs(const CharStyle& style, const QString& chars, LayoutFlags flags)
 {
-	double retval = 0.0;
+	GlyphLayout gl;
 	const ScFace font = style.font();
 	double asce = font.ascent(style.fontSize() / 10.0);
 	int chst = style.effects() & ScStyle_UserStyles;
@@ -2578,36 +2578,34 @@ double PageItem::layoutGlyphs(const CharStyle& style, const QString& chars, Layo
 	}
 	else */
 	{
-		layout.glyph = font.char2CMap(chars[0].unicode());
+		gl.glyph = font.char2CMap(chars[0].unicode());
 	}
 	double tracking = 0.0;
 	if ( (flags & ScLayout_StartOfLine) == 0)
 		tracking = style.fontSize() * style.tracking() / 10000.0;
 
-	layout.xoffset = tracking;
-	layout.yoffset = 0;
+	gl.xoffset = tracking;
+	gl.yoffset = 0;
 	if (chst != ScStyle_Default)
 	{
 		if (chst & ScStyle_Superscript)
 		{
-			retval -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
-			layout.yoffset -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
-			layout.scaleV = layout.scaleH = qMax(m_Doc->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+			gl.yoffset -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
+			gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
 		}
 		else if (chst & ScStyle_Subscript)
 		{
-			retval += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
-			layout.yoffset += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
-			layout.scaleV = layout.scaleH = qMax(m_Doc->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
+			gl.yoffset += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
+			gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
 		}
 		else {
-			layout.scaleV = layout.scaleH = 1.0;
+			gl.scaleV = gl.scaleH = 1.0;
 		}
-		layout.scaleH *= style.scaleH() / 1000.0;
-		layout.scaleV *= style.scaleV() / 1000.0;
+		gl.scaleH *= style.scaleH() / 1000.0;
+		gl.scaleV *= style.scaleV() / 1000.0;
 		if (chst & ScStyle_AllCaps)
 		{
-			layout.glyph = font.char2CMap(chars[0].toUpper().unicode());
+			gl.glyph = font.char2CMap(chars[0].toUpper().unicode());
 		}
 		if (chst & ScStyle_SmallCaps)
 		{
@@ -2615,15 +2613,15 @@ double PageItem::layoutGlyphs(const CharStyle& style, const QString& chars, Layo
 			QChar uc = chars[0].toUpper();
 			if (uc != chars[0])
 			{
-				layout.glyph = font.char2CMap(chars[0].toUpper().unicode());
-				layout.scaleV *= smallcapsScale;
-				layout.scaleH *= smallcapsScale;
+				gl.glyph = font.char2CMap(chars[0].toUpper().unicode());
+				gl.scaleV *= smallcapsScale;
+				gl.scaleH *= smallcapsScale;
 			}
 		}
 	}
 	else {
-		layout.scaleH = style.scaleH() / 1000.0;
-		layout.scaleV = style.scaleV() / 1000.0;
+		gl.scaleH = style.scaleH() / 1000.0;
+		gl.scaleV = style.scaleV() / 1000.0;
 	}	
 	
 /*	if (layout.glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBSPACE.unicode())) {
@@ -2642,13 +2640,13 @@ double PageItem::layoutGlyphs(const CharStyle& style, const QString& chars, Layo
 	}
 	else */
 	{
-		layout.xadvance = font.glyphWidth(layout.glyph, style.fontSize() / 10) * layout.scaleH;
-		layout.yadvance = font.glyphBBox(layout.glyph, style.fontSize() / 10).ascent * layout.scaleV;
+		gl.xadvance = font.glyphWidth(gl.glyph, style.fontSize() / 10) * gl.scaleH;
+		gl.yadvance = font.glyphBBox(gl.glyph, style.fontSize() / 10).ascent * gl.scaleV;
 	}
-	if (layout.xadvance > 0)
-		layout.xadvance += tracking;
+	if (gl.xadvance > 0)
+		gl.xadvance += tracking;
 
-	return retval;
+	return gl;
 }
 
 void PageItem::drawGlyphs(ScPainter *p, const CharStyle& style, LayoutFlags flags, GlyphLayout& glyphs)
