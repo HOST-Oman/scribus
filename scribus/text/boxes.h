@@ -53,7 +53,8 @@ public:
 
 	virtual ~Box()
 	{
-		m_boxes.clear();
+		while (!m_boxes.isEmpty())
+			delete m_boxes.takeFirst();
 	}
 	
 //	virtual GlyphBox* asGlyphBox() { return NULL; }
