@@ -44,6 +44,7 @@ public:
 	virtual void end();
 	void clear();
 	virtual void clear( const QColor & );
+	virtual cairo_t* context();
 
 	// matrix manipulation
 	virtual void setWorldMatrix( const QTransform & );
@@ -110,6 +111,7 @@ public:
 	// pen + brush
 	virtual QColor pen();
 	virtual QColor brush();
+	virtual double brushOpacity();
 	virtual void setPen( const QColor & );
 	virtual void setPen( const QColor &c, double w, Qt::PenStyle st, Qt::PenCapStyle ca, Qt::PenJoinStyle jo );
 	virtual void setPenOpacity( double op );
@@ -124,6 +126,7 @@ public:
 	// stack management
 	virtual void save();
 	virtual void restore();
+	virtual int blendModeFill();
 
 
 	virtual void setRasterOp( int blendMode );
