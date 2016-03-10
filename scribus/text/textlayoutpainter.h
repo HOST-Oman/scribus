@@ -55,6 +55,10 @@ public:
         virtual double x();
         virtual double y();
 
+        virtual void scale(double h, double v);
+        virtual double getScaleV();
+        virtual double getScaleH();
+
         virtual void drawGlyph(const GlyphLayout gl, bool selected) = 0;
         virtual void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected) = 0;
         virtual void drawLine(QPointF start, QPointF end) = 0;
@@ -63,9 +67,6 @@ public:
 
         virtual void save();
         virtual void restore();
-        virtual void scale(double h, double v);
-        virtual double getScaleV();
-        virtual double getScaleH();
 
 private:
         struct State
