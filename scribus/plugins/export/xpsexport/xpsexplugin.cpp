@@ -51,6 +51,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribusview.h"
 #include "sctextstruct.h"
 #include "tableutils.h"
+#include "text/textlayoutpainter.h"
 #include "util.h"
 #include "ui/customfdialog.h"
 #include "ui/guidemanager.h"
