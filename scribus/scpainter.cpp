@@ -12,7 +12,6 @@ for which a new license (GPL+exception) is in place.
 #include "util_math.h"
 
 #include <cairo.h>
-#include <cairo-ft.h>
 
 #include <math.h>
 #include <QDebug>
