@@ -76,16 +76,6 @@ double TextLayoutPainter::y()
         return m_state.y;
 }
 
-void TextLayoutPainter::save()
-{
-        m_stack.push(m_state);
-}
-
-void TextLayoutPainter::restore()
-{
-        m_state = m_stack.pop();
-}
-
 void TextLayoutPainter::scale(double h, double v)
 {
         m_state.scaleH = h;
@@ -100,4 +90,14 @@ double TextLayoutPainter::getScaleV()
 double TextLayoutPainter::getScaleH()
 {
         return m_state.scaleH;
+}
+
+void TextLayoutPainter::save()
+{
+        m_stack.push(m_state);
+}
+
+void TextLayoutPainter::restore()
+{
+        m_state = m_stack.pop();
 }
