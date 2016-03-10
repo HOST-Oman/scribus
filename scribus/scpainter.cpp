@@ -181,6 +181,11 @@ void ScPainter::clear( const QColor &c )
 		m_image->fill( qRgba(qRed(cs), qGreen(cs), qBlue(cs), qAlpha(cs)) );
 }
 
+cairo_t *ScPainter::context()
+{
+	return m_cr;
+}
+
 const QTransform ScPainter::worldMatrix()
 {
 	cairo_matrix_t matrix;
@@ -424,6 +429,11 @@ QColor ScPainter::brush()
 	return m_fill;
 }
 
+double ScPainter::brushOpacity()
+{
+	return m_fill_trans;
+}
+
 void ScPainter::setPen( const QColor &c )
 {
 	m_stroke = c;
@@ -493,6 +503,11 @@ void ScPainter::restore()
 	cairo_restore( m_cr );
 	if (!m_zoomStack.isEmpty())
 		m_zoomFactor = m_zoomStack.pop();
+}
+
+int ScPainter::blendModeFill()
+{
+	return m_blendModeFill;
 }
 
 void ScPainter::setRasterOp(int blendMode)
