@@ -59,6 +59,7 @@ extern "C" PLUGIN_API void svgexplugin_freePlugin(ScPlugin* plugin);
 class SVGExPlug : public QObject
 {
     Q_OBJECT
+ friend class SvgPainter;
 
 public:
 	/*!
@@ -92,7 +93,7 @@ private:
 	QDomElement processTextItem(PageItem *Item, QString trans, QString fill, QString stroke);
 	QDomElement processPathTextItem(PageItem *Item, QString trans, QString stroke);
 	QDomElement processInlineItem(double xpos, double ypos, QTransform &finalMat, PageItem* embItem, const CharStyle& cStyle, bool pathT, QString trans);
-	QString handleGlyph(uint chr, const CharStyle& cStyle);
+    QString handleGlyph(uint gl, const ScFace font);
 	QDomElement processArrows(PageItem *Item, QDomElement line, QString trans);
 	QString handleMask(PageItem *Item, double xOffset, double yOffset);
 	QString getFillStyle(PageItem *Item);
