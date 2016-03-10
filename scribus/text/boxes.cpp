@@ -16,6 +16,7 @@
 #include "prefsmanager.h"
 #include "sccolorengine.h"
 #include "colorblind.h"
+#include "textlayoutpainter.h"
 
 int GroupBox::pointToPosition(QPointF coord) const
 {

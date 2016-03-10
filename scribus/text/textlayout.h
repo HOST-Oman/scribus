@@ -29,6 +29,7 @@ class StoryText;
 class Box;
 class GroupBox;
 class LineBox;
+class TextLayoutPainter;
 
 struct PathData
 {
@@ -36,84 +37,6 @@ struct PathData
 	float PtransY;
 	float PRot;
 	float PDx;
-};
-
-struct TextLayoutColor
-{
-	QString color;
-	double shade;
-
-	TextLayoutColor()
-		: color("Black")
-		, shade(100)
-	{ }
-
-	TextLayoutColor(QString c, double s=100)
-		: color(c)
-		, shade(s)
-	{ }
-};
-
-class SCRIBUS_API TextLayoutPainter
-{
-public:
-	TextLayoutPainter() { }
-	virtual ~TextLayoutPainter();
-
-	virtual void setFont(const ScFace font);
-	virtual ScFace font();
-
-	virtual void setFontSize(double size);
-	virtual double fontSize();
-
-	virtual void setStrokeColor(TextLayoutColor c);
-	virtual TextLayoutColor strokeColor();
-
-	virtual void setFillColor(TextLayoutColor c);
-	virtual TextLayoutColor fillColor();
-
-	virtual void setStrokeWidth(double w);
-	virtual double strokeWidth();
-
-	virtual void translate(double x, double y);
-	virtual double x();
-	virtual double y();
-
-	virtual void drawGlyph(const GlyphLayout gl, bool selected) = 0;
-	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected) = 0;
-	virtual void drawLine(QPointF start, QPointF end) = 0;
-	virtual void drawRect(QRectF rect) = 0;
-	virtual void drawObject(PageItem* item) = 0;
-
-	virtual void save();
-	virtual void restore();
-	virtual void scale(double h, double v);
-	virtual double getScaleV();
-	virtual double getScaleH();
-
-private:
-	struct State
-	{
-		ScFace font;
-		double fontSize;
-		TextLayoutColor strokeColor;
-		TextLayoutColor fillColor;
-		double strokeWidth;
-		double x;
-		double y;
-		double scaleV;
-		double scaleH;
-
-		State()
-			: fontSize(0)
-			, strokeWidth(0)
-			, x(0)
-			, y(0)
-		{}
-	};
-
-	State m_state;
-	QStack<State> m_stack;
 };
 
 /**
