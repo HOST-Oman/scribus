@@ -53,6 +53,8 @@ public:
 
 class SCRIBUS_API ScPageOutput
 {
+	friend class ScpageoutputPainter;
+
 public:
 	ScPageOutput(ScribusDoc* doc, bool reloadImages = false, int resolution = 72, bool useProfiles = false);
 	virtual ~ScPageOutput() { }
