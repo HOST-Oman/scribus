@@ -59,6 +59,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribusstructs.h"
 #include "selection.h"
 #include "text/boxes.h"
+#include "text/textlayoutpainter.h"
 #include "ui/guidemanager.h"
 #include "ui/marksmanager.h"
 #include "undomanager.h"

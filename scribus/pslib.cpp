@@ -55,6 +55,7 @@ for which a new license (GPL+exception) is in place.
 #include "scstreamfilter_ascii85.h"
 #include "scstreamfilter_flate.h"
 #include "tableutils.h"
+#include "text/textlayoutpainter.h"
 #include "ui/multiprogressdialog.h"
 #include "util.h"
 #include "util_formats.h"
