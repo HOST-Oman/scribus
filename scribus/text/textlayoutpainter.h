@@ -77,14 +77,16 @@ private:
                 double strokeWidth;
                 double x;
                 double y;
-                double scaleV;
                 double scaleH;
+                double scaleV;
 
                 State()
                         : fontSize(0)
                         , strokeWidth(0)
                         , x(0)
                         , y(0)
+                        , scaleH(1)
+                        , scaleV(1)
                 {}
         };
 
