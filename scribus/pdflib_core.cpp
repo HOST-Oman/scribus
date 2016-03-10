@@ -397,7 +397,7 @@ public:
 
 	void drawLine(QPointF start, QPointF end)
 	{
-		m_pathBuffer += m_pdf->putColor(fillColor().color, fillColor().shade, false);
+		m_pathBuffer += m_pdf->putColor(strokeColor().color, strokeColor().shade, false);
 		m_pathBuffer += FToStr(strokeWidth())+" w\n";
 		m_pathBuffer += FToStr(x() + start.x()) + " " + FToStr(-y() -start.y()) + " m\n";
 		m_pathBuffer += FToStr(x() + end.x()) + " " + FToStr(-y() - end.y()) + " l\n";
