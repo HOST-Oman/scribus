@@ -3210,15 +3210,7 @@ public:
 	TextFramePainter(ScPainter *p, PageItem *item)
 		: m_painter(p)
 		, m_item(item)
-		, m_cairoFace(NULL)
 	{ }
-
-	~TextFramePainter()
-	{
-		if (m_cairoFace != NULL)
-			cairo_font_face_destroy(m_cairoFace);
-		m_cairoFace = NULL;
-	}
 
 	void translate(double xp, double yp)
 	{
@@ -3260,17 +3252,13 @@ public:
 			cairo_set_source_rgba(cr, r, g, b, m_painter->brushOpacity());
 			m_painter->setRasterOp(m_painter->blendModeFill());
 
-			if (m_lastFont != font())
-			{
-				cairo_font_face_destroy(m_cairoFace);
-				m_cairoFace = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
-				m_lastFont = font();
-			}
-			cairo_set_font_face(cr, m_cairoFace);
+			cairo_font_face_t* face = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+			cairo_set_font_face(cr, face);
 			cairo_set_font_size(cr, fontSize());
 			cairo_scale(cr, gl.scaleH, gl.scaleV);
 			cairo_glyph_t glyph = { gl.glyph, 0, 0 };
 			cairo_show_glyphs(cr, &glyph, 1);
+			cairo_font_face_destroy(face);
 
 			m_painter->restore();
 			return;
@@ -3421,8 +3409,6 @@ private:
 
 	ScPainter *m_painter;
 	PageItem *m_item;
-	cairo_font_face_t *m_cairoFace;
-	ScFace m_lastFont;
 };
 
 void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
