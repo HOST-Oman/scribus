@@ -806,25 +806,25 @@ void XPSExPlug::processImageItem(double xOffset, double yOffset, PageItem *Item,
 
 class XPSPainter: public TextLayoutPainter
 {
-	PageItem *m_Item;
+	PageItem *m_item;
 	QDomElement m_group;
 	XPSExPlug *m_xps;
 	QMap<QString, QString> m_fontMap;
-	QDomElement m_rel_root;
+	QDomElement m_relRoot;
 
 public:
 	XPSPainter(PageItem *item, QDomElement &group, XPSExPlug *xps, QMap<QString, QString> XPSfontMap, QDomElement &rel_root):
-		m_Item(item),
+		m_item(item),
 		m_group(group),
 		m_xps(xps),
 		m_fontMap(XPSfontMap),
-		m_rel_root(rel_root)
+		m_relRoot(rel_root)
 	{ }
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
 		if (!m_fontMap.contains(font().replacementName()))
-			m_fontMap.insert(font().replacementName(), m_xps->embedFont(font(), m_rel_root));
+			m_fontMap.insert(font().replacementName(), m_xps->embedFont(font(), m_relRoot));
 
 		QDomElement glyph = m_xps->p_docu.createElement("Glyphs");
 		double size = fontSize() * qMax(gl.scaleV, gl.scaleH) * m_xps->conversionFactor;
@@ -892,7 +892,19 @@ public:
 		m_group.appendChild(path);
 	}
 
-	void drawObject(PageItem* item) {}
+	void drawObject(PageItem* item)
+	{
+		QDomElement canvas = m_xps->p_docu.createElement("Canvas");
+		QTransform matrix = QTransform();
+		matrix.translate(x() * m_xps->conversionFactor, (y() - (item->height() * (getScaleV() / 1000.0))) * m_xps->conversionFactor);
+		if (getScaleH() != 1000)
+			matrix.scale(getScaleH(), 1);
+		if (getScaleV() != 1000)
+			matrix.scale(1, getScaleV());
+		canvas.setAttribute("RenderTransform", m_xps->MatrixToStr(matrix));
+		m_xps->writeItemOnPage(item->gXpos, item->gYpos, item, canvas, m_relRoot);
+		m_group.appendChild(canvas);
+	}
 };
 
 void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)

@@ -58,10 +58,9 @@ extern "C" PLUGIN_API void xpsexplugin_freePlugin(ScPlugin* plugin);
 
 class XPSExPlug : public QObject
 {
-    Q_OBJECT
+	Q_OBJECT
 
-    friend class XPSPainter;
-
+	friend class XPSPainter;
 public:
 	/*!
 	\author Franz Schmid
