@@ -31,7 +31,9 @@ for which a new license (GPL+exception) is in place.
 #include <QPolygon>
 #include <QRegion>
 #include <cairo.h>
+#if CAIRO_HAS_FT_FONT
 #include <cairo-ft.h>
+#endif
 #include <cassert>
 
 #include "actionmanager.h"
@@ -3244,33 +3246,44 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool selected)
 	{
+#if CAIRO_HAS_FT_FONT
+		if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0)
+		{
+			m_painter->save();
+
+			setupState();
+			setSelectionHighlight(selected);
+
+			cairo_t* cr = m_painter->context();
+			double r, g, b;
+			m_painter->brush().getRgbF(&r, &g, &b);
+			cairo_set_source_rgba(cr, r, g, b, m_painter->brushOpacity());
+			m_painter->setRasterOp(m_painter->blendModeFill());
+
+			if (m_lastFont != font())
+			{
+				cairo_font_face_destroy(m_cairoFace);
+				m_cairoFace = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+				m_lastFont = font();
+			}
+			cairo_set_font_face(cr, m_cairoFace);
+			cairo_set_font_size(cr, fontSize());
+			cairo_scale(cr, gl.scaleH, gl.scaleV);
+			cairo_glyph_t glyph = { gl.glyph, 0, 0 };
+			cairo_show_glyphs(cr, &glyph, 1);
+
+			m_painter->restore();
+			return;
+		}
+#endif
 		m_painter->save();
-		bool fr = m_painter->fillRule();
-		m_painter->setFillRule(false);
 
 		setupState();
 		setSelectionHighlight(selected);
 
-#if 1
-		cairo_t* cr = m_painter->context();
-		double r, g, b;
-		m_painter->brush().getRgbF(&r, &g, &b);
-		cairo_set_source_rgba(cr, r, g, b, m_painter->brushOpacity());
-		m_painter->setRasterOp(m_painter->blendModeFill());
+		bool fr = m_painter->fillRule();
+		m_painter->setFillRule(false);
 
-		if (m_lastFont != font())
-		{
-			cairo_font_face_destroy(m_cairoFace);
-			m_cairoFace = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
-			m_lastFont = font();
-		}
-
-		cairo_set_font_face(cr, m_cairoFace);
-		cairo_set_font_size(cr, fontSize());
-		cairo_scale(cr, gl.scaleH, gl.scaleV);
-		cairo_glyph_t glyph = { gl.glyph, 0, 0 };
-		cairo_show_glyphs(cr, &glyph, 1);
-#else
 		m_painter->translate(0, -(fontSize() * gl.scaleV));
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		double scaleH = gl.scaleH * fontSize() / 10.0;
@@ -3279,7 +3292,6 @@ public:
 		m_painter->setupPolygon(&outline, true);
 		if (outline.size() > 3)
 			m_painter->fillPath();
-#endif
 
 		m_painter->setFillRule(fr);
 		m_painter->restore();

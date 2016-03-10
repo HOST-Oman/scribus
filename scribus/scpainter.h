@@ -68,6 +68,7 @@ public:
 	virtual bool fillRule() { return m_fillRule; }
 	virtual void setFillMode( int fill );
 	virtual int  fillMode() { return m_fillMode; }
+	virtual int  maskMode() { return m_maskMode; }
 	virtual void setStrokeMode( int stroke );
 	virtual int  strokeMode() { return m_strokeMode; }
 	virtual void setGradient( VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew);
