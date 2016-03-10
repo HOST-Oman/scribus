@@ -1370,22 +1370,21 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		if (SpecialChars::isExpandingSpace(ch))
 			run.setFlag(ScLayout_ExpandingSpace);
 
-		GlyphLayout* gl = new GlyphLayout();
-		layoutGlyphs(run.style(), QString(ch), itemText.flags(a), *gl);
+		GlyphLayout gl = layoutGlyphs(run.style(), QString(ch), itemText.flags(a));
 
 		if (!glyphRuns.isEmpty())
 		{
 			GlyphLayout& last = glyphRuns.last().glyphs().last();
-			last.xadvance += run.style().font().glyphKerning(last.glyph, gl->glyph, run.style().fontSize() / 10) * last.scaleH;
+			last.xadvance += run.style().font().glyphKerning(last.glyph, gl.glyph, run.style().fontSize() / 10) * last.scaleH;
 		}
 
 		if (SpecialChars::isExpandingSpace(ch))
-			gl->xadvance *= run.style().wordTracking();
+			gl.xadvance *= run.style().wordTracking();
 
 		if (itemText.hasObject(a))
-			gl->xadvance = itemText.object(a)->width() + itemText.object(a)->lineWidth();
+			gl.xadvance = itemText.object(a)->width() + itemText.object(a)->lineWidth();
 
-		run.glyphs().append(*gl);
+		run.glyphs().append(gl);
 
 		glyphRuns.append(run);
 	}
