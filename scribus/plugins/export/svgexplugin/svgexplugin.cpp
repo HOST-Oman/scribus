@@ -56,6 +56,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 #include "text/textlayout.h"
+#include "text/textlayoutpainter.h"
 #include "text/boxes.h"
 int svgexplugin_getPluginAPIVersion()
 {
@@ -1171,12 +1172,12 @@ public:
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
 		QTransform matrix;
-		matrix.translate(x(),y());
+		matrix.translate(x(),y() - (fontSize() * gl.scaleV));
 		matrix.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
 		QDomElement glyph = m_svg->docu.createElement("use");
 		glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
 		glyph.setAttribute("transform", m_svg->MatrixToStr(matrix));
-		QString fill = "fill:"+m_svg->SetColor(fillColor().color, fillColor().shade)+";";
+		QString fill = "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
 		QString stroke = "stroke:none;";
 		glyph.setAttribute("style", fill + stroke);
 		m_ob.appendChild(glyph);
@@ -1185,29 +1186,29 @@ public:
 	void drawGlyphOutline(const GlyphLayout gl, bool hasFill, bool)
 	{
 		QTransform matrix;
-		matrix.translate(x(),y());
+		matrix.translate(x(),y() - (fontSize() * gl.scaleV));
 		matrix.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
 		QDomElement glyph = m_svg->docu.createElement("use");
 		glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
 		glyph.setAttribute("transform", m_svg->MatrixToStr(matrix));
 		QString fill = "fill:none;";
 		if (hasFill)
-			fill = "fill:"+m_svg->SetColor(fillColor().color, fillColor().shade)+";";
-		QString stroke ="stroke:"+m_svg->SetColor(strokeColor().color, strokeColor().shade)+";";
-		stroke += " stroke-width:"+m_svg->FToStr(strokeWidth())+";";
+			fill = "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
+		QString stroke ="stroke:" + m_svg->SetColor(strokeColor().color, strokeColor().shade) + ";";
+		stroke += " stroke-width:" + m_svg->FToStr(strokeWidth()) + ";";
 		glyph.setAttribute("style", fill + stroke);
 		m_ob.appendChild(glyph);
 	}
 
 	void drawLine(QPointF start, QPointF end)
 	{
-		QDomElement glyph =m_svg-> docu.createElement("path");
-		glyph.setAttribute("d", QString("M %1 %2 L%3 %4").arg(x() + start.x()).arg(-y() - start.y()).arg(x() + end.x()).arg(-y() - end.y()));
+		QDomElement glyph = m_svg-> docu.createElement("path");
+		glyph.setAttribute("d", QString("M %1 %2 L%3 %4").arg(x() + start.x()).arg(y() + start.y()).arg(x() + end.x()).arg(y() + end.y()));
 		QString sT = "stroke:none;";
 		if (fillColor().color != CommonStrings::None)
 		{
-			sT = "stroke:"+m_svg->SetColor(fillColor().color, fillColor().shade)+";";
-			sT += " stroke-width:"+m_svg->FToStr(strokeWidth())+";";
+			sT = "stroke:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
+			sT += " stroke-width:" + m_svg->FToStr(strokeWidth()) + ";";
 		}
 		glyph.setAttribute("style", "fill:none;" + sT);
 		m_ob.appendChild(glyph);
@@ -1216,15 +1217,15 @@ public:
 	void drawRect(QRectF rect)
 	{
 		double rectX = x() + rect.x();
-		double rectY = -y() - rect.y();
+		double rectY = y() + rect.y();
 		QString paS = QString("M %1 %2 ").arg(rectX).arg(rectY);
 		paS += QString("L %1 %2 ").arg(rectX + rect.width()).arg(rectY);
 		paS += QString("L %1 %2 ").arg(rectX + rect.width()).arg(rectY + rect.height());
 		paS += QString("L %1 %2 ").arg(rectX).arg(rectY + rect.height());
 		paS += "Z";
-		QDomElement glyph =m_svg-> docu.createElement("path");
+		QDomElement glyph = m_svg-> docu.createElement("path");
 		glyph.setAttribute("d", paS);
-		glyph.setAttribute("style", "fill:"+m_svg->SetColor(fillColor().color, fillColor().shade)+";" + "stroke:none;");
+		glyph.setAttribute("style", "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";" + "stroke:none;");
 		m_ob.appendChild(glyph);
 	}
 	void drawObject(PageItem* item)
@@ -1238,9 +1239,7 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 {
 
 #if 1 // FIXME-HOST
-
 	QDomElement ob;
-
 	ob = docu.createElement("g");
 	ob.setAttribute("transform", trans);
 
@@ -1982,11 +1981,10 @@ QDomElement SVGExPlug::processInlineItem(double xpos, double ypos, QTransform &f
 QString SVGExPlug::handleGlyph(uint gl, const ScFace font)
 {
 
-    QString glName = QString("Gl%1%2").arg(font.psName().simplified().replace(QRegExp("[\\s\\/\\{\\[\\]\\}\\<\\>\\(\\)\\%]"), "_" )).arg(gl);
+	QString glName = QString("Gl%1%2").arg(font.psName().simplified().replace(QRegExp("[\\s\\/\\{\\[\\]\\}\\<\\>\\(\\)\\%]"), "_" )).arg(gl);
 	if (glyphNames.contains(glName))
 		return glName;
-    //uint gl = cStyle.font().char2CMap(chr);
-    FPointArray pts = font.glyphOutline(gl);
+	FPointArray pts = font.glyphOutline(gl);
 	QDomElement ob = docu.createElement("path");
 	ob.setAttribute("d", SetClipPath(&pts, true));
 	ob.setAttribute("id", glName);
