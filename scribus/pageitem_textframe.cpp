@@ -1636,9 +1636,6 @@ void PageItem_TextFrame::layout()
 				if (style.hasBullet() || style.hasNum())
 				{
 					BulNumMode = true;
-// FIXME HOST: check bullets
-//					if (mark == NULL || !mark->isType(MARKBullNumType))
-//						currentRun.setFlag(ScLayout_BulletNum);
 				}
 			}
 
