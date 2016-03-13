@@ -1230,15 +1230,60 @@ public:
 	}
 	void drawObject(PageItem* item)
 	{
+		QDomElement layerGroup = m_svg->docu.createElement("g");
+		QDomElement obE;
+		QString fill = m_svg->getFillStyle(item);
+		QString stroke = "stroke:none";
+		stroke = m_svg->getStrokeStyle(item);
+		switch (item->itemType())
+		{
+		case PageItem::Arc:
+		case PageItem::Polygon:
+		case PageItem::PolyLine:
+		case PageItem::RegularPolygon:
+		case PageItem::Spiral:
+			obE = m_svg->processPolyItem(item, trans, fill, stroke);
+			if ((item->lineColor() != CommonStrings::None) && ((item->startArrowIndex() != 0) || (item->endArrowIndex() != 0)))
+				obE = m_svg->processArrows(item, obE, trans);
+			break;
+		case PageItem::Line:
+			obE = m_svg->processLineItem(item, trans, stroke);
+			if ((item->lineColor() != CommonStrings::None) && ((item->startArrowIndex() != 0) || (item->endArrowIndex() != 0)))
+				obE = m_svg->processArrows(item, obE, trans);
+			break;
+		case PageItem::ImageFrame:
+		case PageItem::LatexFrame:
+			obE = m_svg->processImageItem(item, trans, fill, stroke);
+			break;
+		case PageItem::TextFrame:
+			obE = m_svg->processTextItem(item, trans, fill, stroke);
+			break;
+		case PageItem::PathText:
+			obE = m_svg->processPathTextItem(item, trans, stroke);
+			break;
+		case PageItem::Symbol:
+			obE = m_svg->processSymbolItem(item, trans);
+			break;
+		default:
+			break;
+		}
+		QTransform matrix;
+		matrix.translate(x() + item->gXpos * (getScaleH() / 1000.0), (y() - (item->gHeight * (getScaleV() / 1000.0)) + item->gYpos * (getScaleV() / 1000.0)));
 
+		if (getScaleH() != 1.0)
+			matrix.scale(getScaleH(), 1);
+		if (getScaleV() != 1.0)
+			matrix.scale(1, getScaleV());
+		matrix.rotate(item->rotation());
+		obE.setAttribute("transform", m_svg->MatrixToStr(matrix));
+		layerGroup.appendChild(obE);
+		m_ob.appendChild(layerGroup);
 	}
 
 };
 
 QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fill, QString stroke)
 {
-
-#if 1 // FIXME-HOST
 	QDomElement ob;
 	ob = docu.createElement("g");
 	ob.setAttribute("transform", trans);
@@ -1262,14 +1307,6 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 		}
 	}
 	bool bFound = false;
-	//    for (uint ll=0; ll < Item->textLayout.lines(); ++ll)
-	//    {
-	//        if (Item->itemText.paragraphStyle(Item->textLayout.line(ll).firstItem).backgroundColor() != CommonStrings::None)
-	//        {
-	//            bFound = true;
-	//            break;
-	//        }
-	//    }
 	if (bFound)
 	{
 		QDomElement cl;
@@ -1282,384 +1319,10 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 		if (!ob2.isNull())
 			ob.setAttribute("clip-path", "url(#" + ob2.attribute("id") + ")");
 	}
-	//	double x, y, wide;
-	//	QString chstr;
-	//	uint llp = 0;
-	//	while (llp < Item->textLayout.lines())
-	//	{
-	//		LineSpec ls = Item->textLayout.line(llp++);
-	//		const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(ls.firstItem);
-	//		if (LineStyle.backgroundColor() != CommonStrings::None)
-	//		{
-	//			double y0 = ls.y;
-	//			double y2 = 0;
-	//			double ascent = ls.ascent;
-	//			double descent = ls.descent;
-	//			double rMarg = LineStyle.rightMargin();
-	//			double lMarg = ls.colLeft;
-	//			double adjX = 0;
-	//			if (LineStyle.firstIndent() <= 0)
-	//				adjX += LineStyle.leftMargin() + LineStyle.firstIndent();
-	//			while (llp < Item->textLayout.lines())
-	//			{
-	//				ls = Item->textLayout.line(llp);
-	//				if ((ls.colLeft > lMarg) || (Item->itemText.paragraphStyle(ls.firstItem) != LineStyle))
-	//				{
-	//					if (y2 == 0)
-	//						y2 = y0;+
-	//					break;
-	//				}
-	//				if (Item->itemText.text(ls.lastItem) == SpecialChars::PARSEP)
-	//				{
-	//					y2 = ls.y;
-	//					descent = ls.descent;
-	//					if ((llp + 1) < Item->textLayout.lines())
-	//					{
-	//						if ((Item->textLayout.line(llp + 1).lastItem - Item->textLayout.line(llp + 1).firstItem) > 0)
-	//							descent += LineStyle.lineSpacing() - (ls.descent + Item->textLayout.line(llp + 1).ascent);
-	//					}
-	//					llp++;
-	//					break;
-	//				}
-	//				y2 = ls.y;
-	//				descent = ls.descent;
-	//				if ((llp + 1) < Item->textLayout.lines())
-	//					descent += LineStyle.lineSpacing() - (ls.descent + Item->textLayout.line(llp + 1).ascent);
-	//				llp++;
-	//			}
-	//			QRectF scr(lMarg + adjX, y0 - ascent, Item->asTextFrame()->columnWidth() - adjX - rMarg, y2 - y0 + descent + ascent);
-	//			QString paS = QString("M %1 %2 ").arg(scr.x()).arg(scr.y());
-	//			paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y());
-	//			paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y() + scr.height());
-	//			paS += QString("L %1 %2 ").arg(scr.x()).arg(scr.y() + scr.height());
-	//			paS += "Z";
-	//			QDomElement glyS = docu.createElement("path");
-	//			glyS.setAttribute("d", paS);
-	//			glyS.setAttribute("style", "fill:"+SetColor(LineStyle.backgroundColor(), LineStyle.backgroundShade())+";" + "stroke:none;");
-	//			ob.appendChild(glyS);
-	//		}
-	//	}
-	//	for (uint ll=0; ll < Item->textLayout.lines(); ++ll)
-	//	{
-	//		LineSpec ls = Item->textLayout.line(ll);
-	//		double CurX = ls.x;
 
-	//		double CurXB = ls.x;
-	//		int last = qMin(ls.lastItem, Item->itemText.length() - 1);
-	//		QRectF scr;
-	//		QString oldBack = "";
-	//		double oldShade = 100;
-	//		QString colorB = "";
-	//		for (int a = ls.firstItem; a <= last; ++a)
-	//		{
-	//			const GlyphLayout* glyphs(Item->itemText.getGlyphs(a));
-	//			const CharStyle& charStyle(Item->itemText.charStyle(a));
-	//			if (charStyle.backColor() != CommonStrings::None)
-	//			{
-	//			// This code is for rendering character background co< transform="matrix(1.2 0 0 1.2 0 18)" style="fill:#161413;stroke:none;" xlink:href="#GlAlArabiya100"/lor.
-	//				colorB = SetColor(charStyle.backColor(), charStyle.backShade());
-	//				const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(ls.firstItem);
-	//				double y1 = ls.y;
-	//				double hl = ls.height;
-	//				if (LineStyle.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
-	//					hl = m_Doc->guidesPrefs().valueBaselineGrid;
-	//				else if (LineStyle.lineSpacingMode() == ParagraphStyle::FixedLineSpacing)
-	//					hl = LineStyle.lineSpacing();
-	//				if (ls.isFirstLine)
-	//				{
-	//					if (Item->textLayout.lines() == 1)
-	//						hl = ls.ascent + ls.descent;
-	//					if (LineStyle.hasDropCap() && (a == ls.firstItem))
-	//						hl *= LineStyle.dropCapLines();
-	//					if (LineStyle.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
-	//						y1 -= LineStyle.lineSpacing();
-	//					else if (Item->firstLineOffset() == FLOPRealGlyphHeight || Item->firstLineOffset() == FLOPFontAscent)
-	//						y1 -= ls.ascent;
-	//					else
-	//						y1 -= LineStyle.lineSpacing();
-	//				}
-	//				else
-	//					y1 -= ls.ascent + (hl - (ls.ascent + ls.descent)) / 2.0;
-	//				QRectF scrG;
-	//				if (Item->itemText.hasObject(a))
-	//				{
-	//					PageItem* obj = Item->itemText.object(a);
-	//					double ww = (obj->width() + obj->lineWidth()) * glyphs->scaleH;
-	//					double hh = (obj->height() + obj->lineWidth()) * glyphs->scaleV;
-	//					scrG = QRectF(CurXB, ls.y - hh, ww , hh);
-	//				}
-	//				else
-	//					scrG = QRectF(CurXB, y1, glyphs->wide(), hl);
-	//				if ((oldBack == "") || ((oldBack == charStyle.backColor()) && (oldShade == charStyle.backShade())))
-	//					scr |= scrG;
-	//				else if ((oldBack != charStyle.backColor()) || (oldShade != charStyle.backShade()))
-	//				{
-	//					QString paS = QString("M %1 %2 ").arg(scr.x()).arg(scr.y());
-	//					paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y());
-	//					paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y() + scr.height());
-	//					paS += QString("L %1 %2 ").arg(scr.x()).arg(scr.y() + scr.height());
-	//					paS += "Z";
-	//					QDomElement glyS = docu.createElement("path");
-	//					glyS.setAttribute("d", paS);
-	//					glyS.setAttribute("style", "fill:"+SetColor(oldBack, oldShade)+";" + "stroke:none;");
-	//					ob.appendChild(glyS);
-	//					scr = scrG;
-	//				}
-	//				oldBack = charStyle.backColor();
-	//				oldShade = charStyle.backShade();
-	//				// end background code
-	//			}
-	//			else
-	//			{
-	//				if (!scr.isNull())
-	//				{
-	//					QString paS = QString("M %1 %2 ").arg(scr.x()).arg(scr.y());
-	//					paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y());
-	//					paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y() + scr.height());
-	//					paS += QString("L %1 %2 ").arg(scr.x()).arg(scr.y() + scr.height());
-	//					paS += "Z";
-	//					QDomElement glyS = docu.createElement("path");
-	//					glyS.setAttribute("d", paS);
-	//					glyS.setAttribute("style", "fill:"+colorB+";" + "stroke:none;");
-	//					ob.appendChild(glyS);
-	//				}
-	//				oldBack = "";
-	//				oldShade = 100;
-	//				scr = QRectF();
-	//			}
-	//			CurXB += glyphs->wide();
-	//		}
-	//		if (!scr.isNull())
-	//		{
-	//			QString paS = QString("M %1 %2 ").arg(scr.x()).arg(scr.y());
-	//			paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y());
-	//			paS += QString("L %1 %2 ").arg(scr.x() + scr.width()).arg(scr.y() + scr.height());
-	//			paS += QString("L %1 %2 ").arg(scr.x()).arg(scr.y() + scr.height());
-	//			paS += "Z";
-	//			QDomElement glyS = docu.createElement("path");
-	//			glyS.setAttribute("d", paS);
-	//			glyS.setAttribute("style", "fill:"+colorB+";" + "stroke:none;");
-	//			ob.appendChild(glyS);
-	//		}
-
-	//        for (int a = ls.firstItem; a <= ls.lastItem; ++a)
-	//        {
-	//            x = 0.0;
-	//            y = 0.0;
-	//            //ScText * hl = Item->itemText.item_p(a);
-	//            const CharStyle& charStyle(Item->itemText.charStyle(a));
-	//            const GlyphLayout* glyphs = Item->itemText.getGlyphs(a);
-	//            PageItem* embItem = Item->itemText.hasObject(a)? Item->itemText.object(a) : NULL;
-	//            LayoutFlags flags = Item->itemText.flags(a);
-
-	//            chstr = Item->itemText.text(a,1);
-	//            if ((chstr == QChar(13)) || (chstr == QChar(29)))
-	//            {
-	//                if (chstr == QChar(29))
-	//                    CurX += glyphs->wide();
-	//                continue;
-	//            }
-	//            if (chstr == QChar(30))
-	//            {
-	//                chstr = Item->ExpandToken(a);
-	//                if (chstr == QChar(32))
-	//                {
-	//                    CurX += glyphs->wide();
-	//                    continue;
-	//                }
-	//            }
-	//            double chs = charStyle.fontSize();
-	//            if (charStyle.effects() & ScStyle_SmallCaps)
-	//            {
-	//                if (chstr.toUpper() != chstr)
-	//                {
-	//                    chs = qMax(static_cast<int>(charStyle.fontSize() * m_Doc->typographicPrefs().valueSmallCaps / 100), 1);
-	//                    chstr = chstr.toUpper();
-	//                }
-	//            }
-	//            else if (charStyle.effects() & ScStyle_AllCaps)
-	//                chstr = chstr.toUpper();
-	//            uint chr = chstr[0].unicode();
-	//            QTransform chma, chma2, chma3, chma4, chma6;
-	//            QTransform trafo = QTransform( 1, 0, 0, 1, CurX, ls.y );
-	//            if (Item->rotation() != 0)
-	//            {
-	//                QTransform sca;
-	//                sca.translate(-Item->xPos(), -Item->yPos());
-	//                trafo *= sca;
-	//            }
-	//            chma.scale(glyphs->scaleH * charStyle.fontSize() / 100.00, glyphs->scaleV * charStyle.fontSize() / 100.0);
-	//            if (Item->reversed())
-	//            {
-	//                if (a < Item->itemText.length()-1)
-	//                    wide = charStyle.font().charWidth(chstr[0], charStyle.fontSize(), Item->itemText.text(a+1));
-	//                else
-	//                    wide = charStyle.font().charWidth(chstr[0], charStyle.fontSize());
-	//                chma3.scale(-1, 1);
-	//                chma3.translate(-wide, 0);
-	//            }
-	//            chma4.translate(0, Item->BaseOffs - (charStyle.fontSize() / 10.0) * glyphs->scaleV);
-	//            if (charStyle.effects() & (ScStyle_Subscript | ScStyle_Superscript | ScLayout_DropCap))
-	//                chma6.translate(0, glyphs->yoffset);
-	//            if (charStyle.baselineOffset() != 0)
-	//                chma6.translate(0, (-charStyle.fontSize() / 10.0) * (charStyle.baselineOffset() / 1000.0));
-	//            QTransform finalMat = chma * chma2 * chma3 * chma4 * chma6 * trafo;
-	//            if (Item->rotation() != 0)
-	//            {
-	//                QTransform sca;
-	//                sca.translate(Item->xPos(), Item->yPos());
-	//                finalMat *= sca;
-	//            }
-	//            if (embItem != NULL)
-	//            {
-	//                ob.appendChild(processInlineItem(CurX + glyphs->xoffset, ls.y + glyphs->yoffset, finalMat, embItem, charStyle, false, trans));
-	//                CurX += (embItem->width() + embItem->lineWidth()) * glyphs->scaleH;
-	//            }
-	//            else
-	//            {
-	//                QString glName;
-	//                if (chstr > QChar(32))
-	//					glName = handleGlyph(chr, charStyle);
-	//				if ((charStyle.effects() & ScStyle_Shadowed) && (charStyle.strokeColor() != CommonStrings::None) && (chstr > QChar(32)))
-	//				{
-	//					QTransform sha = finalMat;
-	//					QTransform shad;
-	//					shad.translate(charStyle.fontSize() * charStyle.shadowXOffset() / 10000.0, -charStyle.fontSize() * charStyle.shadowYOffset() / 10000.0);
-	//					sha *= shad;
-	//					QDomElement ob2 = docu.createElement("use");
-	//					ob2.setAttribute("xlink:href", "#" + glName);
-	//					ob2.setAttribute("transform", MatrixToStr(sha));
-	//					ob2.setAttribute("style", "fill:"+SetColor(charStyle.strokeColor(), charStyle.strokeShade())+";" + "stroke:none;");
-	//					ob.appendChild(ob2);
-	//				}
-
-	//				if (((charStyle.effects() & ScStyle_Underline) && !SpecialChars::isBreak(chstr[0]))
-	//					|| ((charStyle.effects() & ScStyle_UnderlineWords) && !chstr[0].isSpace() && !SpecialChars::isBreak(chstr[0])))
-	//				{
-	//					x = CurX;
-	//					y = ls.y;
-	//					double Ulen = glyphs->xadvance;
-	//					double Upos, lw, kern;
-	//					if (flags & ScLayout_StartOfLine)
-	//						kern = 0;
-	//					else
-	//						kern = charStyle.fontSize() * charStyle.tracking() / 10000.0;
-	//					if ((charStyle.underlineOffset() != -1) || (charStyle.underlineWidth() != -1))
-	//					{
-	//						if (charStyle.underlineOffset() != -1)
-	//							Upos = (charStyle.underlineOffset() / 1000.0) * (charStyle.font().descent(charStyle.fontSize() / 10.0));
-	//						else
-	//							Upos = charStyle.font().underlinePos(charStyle.fontSize() / 10.0);
-	//						if (charStyle.underlineWidth() != -1)
-	//							lw = (charStyle.underlineWidth() / 1000.0) * (charStyle.fontSize() / 10.0);
-	//						else
-	//							lw = qMax(charStyle.font().strokeWidth(charStyle.fontSize() / 10.0), 1.0);
-	//					}
-	//					else
-	//					{
-	//						Upos = charStyle.font().underlinePos(charStyle.fontSize() / 10.0);
-	//						lw = qMax(charStyle.font().strokeWidth(charStyle.fontSize() / 10.0), 1.0);
-	//					}
-	//					if (charStyle.baselineOffset() != 0)
-	//						Upos += (charStyle.fontSize() / 10.0) * (charStyle.baselineOffset() / 1000.0);
-	//					QDomElement ob6 = docu.createElement("path");
-	//					if (charStyle.effects() & ScStyle_Subscript)
-	//						ob6.setAttribute("d", QString("M %1 %2 L%3 %4").arg(x + glyphs->xoffset-kern).arg(y + glyphs->yoffset - Upos).arg(x + glyphs->xoffset+Ulen).arg(y + glyphs->yoffset - Upos));
-	//					else
-	//						ob6.setAttribute("d", QString("M %1 %2 L%3 %4").arg(x + glyphs->xoffset-kern).arg(y - Upos).arg(x + glyphs->xoffset+Ulen).arg(y - Upos));
-	//					QString sT = "stroke:none;";
-	//					if (charStyle.fillColor() != CommonStrings::None)
-	//					{
-	//						sT = "stroke:"+SetColor(charStyle.fillColor(), charStyle.fillShade())+";";
-	//						sT += " stroke-width:"+FToStr(lw)+";";
-	//					}
-	//					ob6.setAttribute("style", "fill:none;" + sT);
-	//					ob.appendChild(ob6);
-	//				}
-	//				if (chstr > QChar(32))
-	//				{
-	//					QDomElement ob3 = docu.createElement("use");
-	//					ob3.setAttribute("xlink:href", "#" + glName);
-	//					ob3.setAttribute("transform", MatrixToStr(finalMat));
-	//					QString fT = "fill:"+SetColor(charStyle.fillColor(), charStyle.fillShade())+";";
-	//					QString sT = "stroke:none;";
-	//					if (charStyle.effects() & ScStyle_Outline)
-	//					{
-	//						sT = "stroke:"+SetColor(charStyle.strokeColor(), charStyle.strokeShade())+";";
-	//						sT += " stroke-width:"+FToStr(chs * charStyle.outlineWidth() / 10000.0)+";";
-	//					}
-	//					ob3.setAttribute("style", fT + sT);
-	//					ob.appendChild(ob3);
-	//				}
-	//				if (charStyle.effects() & ScStyle_Strikethrough)
-	//				{
-	//					x = CurX;
-	//					y = ls.y;
-	//					double Ulen = glyphs->xadvance;
-	//					double Upos, lw, kern;
-	//					if (flags & ScLayout_StartOfLine)
-	//						kern = 0;
-	//					else
-	//						kern = charStyle.fontSize() * charStyle.tracking() / 10000.0;
-	//					if ((charStyle.strikethruOffset() != -1) || (charStyle.strikethruWidth() != -1))
-	//					{
-	//						if (charStyle.strikethruOffset() != -1)
-	//							Upos = (charStyle.strikethruOffset() / 1000.0) * (charStyle.font().ascent(charStyle.fontSize() / 10.0));
-	//						else
-	//							Upos = charStyle.font().strikeoutPos(charStyle.fontSize() / 10.0);
-	//						if (charStyle.strikethruWidth() != -1)
-	//							lw = (charStyle.strikethruWidth() / 1000.0) * (charStyle.fontSize() / 10.0);
-	//						else
-	//							lw = qMax(charStyle.font().strokeWidth(charStyle.fontSize() / 10.0), 1.0);
-	//					}
-	//					else
-	//					{
-	//						Upos = charStyle.font().strikeoutPos(charStyle.fontSize() / 10.0);
-	//						lw = qMax(charStyle.font().strokeWidth(charStyle.fontSize() / 10.0), 1.0);
-	//					}
-	//					if (charStyle.baselineOffset() != 0)
-	//						Upos += (charStyle.fontSize() / 10.0) * glyphs->scaleV * (charStyle.baselineOffset() / 1000.0);
-	//					QDomElement ob7 = docu.createElement("path");
-	//					ob7.setAttribute("d", QString("M %1 %2 L%3 %4").arg(x + glyphs->xoffset-kern).arg(y + glyphs->yoffset - Upos).arg(x + glyphs->xoffset+Ulen).arg(y + glyphs->yoffset - Upos));
-	//					QString sT = "stroke:none;";
-	//					if (charStyle.fillColor() != CommonStrings::None)
-	//					{
-	//						sT = "stroke:"+SetColor(charStyle.fillColor(), charStyle.fillShade())+";";
-	//						sT += " stroke-width:"+FToStr(lw)+";";
-	//					}
-	//					ob7.setAttribute("style", "fill:none;" + sT);
-	//					ob.appendChild(ob7);
-	//				}
-	//				CurX += glyphs->wide();
-	//			}
-	//		}
-	//	}
 	SvgPainter *p = new SvgPainter(Item, trans,fill,stroke,this , ob);
 	Item->textLayout.render(p, Item->itemText);
-	//	if (Item->NamedLStyle.isEmpty())
-	//	{
-	//        QDomElement ob4 = docu.createElement("path");
-	//        ob4.setAttribute("d", SetClipPath(&Item->PoLine, true));
-	//        ob4.setAttribute("style", "fill:none; "+stroke);
-	//        if ((!Item->strokePattern().isEmpty()) && (Item->patternStrokePath))
-	//            ob4.appendChild(processSymbolStroke(Item, trans));
-	//        ob.appendChild(ob4);
-	//	}
-	//	else
-	//	{
-	//		multiLine ml = m_Doc->MLineStyles[Item->NamedLStyle];
-	//		for (int it = ml.size()-1; it > -1; it--)
-	//		{
-	//            if ((ml[it].Color != CommonStrings::None) && (ml[it].Width != 0))
-	//            {
-	//                QDomElement ob5 = docu.createElement("path");
-	//                ob5.setAttribute("d", SetClipPath(&Item->PoLine, true));
-	//                ob5.setAttribute("style", "fill:none; "+GetMultiStroke(&ml[it], Item));
-	//                ob.appendChild(ob5);
-	//            }
-	//		}
-	//	}
-#endif
+
 	return ob;
 }
 
@@ -1915,6 +1578,7 @@ QDomElement SVGExPlug::processPathTextItem(PageItem *Item, QString trans, QStrin
 
 QDomElement SVGExPlug::processInlineItem(double xpos, double ypos, QTransform &finalMat, PageItem* embItem, const CharStyle & charStyle, bool pathT, QString trans)
 {
+#if 0
 	QList<PageItem*> emG;
 	if (embItem->isGroup())
 		emG = embItem->getItemList();
@@ -1976,6 +1640,7 @@ QDomElement SVGExPlug::processInlineItem(double xpos, double ypos, QTransform &f
 		layerGroup.appendChild(obE);
 	}
 	return layerGroup;
+#endif
 }
 
 QString SVGExPlug::handleGlyph(uint gl, const ScFace font)
