@@ -3261,11 +3261,21 @@ public:
 			cairo_font_face_t* face = cairo_ft_font_face_create_for_pattern(pattern);
 //			cairo_font_face_t* face = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
 
+			cairo_font_options_t* options = cairo_font_options_create();
+			// Use slight hinting to be closer to old Scribus behaviour
+			// We can use CAIRO_HINT_STYLE_NONE to be even more closer, but
+			// slight is a good compromise
+			cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_SLIGHT);
+
 			cairo_set_font_face(cr, face);
 			cairo_set_font_size(cr, fontSize());
+			cairo_set_font_options(cr, options);
+
 			cairo_scale(cr, gl.scaleH, gl.scaleV);
 			cairo_glyph_t glyph = { gl.glyph, 0, 0 };
 			cairo_show_glyphs(cr, &glyph, 1);
+
+			cairo_font_options_destroy(options);
 			cairo_font_face_destroy(face);
 
 			m_painter->restore();
