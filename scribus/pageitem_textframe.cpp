@@ -31,7 +31,7 @@ for which a new license (GPL+exception) is in place.
 #include <QPolygon>
 #include <QRegion>
 #include <cairo.h>
-#if CAIRO_HAS_FT_FONT
+#if CAIRO_HAS_FC_FONT
 #include <cairo-ft.h>
 #endif
 #include <cassert>
@@ -3235,7 +3235,7 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool selected)
 	{
-#if CAIRO_HAS_FT_FONT
+#if CAIRO_HAS_FC_FONT
 		if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0)
 		{
 			m_painter->save();
@@ -3249,7 +3249,18 @@ public:
 			cairo_set_source_rgba(cr, r, g, b, m_painter->brushOpacity());
 			m_painter->setRasterOp(m_painter->blendModeFill());
 
-			cairo_font_face_t* face = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+			// A very ugly hack as we can’t use the font().ftFace() because
+			// Scribus liberally calls FT_Set_CharSize() with all sorts of
+			// crazy values, breaking any subsequent call to the layout
+			// painter.  FIXME: drop the FontConfig dependency here once
+			// Scribus font handling code is made sane!
+			FcPattern *pattern = FcPatternBuild(NULL,
+												FC_FILE, FcTypeString, QFile::encodeName(font().fontFilePath()).data(),
+												FC_INDEX, FcTypeInteger, font().faceIndex(),
+												NULL);
+			cairo_font_face_t* face = cairo_ft_font_face_create_for_pattern(pattern);
+//			cairo_font_face_t* face = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+
 			cairo_set_font_face(cr, face);
 			cairo_set_font_size(cr, fontSize());
 			cairo_scale(cr, gl.scaleH, gl.scaleV);
