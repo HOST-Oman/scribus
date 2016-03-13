@@ -1147,32 +1147,21 @@ QDomElement SVGExPlug::processImageItem(PageItem *Item, QString trans, QString f
 }
 class SvgPainter: public TextLayoutPainter
 {
-	PageItem* Item;
-	GlyphLayout glyphs;
-	QString chstr;
-	QDomElement m_ob;
-	QTransform trafo;
+	QDomElement m_elem;
 	SVGExPlug *m_svg;
-	QString trans;
-	QString fill;
-	QString stroke;
-public:
-	SvgPainter(PageItem *Item,QString trans, QString fill,QString stroke,SVGExPlug *m_svg, QDomElement &ob) :
-		Item(Item),
-		m_ob(ob),
-		trafo(),
-		m_svg(m_svg),
-		trans(trans),
-		fill(fill),
-		stroke(stroke)
-	{}
+	QString m_trans;
 
-	~SvgPainter() {}
+public:
+	SvgPainter(QString trans, SVGExPlug *svg, QDomElement &elem)
+		: m_elem(elem)
+		, m_svg(svg)
+		, m_trans(trans)
+	{}
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
 		QTransform matrix;
-		matrix.translate(x(),y() - (fontSize() * gl.scaleV));
+		matrix.translate(x(), y() - (fontSize() * gl.scaleV));
 		matrix.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
 		QDomElement glyph = m_svg->docu.createElement("use");
 		glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
@@ -1180,13 +1169,13 @@ public:
 		QString fill = "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
 		QString stroke = "stroke:none;";
 		glyph.setAttribute("style", fill + stroke);
-		m_ob.appendChild(glyph);
+		m_elem.appendChild(glyph);
 	}
 
 	void drawGlyphOutline(const GlyphLayout gl, bool hasFill, bool)
 	{
 		QTransform matrix;
-		matrix.translate(x(),y() - (fontSize() * gl.scaleV));
+		matrix.translate(x(), y() - (fontSize() * gl.scaleV));
 		matrix.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
 		QDomElement glyph = m_svg->docu.createElement("use");
 		glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
@@ -1197,21 +1186,21 @@ public:
 		QString stroke ="stroke:" + m_svg->SetColor(strokeColor().color, strokeColor().shade) + ";";
 		stroke += " stroke-width:" + m_svg->FToStr(strokeWidth()) + ";";
 		glyph.setAttribute("style", fill + stroke);
-		m_ob.appendChild(glyph);
+		m_elem.appendChild(glyph);
 	}
 
 	void drawLine(QPointF start, QPointF end)
 	{
-		QDomElement glyph = m_svg-> docu.createElement("path");
-		glyph.setAttribute("d", QString("M %1 %2 L%3 %4").arg(x() + start.x()).arg(y() + start.y()).arg(x() + end.x()).arg(y() + end.y()));
-		QString sT = "stroke:none;";
+		QDomElement path = m_svg-> docu.createElement("path");
+		path.setAttribute("d", QString("M %1 %2 L%3 %4").arg(x() + start.x()).arg(y() + start.y()).arg(x() + end.x()).arg(y() + end.y()));
+		QString stroke = "stroke:none;";
 		if (fillColor().color != CommonStrings::None)
 		{
-			sT = "stroke:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
-			sT += " stroke-width:" + m_svg->FToStr(strokeWidth()) + ";";
+			stroke = "stroke:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
+			stroke += " stroke-width:" + m_svg->FToStr(strokeWidth()) + ";";
 		}
-		glyph.setAttribute("style", "fill:none;" + sT);
-		m_ob.appendChild(glyph);
+		path.setAttribute("style", "fill:none;" + stroke);
+		m_elem.appendChild(path);
 	}
 
 	void drawRect(QRectF rect)
@@ -1223,63 +1212,17 @@ public:
 		paS += QString("L %1 %2 ").arg(rectX + rect.width()).arg(rectY + rect.height());
 		paS += QString("L %1 %2 ").arg(rectX).arg(rectY + rect.height());
 		paS += "Z";
-		QDomElement glyph = m_svg-> docu.createElement("path");
-		glyph.setAttribute("d", paS);
-		glyph.setAttribute("style", "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";" + "stroke:none;");
-		m_ob.appendChild(glyph);
+		QDomElement path = m_svg-> docu.createElement("path");
+		path.setAttribute("d", paS);
+		path.setAttribute("style", "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";" + "stroke:none;");
+		m_elem.appendChild(path);
 	}
+
 	void drawObject(PageItem* item)
 	{
-		QDomElement layerGroup = m_svg->docu.createElement("g");
-		QDomElement obE;
-		QString fill = m_svg->getFillStyle(item);
-		QString stroke = "stroke:none";
-		stroke = m_svg->getStrokeStyle(item);
-		switch (item->itemType())
-		{
-		case PageItem::Arc:
-		case PageItem::Polygon:
-		case PageItem::PolyLine:
-		case PageItem::RegularPolygon:
-		case PageItem::Spiral:
-			obE = m_svg->processPolyItem(item, trans, fill, stroke);
-			if ((item->lineColor() != CommonStrings::None) && ((item->startArrowIndex() != 0) || (item->endArrowIndex() != 0)))
-				obE = m_svg->processArrows(item, obE, trans);
-			break;
-		case PageItem::Line:
-			obE = m_svg->processLineItem(item, trans, stroke);
-			if ((item->lineColor() != CommonStrings::None) && ((item->startArrowIndex() != 0) || (item->endArrowIndex() != 0)))
-				obE = m_svg->processArrows(item, obE, trans);
-			break;
-		case PageItem::ImageFrame:
-		case PageItem::LatexFrame:
-			obE = m_svg->processImageItem(item, trans, fill, stroke);
-			break;
-		case PageItem::TextFrame:
-			obE = m_svg->processTextItem(item, trans, fill, stroke);
-			break;
-		case PageItem::PathText:
-			obE = m_svg->processPathTextItem(item, trans, stroke);
-			break;
-		case PageItem::Symbol:
-			obE = m_svg->processSymbolItem(item, trans);
-			break;
-		default:
-			break;
-		}
-		QTransform matrix;
-		matrix.translate(x() + item->gXpos * (getScaleH() / 1000.0), (y() - (item->gHeight * (getScaleV() / 1000.0)) + item->gYpos * (getScaleV() / 1000.0)));
-
-		if (getScaleH() != 1.0)
-			matrix.scale(getScaleH(), 1);
-		if (getScaleV() != 1.0)
-			matrix.scale(1, getScaleV());
-		matrix.rotate(item->rotation());
-		obE.setAttribute("transform", m_svg->MatrixToStr(matrix));
-		layerGroup.appendChild(obE);
-		m_ob.appendChild(layerGroup);
+		QDomElement layerGroup = m_svg->processInlineItem(item, m_trans, getScaleH(), getScaleV());
+		m_elem.appendChild(layerGroup);
 	}
-
 };
 
 QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fill, QString stroke)
@@ -1287,7 +1230,6 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 	QDomElement ob;
 	ob = docu.createElement("g");
 	ob.setAttribute("transform", trans);
-
 	if ((Item->fillColor() != CommonStrings::None) || (Item->GrType != 0))
 	{
 		if (Item->GrType == 14)
@@ -1311,16 +1253,16 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 	{
 		QDomElement cl;
 		QDomElement ob2 = createClipPathElement(&Item->PoLine, &cl);
-		if (!ob2.isNull())
+			if (!ob2.isNull())
 		{
-			ob2.setAttribute("clipPathUnits", "rSpaceOn");
+			ob2.setAttribute("clipPathUnits", "userSpaceOnUse");
 			ob2.setAttribute("clip-rule", "evenodd");
 		}
 		if (!ob2.isNull())
 			ob.setAttribute("clip-path", "url(#" + ob2.attribute("id") + ")");
 	}
 
-	SvgPainter *p = new SvgPainter(Item, trans,fill,stroke,this , ob);
+	SvgPainter *p = new SvgPainter(trans, this, ob);
 	Item->textLayout.render(p, Item->itemText);
 
 	return ob;
@@ -1576,9 +1518,8 @@ QDomElement SVGExPlug::processPathTextItem(PageItem *Item, QString trans, QStrin
 	return ob;
 }
 
-QDomElement SVGExPlug::processInlineItem(double xpos, double ypos, QTransform &finalMat, PageItem* embItem, const CharStyle & charStyle, bool pathT, QString trans)
+QDomElement SVGExPlug::processInlineItem(PageItem* embItem, QString trans, double scaleH, double scaleV)
 {
-#if 0
 	QList<PageItem*> emG;
 	if (embItem->isGroup())
 		emG = embItem->getItemList();
@@ -1586,8 +1527,6 @@ QDomElement SVGExPlug::processInlineItem(double xpos, double ypos, QTransform &f
 		emG.append(embItem);
 
 	QDomElement layerGroup = docu.createElement("g");
-	if (pathT)
-		layerGroup.setAttribute("transform", MatrixToStr(finalMat));
 	for (int em = 0; em < emG.count(); ++em)
 	{
 		PageItem* embedded = emG.at(em);
@@ -1628,19 +1567,15 @@ QDomElement SVGExPlug::processInlineItem(double xpos, double ypos, QTransform &f
 				break;
 		}
 		QTransform mm;
-		mm.translate(xpos + embedded->gXpos * (charStyle.scaleH() / 1000.0), (ypos - (embedded->gHeight * (charStyle.scaleV() / 1000.0)) + embedded->gYpos * (charStyle.scaleV() / 1000.0)));
-		if (charStyle.baselineOffset() != 0)
-			mm.translate(0, embedded->gHeight * (charStyle.baselineOffset() / 1000.0));
-		if (charStyle.scaleH() != 1000)
-			mm.scale(charStyle.scaleH() / 1000.0, 1);
-		if (charStyle.scaleV() != 1000)
-			mm.scale(1, charStyle.scaleV() / 1000.0);
+		if (scaleH != 1.0)
+			mm.scale(scaleH, 1);
+		if (scaleV != 1.0)
+			mm.scale(1, scaleV);
 		mm.rotate(embedded->rotation());
 		obE.setAttribute("transform", MatrixToStr(mm));
 		layerGroup.appendChild(obE);
 	}
 	return layerGroup;
-#endif
 }
 
 QString SVGExPlug::handleGlyph(uint gl, const ScFace font)
