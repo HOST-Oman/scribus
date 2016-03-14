@@ -136,6 +136,9 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
 		QByteArray FillColor;
@@ -218,6 +221,9 @@ public:
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
 		QByteArray StrokeColor;
 		QByteArray FillColor;
