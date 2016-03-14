@@ -93,6 +93,9 @@ public:
 
 void PSPainter::drawGlyph(const GlyphLayout gl, bool)
 {
+	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		return;
+
 	m_ps->PS_save();
 	m_ps->PS_translate(x(), -(y() - fontSize()));
 	if (gl.scaleH != 1.0)
@@ -110,6 +113,9 @@ void PSPainter::drawGlyph(const GlyphLayout gl, bool)
 
 void PSPainter::drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
 {
+	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		return;
+
 	int h, s, v, k;
 	QVector<double> dum;
 	dum.clear();

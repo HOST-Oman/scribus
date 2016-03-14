@@ -1160,6 +1160,9 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		QTransform matrix;
 		matrix.translate(x(), y() - (fontSize() * gl.scaleV));
 		matrix.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
@@ -1174,6 +1177,9 @@ public:
 
 	void drawGlyphOutline(const GlyphLayout gl, bool hasFill, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		QTransform matrix;
 		matrix.translate(x(), y() - (fontSize() * gl.scaleV));
 		matrix.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);

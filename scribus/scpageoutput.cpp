@@ -1130,6 +1130,9 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		m_painter->save();
 		bool fr = m_painter->fillRule();
 		int fm = m_painter->fillMode();
@@ -1154,6 +1157,9 @@ public:
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		m_painter->save();
 		bool fr = m_painter->fillRule();
 		m_painter->setFillRule(false);
