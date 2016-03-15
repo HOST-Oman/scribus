@@ -19,6 +19,7 @@
 ATTRDEF(double, fontSize, FontSize, 200)
 ATTRDEF(double, fillShade, FillShade, 100)
 ATTRDEF(double, strokeShade, StrokeShade, 100)
+ATTRDEF(QString, fontFeatures, FontFeatures, "")
 ATTRDEF(double, scaleH, ScaleH, 1000)
 ATTRDEF(double, scaleV, ScaleV, 1000)
 ATTRDEF(double, baselineOffset, BaselineOffset, 0)

@@ -181,6 +181,8 @@ QString CharStyle::asString() const
 		result += QObject::tr("font %1 ").arg(font().scName());
 	if ( !inh_FontSize )
 		result += QObject::tr("size %1 ").arg(fontSize());
+	if ( !inh_FontFeatures )
+		result += QObject::tr("+fontfeatures %1 ").arg(fontFeatures());
 	if ( !inh_Features )
 		result += QObject::tr("+style ");
 	if ( !inh_StrokeColor  ||  !inh_StrokeShade  ||  !inh_FillColor || !inh_FillShade )
@@ -381,6 +383,7 @@ void CharStyle::getNamedResources(ResourceCollection& lists) const
 	for (const Style* sty = parentStyle(); sty != NULL; sty = sty->parentStyle())
 		lists.collectCharStyle(sty->name());
 	lists.collectColor(fillColor());
+	lists.collectFontfeatures(fontFeatures());
 	lists.collectColor(strokeColor());
 	lists.collectColor(backColor());
 	lists.collectFont(font().scName());
@@ -393,7 +396,10 @@ void CharStyle::replaceNamedResources(ResourceCollection& newNames)
 	
 	if (!inh_FillColor && (it = newNames.colors().find(fillColor())) != newNames.colors().end())
 		setFillColor(it.value());
-								  
+
+	if (!inh_FontFeatures && (it = newNames.fontfeatures().find(fontFeatures())) != newNames.fontfeatures().end())
+		setFontFeatures(it.value());
+
 	if (!inh_StrokeColor && (it = newNames.colors().find(strokeColor())) != newNames.colors().end())
 		setStrokeColor(it.value());
 
