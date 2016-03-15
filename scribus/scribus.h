@@ -461,6 +461,7 @@ public slots:
 	void SetNewFont(const QString& nf);
 	/** Setz die Zeichensatzgroesse */
 	void setItemFontSize(int fontSize);
+	void setItemFontFeatures(QString fontFeature);
 	/** Color Replacement */
 	void slotReplaceColors();
 	/** Style Manager */

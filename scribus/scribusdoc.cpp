@@ -525,6 +525,7 @@ void ScribusDoc::init()
 	cstyle.setName(CommonStrings::DefaultCharacterStyle);
 	cstyle.setFont(m_appPrefsData.fontPrefs.AvailFonts[m_docPrefsData.itemToolPrefs.textFont]);
 	cstyle.setFontSize(m_docPrefsData.itemToolPrefs.textSize);
+	cstyle.setFontFeatures("");
 	cstyle.setFeatures(QStringList(CharStyle::INHERIT));
 	cstyle.setFillColor(m_docPrefsData.itemToolPrefs.textColor);
 	cstyle.setFillShade(m_docPrefsData.itemToolPrefs.textShade);
@@ -7743,7 +7744,12 @@ void ScribusDoc::itemSelection_SetFont(QString fon, Selection* customSelection)
 	itemSelection_ApplyCharStyle(newStyle, customSelection, "FONT");
 }
 
-
+void ScribusDoc::itemSelection_SetFontFeatures(QString fontfeature, Selection* customSelection)
+{
+	CharStyle newStyle;
+	newStyle.setFontFeatures(fontfeature);
+	itemSelection_ApplyCharStyle(newStyle, customSelection, "FONTFEATURES");
+}
 
 void ScribusDoc::itemSelection_SetNamedCharStyle(const QString& name, Selection* customSelection)
 {

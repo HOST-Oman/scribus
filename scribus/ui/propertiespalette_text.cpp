@@ -92,10 +92,12 @@ PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(paren
 	advancedWidgets = new PropertyWidget_Advanced(textTree);
 	advancedWidgetsItem = textTree->addWidget( tr("Advanced Settings"), advancedWidgets);
 	//>>Advanced Settings
+	opentypefontWidget = new PropertyWidget_OpenTypeFontFeatures(textTree);
+	opentypefontWidgettsItem = textTree->addWidget( tr("Open Type Font Features"), opentypefontWidget);
 
 	pathTextWidgets = new PropertyWidget_PathText(textTree);
 	pathTextItem = textTree->addWidget( tr("Path Text Properties"), pathTextWidgets);
-	
+
 	languageChange();
 
 	connect(lineSpacing   , SIGNAL(valueChanged(double)), this, SLOT(handleLineSpacing()));
@@ -119,6 +121,7 @@ void PropertiesPalette_Text::setMainWindow(ScribusMainWindow* mw)
 	m_ScMW = mw;
 
 	advancedWidgets->setMainWindow(mw);
+	opentypefontWidget->setMainWindow(mw);
 	colorWidgets->setMainWindow(mw);
 	distanceWidgets->setMainWindow(mw);
 	parEffectWidgets->setMainWindow(mw);
@@ -155,6 +158,7 @@ void PropertiesPalette_Text::setDoc(ScribusDoc *d)
 	lineSpacing->setValues( 1, 2048, 2, 1);
 
 	advancedWidgets->setDoc(m_doc);
+	opentypefontWidget->setDoc(m_doc);
 	colorWidgets->setDoc(m_doc);
 	distanceWidgets->setDoc(m_doc);
 	parEffectWidgets->setDoc(m_doc);
@@ -188,6 +192,7 @@ void PropertiesPalette_Text::unsetDoc()
 	charStyleCombo->setDoc(0);
 
 	advancedWidgets->setDoc(0);
+	opentypefontWidget->setDoc(0);
 	colorWidgets->setDoc(0);
 	distanceWidgets->setDoc(0);
 	flopBox->setDoc(0);
@@ -374,6 +379,7 @@ void PropertiesPalette_Text::unitChange()
 	m_haveItem = false;
 
 	advancedWidgets->unitChange();
+	opentypefontWidget->unitChange();
 	colorWidgets->unitChange();
 	distanceWidgets->unitChange();
 	flopBox->unitChange();
@@ -432,6 +438,13 @@ void PropertiesPalette_Text::showFontSize(double s)
 	fontSize->showValue(s / 10.0);
 }
 
+void PropertiesPalette_Text::showFontFeatures(QString s)
+{
+	if (!m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+	opentypefontWidget->showFontFeatures(s);
+}
+
 void PropertiesPalette_Text::showFirstLinePolicy( FirstLineOffsetPolicy f )
 {
 	if(f == FLOPFontAscent)
@@ -473,6 +486,7 @@ void PropertiesPalette_Text::updateCharStyle(const CharStyle& charStyle)
 		return;
 
 	advancedWidgets->updateCharStyle(charStyle);
+	opentypefontWidget->updateCharStyle(charStyle);
 	colorWidgets->updateCharStyle(charStyle);
 
 	showFontFace(charStyle.font().scName());
@@ -487,6 +501,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 	const CharStyle& charStyle = newCurrent.charStyle();
 
 	advancedWidgets->updateStyle(newCurrent);
+	opentypefontWidget->updateStyle(newCurrent);
 	colorWidgets->updateStyle(newCurrent);
 	optMargins->updateStyle(newCurrent);
 	orphanBox->updateStyle (newCurrent);
@@ -502,7 +517,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 	lineSpacingModeCombo->setCurrentIndex(newCurrent.lineSpacingMode());
 	textAlignment->setStyle(newCurrent.alignment());
 	textDirection->setStyle(newCurrent.direction());
-	
+
 	m_haveItem = tmp;
 }
 
@@ -660,6 +675,7 @@ void PropertiesPalette_Text::languageChange()
 	distanceItem->setText(0, tr("Columns && Text Distances"));
 	optMarginsItem->setText(0, tr("Optical Margins"));
 	advancedWidgetsItem->setText(0, tr("Advanced Settings"));
+	opentypefontWidgettsItem->setText(0, tr("Font Features"));
 	pathTextItem->setText(0, tr("Path Text Properties"));
 
 	int oldLineSpacingMode = lineSpacingModeCombo->currentIndex();
@@ -668,7 +684,7 @@ void PropertiesPalette_Text::languageChange()
 	lineSpacingModeCombo->addItem( tr("Automatic Linespacing"));
 	lineSpacingModeCombo->addItem( tr("Align to Baseline Grid"));
 	lineSpacingModeCombo->setCurrentIndex(oldLineSpacingMode);
-	
+
 	QString ptSuffix = tr(" pt");
 	fontSize->setSuffix(ptSuffix);
 	lineSpacing->setSuffix(ptSuffix);
@@ -685,7 +701,7 @@ void PropertiesPalette_Text::languageChange()
 	textDirection->languageChange();
 
 	fontSize->setToolTip( tr("Font Size"));
-	
+
 	lineSpacing->setToolTip( tr("Line Spacing"));
 	lineSpacingModeCombo->setToolTip( tr("Select the line spacing mode") );
 	paraStyleCombo->setToolTip( tr("Paragraph style of currently selected text or paragraph"));

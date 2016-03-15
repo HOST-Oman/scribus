@@ -2443,6 +2443,10 @@ void Scribus150Format::readCharacterStyleAttrs(ScribusDoc *doc, ScXmlStreamAttri
 	if (attrs.hasAttribute(FONTSIZE))
 		newStyle.setFontSize(qRound(attrs.valueAsDouble(FONTSIZE) * 10));
 
+	static const QString FONTFEATURES("FONTFEATURES");
+	if (attrs.hasAttribute(FONTFEATURES))
+		newStyle.setFontFeatures(attrs.valueAsString(FONTFEATURES));
+
 	static const QString FCOLOR("FCOLOR");
 	if (attrs.hasAttribute(FCOLOR))
 		newStyle.setFillColor(attrs.valueAsString(FCOLOR));
@@ -4945,6 +4949,8 @@ PageItem* Scribus150Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 		pstyle.charStyle().setFont(m_AvailableFonts->findFont(attrs.valueAsString("IFONT"), doc));
 	if (attrs.hasAttribute("ISIZE"))
 		pstyle.charStyle().setFontSize(qRound(attrs.valueAsDouble("ISIZE") * 10));
+	if (attrs.hasAttribute("IFONTFEATURE"))
+		pstyle.charStyle().setFontFeatures(attrs.valueAsString("IFONTFEATURE"));
 	if (attrs.hasAttribute("TXTSTROKE"))
 		pstyle.charStyle().setStrokeColor(attrs.valueAsString("TXTSTROKE"));
 	if (attrs.hasAttribute("TXTFILL"))
