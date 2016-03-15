@@ -781,6 +781,8 @@ void Scribus150Format::putCStyle(ScXmlStreamWriter & docu, const CharStyle & sty
 		docu.writeAttribute("FONT", style.font().scName());
 	if ( ! style.isInhFontSize())
 		docu.writeAttribute("FONTSIZE", style.fontSize() / 10.0);
+	if ( ! style.isInhFontFeatures())
+		docu.writeAttribute("FONTFEATURES", style.fontFeatures());
 	if ( ! style.isInhFeatures())
 		docu.writeAttribute("FEATURES", style.features().join(" "));
 	if ( ! style.isInhFillColor())

@@ -22,6 +22,7 @@ for which a new license (GPL+exception) is in place.
 #include "scguardedptr.h"
 #include "sctextstruct.h"
 #include "sctreewidget.h"
+#include "ui/propertywidget_opentypefontfeatures.h"
 
 class PageItem;
 class PropertyWidget_Advanced;
@@ -88,6 +89,7 @@ public slots:
 	void showCharStyle(const QString& name);
 	void showFontFace(const QString&);
 	void showFontSize(double s);
+	void showFontFeatures(QString s);
 	void showFirstLinePolicy(FirstLineOffsetPolicy);
 	void showLineSpacing(double r);
 	void showParStyle(const QString& name);
@@ -124,6 +126,9 @@ protected:
 
 	PropertyWidget_Advanced* advancedWidgets;
 	QTreeWidgetItem* advancedWidgetsItem;
+
+	PropertyWidget_OpenTypeFontFeatures* opentypefontWidget;
+	QTreeWidgetItem* opentypefontWidgettsItem;
 
 	PropertyWidget_OptMargins* optMargins;
 	QTreeWidgetItem* optMarginsItem;
