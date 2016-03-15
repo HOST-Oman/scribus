@@ -1442,6 +1442,7 @@ public slots:
 	void itemSelection_DeleteItem(Selection* customSelection=0, bool forceDeletion=false);
 	void itemSelection_SetItemTextReversed(bool reversed, Selection* customSelection=0);
 	void itemSelection_SetItemFillTransparency(double t);
+	void itemSelection_SetFontFeatures(QString fontfeature, Selection* customSelection=0);
 	void itemSelection_SetItemLineTransparency(double t);
 	void itemSelection_SetItemFillBlend(int t);
 	void itemSelection_SetItemLineBlend(int t);

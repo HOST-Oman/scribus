@@ -178,6 +178,7 @@ SET(SCRIBUS_UI_SRC
 	ui/propertywidget_pathtextbase.ui
 	ui/propertywidget_textcolorbase.ui
 	ui/recoverdialog.ui
+	ui/propertywidget_opentypefontfeatures.ui
 	ui/replacecolors.ui
 	ui/replaceonecolor.ui
 	ui/resourcemanagerbase.ui
@@ -458,7 +459,8 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/propertywidget_optmargins.h
 	ui/propertywidget_orphans.h
 	ui/propertywidget_pathtext.h
-	ui/propertywidget_textcolor.h
+       ui/propertywidget_textcolor.h
+       ui/propertywidget_opentypefontfeatures.h
 	ui/proptree.h
 	ui/query.h
 	ui/recoverdialog.h
@@ -922,7 +924,8 @@ SET(SCRIBUS_SOURCES
 	ui/propertywidget_orphans.cpp
 	ui/propertywidget_pathtext.cpp
 	ui/propertywidget_textcolor.cpp
-	ui/propertywidgetbase.cpp
+       ui/propertywidget_opentypefontfeatures.cpp
+       ui/propertywidgetbase.cpp
 	ui/proptree.cpp
 	ui/query.cpp
 	ui/recoverdialog.cpp
