@@ -4510,6 +4510,9 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		if (!font().replacementName().isEmpty())
 		{
 			FPointArray outline(font().glyphOutline(gl.glyph));

@@ -824,6 +824,9 @@ public:
 
 	void drawGlyph(const GlyphLayout gl, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		if (!m_fontMap.contains(font().replacementName()))
 			m_fontMap.insert(font().replacementName(), m_xps->embedFont(font(), m_relRoot));
 
@@ -843,6 +846,9 @@ public:
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
 	{
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		if (outline.size() >= 4)
 		{
