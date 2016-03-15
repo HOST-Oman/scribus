@@ -44,7 +44,6 @@ TextLayout::~TextLayout()
 	delete m_box;
 }
 
-
 uint TextLayout::lines() const
 {
 	return m_box->boxes().count();
@@ -95,7 +94,7 @@ void TextLayout::removeLastLine ()
 	m_box->removeBox(m_box->boxes().count() - 1);
 }
 
-void TextLayout::render(TextLayoutPainter *p, const StoryText &text)
+void TextLayout::render(TextLayoutPainter *p, StoryText &text)
 {
 	p->save();
 	m_box->render(p, text);
