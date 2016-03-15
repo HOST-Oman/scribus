@@ -98,7 +98,9 @@ public:
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
 	}
 	
-	virtual void render(TextLayoutPainter *p, const StoryText& text) const = 0;
+	virtual void render(TextLayoutPainter *p) const = 0;
+	virtual void render(TextLayoutPainter *p, StoryText& text) const = 0;
+
 //	virtual qreal naturalWidth() const { return width(); }
 //	virtual qreal naturalHeight() const { return height(); }
 //	virtual qreal minWidth() const { return width(); }
@@ -128,8 +130,8 @@ public:
 
 	virtual void addBox(const Box* box);
 	virtual void removeBox(int i);
-
-	void render(TextLayoutPainter *p, const StoryText& text) const;
+	void render(TextLayoutPainter *p, StoryText& text) const;
+	void render(TextLayoutPainter *p) const;
 //	void justify(const ParagraphStyle& style);
 
 private:
@@ -150,8 +152,9 @@ public:
 	bool containsPoint(QPointF coord) const;
 	void addBox(const Box* box);
 	void removeBox(int i);
-	void render(TextLayoutPainter *p, const StoryText& text) const;
+	void render(TextLayoutPainter *p) const;
 //	void justify(const ParagraphStyle& style);
+	void render(TextLayoutPainter *p, StoryText& text) const;
 	qreal colLeft;
 };
 
@@ -170,7 +173,9 @@ public:
 	}
 
 //	QList<const Box*> pathForPos(int pos) const;
-	void render(TextLayoutPainter *p, const StoryText& text) const;
+	void render(TextLayoutPainter *p) const;
+	void render(TextLayoutPainter *p, bool selected) const ;
+	void render(TextLayoutPainter *p, StoryText& text) const;
 	int pointToPosition(QPointF coord) const;
 	GlyphRun glyphRun() const { return m_glyphRun; }
 	ScFace font() const { return m_glyphRun.style().font(); }
@@ -193,7 +198,8 @@ public:
 		m_width = run.width();
 	}
 
-	void render(TextLayoutPainter *p, const StoryText& text) const;
+	void render(TextLayoutPainter *p) const;
+	void render(TextLayoutPainter*, StoryText&) const;
 	int pointToPosition(QPointF coord) const;
 
 };
