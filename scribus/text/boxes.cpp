@@ -48,7 +48,18 @@ QLineF GroupBox::positionToPoint(int pos) const
 	return result;
 }
 
-void GroupBox::render(TextLayoutPainter *p, const StoryText &text) const
+void GroupBox::render(TextLayoutPainter *p) const
+{
+	p->save();
+	p->translate(x(), y());
+	foreach (const Box *box, boxes())
+	{
+		box->render(p);
+	}
+	p->restore();
+}
+
+void GroupBox::render(TextLayoutPainter *p, StoryText& text) const
 {
 	p->save();
 	p->translate(x(), y());
@@ -144,10 +155,36 @@ bool LineBox::containsPoint(QPointF coord) const
 	return found;
 }
 
-void LineBox::render(TextLayoutPainter *p, const StoryText &text) const
+void LineBox::render(TextLayoutPainter *p) const
 {
 	p->save();
 	p->translate(x(), y() + ascent());
+	foreach (const Box *box, boxes())
+	{
+		box->render(p);
+	}
+	p->restore();
+}
+
+void LineBox::render(TextLayoutPainter *p, StoryText& text) const
+{
+	p->save();
+	p->translate(x(), y());
+
+	QRectF selectedFrame;
+	foreach (const Box *box, boxes())
+	{
+		if (text.selected(box->firstChar()) || text.selected(box->lastChar()))
+			selectedFrame |= QRectF(box->x(), 0, box->width(), height());
+	}
+	p->save();
+	TextLayoutColor highlight(qApp->palette().color(QPalette::Active, QPalette::Highlight).name());
+	p->setFillColor(highlight);
+	p->setStrokeWidth(0);
+	p->setStrokeColor(highlight);
+	p->drawRect(selectedFrame);
+	p->restore();
+	p->translate(0, ascent());
 	foreach (const Box *box, boxes())
 	{
 		box->render(p, text);
@@ -303,11 +340,21 @@ void LineBox::justify(const ParagraphStyle& style)
 }
 #endif
 
-void GlyphBox::render(TextLayoutPainter *p, const StoryText &text) const
+void GlyphBox::render(TextLayoutPainter *p, StoryText& text) const
+{
+	bool selected = text.selected(firstChar()) || text.selected(lastChar());
+	render(p, selected);
+}
+
+void GlyphBox::render(TextLayoutPainter *p) const
+{
+	render(p, false);
+}
+
+void GlyphBox::render(TextLayoutPainter *p, bool selected) const
 {
 	const CharStyle style(m_glyphRun.style());
 	double fontSize = style.fontSize() / 10.0;
-	bool selected = text.selected(firstChar()) || text.selected(lastChar()); // FIXME HOST: this should move to TextFramePainter
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
 	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
 	bool hasBackColor = style.backColor() != CommonStrings::None;
@@ -466,7 +513,7 @@ int GlyphBox::pointToPosition(QPointF coord) const
 	return -1;
 }
 
-void ObjectBox::render(TextLayoutPainter *p, const StoryText& text) const
+void ObjectBox::render(TextLayoutPainter *p) const
 {
 	p->save();
 	double oldX = m_item->xPos();
@@ -499,4 +546,11 @@ int ObjectBox::pointToPosition(QPointF coord) const
 	}
 
 	return -1;
+}
+
+void ObjectBox::render(TextLayoutPainter *p, StoryText& text) const
+{
+	p->save();
+	render(p);
+	p->restore();
 }
