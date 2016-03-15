@@ -37,6 +37,19 @@ selected item is used.\n\
 PyObject *scribus_getfont(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
+PyDoc_STRVAR(scribus_getfontfeatures__doc__,
+QT_TR_NOOP("getFontFeatures([\"name\"]) -> string\n\
+\n\
+Returns the font name for the text frame \"name\". If this text frame\n\
+has some text selected the value assigned to the first character\n\
+of the selection is returned. If \"name\" is not given the currently\n\
+selected item is used.\n\
+"));
+/*! Get fontfeatures */
+PyObject *scribus_getfontfeatures(PyObject * /*self*/, PyObject* args);
+
+
+/*! docstring */
 PyDoc_STRVAR(scribus_gettextsize__doc__,
 QT_TR_NOOP("getTextLength([\"name\"]) -> integer\n\
 \n\
@@ -170,6 +183,19 @@ May throw ValueError if the font cannot be found.\n\
 "));
 /*! Set font */
 PyObject *scribus_setfont(PyObject * /*self*/, PyObject* args);
+
+/*! docstring */
+PyDoc_STRVAR(scribus_setfontfeatures__doc__,
+QT_TR_NOOP("setFontFeatures(\"fontfeature\", [\"name\"])\n\
+\n\
+Sets the font of the text frame \"name\" to \"fontfeature\". If there is some text\n\
+selected only the selected text is changed.  If \"name\" is not given the\n\
+currently selected item is used.\n\
+\n\
+May throw ValueError if the font cannot be found.\n\
+"));
+/*! Set font features */
+PyObject *scribus_setfontfeatures(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
 PyDoc_STRVAR(scribus_setfontsize__doc__,
