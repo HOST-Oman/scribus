@@ -3207,7 +3207,28 @@ public:
 	TextFramePainter(ScPainter *p, PageItem *item)
 		: m_painter(p)
 		, m_item(item)
-	{ }
+		, m_fillColor("", -1)
+		, m_strokeColor("", -1)
+		, m_cairoFace(NULL)
+		, m_faceIndex(-10) // ScFace::faceIndex() defaults to -1, we need a different value
+	{
+		m_painter->save();
+
+		// Use slight hinting to be closer to old Scribus behaviour
+		// We can use CAIRO_HINT_STYLE_NONE to be even more closer, but
+		// slight is a good compromise
+		cairo_font_options_t* options = cairo_font_options_create();
+		cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_SLIGHT);
+		cairo_set_font_options(m_painter->context(), options);
+		cairo_font_options_destroy(options);
+	}
+
+	~TextFramePainter()
+	{
+		if (m_cairoFace != NULL)
+			cairo_font_face_destroy(m_cairoFace);
+		m_painter->restore();
+	}
 
 	void translate(double xp, double yp)
 	{
@@ -3250,34 +3271,29 @@ public:
 			cairo_set_source_rgba(cr, r, g, b, m_painter->brushOpacity());
 			m_painter->setRasterOp(m_painter->blendModeFill());
 
-			// A very ugly hack as we can’t use the font().ftFace() because
-			// Scribus liberally calls FT_Set_CharSize() with all sorts of
-			// crazy values, breaking any subsequent call to the layout
-			// painter.  FIXME: drop the FontConfig dependency here once
-			// Scribus font handling code is made sane!
-			FcPattern *pattern = FcPatternBuild(NULL,
-												FC_FILE, FcTypeString, QFile::encodeName(font().fontFilePath()).data(),
-												FC_INDEX, FcTypeInteger, font().faceIndex(),
-												NULL);
-			cairo_font_face_t* face = cairo_ft_font_face_create_for_pattern(pattern);
-//			cairo_font_face_t* face = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+			if (m_fontPath != font().fontFilePath() || m_faceIndex != font().faceIndex() || m_cairoFace == NULL)
+			{
+				m_fontPath = font().fontFilePath();
+				m_faceIndex = font().faceIndex();
+				// A very ugly hack as we can’t use the font().ftFace() because
+				// Scribus liberally calls FT_Set_CharSize() with all sorts of
+				// crazy values, breaking any subsequent call to the layout
+				// painter.  FIXME: drop the FontConfig dependency here once
+				// Scribus font handling code is made sane!
+				FcPattern *pattern = FcPatternBuild(NULL,
+													FC_FILE, FcTypeString, QFile::encodeName(font().fontFilePath()).data(),
+													FC_INDEX, FcTypeInteger, font().faceIndex(),
+													NULL);
+				m_cairoFace = cairo_ft_font_face_create_for_pattern(pattern);
+//				m_cairoFace = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+			}
 
-			cairo_font_options_t* options = cairo_font_options_create();
-			// Use slight hinting to be closer to old Scribus behaviour
-			// We can use CAIRO_HINT_STYLE_NONE to be even more closer, but
-			// slight is a good compromise
-			cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_SLIGHT);
-
-			cairo_set_font_face(cr, face);
+			cairo_set_font_face(cr, m_cairoFace);
 			cairo_set_font_size(cr, fontSize());
-			cairo_set_font_options(cr, options);
 
 			cairo_scale(cr, gl.scaleH, gl.scaleV);
 			cairo_glyph_t glyph = { gl.glyph, 0, 0 };
 			cairo_show_glyphs(cr, &glyph, 1);
-
-			cairo_font_options_destroy(options);
-			cairo_font_face_destroy(face);
 
 			m_painter->restore();
 			return;
@@ -3509,15 +3525,33 @@ private:
 		}
 		else
 		{
-			m_item->SetQColor(&tmp, fillColor().color, fillColor().shade);
-			m_painter->setBrush(tmp);
+			if (m_fillColor != fillColor())
+			{
+				m_item->SetQColor(&tmp, fillColor().color, fillColor().shade);
+				m_fillQColor = tmp;
+				m_fillColor = fillColor();
+			}
+			m_painter->setBrush(m_fillQColor);
 		}
-		m_item->SetQColor(&tmp, strokeColor().color, strokeColor().shade);
-		m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+
+		if (m_strokeColor != strokeColor())
+		{
+			m_item->SetQColor(&tmp, strokeColor().color, strokeColor().shade);
+			m_fillStrokeQColor = tmp;
+			m_strokeColor = strokeColor();
+		}
+		m_painter->setPen(m_fillStrokeQColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
 
 	ScPainter *m_painter;
 	PageItem *m_item;
+	TextLayoutColor m_fillColor;
+	TextLayoutColor m_strokeColor;
+	QColor m_fillQColor;
+	QColor m_fillStrokeQColor;
+	cairo_font_face_t *m_cairoFace;
+	QString m_fontPath;
+	int m_faceIndex;
 };
 
 void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)

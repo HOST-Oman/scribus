@@ -7,15 +7,21 @@
 
 #include "textlayoutpainter.h"
 
+TextLayoutPainter::TextLayoutPainter()
+{
+	m_stack.reserve(100);
+}
+
 TextLayoutPainter::~TextLayoutPainter()
 { }
 
 void TextLayoutPainter::setFont(const ScFace font)
 {
-	m_state.font = font;
+	if (m_state.font != font)
+		m_state.font = font;
 }
 
-ScFace TextLayoutPainter::font()
+const ScFace TextLayoutPainter::font() const
 {
 	return m_state.font;
 }
@@ -25,7 +31,7 @@ void TextLayoutPainter::setFontSize(double size)
 	m_state.fontSize = size;
 }
 
-double TextLayoutPainter::fontSize()
+double TextLayoutPainter::fontSize() const
 {
 	return m_state.fontSize;
 }
@@ -35,7 +41,7 @@ void TextLayoutPainter::setStrokeColor(TextLayoutColor color)
 	m_state.strokeColor = color;
 }
 
-TextLayoutColor TextLayoutPainter::strokeColor()
+TextLayoutColor TextLayoutPainter::strokeColor() const
 {
 	return m_state.strokeColor;
 }
@@ -45,7 +51,7 @@ void TextLayoutPainter::setFillColor(TextLayoutColor color)
 	m_state.fillColor = color;
 }
 
-TextLayoutColor TextLayoutPainter::fillColor()
+TextLayoutColor TextLayoutPainter::fillColor() const
 {
 	return m_state.fillColor;
 }
@@ -55,7 +61,7 @@ void TextLayoutPainter::setStrokeWidth(double w)
 	m_state.strokeWidth = w;
 }
 
-double TextLayoutPainter::strokeWidth()
+double TextLayoutPainter::strokeWidth() const
 {
 	return m_state.strokeWidth;
 }
@@ -66,12 +72,12 @@ void TextLayoutPainter::translate(double x, double y)
 	m_state.y += y;
 }
 
-double TextLayoutPainter::x()
+double TextLayoutPainter::x() const
 {
 	return m_state.x;
 }
 
-double TextLayoutPainter::y()
+double TextLayoutPainter::y() const
 {
 	return m_state.y;
 }
@@ -82,12 +88,12 @@ void TextLayoutPainter::scale(double h, double v)
 	m_state.scaleV = v;
 }
 
-double TextLayoutPainter::getScaleV()
+double TextLayoutPainter::getScaleV() const
 {
 	return m_state.scaleV;
 }
 
-double TextLayoutPainter::getScaleH()
+double TextLayoutPainter::getScaleH() const
 {
 	return m_state.scaleH;
 }
@@ -97,7 +103,7 @@ void TextLayoutPainter::setSelected(bool s)
 	m_state.selected = s;
 }
 
-bool TextLayoutPainter::selected()
+bool TextLayoutPainter::selected() const
 {
 	return m_state.selected;
 }
