@@ -59,13 +59,13 @@ void GroupBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
-void GroupBox::render(TextLayoutPainter *p, StoryText& text) const
+void GroupBox::render(TextLayoutPainter *p, PageItem *item) const
 {
 	p->save();
 	p->translate(x(), y());
 	foreach (const Box *box, boxes())
 	{
-		box->render(p, text);
+		box->render(p, item);
 	}
 	p->restore();
 }
@@ -166,7 +166,7 @@ void LineBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
-void LineBox::render(TextLayoutPainter *p, StoryText& text) const
+void LineBox::render(TextLayoutPainter *p, PageItem *item) const
 {
 	p->save();
 	p->translate(x(), y());
@@ -174,7 +174,7 @@ void LineBox::render(TextLayoutPainter *p, StoryText& text) const
 	QRectF selection;
 	foreach (const Box *box, boxes())
 	{
-		if (text.selected(box->firstChar()) || text.selected(box->lastChar()))
+		if (item->itemText.selected(box->firstChar()) || item->itemText.selected(box->lastChar()))
 			selection |= QRectF(box->x(), 0, box->width(), height());
 	}
 
@@ -190,7 +190,7 @@ void LineBox::render(TextLayoutPainter *p, StoryText& text) const
 
 	foreach (const Box *box, boxes())
 	{
-		box->render(p, text);
+		box->render(p, item);
 	}
 
 	p->restore();
@@ -344,18 +344,24 @@ void LineBox::justify(const ParagraphStyle& style)
 }
 #endif
 
-void GlyphBox::render(TextLayoutPainter *p, StoryText& text) const
+void GlyphBox::render(TextLayoutPainter *p, PageItem *item) const
 {
-	bool selected = text.selected(firstChar()) || text.selected(lastChar());
-	render(p, selected);
+	p->save();
+
+	bool selected = item->itemText.selected(firstChar()) || item->itemText.selected(lastChar());
+
+	if (((selected && item->isSelected()) || ((item->nextInChain() != 0 || item->prevInChain() != 0) && selected)) &&
+		(item->doc()->appMode == modeEdit || item->doc()->appMode == modeEditTable))
+	{
+		p->setSelected(true);
+	}
+
+	render(p);
+
+	p->restore();
 }
 
 void GlyphBox::render(TextLayoutPainter *p) const
-{
-	render(p, false);
-}
-
-void GlyphBox::render(TextLayoutPainter *p, bool selected) const
 {
 	const CharStyle style(m_glyphRun.style());
 	double fontSize = style.fontSize() / 10.0;
@@ -434,13 +440,13 @@ void GlyphBox::render(TextLayoutPainter *p, bool selected) const
 		{
 			p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name()));
 			p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() * 2 / 10000.0);
-			p->drawGlyphOutline(gl, false, selected);
+			p->drawGlyphOutline(gl, false);
 		}
 		else if ((font().isStroked()) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 		{
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0);
-			p->drawGlyphOutline(gl, false, selected);
+			p->drawGlyphOutline(gl, false);
 		}
 		else
 		{
@@ -451,17 +457,18 @@ void GlyphBox::render(TextLayoutPainter *p, bool selected) const
 				p->save();
 				p->translate(xoff, -yoff);
 				p->setFillColor(p->strokeColor());
-				p->drawGlyph(gl, false);
+				p->setSelected(false);
+				p->drawGlyph(gl);
 				p->restore();
 			}
 
 			if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 			{
 				p->setStrokeWidth((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) / glySc);
-				p->drawGlyphOutline(gl, hasFillColor, selected);
+				p->drawGlyphOutline(gl, hasFillColor);
 			}
 			else if (hasFillColor)
-				p->drawGlyph(gl, selected);
+				p->drawGlyph(gl);
 		}
 		p->restore();
 
@@ -542,7 +549,7 @@ void ObjectBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
-void ObjectBox::render(TextLayoutPainter *p, StoryText& text) const
+void ObjectBox::render(TextLayoutPainter *p, PageItem *item) const
 {
 	render(p);
 }

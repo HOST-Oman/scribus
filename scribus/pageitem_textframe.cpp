@@ -3233,7 +3233,7 @@ public:
 		m_painter->scale(h, v);
 	}
 
-	void drawGlyph(const GlyphLayout gl, bool selected)
+	void drawGlyph(const GlyphLayout gl)
 	{
 		bool showControls = (m_item->doc()->guidesPrefs().showControls) &&
 							(gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS);
@@ -3243,7 +3243,6 @@ public:
 			m_painter->save();
 
 			setupState();
-			setSelectionHighlight(selected);
 
 			cairo_t* cr = m_painter->context();
 			double r, g, b;
@@ -3287,7 +3286,6 @@ public:
 		m_painter->save();
 
 		setupState();
-		setSelectionHighlight(selected);
 
 		bool fr = m_painter->fillRule();
 		m_painter->setFillRule(false);
@@ -3399,14 +3397,13 @@ public:
 		m_painter->restore();
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
 		m_painter->save();
 		bool fr = m_painter->fillRule();
 		m_painter->setFillRule(false);
 
 		setupState();
-		setSelectionHighlight(selected);
 		m_painter->translate(0, -(fontSize() * gl.scaleV));
 
 		FPointArray outline = font().glyphOutline(gl.glyph);
@@ -3424,7 +3421,7 @@ public:
 		m_painter->restore();
 
 		if (fill)
-			drawGlyph(gl, selected);
+			drawGlyph(gl);
 	}
 
 	void drawLine(QPointF start, QPointF end)
@@ -3502,21 +3499,19 @@ public:
 	}
 
 private:
-	void setSelectionHighlight(bool selected)
-	{
-		if (((selected && m_item->isSelected()) || ((m_item->nextInChain() != 0 || m_item->prevInChain() != 0) && selected)) && (m_item->doc()->appMode == modeEdit || m_item->doc()->appMode == modeEditTable))
-		{
-			// set text color to highlight if its selected
-			m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
-		}
-	}
-
 	void setupState()
 	{
 		m_painter->setLineWidth(strokeWidth());
 		QColor tmp;
-		m_item->SetQColor(&tmp, fillColor().color, fillColor().shade);
-		m_painter->setBrush(tmp);
+		if (selected())
+		{
+			m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
+		}
+		else
+		{
+			m_item->SetQColor(&tmp, fillColor().color, fillColor().shade);
+			m_painter->setBrush(tmp);
+		}
 		m_item->SetQColor(&tmp, strokeColor().color, strokeColor().shade);
 		m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
@@ -4061,7 +4056,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			}
 		}
 		TextFramePainter painter(p, this);
-		textLayout.render(&painter, itemText);
+		textLayout.render(&painter, this);
 	}
 	m_textDistanceMargins=savedTextDistanceMargins;
 	p->restore();//RE1

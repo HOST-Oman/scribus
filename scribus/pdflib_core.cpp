@@ -134,7 +134,7 @@ public:
 
 	~PdfPainter() {}
 
-	void drawGlyph(const GlyphLayout gl, bool)
+	void drawGlyph(const GlyphLayout gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -219,7 +219,7 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -5727,7 +5727,7 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
 	PdfPainter p(ite, this, PNr, pag);
-	ite->textLayout.render(&p, ite->itemText);
+	ite->textLayout.render(&p);
 	return p.getBuffer();
 }
 
