@@ -171,24 +171,28 @@ void LineBox::render(TextLayoutPainter *p, StoryText& text) const
 	p->save();
 	p->translate(x(), y());
 
-	QRectF selectedFrame;
+	QRectF selection;
 	foreach (const Box *box, boxes())
 	{
 		if (text.selected(box->firstChar()) || text.selected(box->lastChar()))
-			selectedFrame |= QRectF(box->x(), 0, box->width(), height());
+			selection |= QRectF(box->x(), 0, box->width(), height());
 	}
+
 	p->save();
 	TextLayoutColor highlight(qApp->palette().color(QPalette::Active, QPalette::Highlight).name());
 	p->setFillColor(highlight);
 	p->setStrokeWidth(0);
 	p->setStrokeColor(highlight);
-	p->drawRect(selectedFrame);
+	p->drawRect(selection);
 	p->restore();
+
 	p->translate(0, ascent());
+
 	foreach (const Box *box, boxes())
 	{
 		box->render(p, text);
 	}
+
 	p->restore();
 }
 
@@ -538,6 +542,12 @@ void ObjectBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
+void ObjectBox::render(TextLayoutPainter *p, StoryText& text) const
+{
+	render(p);
+}
+
+
 int ObjectBox::pointToPosition(QPointF coord) const
 {
 	if (x() <= coord.x() && coord.x() <= x() + width())
@@ -546,11 +556,4 @@ int ObjectBox::pointToPosition(QPointF coord) const
 	}
 
 	return -1;
-}
-
-void ObjectBox::render(TextLayoutPainter *p, StoryText& text) const
-{
-	p->save();
-	render(p);
-	p->restore();
 }
