@@ -4060,58 +4060,6 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				p->restore();
 			}
 		}
-
-		QList<QRectF> sFList;
-		for (uint ll=0; ll < textLayout.lines(); ++ll)
-		{
-			const LineBox* line = textLayout.line(ll);
-
-			// Draw text selection rectangles
-			QRectF selectedFrame;
-			double as = 0;
-			foreach (const Box* box, line->boxes())
-			{
-				as++;
-				bool selecteds = itemText.selected(box->firstChar()) || itemText.selected(box->lastChar());
-				const CharStyle& charStyleS(itemText.charStyle(box->firstChar()));
-				const CharStyle& charStyleS2(itemText.charStyle(box->firstChar()-1));
-				Mark* mark = itemText.mark(box->firstChar());
-
-				if (mark != NULL && (mark->isType(MARKAnchorType) || mark->isType(MARKIndexType)))
-					continue;
-				if (selecteds)
-				{
-					if ((as > line->lastChar()) && (charStyleS != charStyleS2))
-					{
-						sFList << selectedFrame;
-						selectedFrame = QRectF();
-					}
-					if ((m_isSelected || (NextBox != 0 || BackBox != 0))
-						&& (m_Doc->appMode == modeEdit || m_Doc->appMode == modeEditTable))
-					{
-						selectedFrame |= QRectF(line->x() + box->x(), line->y() + box->y() - box->descent(), box->width(), box->height());
-					}
-				}
-				// Unneeded now that glyph xadvance is set appropriately for inline objects by layout() - JG
-				/*if ((hls->ch == SpecialChars::OBJECT) && (hls->embedded.hasItem()))
-					selX += (hls->embedded.getItem()->gWidth + hls->embedded.getItem()->lineWidth()) * hls->glyph.scaleH;
-				else*/
-			}
-			if (!selectedFrame.isNull())
-				sFList << selectedFrame;
-			p->save();//SA3
-			p->setFillMode(1);
-			p->setBrush(qApp->palette().color(QPalette::Active, QPalette::Highlight));
-			p->setLineWidth(0);
-			// TODO - I dunno why but scpainter does not accept
-			// to actually set the pen to 0? As a wa,
-			// we set its color same as brush: "à malin, malin et demi!".
-			p->setPen(qApp->palette().color(QPalette::Active, QPalette::Highlight));
-			foreach (QRectF rect, sFList)
-				p->drawRect(rect.x(), rect.y(), rect.width(), rect.height());
-			p->restore();//RE3
-			//	End of selection
-		}
 		TextFramePainter painter(p, this);
 		textLayout.render(&painter, itemText);
 	}
