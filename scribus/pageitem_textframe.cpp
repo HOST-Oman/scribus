@@ -3156,7 +3156,13 @@ void PageItem_TextFrame::layout()
 			if (style.alignment() == ParagraphStyle::Centered)
 				OFs = (current.line.width - current.line.naturalWidth) / 2;
 			if (style.alignment() == ParagraphStyle::Justified)
-				OFs = 0;
+			{
+				if (style.direction() == ParagraphStyle::RTL)
+					OFs = current.line.width - current.line.naturalWidth;
+				else
+					OFs = 0;
+			}
+
 			if (style.alignment() == ParagraphStyle::Extended
 				|| (style.alignment() == ParagraphStyle::Justified
 					&&  (itemText.text(a) == SpecialChars::LINEBREAK ||
