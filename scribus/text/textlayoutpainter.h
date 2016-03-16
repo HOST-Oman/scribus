@@ -28,39 +28,49 @@ struct TextLayoutColor
 		: color(c)
 		, shade(s)
 	{ }
+
+	bool operator ==(TextLayoutColor other)
+	{
+		return other.color == color && other.shade == shade;
+	}
+
+	bool operator !=(TextLayoutColor other)
+	{
+		return !(*this == other);
+	}
 };
 
 class SCRIBUS_API TextLayoutPainter
 {
 public:
-	TextLayoutPainter() { }
+	TextLayoutPainter();
 	virtual ~TextLayoutPainter();
 
 	virtual void setFont(const ScFace font);
-	virtual ScFace font();
+	virtual const ScFace font() const;
 
 	virtual void setFontSize(double size);
-	virtual double fontSize();
+	virtual double fontSize() const;
 
 	virtual void setStrokeColor(TextLayoutColor c);
-	virtual TextLayoutColor strokeColor();
+	virtual TextLayoutColor strokeColor() const;
 
 	virtual void setFillColor(TextLayoutColor c);
-	virtual TextLayoutColor fillColor();
+	virtual TextLayoutColor fillColor() const;
 
 	virtual void setStrokeWidth(double w);
-	virtual double strokeWidth();
+	virtual double strokeWidth() const;
 
 	virtual void translate(double x, double y);
-	virtual double x();
-	virtual double y();
+	virtual double x() const;
+	virtual double y() const;
 
 	virtual void scale(double h, double v);
-	virtual double getScaleV();
-	virtual double getScaleH();
+	virtual double getScaleV() const;
+	virtual double getScaleH() const;
 
 	virtual void setSelected(bool s);
-	virtual bool selected();
+	virtual bool selected() const;
 
 	virtual void drawGlyph(const GlyphLayout gl) = 0;
 	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill) = 0;
