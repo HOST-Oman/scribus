@@ -3230,30 +3230,6 @@ public:
 		m_painter->restore();
 	}
 
-	void translate(double xp, double yp)
-	{
-		TextLayoutPainter::translate(xp, yp);
-		m_painter->translate(xp, yp);
-	}
-
-	void save()
-	{
-		TextLayoutPainter::save();
-		m_painter->save();
-	}
-
-	void restore()
-	{
-		TextLayoutPainter::restore();
-		m_painter->restore();
-	}
-
-	void scale(double h, double v)
-	{
-		TextLayoutPainter::scale(h, v);
-		m_painter->scale(h, v);
-	}
-
 	void drawGlyph(const GlyphLayout gl)
 	{
 		bool showControls = (m_item->doc()->guidesPrefs().showControls) &&
@@ -3541,6 +3517,9 @@ private:
 			m_strokeColor = strokeColor();
 		}
 		m_painter->setPen(m_fillStrokeQColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+
+		m_painter->translate(x(), y());
+		m_painter->scale(getScaleH(), getScaleV());
 	}
 
 	ScPainter *m_painter;
