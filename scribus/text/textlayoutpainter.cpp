@@ -12,92 +12,92 @@ TextLayoutPainter::~TextLayoutPainter()
 
 void TextLayoutPainter::setFont(const ScFace font)
 {
-        m_state.font = font;
+	m_state.font = font;
 }
 
 ScFace TextLayoutPainter::font()
 {
-        return m_state.font;
+	return m_state.font;
 }
 
 void TextLayoutPainter::setFontSize(double size)
 {
-        m_state.fontSize = size;
+	m_state.fontSize = size;
 }
 
 double TextLayoutPainter::fontSize()
 {
-        return m_state.fontSize;
+	return m_state.fontSize;
 }
 
 void TextLayoutPainter::setStrokeColor(TextLayoutColor color)
 {
-        m_state.strokeColor = color;
+	m_state.strokeColor = color;
 }
 
 TextLayoutColor TextLayoutPainter::strokeColor()
 {
-        return m_state.strokeColor;
+	return m_state.strokeColor;
 }
 
 void TextLayoutPainter::setFillColor(TextLayoutColor color)
 {
-        m_state.fillColor = color;
+	m_state.fillColor = color;
 }
 
 TextLayoutColor TextLayoutPainter::fillColor()
 {
-        return m_state.fillColor;
+	return m_state.fillColor;
 }
 
 void TextLayoutPainter::setStrokeWidth(double w)
 {
-        m_state.strokeWidth = w;
+	m_state.strokeWidth = w;
 }
 
 double TextLayoutPainter::strokeWidth()
 {
-        return m_state.strokeWidth;
+	return m_state.strokeWidth;
 }
 
 void TextLayoutPainter::translate(double x, double y)
 {
-        m_state.x += x;
-        m_state.y += y;
+	m_state.x += x;
+	m_state.y += y;
 }
 
 double TextLayoutPainter::x()
 {
-        return m_state.x;
+	return m_state.x;
 }
 
 double TextLayoutPainter::y()
 {
-        return m_state.y;
+	return m_state.y;
 }
 
 void TextLayoutPainter::scale(double h, double v)
 {
-        m_state.scaleH = h;
-        m_state.scaleV = v;
+	m_state.scaleH = h;
+	m_state.scaleV = v;
 }
 
 double TextLayoutPainter::getScaleV()
 {
-        return m_state.scaleV;
+	return m_state.scaleV;
 }
 
 double TextLayoutPainter::getScaleH()
 {
-        return m_state.scaleH;
+	return m_state.scaleH;
 }
 
 void TextLayoutPainter::save()
 {
-        m_stack.push(m_state);
+	m_stack.push(m_state);
 }
 
 void TextLayoutPainter::restore()
 {
-        m_state = m_stack.pop();
+	m_state = m_stack.pop();
 }
