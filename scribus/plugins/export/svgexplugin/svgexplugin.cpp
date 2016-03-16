@@ -1158,7 +1158,7 @@ public:
 		, m_trans(trans)
 	{}
 
-	void drawGlyph(const GlyphLayout gl, bool)
+	void drawGlyph(const GlyphLayout gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -1175,7 +1175,7 @@ public:
 		m_elem.appendChild(glyph);
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool hasFill, bool)
+	void drawGlyphOutline(const GlyphLayout gl, bool hasFill)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -1268,8 +1268,8 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 			ob.setAttribute("clip-path", "url(#" + ob2.attribute("id") + ")");
 	}
 
-	SvgPainter *p = new SvgPainter(trans, this, ob);
-	Item->textLayout.render(p, Item->itemText);
+	SvgPainter p(trans, this, ob);
+	Item->textLayout.render(&p);
 
 	return ob;
 }

@@ -94,10 +94,17 @@ void TextLayout::removeLastLine ()
 	m_box->removeBox(m_box->boxes().count() - 1);
 }
 
-void TextLayout::render(TextLayoutPainter *p, StoryText &text)
+void TextLayout::render(TextLayoutPainter *p, PageItem *item)
 {
 	p->save();
-	m_box->render(p, text);
+	m_box->render(p, item);
+	p->restore();
+}
+
+void TextLayout::render(TextLayoutPainter *p)
+{
+	p->save();
+	m_box->render(p);
 	p->restore();
 }
 

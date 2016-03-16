@@ -822,7 +822,7 @@ public:
 		m_relRoot(rel_root)
 	{ }
 
-	void drawGlyph(const GlyphLayout gl, bool)
+	void drawGlyph(const GlyphLayout gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -844,7 +844,7 @@ public:
 		m_group.appendChild(glyph);
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -992,7 +992,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 
 	parentElem.appendChild(grp);
 	XPSPainter p(Item, grp, this, xps_fontMap, rel_root);
-	Item->textLayout.render(&p, Item->itemText);
+	Item->textLayout.render(&p);
 }
 
 void XPSExPlug::processPathTextItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)

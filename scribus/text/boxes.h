@@ -98,8 +98,11 @@ public:
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
 	}
 	
+	/// Render the box and any boxes it contains, recursively.
 	virtual void render(TextLayoutPainter *p) const = 0;
-	virtual void render(TextLayoutPainter *p, StoryText& text) const = 0;
+
+	/// Same as render() but handles text selection, for rendering on screen.
+	virtual void render(TextLayoutPainter *p, PageItem *item) const = 0;
 
 //	virtual qreal naturalWidth() const { return width(); }
 //	virtual qreal naturalHeight() const { return height(); }
@@ -130,7 +133,7 @@ public:
 
 	virtual void addBox(const Box* box);
 	virtual void removeBox(int i);
-	void render(TextLayoutPainter *p, StoryText& text) const;
+	void render(TextLayoutPainter *p, PageItem *item) const;
 	void render(TextLayoutPainter *p) const;
 //	void justify(const ParagraphStyle& style);
 
@@ -154,14 +157,13 @@ public:
 	void removeBox(int i);
 	void render(TextLayoutPainter *p) const;
 //	void justify(const ParagraphStyle& style);
-	void render(TextLayoutPainter *p, StoryText& text) const;
+	void render(TextLayoutPainter *p, PageItem *item) const;
 	qreal colLeft;
 };
 
 
 class GlyphBox : public Box
 {
-	
 public:
 	GlyphBox(const GlyphRun& run)
 		: m_glyphRun(run)
@@ -174,8 +176,7 @@ public:
 
 //	QList<const Box*> pathForPos(int pos) const;
 	void render(TextLayoutPainter *p) const;
-	void render(TextLayoutPainter *p, bool selected) const ;
-	void render(TextLayoutPainter *p, StoryText& text) const;
+	void render(TextLayoutPainter *p, PageItem *item) const;
 	int pointToPosition(QPointF coord) const;
 	GlyphRun glyphRun() const { return m_glyphRun; }
 	ScFace font() const { return m_glyphRun.style().font(); }
@@ -199,7 +200,7 @@ public:
 	}
 
 	void render(TextLayoutPainter *p) const;
-	void render(TextLayoutPainter*, StoryText&) const;
+	void render(TextLayoutPainter*, PageItem *item) const;
 	int pointToPosition(QPointF coord) const;
 
 };

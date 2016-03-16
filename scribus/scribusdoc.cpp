@@ -4508,7 +4508,7 @@ public:
 		: m_really(Really)
 	{}
 
-	void drawGlyph(const GlyphLayout gl, bool)
+	void drawGlyph(const GlyphLayout gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -4520,7 +4520,7 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool, bool) { drawGlyph(gl, false); }
+	void drawGlyphOutline(const GlyphLayout gl, bool) { drawGlyph(gl); }
 
 	// we don't need this one
 	void drawLine(QPointF, QPointF) {}
@@ -4537,7 +4537,7 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 		return;
 
 	UsedGlyphsPainter p(Really);
-	it->textLayout.render(&p, it->itemText);
+	it->textLayout.render(&p);
 }
 
 

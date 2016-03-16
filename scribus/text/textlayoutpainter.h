@@ -59,8 +59,11 @@ public:
 	virtual double getScaleV();
 	virtual double getScaleH();
 
-	virtual void drawGlyph(const GlyphLayout gl, bool selected) = 0;
-	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected) = 0;
+	virtual void setSelected(bool s);
+	virtual bool selected();
+
+	virtual void drawGlyph(const GlyphLayout gl) = 0;
+	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill) = 0;
 	virtual void drawLine(QPointF start, QPointF end) = 0;
 	virtual void drawRect(QRectF rect) = 0;
 	virtual void drawObject(PageItem* item) = 0;
@@ -80,6 +83,7 @@ private:
 		double y;
 		double scaleH;
 		double scaleV;
+		bool selected;
 
 		State()
 			: fontSize(0)
@@ -88,6 +92,7 @@ private:
 			, y(0)
 			, scaleH(1)
 			, scaleV(1)
+			, selected(false)
 		{}
 	};
 

@@ -92,6 +92,16 @@ double TextLayoutPainter::getScaleH()
 	return m_state.scaleH;
 }
 
+void TextLayoutPainter::setSelected(bool s)
+{
+	m_state.selected = s;
+}
+
+bool TextLayoutPainter::selected()
+{
+	return m_state.selected;
+}
+
 void TextLayoutPainter::save()
 {
 	m_stack.push(m_state);
