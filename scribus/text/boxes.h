@@ -167,6 +167,7 @@ class GlyphBox : public Box
 public:
 	GlyphBox(const GlyphRun& run)
 		: m_glyphRun(run)
+		, m_effects(run.style().effects())
 	{
 		m_type = T_Glyphs;
 		m_firstChar = run.firstChar();
@@ -183,6 +184,7 @@ public:
 
 private:
 	GlyphRun m_glyphRun;
+	const StyleFlag m_effects;
 };
 
 class ObjectBox : public Box

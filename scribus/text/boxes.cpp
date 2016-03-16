@@ -366,7 +366,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 {
 	// This is a very hot method and can be easily called tens of thousands of times per second,
 	// so it is always a good idea to profile changes to this code.
-	const CharStyle style(m_glyphRun.style());
+	const CharStyle& style = m_glyphRun.style();
 	double fontSize = style.fontSize() / 10.0;
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
 	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
@@ -401,7 +401,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 
 		// Do underlining first so you can get typographically correct
 		// underlines when drawing a white outline
-		if ((style.effects() & ScStyle_Underline) && hasStrokeColor)
+		if (m_effects & ScStyle_Underline && hasStrokeColor)
 		{
 			double st, lw;
 			if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
@@ -458,7 +458,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 		}
 		else
 		{
-			if ((style.effects() & ScStyle_Shadowed) && hasStrokeColor)
+			if (m_effects & ScStyle_Shadowed && hasStrokeColor)
 			{
 				double xoff = (style.fontSize() * gl.scaleH * style.shadowXOffset() / 10000.0) / glxSc;
 				double yoff = (style.fontSize() * gl.scaleV * style.shadowYOffset() / 10000.0) / glySc;
@@ -486,7 +486,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 				p->drawGlyph(gl);
 		}
 
-		if ((style.effects() & ScStyle_Strikethrough) && hasStrokeColor)
+		if (m_effects & ScStyle_Strikethrough && hasStrokeColor)
 		{
 			double st, lw;
 			if ((style.strikethruOffset() != -1) || (style.strikethruWidth() != -1))
