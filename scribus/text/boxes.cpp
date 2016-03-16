@@ -346,7 +346,8 @@ void LineBox::justify(const ParagraphStyle& style)
 
 void GlyphBox::render(TextLayoutPainter *p, PageItem *item) const
 {
-	p->save();
+
+	bool s = p->selected();
 
 	bool selected = item->itemText.selected(firstChar()) || item->itemText.selected(lastChar());
 
@@ -358,11 +359,13 @@ void GlyphBox::render(TextLayoutPainter *p, PageItem *item) const
 
 	render(p);
 
-	p->restore();
+	p->setSelected(s);
 }
 
 void GlyphBox::render(TextLayoutPainter *p) const
 {
+	// This is a very hot method and can be easily called tens of thousands of times per second,
+	// so it is always a good idea to profile changes to this code.
 	const CharStyle style(m_glyphRun.style());
 	double fontSize = style.fontSize() / 10.0;
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
@@ -375,6 +378,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 	p->setFontSize(fontSize);
 
 	p->translate(x(), y());
+
 
 	if (hasFillColor)
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
@@ -418,17 +422,21 @@ void GlyphBox::render(TextLayoutPainter *p) const
 			}
 			if (style.baselineOffset() != 0)
 				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
-			p->save();
+
+			double sw = p->strokeWidth();
+			const TextLayoutColor& sc = p->strokeColor();
+
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(lw);
 			if (style.effects() & ScStyle_Subscript)
 				p->drawLine(QPointF(gl.xoffset, gl.yoffset - st), QPointF(gl.xoffset + gl.xadvance, gl.yoffset - st));
 			else
 				p->drawLine(QPointF(gl.xoffset, -st), QPointF(gl.xoffset + gl.xadvance, -st));
-			p->restore();
+
+			p->setStrokeWidth(sw);
+			p->setStrokeColor(sc);
 		}
 
-		p->save();
 		p->translate(gl.xoffset, gl.yoffset);
 
 		if (style.baselineOffset() != 0)
@@ -454,12 +462,19 @@ void GlyphBox::render(TextLayoutPainter *p) const
 			{
 				double xoff = (style.fontSize() * gl.scaleH * style.shadowXOffset() / 10000.0) / glxSc;
 				double yoff = (style.fontSize() * gl.scaleV * style.shadowYOffset() / 10000.0) / glySc;
-				p->save();
+
+				bool s = p->selected();
+				const TextLayoutColor& fc = p->fillColor();
+
 				p->translate(xoff, -yoff);
+
 				p->setFillColor(p->strokeColor());
 				p->setSelected(false);
 				p->drawGlyph(gl);
-				p->restore();
+
+				p->translate(-xoff, yoff);
+				p->setSelected(s);
+				p->setFillColor(fc);
 			}
 
 			if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
@@ -470,7 +485,6 @@ void GlyphBox::render(TextLayoutPainter *p) const
 			else if (hasFillColor)
 				p->drawGlyph(gl);
 		}
-		p->restore();
 
 		if ((style.effects() & ScStyle_Strikethrough) && hasStrokeColor)
 		{
@@ -493,11 +507,16 @@ void GlyphBox::render(TextLayoutPainter *p) const
 			}
 			if (style.baselineOffset() != 0)
 				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
-			p->save();
+
+			double sw = p->strokeWidth();
+			const TextLayoutColor& sc = p->strokeColor();
+
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(lw);
 			p->drawLine(QPointF(gl.xoffset, gl.yoffset - st), QPointF(gl.xoffset + gl.xadvance, gl.yoffset - st));
-			p->restore();
+
+			p->setStrokeWidth(sw);
+			p->setStrokeColor(sc);
 		}
 
 		p->restore();
