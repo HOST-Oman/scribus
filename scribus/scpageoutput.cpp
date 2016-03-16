@@ -1128,7 +1128,7 @@ public:
 		m_painter->scale(h, v);
 	}
 
-	void drawGlyph(const GlyphLayout gl, bool)
+	void drawGlyph(const GlyphLayout gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -1155,7 +1155,7 @@ public:
 		m_painter->restore();
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool selected)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -1182,7 +1182,7 @@ public:
 		m_painter->restore();
 
 		if (fill)
-			drawGlyph(gl, selected);
+			drawGlyph(gl);
 	}
 
 	void drawLine(QPointF start, QPointF end)
@@ -1784,7 +1784,7 @@ void ScPageOutput::drawItem_Table( PageItem_Table* item, ScPainterExBase* painte
 void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase* painter, QRect cullingArea )
 {
 	ScpageoutputPainter p(item, painter, this);
-	item->textLayout.render(&p, item->itemText);
+	item->textLayout.render(&p);
 }
 
 void ScPageOutput::drawArrow(ScPainterExBase* painter, PageItem* item, QTransform &arrowTrans, int arrowIndex)

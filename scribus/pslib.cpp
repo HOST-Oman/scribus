@@ -84,14 +84,14 @@ public:
 		m_ps(ps)
 	{}
 
-	void drawGlyph(const GlyphLayout gl, bool);
-	void drawGlyphOutline(const GlyphLayout gl, bool fill, bool);
+	void drawGlyph(const GlyphLayout gl);
+	void drawGlyphOutline(const GlyphLayout gl, bool fill);
 	void drawLine(QPointF start, QPointF end);
 	void drawRect(QRectF rect);
 	void drawObject(PageItem* item);
 };
 
-void PSPainter::drawGlyph(const GlyphLayout gl, bool)
+void PSPainter::drawGlyph(const GlyphLayout gl)
 {
 	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 		return;
@@ -111,7 +111,7 @@ void PSPainter::drawGlyph(const GlyphLayout gl, bool)
 	m_ps->PS_restore();
 }
 
-void PSPainter::drawGlyphOutline(const GlyphLayout gl, bool fill, bool)
+void PSPainter::drawGlyphOutline(const GlyphLayout gl, bool fill)
 {
 	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 		return;
@@ -5186,7 +5186,7 @@ void PSLib::SetColor(const ScColor& farb, double shade, int *h, int *s, int *v, 
 void PSLib::setTextSt(ScribusDoc* Doc, PageItem* ite, uint argh, ScPage* pg, bool sep, bool farb, bool master)
 {
 	PSPainter p(Doc, argh, pg, sep, farb, master, this);
-	ite->textLayout.render(&p, ite->itemText);
+	ite->textLayout.render(&p);
 }
 
 void PSLib::putColor(const QString& colorName, double shade, bool fill)
