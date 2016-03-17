@@ -8,7 +8,7 @@
 #ifndef TEXTLAYOUTPAINTER_H
 #define TEXTLAYOUTPAINTER_H
 
-#include <QStack>
+#include <stack>
 
 #include "scribusapi.h"
 #include "sctextstruct.h"
@@ -107,7 +107,7 @@ private:
 	};
 
 	State m_state;
-	QStack<State> m_stack;
+	std::stack<State> m_stack;
 };
 
 #endif // TEXTLAYOUTPAINTER_H

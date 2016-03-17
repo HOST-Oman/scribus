@@ -8,9 +8,7 @@
 #include "textlayoutpainter.h"
 
 TextLayoutPainter::TextLayoutPainter()
-{
-	m_stack.reserve(100);
-}
+{ }
 
 TextLayoutPainter::~TextLayoutPainter()
 { }
@@ -115,5 +113,6 @@ void TextLayoutPainter::save()
 
 void TextLayoutPainter::restore()
 {
-	m_state = m_stack.pop();
+	m_state = m_stack.top();
+	m_stack.pop();
 }
