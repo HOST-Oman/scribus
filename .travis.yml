@@ -37,7 +37,7 @@ before_install:
 - if [ $TRAVIS_OS_NAME == osx ]; then brew update; 
       brew outdated cmake --verbose || brew upgrade cmake; 
       brew tap homebrew/dupes && brew install homebrew/dupes/zlib && brew link --force zlib;
-      brew install xz little-cms2 cairo qt5 hunspell ghostscript graphicsmagick poppler podofo harfbuzz harfbuzz-icu;
+      brew install xz little-cms2 cairo qt5 hunspell ghostscript graphicsmagick poppler podofo harfbuzz;
       brew outdated jpeg --verbose || brew upgrade jpeg;
       brew outdated libtiff --verbose || brew upgrade libtiff; 
       brew outdated fontconfig --verbose || brew upgrade fontconfig; 
