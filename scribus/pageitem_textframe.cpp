@@ -3525,7 +3525,8 @@ private:
 		}
 
 		m_painter->translate(x(), y());
-		m_painter->scale(getScaleH(), getScaleV());
+		if (getScaleH() != 1.0 || getScaleV() != 1.0)
+			m_painter->scale(getScaleH(), getScaleV());
 	}
 
 	ScPainter *m_painter;
