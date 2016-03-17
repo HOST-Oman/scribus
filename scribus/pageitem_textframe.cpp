@@ -4016,6 +4016,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		assert( firstInFrame() >= 0 );
 		assert( lastInFrame() < itemText.length() );
 
+		// FIXME HOST: move this to boxes
 		uint llp = 0;
 		for (uint ll=0; ll < textLayout.lines(); ++ll)
 		{
