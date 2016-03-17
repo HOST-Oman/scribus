@@ -1122,9 +1122,9 @@ public:
 		m_painter->restore();
 	}
 
-	void scale(double h, double v)
+	void setScale(double h, double v)
 	{
-		TextLayoutPainter::scale(h, v);
+		TextLayoutPainter::setScale(h, v);
 		m_painter->scale(h, v);
 	}
 
@@ -1236,14 +1236,14 @@ public:
 		case PageItem::Line:
 		case PageItem::PolyLine:
 		case PageItem::Spiral:
-			embedded->m_lineWidth = pws * qMin(getScaleH(), getScaleV());
+			embedded->m_lineWidth = pws * qMin(scaleH(), scaleV());
 			m_scpage->drawItem(embedded, m_painter, cullingArea);
 			break;
 		default:
 			break;
 		}
 
-		embedded->m_lineWidth = pws * qMin(getScaleH(), getScaleV());
+		embedded->m_lineWidth = pws * qMin(scaleH(), scaleV());
 		m_scpage->drawItem_Post(embedded, m_painter);
 		embedded->m_lineWidth = pws;
 		m_painter->restore();

@@ -65,9 +65,9 @@ public:
 	virtual double x() const;
 	virtual double y() const;
 
-	virtual void scale(double h, double v);
-	virtual double getScaleV() const;
-	virtual double getScaleH() const;
+	virtual void setScale(double h, double v);
+	virtual double scaleV() const;
+	virtual double scaleH() const;
 
 	virtual void setSelected(bool s);
 	virtual bool selected() const;
