@@ -8,111 +8,112 @@
 #include "textlayoutpainter.h"
 
 TextLayoutPainter::TextLayoutPainter()
-{ }
+{
+	m_stack.push(State());
+}
 
 TextLayoutPainter::~TextLayoutPainter()
 { }
 
 void TextLayoutPainter::setFont(const ScFace font)
 {
-	if (m_state.font != font)
-		m_state.font = font;
+	if (m_stack.top().font != font)
+		m_stack.top().font = font;
 }
 
 const ScFace TextLayoutPainter::font() const
 {
-	return m_state.font;
+	return m_stack.top().font;
 }
 
 void TextLayoutPainter::setFontSize(double size)
 {
-	m_state.fontSize = size;
+	m_stack.top().fontSize = size;
 }
 
 double TextLayoutPainter::fontSize() const
 {
-	return m_state.fontSize;
+	return m_stack.top().fontSize;
 }
 
 void TextLayoutPainter::setStrokeColor(TextLayoutColor color)
 {
-	m_state.strokeColor = color;
+	m_stack.top().strokeColor = color;
 }
 
 TextLayoutColor TextLayoutPainter::strokeColor() const
 {
-	return m_state.strokeColor;
+	return m_stack.top().strokeColor;
 }
 
 void TextLayoutPainter::setFillColor(TextLayoutColor color)
 {
-	m_state.fillColor = color;
+	m_stack.top().fillColor = color;
 }
 
 TextLayoutColor TextLayoutPainter::fillColor() const
 {
-	return m_state.fillColor;
+	return m_stack.top().fillColor;
 }
 
 void TextLayoutPainter::setStrokeWidth(double w)
 {
-	m_state.strokeWidth = w;
+	m_stack.top().strokeWidth = w;
 }
 
 double TextLayoutPainter::strokeWidth() const
 {
-	return m_state.strokeWidth;
+	return m_stack.top().strokeWidth;
 }
 
 void TextLayoutPainter::translate(double x, double y)
 {
-	m_state.x += x;
-	m_state.y += y;
+	m_stack.top().x += x;
+	m_stack.top().y += y;
 }
 
 double TextLayoutPainter::x() const
 {
-	return m_state.x;
+	return m_stack.top().x;
 }
 
 double TextLayoutPainter::y() const
 {
-	return m_state.y;
+	return m_stack.top().y;
 }
 
 void TextLayoutPainter::scale(double h, double v)
 {
-	m_state.scaleH = h;
-	m_state.scaleV = v;
+	m_stack.top().scaleH = h;
+	m_stack.top().scaleV = v;
 }
 
 double TextLayoutPainter::getScaleV() const
 {
-	return m_state.scaleV;
+	return m_stack.top().scaleV;
 }
 
 double TextLayoutPainter::getScaleH() const
 {
-	return m_state.scaleH;
+	return m_stack.top().scaleH;
 }
 
 void TextLayoutPainter::setSelected(bool s)
 {
-	m_state.selected = s;
+	m_stack.top().selected = s;
 }
 
 bool TextLayoutPainter::selected() const
 {
-	return m_state.selected;
+	return m_stack.top().selected;
 }
 
 void TextLayoutPainter::save()
 {
-	m_stack.push(m_state);
+	m_stack.push(m_stack.top());
 }
 
 void TextLayoutPainter::restore()
 {
-	m_state = m_stack.top();
 	m_stack.pop();
 }
