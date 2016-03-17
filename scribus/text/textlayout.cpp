@@ -36,7 +36,7 @@ TextLayout::TextLayout(StoryText* text, PageItem* frame)
 	m_magicX = 0.0;
 	m_lastMagicPos = -1;
 	
-	m_box = new GroupBox();
+	m_box = new GroupBox(Box::D_Horizontal);
 }
 
 TextLayout::~TextLayout()
@@ -46,12 +46,25 @@ TextLayout::~TextLayout()
 
 uint TextLayout::lines() const
 {
-	return m_box->boxes().count();
+	uint count = 0;
+	foreach (const Box *box, m_box->boxes())
+	{
+		count += box->boxes().count();
+	}
+	return count;
 }
 
 const LineBox* TextLayout::line(uint i) const
 {
-	return dynamic_cast<const LineBox*>(m_box->boxes()[i]);
+	uint count = 0;
+	foreach (const Box *box, m_box->boxes())
+	{
+		if (i < count + box->boxes().count())
+			return dynamic_cast<const LineBox*>(box->boxes()[i - count]);
+		count += box->boxes().count();
+	}
+	assert(false);
+	return NULL;
 }
 
 const Box* TextLayout::box() const
@@ -84,8 +97,8 @@ void TextLayout::appendLine(LineBox* ls)
 	assert( ls->lastChar() < story()->length() );
 	// HACK: the ascent set by PageItem_TextFrame::layout()
 	// is useless, we reset it again based on the y position
-	ls->setAscent(ls->y() - m_box->height());
-	m_box->addBox(ls);
+	ls->setAscent(ls->y() - m_box->boxes().last()->height());
+	dynamic_cast<GroupBox*>(m_box->boxes().last())->addBox(ls);
 }
 
 // Remove the last line from the list. Used when we need to backtrack on the layouting.
@@ -108,10 +121,17 @@ void TextLayout::render(TextLayoutPainter *p)
 	p->restore();
 }
 
+void TextLayout::addColumn(double colLeft)
+{
+	GroupBox *newBox = new GroupBox(Box::D_Vertical);
+	newBox->moveTo(colLeft, 0.0);
+	m_box->addBox(newBox);
+}
+
 void TextLayout::clear() 
 {
 	delete m_box;
-	m_box = new GroupBox();
+	m_box = new GroupBox(Box::D_Horizontal);
 	m_path.clear();
 	if (m_frame->asPathText() != NULL)
 		m_path.resize(story()->length());
@@ -222,7 +242,10 @@ int TextLayout::endOfFrame() const
 
 int TextLayout::pointToPosition(QPointF coord) const
 {
-	return m_box->pointToPosition(coord);
+	int position = m_box->pointToPosition(coord);
+	if (position == m_box->lastChar())
+		position += 1;
+	return position;
 }
 
 
@@ -238,13 +261,14 @@ QLineF TextLayout::positionToPoint(int pos) const
 		{
 			// TODO: move this branch to GroupBox::positionToPoint()
 			// last glyph box in last line
-			Box* line = m_box->boxes().last();
+			Box* column = m_box->boxes().last();
+			Box* line = column->boxes().last();
 			Box* glyph = line->boxes().last();
 			QChar ch = story()->text(glyph->lastChar());
 			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 			{
 				// last character is a newline, draw the cursor on the next line.
-				x = dynamic_cast<LineBox*>(line)->colLeft + 1;
+				x = 1;
 				y1 = line->y() + line->height();
 				y2 = y1 + line->height();
 			}
@@ -255,6 +279,8 @@ QLineF TextLayout::positionToPoint(int pos) const
 				y1 = line->y();
 				y2 = y1 + line->height();
 			}
+			result.setLine(x, y1, x, y2);
+			result.translate(column->x(), column->y());
 		}
 		else
 		{
@@ -263,8 +289,8 @@ QLineF TextLayout::positionToPoint(int pos) const
 			x = 1;
 			y1 = 0;
 			y2 = pstyle.lineSpacing();
+			result.setLine(x, y1, x, y2);
 		}
-		result.setLine(x, y1, x, y2);
 		result.translate(m_box->x(), m_box->y());
 	}
 	

@@ -73,6 +73,7 @@ void GroupBox::render(TextLayoutPainter *p, PageItem *item) const
 void GroupBox::addBox(const Box* box)
 {
 	boxes().append(const_cast<Box*>(box));
+	QObject::connect(box, SIGNAL(boxChanged()), this, SLOT(childChanged()));
 	update();
 }
 
@@ -89,12 +90,15 @@ void GroupBox::update()
 {
 	m_ascent = m_width = 0;
 	foreach (Box* box, boxes()) {
-		box->moveTo(box->x(), height());
+		if (box->getDirection() == D_Horizontal)
+			box->moveTo(box->x(), height());
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
 		m_width = qMax(m_width, box->width());
 		m_ascent += box->height();
 	}
+
+	emit boxChanged();
 }
 
 #if 0
@@ -139,20 +143,6 @@ QLineF LineBox::positionToPoint(int pos) const
 		}
 	}
 	return result;
-}
-
-bool LineBox::containsPoint(QPointF coord) const
-{
-	bool found = Box::containsPoint(coord);
-	if (!found)
-	{
-		if (bbox().contains(QPointF(0, coord.y())))
-		{
-			found = true;
-		}
-	}
-
-	return found;
 }
 
 void LineBox::render(TextLayoutPainter *p) const

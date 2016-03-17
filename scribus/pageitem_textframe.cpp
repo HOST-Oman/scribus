@@ -491,16 +491,17 @@ struct LineControl {
 	}
 
 	/// move position to next column
-	void nextColumn(double asce = 0.0)
+	void nextColumn(TextLayout &textLayout)
 	{
 		startOfCol = true;
 		colLeft = (colWidth + colGap) * column + insets.left() + lineCorr;
+		textLayout.addColumn(colLeft);
 		//now colRight is REAL column right edge
 		colRight = colLeft + colWidth;
 		if (legacy)
 			colRight += lineCorr;
 		xPos = colLeft;
-		yPos = asce + insets.top() + lineCorr;
+		yPos = insets.top() + lineCorr;
 	}
 
 	bool isEndOfCol(double morespace = 0)
@@ -771,11 +772,11 @@ struct LineControl {
 	LineBox* createLineBox()
 	{
 		LineBox* result = new LineBox();
-		result->moveTo(line.x, line.y);
+		result->moveTo(line.x - colLeft, line.y);
 		result->setWidth(line.width);
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
-		result->colLeft = line.colLeft;
+		result->colLeft = line.colLeft; /**/
 
 		int runCount = line.lastRun - line.firstRun + 1;
 		for (int i = 0; i < runCount; ++i)
@@ -1534,7 +1535,7 @@ void PageItem_TextFrame::layout()
 			m_availableRegion = matrix.map(m_availableRegion);
 		}
 
-		current.nextColumn();
+		current.nextColumn(textLayout);
 		lastLineY = m_textDistanceMargins.top();
 
 		//automatic line spacing factor (calculated once)
@@ -2207,7 +2208,7 @@ void PageItem_TextFrame::layout()
 				}
 				if (newColumn)
 				{
-					current.nextColumn();
+					current.nextColumn(textLayout);
 					current.mustLineEnd = current.colRight;
 					current.restartX = current.xPos;
 					lastLineY = current.yPos;
@@ -2947,7 +2948,7 @@ void PageItem_TextFrame::layout()
 					{
 						if (firstLineOffset() == FLOPRealGlyphHeight)
 							asce = 0;
-						current.nextColumn();
+						current.nextColumn(textLayout);
 						current.mustLineEnd = current.colRight;
 						current.addLeftIndent = true;
 						lastLineY = m_textDistanceMargins.top();
