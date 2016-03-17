@@ -3240,7 +3240,7 @@ public:
 		{
 			m_painter->save();
 
-			setupState();
+			setupState(false);
 
 			cairo_t* cr = m_painter->context();
 			double r, g, b;
@@ -3278,7 +3278,7 @@ public:
 #endif
 		m_painter->save();
 
-		setupState();
+		setupState(false);
 
 		bool fr = m_painter->fillRule();
 		m_painter->setFillRule(false);
@@ -3396,7 +3396,7 @@ public:
 		bool fr = m_painter->fillRule();
 		m_painter->setFillRule(false);
 
-		setupState();
+		setupState(false);
 		m_painter->translate(0, -(fontSize() * gl.scaleV));
 
 		FPointArray outline = font().glyphOutline(gl.glyph);
@@ -3420,7 +3420,7 @@ public:
 	void drawLine(QPointF start, QPointF end)
 	{
 		m_painter->save();
-		setupState();
+		setupState(false);
 		m_painter->drawLine(start, end);
 		m_painter->restore();
 	}
@@ -3428,9 +3428,7 @@ public:
 	void drawRect(QRectF rect)
 	{
 		m_painter->save();
-		setupState();
-		m_painter->setFillMode(1);
-		m_painter->setStrokeMode(1);
+		setupState(true);
 		m_painter->drawRect(rect.x(), rect.y(), rect.width(), rect.height());
 		m_painter->restore();
 	}
@@ -3492,32 +3490,39 @@ public:
 	}
 
 private:
-	void setupState()
+	void setupState(bool rect)
 	{
 		m_painter->setLineWidth(strokeWidth());
-		QColor tmp;
-		if (selected())
+		if (selected() && rect)
 		{
+			// we are drawing a selection rect
+			m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::Highlight));
+			m_painter->setPen(qApp->palette().color(QPalette::Active, QPalette::Highlight));
+		}
+		else if (selected())
+		{
+			// we are drawing selected text
 			m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
+			m_painter->setPen(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
 		}
 		else
 		{
+			QColor tmp;
 			if (m_fillColor != fillColor())
 			{
 				m_item->SetQColor(&tmp, fillColor().color, fillColor().shade);
 				m_fillQColor = tmp;
 				m_fillColor = fillColor();
 			}
+			if (m_strokeColor != strokeColor())
+			{
+				m_item->SetQColor(&tmp, strokeColor().color, strokeColor().shade);
+				m_fillStrokeQColor = tmp;
+				m_strokeColor = strokeColor();
+			}
 			m_painter->setBrush(m_fillQColor);
+			m_painter->setPen(m_fillStrokeQColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		}
-
-		if (m_strokeColor != strokeColor())
-		{
-			m_item->SetQColor(&tmp, strokeColor().color, strokeColor().shade);
-			m_fillStrokeQColor = tmp;
-			m_strokeColor = strokeColor();
-		}
-		m_painter->setPen(m_fillStrokeQColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 
 		m_painter->translate(x(), y());
 		m_painter->scale(getScaleH(), getScaleV());
@@ -4069,8 +4074,15 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				p->restore();
 			}
 		}
+
+		int fm = p->fillMode();
+		int sm = p->strokeMode();
+		p->setFillMode(1);
+		p->setStrokeMode(1);
 		TextFramePainter painter(p, this);
 		textLayout.render(&painter, this);
+		p->setFillMode(fm);
+		p->setStrokeMode(sm);
 	}
 	m_textDistanceMargins=savedTextDistanceMargins;
 	p->restore();//RE1

@@ -158,7 +158,6 @@ void LineBox::render(TextLayoutPainter *p) const
 
 void LineBox::render(TextLayoutPainter *p, PageItem *item) const
 {
-	p->save();
 	p->translate(x(), y());
 
 	QRectF selection;
@@ -168,13 +167,18 @@ void LineBox::render(TextLayoutPainter *p, PageItem *item) const
 			selection |= QRectF(box->x(), 0, box->width(), height());
 	}
 
-	p->save();
-	TextLayoutColor highlight(qApp->palette().color(QPalette::Active, QPalette::Highlight).name());
-	p->setFillColor(highlight);
-	p->setStrokeWidth(0);
-	p->setStrokeColor(highlight);
-	p->drawRect(selection);
-	p->restore();
+	if (!selection.isEmpty())
+	{
+		bool s = p->selected();
+		bool sw = p->strokeWidth();
+
+		p->setSelected(true);
+		p->setStrokeWidth(0);
+		p->drawRect(selection);
+
+		p->setSelected(s);
+		p->setStrokeWidth(sw);
+	}
 
 	p->translate(0, ascent());
 
@@ -183,7 +187,7 @@ void LineBox::render(TextLayoutPainter *p, PageItem *item) const
 		box->render(p, item);
 	}
 
-	p->restore();
+	p->translate(-x(), -y() - ascent());
 }
 
 void LineBox::addBox(const Box* box)
