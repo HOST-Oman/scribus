@@ -544,7 +544,7 @@ void ObjectBox::render(TextLayoutPainter *p) const
 	double oldY = m_item->yPos();
 
 	p->translate(x(), y() - ascent());
-	p->scale(m_style.scaleH() / 1000.0, m_style.scaleV() / 1000.0);
+	p->setScale(m_style.scaleH() / 1000.0, m_style.scaleV() / 1000.0);
 
 	m_item->setXPos(m_item->gXpos);
 	m_item->setYPos((m_item->gHeight * m_style.scaleV()) + m_item->gYpos);
