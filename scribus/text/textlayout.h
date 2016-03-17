@@ -77,6 +77,7 @@ public:
 
 	void appendLine(LineBox* ls);
 	void removeLastLine ();
+	void addColumn(double colLeft);
 
 	void clear();
 
