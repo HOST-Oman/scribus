@@ -82,18 +82,18 @@ double TextLayoutPainter::y() const
 	return m_stack.top().y;
 }
 
-void TextLayoutPainter::scale(double h, double v)
+void TextLayoutPainter::setScale(double h, double v)
 {
 	m_stack.top().scaleH = h;
 	m_stack.top().scaleV = v;
 }
 
-double TextLayoutPainter::getScaleV() const
+double TextLayoutPainter::scaleV() const
 {
 	return m_stack.top().scaleV;
 }
 
-double TextLayoutPainter::getScaleH() const
+double TextLayoutPainter::scaleH() const
 {
 	return m_stack.top().scaleH;
 }

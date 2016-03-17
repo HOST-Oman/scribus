@@ -183,8 +183,8 @@ void PSPainter::drawObject(PageItem* item)
 {
 	m_ps->PS_save();
 	m_ps->PS_translate(x(), -y());
-	if (getScaleH() != 1 || getScaleV() != 1)
-		m_ps->PS_scale(getScaleH(), getScaleV());
+	if (scaleH() != 1 || scaleV() != 1)
+		m_ps->PS_scale(scaleH(), scaleV());
 	m_ps->ProcessItem(m_Doc, m_page, item, m_argh, m_sep, m_farb, m_master, true);
 	m_ps->PS_restore();
 }

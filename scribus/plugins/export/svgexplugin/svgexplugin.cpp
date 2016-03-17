@@ -1226,7 +1226,7 @@ public:
 
 	void drawObject(PageItem* item)
 	{
-		QDomElement layerGroup = m_svg->processInlineItem(item, m_trans, getScaleH(), getScaleV());
+		QDomElement layerGroup = m_svg->processInlineItem(item, m_trans, scaleH(), scaleV());
 		m_elem.appendChild(layerGroup);
 	}
 };

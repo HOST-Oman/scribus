@@ -3466,14 +3466,14 @@ public:
 		case PageItem::Line:
 		case PageItem::PolyLine:
 		case PageItem::Spiral:
-			embedded->m_lineWidth = pws * qMin(getScaleH(), getScaleV());
+			embedded->m_lineWidth = pws * qMin(scaleH(), scaleV());
 			embedded->DrawObj_Item(m_painter, cullingArea);
 			break;
 		default:
 			break;
 		}
 
-		embedded->m_lineWidth = pws * qMin(getScaleH(), getScaleV());
+		embedded->m_lineWidth = pws * qMin(scaleH(), scaleV());
 		embedded->DrawObj_Post(m_painter);
 		embedded->m_lineWidth = pws;
 
@@ -3525,8 +3525,8 @@ private:
 		}
 
 		m_painter->translate(x(), y());
-		if (getScaleH() != 1.0 || getScaleV() != 1.0)
-			m_painter->scale(getScaleH(), getScaleV());
+		if (scaleH() != 1.0 || scaleV() != 1.0)
+			m_painter->scale(scaleH(), scaleV());
 	}
 
 	ScPainter *m_painter;

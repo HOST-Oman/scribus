@@ -903,11 +903,11 @@ public:
 	{
 		QDomElement canvas = m_xps->p_docu.createElement("Canvas");
 		QTransform matrix = QTransform();
-		matrix.translate(x() * m_xps->conversionFactor, (y() - (item->height() * (getScaleV() / 1000.0))) * m_xps->conversionFactor);
-		if (getScaleH() != 1.0)
-			matrix.scale(getScaleH(), 1);
-		if (getScaleV() != 1.0)
-			matrix.scale(1, getScaleV());
+		matrix.translate(x() * m_xps->conversionFactor, (y() - (item->height() * (scaleV() / 1000.0))) * m_xps->conversionFactor);
+		if (scaleH() != 1.0)
+			matrix.scale(scaleH(), 1);
+		if (scaleV() != 1.0)
+			matrix.scale(1, scaleV());
 		canvas.setAttribute("RenderTransform", m_xps->MatrixToStr(matrix));
 		m_xps->writeItemOnPage(item->gXpos, item->gYpos, item, canvas, m_relRoot);
 		m_group.appendChild(canvas);
