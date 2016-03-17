@@ -106,7 +106,6 @@ private:
 		{}
 	};
 
-	State m_state;
 	std::stack<State> m_stack;
 };
 
