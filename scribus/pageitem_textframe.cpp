@@ -3425,6 +3425,8 @@ public:
 			return;
 
 		m_painter->save();
+		setupState(false);
+
 		double pws = embedded->m_lineWidth;
 
 		embedded->Dirty = m_item->Dirty;
