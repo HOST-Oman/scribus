@@ -2743,28 +2743,23 @@ void PageItem_TextFrame::layout()
 						hyphWidth = 0.0;
 						if (glyphRuns[i].hasFlag(ScLayout_HyphenationPossible) || itemText.text(a) == SpecialChars::SHYPHEN)
 						{
-							glyphRuns[i].insertSoftHyphen();
-#if 0 // FIXME HOST
 							// insert hyphen
 							if (current.lastInRowLine)
 								//increase hyphen count only for hyphens a the end of text row, omit hyphens before overflow
 								current.hyphenCount++;
 							glyphRuns[i].setFlag(ScLayout_SoftHyphenVisible);
-							glyphs->grow();
-							glyphs->more->glyph = font.char2CMap(QChar('-'));
-							glyphs->more->xadvance = font.charWidth('-', itemText.charStyle(a).fontSize() / 10.0) * scaleH; //FIX ME - hyphen is not rendered with proper width - check yhis with large glyphs horizontal scaling eg. 20%
-							hyphWidth = glyphs->more->xadvance;
-#endif
+							GlyphLayout hyphen;
+							hyphen.glyph = font.char2CMap(QChar('-'));
+							hyphen.xadvance = font.charWidth('-', itemText.charStyle(a).fontSize() / 10.0);
+							hyphWidth = hyphen.xadvance * scaleH;
+							glyphRuns[i].glyphs().append(hyphen);
 						}
 						else
 						{
 							if (itemText.text(a) != '-')
 								current.hyphenCount = 0;
-							glyphRuns[i].removeSoftHyphen();
-#if 0 // FIXME HOST
-							itemText.clearFlag(a, ScLayout_SoftHyphenVisible);
-							glyphs->shrink();
-#endif
+							glyphRuns[i].clearFlag(ScLayout_SoftHyphenVisible);
+							glyphRuns[i].glyphs().removeLast();
 						}
 
 						// Justification

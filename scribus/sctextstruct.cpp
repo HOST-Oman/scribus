@@ -24,18 +24,6 @@ qreal GlyphRun::width() const
 	return width;
 }
 
-void GlyphRun::insertSoftHyphen()
-{
-	
-}
-
-void GlyphRun::removeSoftHyphen()
-{
-	
-}
-
-
-
 ScText::~ScText() 
 {
 	// delete the linked list if present
