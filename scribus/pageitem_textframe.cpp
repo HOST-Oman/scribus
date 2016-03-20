@@ -2750,7 +2750,7 @@ void PageItem_TextFrame::layout()
 							glyphRuns[i].setFlag(ScLayout_SoftHyphenVisible);
 							GlyphLayout hyphen;
 							hyphen.glyph = font.char2CMap(QChar('-'));
-							hyphen.xadvance = font.charWidth('-', itemText.charStyle(a).fontSize() / 10.0);
+							hyphen.xadvance = font.glyphBBox(hyphen.glyph, itemText.charStyle(a).fontSize() / 10.0).width;
 							hyphWidth = hyphen.xadvance * scaleH;
 							glyphRuns[i].glyphs().append(hyphen);
 						}
