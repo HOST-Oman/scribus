@@ -204,7 +204,6 @@ public:
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 	int pointToPosition(QPointF coord) const;
-	GlyphRun glyphRun() const { return m_glyphRun; }
 	ScFace font() const { return m_glyphRun.style().font(); }
 	const CharStyle& style() const { return m_glyphRun.style(); }
 
