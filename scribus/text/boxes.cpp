@@ -147,18 +147,24 @@ QLineF LineBox::positionToPoint(int pos) const
 
 void LineBox::render(TextLayoutPainter *p) const
 {
-	p->save();
-	p->translate(x(), y() + ascent());
+	p->translate(x(), y());
+
+	drawBackGround(p);
+
+	p->translate(0, ascent());
 	foreach (const Box *box, boxes())
 	{
 		box->render(p);
 	}
-	p->restore();
+
+	p->translate(-x(), -y() - ascent());
 }
 
 void LineBox::render(TextLayoutPainter *p, PageItem *item) const
 {
 	p->translate(x(), y());
+
+	drawBackGround(p);
 
 	QRectF selection;
 	foreach (const Box *box, boxes())
@@ -181,13 +187,73 @@ void LineBox::render(TextLayoutPainter *p, PageItem *item) const
 	}
 
 	p->translate(0, ascent());
-
 	foreach (const Box *box, boxes())
 	{
 		box->render(p, item);
 	}
 
 	p->translate(-x(), -y() - ascent());
+}
+
+void LineBox::drawBackGround(TextLayoutPainter *p) const
+{
+	QString lastColor;
+	double lastShade = 100;
+	QRectF lastRect;
+	for (int i = 0; i < boxes().count(); i++)
+	{
+		const GlyphBox* box = dynamic_cast<const GlyphBox*>(boxes()[i]);
+		if (!box)
+			continue;
+		const CharStyle& style = box->style();
+		if (style.backColor() != CommonStrings::None)
+		{
+			QRectF rect(box->x(), 0, box->width(), height());
+			if (lastColor.isEmpty() || (lastColor == style.backColor() && lastShade == style.backShade()))
+			{
+				lastRect |= rect;
+			}
+			else
+			{
+				if (!lastRect.isEmpty())
+				{
+					TextLayoutColor backColor(lastColor, lastShade);
+					p->save();
+					p->setFillColor(backColor);
+					p->setStrokeColor(backColor);
+					p->drawRect(lastRect);
+					p->restore();
+				}
+				lastRect = rect;
+			}
+			lastColor = style.backColor();
+			lastShade = style.backShade();
+		}
+		else
+		{
+			if (!lastRect.isEmpty())
+			{
+				TextLayoutColor backColor(lastColor, lastShade);
+				p->save();
+				p->setFillColor(backColor);
+				p->setStrokeColor(backColor);
+				p->drawRect(lastRect);
+				p->restore();
+			}
+			lastColor.clear();
+			lastShade = 100;
+			lastRect = QRectF();
+		}
+	}
+	if (!lastRect.isEmpty())
+	{
+		TextLayoutColor backColor(lastColor, lastShade);
+		p->save();
+		p->setFillColor(backColor);
+		p->setStrokeColor(backColor);
+		p->drawRect(lastRect);
+		p->restore();
+	}
 }
 
 void LineBox::addBox(const Box* box)
@@ -364,7 +430,6 @@ void GlyphBox::render(TextLayoutPainter *p) const
 	double fontSize = style.fontSize() / 10.0;
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
 	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
-	bool hasBackColor = style.backColor() != CommonStrings::None;
 
 	p->save();
 
@@ -378,16 +443,6 @@ void GlyphBox::render(TextLayoutPainter *p) const
 		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
 	if (hasStrokeColor)
 		p->setStrokeColor(TextLayoutColor(style.strokeColor(), style.strokeShade()));
-
-	if (hasBackColor)
-	{
-		TextLayoutColor backColor(style.backColor(), style.backShade());
-		p->save();
-		p->setFillColor(backColor);
-		p->setStrokeColor(backColor);
-		p->drawRect(QRectF(0, -ascent(), width(), height()));
-		p->restore();
-	}
 
 	foreach (const GlyphLayout gl, m_glyphRun.glyphs())
 	{
