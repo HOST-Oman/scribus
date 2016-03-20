@@ -1252,9 +1252,6 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		Mark* mark = itemText.mark(i);
 		if (itemText.hasMark(i))
 		{
-			//show control characters for marks
-//FIXME HOST		glyphs->glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
-
 			mark->OwnPage = OwnPage;
 			//itemPtr and itemName set to this frame only if mark type is different than MARK2ItemType
 			if (!mark->isType(MARK2ItemType))
@@ -1369,6 +1366,14 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		{
 			GlyphLayout& last = glyphRuns.last().glyphs().last();
 			last.xadvance += run.style().font().glyphKerning(last.glyph, gl.glyph, run.style().fontSize() / 10) * last.scaleH;
+		}
+
+		//show control characters for marks
+		if (itemText.hasMark(a))
+		{
+			GlyphLayout control;
+			control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
+			run.glyphs().append(control);
 		}
 
 		if (SpecialChars::isExpandingSpace(ch))
@@ -3340,6 +3345,7 @@ public:
 			if (stroke)
 			{
 				QColor tmp = m_painter->pen();
+				m_painter->setStrokeMode(1);
 				m_painter->setPen(m_painter->brush(), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 				m_painter->setLineWidth(fontSize() * gl.scaleV / 20.0);
 				m_painter->strokePath();
