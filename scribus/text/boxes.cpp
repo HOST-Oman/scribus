@@ -427,13 +427,14 @@ void GlyphBox::render(TextLayoutPainter *p) const
 	// This is a very hot method and can be easily called tens of thousands of times per second,
 	// so it is always a good idea to profile changes to this code.
 	const CharStyle& style = m_glyphRun.style();
+	const ScFace& font = style.font();
 	double fontSize = style.fontSize() / 10.0;
 	bool hasFillColor = style.fillColor() != CommonStrings::None;
 	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
 
 	p->save();
 
-	p->setFont(font());
+	p->setFont(font);
 	p->setFontSize(fontSize);
 
 	p->translate(x(), y());
@@ -456,18 +457,18 @@ void GlyphBox::render(TextLayoutPainter *p) const
 			if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
 			{
 				if (style.underlineOffset() != -1)
-					st = (style.underlineOffset() / 1000.0) * font().descent(fontSize);
+					st = (style.underlineOffset() / 1000.0) * font.descent(fontSize);
 				else
-					st = font().underlinePos(fontSize);
+					st = font.underlinePos(fontSize);
 				if (style.underlineWidth() != -1)
 					lw = (style.underlineWidth() / 1000.0) * fontSize;
 				else
-					lw = qMax(font().strokeWidth(fontSize), 1.0);
+					lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
 			else
 			{
-				st = font().underlinePos(fontSize);
-				lw = qMax(font().strokeWidth(fontSize), 1.0);
+				st = font.underlinePos(fontSize);
+				lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
 			if (style.baselineOffset() != 0)
 				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
@@ -499,7 +500,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 			p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() * 2 / 10000.0);
 			p->drawGlyphOutline(gl, false);
 		}
-		else if ((font().isStroked()) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
+		else if ((font.isStroked()) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
 		{
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0);
@@ -541,18 +542,18 @@ void GlyphBox::render(TextLayoutPainter *p) const
 			if ((style.strikethruOffset() != -1) || (style.strikethruWidth() != -1))
 			{
 				if (style.strikethruOffset() != -1)
-					st = (style.strikethruOffset() / 1000.0) * font().ascent(fontSize);
+					st = (style.strikethruOffset() / 1000.0) * font.ascent(fontSize);
 				else
-					st = font().strikeoutPos(fontSize);
+					st = font.strikeoutPos(fontSize);
 				if (style.strikethruWidth() != -1)
 					lw = (style.strikethruWidth() / 1000.0) * fontSize;
 				else
-					lw = qMax(font().strokeWidth(fontSize), 1.0);
+					lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
 			else
 			{
-				st = font().strikeoutPos(fontSize);
-				lw = qMax(font().strokeWidth(fontSize), 1.0);
+				st = font.strikeoutPos(fontSize);
+				lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
 			if (style.baselineOffset() != 0)
 				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
