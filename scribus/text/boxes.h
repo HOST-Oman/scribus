@@ -68,11 +68,6 @@ public:
 			delete m_boxes.takeFirst();
 	}
 
-//	virtual GlyphBox* asGlyphBox() { return NULL; }
-//	virtual const BoxGroup* asBoxGroup()  const { return NULL; }
-//	virtual InlineBox* asInlineBox() { return NULL; }
-//	virtual PathBox* asPathBox() { return NULL; }
-
 	qreal x() const { return m_x; }
 	qreal y() const { return m_y; }
 	void moveTo (double x, double y) { m_x = x, m_y = y; }
@@ -147,12 +142,15 @@ public:
 
 	int pointToPosition(QPointF coord) const;
 	QLineF positionToPoint(int pos) const;
+
 //	QList<const Box*> pathForPos(int pos) const;
 
 	virtual void addBox(const Box* box);
 	virtual void removeBox(int i);
-	void render(TextLayoutPainter *p, PageItem *item) const;
+
 	void render(TextLayoutPainter *p) const;
+	void render(TextLayoutPainter *p, PageItem *item) const;
+
 //	void justify(const ParagraphStyle& style);
 
 	void childChanged()
@@ -178,11 +176,15 @@ public:
 
 	int pointToPosition(QPointF coord) const;
 	QLineF positionToPoint(int pos) const;
+
 	void addBox(const Box* box);
 	void removeBox(int i);
+
 	void render(TextLayoutPainter *p) const;
-//	void justify(const ParagraphStyle& style);
 	void render(TextLayoutPainter *p, PageItem *item) const;
+
+//	void justify(const ParagraphStyle& style);
+
 	qreal colLeft;
 };
 
@@ -200,10 +202,12 @@ public:
 		m_width = run.width();
 	}
 
+	int pointToPosition(QPointF coord) const;
+
 //	QList<const Box*> pathForPos(int pos) const;
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
-	int pointToPosition(QPointF coord) const;
+
 	const CharStyle& style() const { return m_glyphRun.style(); }
 
 private:
@@ -225,9 +229,9 @@ public:
 		m_width = run.width();
 	}
 
-	void render(TextLayoutPainter *p) const;
-	void render(TextLayoutPainter*, PageItem *item) const;
 	int pointToPosition(QPointF coord) const;
 
+	void render(TextLayoutPainter *p) const;
+	void render(TextLayoutPainter*, PageItem *item) const;
 };
 #endif /* defined(__Scribus__boxes__) */
