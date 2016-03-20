@@ -167,6 +167,8 @@ private:
 
 class LineBox : public GroupBox
 {
+	void drawBackGround(TextLayoutPainter *p) const;
+
 public:
 	LineBox()
 		: GroupBox(D_Horizontal)
@@ -204,6 +206,7 @@ public:
 	int pointToPosition(QPointF coord) const;
 	GlyphRun glyphRun() const { return m_glyphRun; }
 	ScFace font() const { return m_glyphRun.style().font(); }
+	const CharStyle& style() const { return m_glyphRun.style(); }
 
 private:
 	GlyphRun m_glyphRun;
