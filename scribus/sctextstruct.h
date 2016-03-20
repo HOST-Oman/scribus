@@ -98,8 +98,6 @@ public:
 	int firstChar()					const	{ return m_firstChar; }
 	int lastChar()					const	{ return m_lastChar; }
 	qreal width() const;
-	void insertSoftHyphen();
-	void removeSoftHyphen();
 	PageItem* object()				const	{ return m_object; }
 };
 
