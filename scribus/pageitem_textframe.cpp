@@ -2287,7 +2287,6 @@ void PageItem_TextFrame::layout()
 				{
 					tabs.xPos = current.xPos;
 					tTabValues = style.tabValues();
-					current.xPos -= (legacy ? 1.0 : 0.0);
 					if (tTabValues.isEmpty())
 					{
 						current.xPos = nextAutoTab (current, this);
