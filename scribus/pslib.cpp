@@ -1810,14 +1810,8 @@ int PSLib::CreatePS(ScribusDoc* Doc, PrintOptions &options)
 
 bool PSLib::ProcessItem(ScribusDoc* Doc, ScPage* a, PageItem* c, uint PNr, bool sep, bool farb, bool master, bool embedded, bool useTemplate)
 {
-	double tsz;
 	int h, s, v, k;
-	int d;
-	int savedOwnPage;
-	//ScText *hl;
 	QVector<double> dum;
-	QChar chstr;
-	QString tmps;
 	if (c->printEnabled())
 	{
 		fillRule = true;
