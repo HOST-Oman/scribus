@@ -579,12 +579,12 @@ void GlyphBox::render(TextLayoutPainter *p) const
 
 int GlyphBox::pointToPosition(QPointF coord) const
 {
-	qreal relX = coord.x() - m_x;
-	qreal xPos = 0.0;
+	double relX = coord.x() - m_x;
+	double xPos = 0.0;
 
 	for (int i = 0; i < m_glyphRun.glyphs().length(); ++i)
 	{
-		qreal width = m_glyphRun.glyphs().at(i).xadvance;
+		double width = m_glyphRun.glyphs().at(i).xadvance;
 		if (xPos <= relX && relX <= xPos + width)
 		{
 			return m_firstChar + i; // FIXME: use clusters
