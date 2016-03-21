@@ -489,7 +489,7 @@ struct LineControl {
 	{
 		startOfCol = true;
 		colLeft = (colWidth + colGap) * column + insets.left() + lineCorr;
-		textLayout.addColumn(colLeft);
+		textLayout.addColumn(colLeft, colWidth);
 		//now colRight is REAL column right edge
 		colRight = colLeft + colWidth;
 		if (legacy)

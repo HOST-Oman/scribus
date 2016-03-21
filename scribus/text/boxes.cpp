@@ -88,14 +88,21 @@ void GroupBox::removeBox(int i)
 
 void GroupBox::update()
 {
-	m_ascent = m_width = 0;
+	m_naturalHeight = m_naturalWidth = 0;
 	foreach (Box* box, boxes()) {
-		if (box->getDirection() == D_Horizontal)
-			box->moveTo(box->x(), naturalHeight());
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
-		m_naturalWidth = qMax(m_width, box->naturalWidth());
-		m_naturalHeight += box->naturalHeight();
+		if (m_direction == D_Horizontal)
+		{
+			m_naturalWidth += box->width();
+			m_naturalHeight = qMax(m_naturalHeight, box->naturalHeight());
+		}
+		else
+		{
+			box->moveTo(box->x(), naturalHeight());
+			m_naturalWidth = qMax(m_naturalWidth, box->naturalWidth());
+			m_naturalHeight += box->height();
+		}
 	}
 
 	emit boxChanged();
@@ -259,23 +266,7 @@ void LineBox::drawBackGround(TextLayoutPainter *p) const
 void LineBox::addBox(const Box* box)
 {
 	m_boxes.append(const_cast<Box*>(box));
-	m_firstChar = qMin(m_firstChar, box->firstChar());
-	m_lastChar = qMax(m_lastChar, box->lastChar());
-
-	if (0 == m_ascent)
-		m_ascent = box->ascent();
-
-	QRectF newRect = box->bbox();
-	newRect.moveTo(box->x() + m_x, box->x() + m_y);
-	newRect = bbox().united(newRect);
-	if (0 == m_y)
-		m_y = newRect.y();
-	if (0 == m_x)
-		m_x = newRect.x();
-	if (0 == m_width)
-		m_width = newRect.width();
-	if (0 == m_descent)
-		m_descent = newRect.height() - m_ascent;
+	update();
 }
 
 void LineBox::removeBox(int i)
@@ -284,6 +275,19 @@ void LineBox::removeBox(int i)
 		return;
 
 	boxes().removeAt(i);
+	update();
+}
+
+void LineBox::update()
+{
+	m_naturalWidth = 0;
+	foreach (Box* box, boxes()) {
+		m_firstChar = qMin(m_firstChar, box->firstChar());
+		m_lastChar = qMax(m_lastChar, box->lastChar());
+		m_naturalWidth += box->naturalWidth();
+	}
+
+	emit boxChanged();
 }
 
 #if 0
