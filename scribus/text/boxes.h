@@ -114,8 +114,8 @@ public:
 	/// Same as render() but handles text selection, for rendering on screen.
 	virtual void render(TextLayoutPainter *p, PageItem *item) const = 0;
 
-//	virtual qreal naturalWidth() const { return width(); }
-//	virtual qreal naturalHeight() const { return height(); }
+	virtual qreal naturalWidth() const { return width(); }
+	virtual qreal naturalHeight() const { return height(); }
 //	virtual qreal minWidth() const { return width(); }
 //	virtual qreal minHeight() const { return height(); }
 //	virtual qreal maxWidth() const { return width(); }
@@ -134,6 +134,10 @@ signals:
 
 class GroupBox : public Box
 {
+protected:
+	qreal m_naturalWidth;
+	qreal m_naturalHeight;
+
 public:
 	GroupBox(BoxDirection direction)
 	{
@@ -141,6 +145,7 @@ public:
 		m_direction = direction;
 		m_firstChar = INT_MAX;
 		m_lastChar = INT_MIN;
+		m_naturalWidth = m_naturalHeight = 0;
 	}
 
 	int pointToPosition(QPointF coord) const;
@@ -153,6 +158,9 @@ public:
 
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
+
+	qreal naturalWidth() const { return m_naturalWidth; }
+	qreal naturalHeight() const { return m_naturalHeight; }
 
 //	void justify(const ParagraphStyle& style);
 
@@ -175,6 +183,7 @@ public:
 		: GroupBox(D_Horizontal)
 	{
 		m_type = T_Line;
+		m_naturalWidth = m_naturalHeight = 0;
 	}
 
 	int pointToPosition(QPointF coord) const;
@@ -185,6 +194,9 @@ public:
 
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
+
+	qreal naturalWidth() const { return m_naturalWidth; }
+	qreal naturalHeight() const { return m_naturalHeight; }
 
 //	void justify(const ParagraphStyle& style);
 };

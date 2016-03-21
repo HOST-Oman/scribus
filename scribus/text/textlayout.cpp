@@ -97,7 +97,7 @@ void TextLayout::appendLine(LineBox* ls)
 	assert( ls->lastChar() < story()->length() );
 	// HACK: the ascent set by PageItem_TextFrame::layout()
 	// is useless, we reset it again based on the y position
-	ls->setAscent(ls->y() - m_box->boxes().last()->height());
+	ls->setAscent(ls->y() - m_box->boxes().last()->naturalHeight());
 	dynamic_cast<GroupBox*>(m_box->boxes().last())->addBox(ls);
 }
 

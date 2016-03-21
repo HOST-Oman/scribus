@@ -91,11 +91,11 @@ void GroupBox::update()
 	m_ascent = m_width = 0;
 	foreach (Box* box, boxes()) {
 		if (box->getDirection() == D_Horizontal)
-			box->moveTo(box->x(), height());
+			box->moveTo(box->x(), naturalHeight());
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
-		m_width = qMax(m_width, box->width());
-		m_ascent += box->height();
+		m_naturalWidth = qMax(m_width, box->naturalWidth());
+		m_naturalHeight += box->naturalHeight();
 	}
 
 	emit boxChanged();

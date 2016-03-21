@@ -3059,7 +3059,7 @@ void PageItem_TextFrame::layout()
 	MaxChars = itemText.length();
 	if ((verticalAlign > 0) && (NextBox == NULL))
 	{
-		double hAdjust = height() - textLayout.box()->height();
+		double hAdjust = height() - textLayout.box()->naturalHeight();
 		if (hAdjust > 0)
 		{
 			if (verticalAlign == 1)
@@ -5910,7 +5910,7 @@ void PageItem_TextFrame::setTextFrameHeight()
 	if (NextBox == 0) // Vertical alignment is not used inside a text chain
 	{
 		textLayout.box()->moveTo(textLayout.box()->x(), 0);
-		double newHeight = textLayout.box()->height();
+		double newHeight = textLayout.box()->naturalHeight();
 
 		UndoTransaction undoTransaction;
 		if (UndoManager::undoEnabled())
