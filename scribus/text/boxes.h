@@ -184,8 +184,6 @@ public:
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
 //	void justify(const ParagraphStyle& style);
-
-	qreal colLeft;
 };
 
 

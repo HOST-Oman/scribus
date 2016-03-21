@@ -769,7 +769,6 @@ struct LineControl {
 		result->setWidth(line.width);
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
-		result->colLeft = line.colLeft; /**/
 
 		for (int i = line.firstRun; i <= line.lastRun; ++i)
 		{
