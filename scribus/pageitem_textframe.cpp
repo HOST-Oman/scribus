@@ -3994,71 +3994,24 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		assert( firstInFrame() >= 0 );
 		assert( lastInFrame() < itemText.length() );
 
-		// FIXME HOST: move this to boxes
-		uint llp = 0;
-		for (uint ll=0; ll < textLayout.lines(); ++ll)
-		{
-			const LineBox* line = textLayout.line(ll);
-//			double colStart = line->colLeft; // was CurX
-			const ParagraphStyle& LineStyle = itemText.paragraphStyle(line->firstChar());
-			if (LineStyle.backgroundColor() != CommonStrings::None)
-			{
-				QColor tmp;
-				SetQColor(&tmp, LineStyle.backgroundColor(), LineStyle.backgroundShade());
-				double y0 = line->y();
-				double y2 = line->y();
-				double ascent = line->ascent();
-				double descent = line->descent();
-				double rMarg = LineStyle.rightMargin();
-				double lMarg = line->colLeft;
-				double adjX = 0;
-				if (LineStyle.firstIndent() <= 0)
-					adjX += LineStyle.leftMargin() + LineStyle.firstIndent();
-				while (llp < textLayout.lines())
-				{
-					line = textLayout.line(llp);
-					if ((line->colLeft > lMarg) || (itemText.paragraphStyle(line->firstChar()) != LineStyle))
-					{
-						if (y2 == 0)
-							y2 = y0;
-						break;
-					}
-					if (itemText.text(line->lastChar()) == SpecialChars::PARSEP)
-					{
-						y2 = line->y();
-						descent = line->descent();
-						if ((llp + 1) < textLayout.lines())
-						{
-							if ((textLayout.line(llp + 1)->lastChar() - textLayout.line(llp + 1)->firstChar()) > 0)
-								descent += LineStyle.lineSpacing() - (line->descent() + textLayout.line(llp + 1)->ascent());
-						}
-						llp++;
-						break;
-					}
-					y2 = line->y();
-					descent = line->descent();
-					if ((llp + 1) < textLayout.lines())
-						descent += LineStyle.lineSpacing() - (line->descent() + textLayout.line(llp + 1)->ascent());
-					llp++;
-				}
-				p->save();
-				p->setupPolygon(&PoLine);
-				p->setClipPath();
-				p->setAntialiasing(false);
-				p->setFillMode(1);
-				p->setStrokeMode(0);
-				p->setBrush(tmp);
-				p->drawRect(lMarg + adjX, y0 - ascent, columnWidth() - adjX - rMarg, y2 - y0 + descent + ascent);
-				p->setAntialiasing(true);
-				p->restore();
-			}
-		}
-
 		int fm = p->fillMode();
 		int sm = p->strokeMode();
 		p->setFillMode(1);
 		p->setStrokeMode(1);
 		TextFramePainter painter(p, this);
+		foreach (const Box* column, textLayout.columns())
+		{
+			const ParagraphStyle& LineStyle = itemText.paragraphStyle(column->firstChar());
+			if (LineStyle.backgroundColor() != CommonStrings::None)
+			{
+				painter.save();
+				TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
+				painter.setFillColor(backColor);
+				painter.setStrokeColor(backColor);
+				painter.drawRect(column->bbox());
+				painter.restore();
+			}
+		}
 		textLayout.render(&painter, this);
 		p->setFillMode(fm);
 		p->setStrokeMode(sm);

@@ -37,6 +37,7 @@ for which a new license (GPL+exception) is in place.
 #include "util.h"
 #include "util_formats.h"
 #include "util_math.h"
+#include "text/boxes.h"
 
 
 MarksOptions::MarksOptions(void)
@@ -1784,6 +1785,19 @@ void ScPageOutput::drawItem_Table( PageItem_Table* item, ScPainterExBase* painte
 void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase* painter, QRect cullingArea )
 {
 	ScpageoutputPainter p(item, painter, this);
+	foreach (const Box* column, item->textLayout.columns())
+	{
+		const ParagraphStyle& LineStyle = item->itemText.paragraphStyle(column->firstChar());
+		if (LineStyle.backgroundColor() != CommonStrings::None)
+		{
+			p.save();
+			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
+			p.setFillColor(backColor);
+			p.setStrokeColor(backColor);
+			p.drawRect(column->bbox());
+			p.restore();
+		}
+	}
 	item->textLayout.render(&p);
 }
 

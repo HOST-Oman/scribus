@@ -296,3 +296,8 @@ QLineF TextLayout::positionToPoint(int pos) const
 	
 	return result;
 }
+
+const QList<const Box*>& TextLayout::columns() const
+{
+	return reinterpret_cast<const QList<const Box*> & > (m_box->boxes());
+}
