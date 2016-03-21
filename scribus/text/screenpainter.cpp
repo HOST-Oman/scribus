@@ -75,6 +75,7 @@ void ScreenPainter::drawGlyph(const GlyphLayout gl)
 												NULL);
 			m_cairoFace = cairo_ft_font_face_create_for_pattern(pattern);
 			m_cairoFace = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
+			FcPatternDestroy(pattern);
 		}
 
 		cairo_set_font_face(cr, m_cairoFace);
