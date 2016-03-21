@@ -22,7 +22,7 @@ class TextLayoutPainter;
 /**
  class Box has a similar role as TeX's boxes. Scribus packs glyph runs into GlyphBoxes, GlyphBoxes and InlineBoxes into LineBoxes and LineBoxes into GroupBox(T_Block). (and in the future: math atoms, tables & table cells, ...)
  */
-class Box : public QObject {
+class Box: public QObject {
 	Q_OBJECT
 
 public:
@@ -132,7 +132,7 @@ signals:
 };
 
 
-class GroupBox : public Box
+class GroupBox: public Box
 {
 protected:
 	double m_naturalWidth;
@@ -174,7 +174,7 @@ private:
 };
 
 
-class LineBox : public GroupBox
+class LineBox: public GroupBox
 {
 protected:
 	virtual void drawBackGround(TextLayoutPainter *p) const;
@@ -216,7 +216,7 @@ public:
 
 };
 
-class GlyphBox : public Box
+class GlyphBox: public Box
 {
 public:
 	GlyphBox(const GlyphRun& run)
@@ -242,7 +242,7 @@ private:
 	const StyleFlag m_effects;
 };
 
-class ObjectBox : public Box
+class ObjectBox: public Box
 {
 	PageItem* m_item;
 	CharStyle m_style;
