@@ -75,7 +75,6 @@ public:
 	void moveBy (double x, double y) { m_x += x, m_y += y; }
 
 	qreal width() const { return m_width; }
-	void addWidth(double w) { m_width += w; }
 	void setWidth(double w) { m_width = w; }
 
 	qreal height() const { return m_ascent - m_descent; }
