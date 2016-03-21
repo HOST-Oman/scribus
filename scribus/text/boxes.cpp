@@ -410,6 +410,41 @@ void LineBox::justify(const ParagraphStyle& style)
 }
 #endif
 
+
+void PathLineBox::update()
+{
+	foreach (Box* box, boxes()) {
+		m_firstChar = qMin(m_firstChar, box->firstChar());
+		m_lastChar = qMax(m_lastChar, box->lastChar());
+	}
+
+	emit boxChanged();
+}
+
+void PathLineBox::drawBackGround(TextLayoutPainter *p) const
+{
+	for (int i = 0; i < boxes().count(); i++)
+	{
+		const GlyphBox* box = dynamic_cast<const GlyphBox*>(boxes()[i]);
+		if (!box)
+			continue;
+
+		const CharStyle& style = box->style();
+		if (style.backColor() != CommonStrings::None)
+		{
+			QRectF rect(box->x(), -box->ascent(), box->width(), box->height());
+			TextLayoutColor backColor(style.backColor(), style.backShade());
+			p->save();
+			p->setMatrix(box->matrix());
+			p->setFillColor(backColor);
+			p->setStrokeColor(backColor);
+			p->drawRect(rect);
+			p->restore();
+		}
+	}
+}
+
+
 void GlyphBox::render(TextLayoutPainter *p, PageItem *item) const
 {
 
