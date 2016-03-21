@@ -284,7 +284,9 @@ void LineBox::update()
 	foreach (Box* box, boxes()) {
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
-		m_naturalWidth += box->naturalWidth();
+
+		box->moveTo(m_naturalWidth, box->y());
+		m_naturalWidth += box->width();
 	}
 
 	emit boxChanged();
