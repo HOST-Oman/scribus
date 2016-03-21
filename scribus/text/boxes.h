@@ -28,10 +28,10 @@ class Box : public QObject {
 public:
 	enum BoxType {
 		T_Invalid,
-		T_Line,
 		T_Block,
-		T_Glyphs,
-		T_Path,
+		T_Line,
+		T_PathLine,
+		T_Glyph,
 		T_Object
 	};
 
@@ -97,7 +97,8 @@ public:
 	int firstChar() const { return m_firstChar == INT_MAX ? 0 : m_firstChar; }
 	int lastChar() const { return m_lastChar == INT_MIN ? 0 : m_lastChar; }
 
-	virtual void setMatrix(QTransform x) { m_matrix = x; }
+	void setMatrix(QTransform x) { m_matrix = x; }
+	const QTransform& matrix() const { return m_matrix; }
 
 //	virtual QList<const Box*> pathForPos(int pos) const = 0;
 //	virtual void justify(const ParagraphStyle& style) {}
@@ -175,17 +176,15 @@ private:
 
 class LineBox : public GroupBox
 {
-	void drawBackGround(TextLayoutPainter *p) const;
-	void update();
+protected:
+	virtual void drawBackGround(TextLayoutPainter *p) const;
+	virtual void update();
 
 public:
 	LineBox()
 		: GroupBox(D_Horizontal)
 	{
 		m_type = T_Line;
-		m_firstChar = INT_MAX;
-		m_lastChar = INT_MIN;
-		m_naturalWidth = m_naturalHeight = 0;
 	}
 
 	int pointToPosition(QPointF coord) const;
@@ -203,6 +202,19 @@ public:
 //	void justify(const ParagraphStyle& style);
 };
 
+class PathLineBox: public LineBox
+{
+protected:
+	void update();
+	void drawBackGround(TextLayoutPainter *p) const;
+
+public:
+	PathLineBox()
+	{
+		m_type = T_PathLine;
+	}
+
+};
 
 class GlyphBox : public Box
 {
@@ -211,7 +223,7 @@ public:
 		: m_glyphRun(run)
 		, m_effects(run.style().effects())
 	{
-		m_type = T_Glyphs;
+		m_type = T_Glyph;
 		m_firstChar = run.firstChar();
 		m_lastChar = run.lastChar();
 		m_width = run.width();

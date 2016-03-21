@@ -242,7 +242,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	QList<QPainterPath> pathList = decomposePath(guidePath);
 	QPainterPath currPath = pathList[0];
 	int currPathIndex = 0;
-	LineBox* linebox = new LineBox();
+	PathLineBox* linebox = new PathLineBox();
 	for (a = firstChar; a < itemRenderText.length(); ++a)
 	{
 		CurY = 0;
