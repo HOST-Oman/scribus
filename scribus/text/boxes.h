@@ -55,50 +55,72 @@ public:
 			delete m_boxes.takeFirst();
 	}
 
+	/// The x position of the box relative to its parent.
 	double x() const { return m_x; }
+	/// The y position of the box relative to its parent.
 	double y() const { return m_y; }
+	/// Sets x and y positions of the box.
 	void moveTo (double x, double y) { m_x = x, m_y = y; }
+	/// Increments x and y positions of the box.
 	void moveBy (double x, double y) { m_x += x, m_y += y; }
 
+	/// The box width, can be different from its natural width.
 	double width() const { return m_width; }
+	/// Set the box width.
 	void setWidth(double w) { m_width = w; }
 
+	/// The box ascender above baseline.
 	double ascent() const { return m_ascent; }
+	/// The box descender below baseline.
 	double descent() const { return m_descent; }
+	/// The box height, can be different from its natural height.
 	double height() const { return m_ascent - m_descent; }
+	/// Set the box ascender.
 	void setAscent(double a) { m_ascent = a; }
+	/// Set the box descender.
 	void setDescent(double d) { m_descent = d; }
 
+	/// The actual width of the box contents, can be different from the requested width.
+	virtual double naturalWidth() const { return width(); }
+	/// The actual height of the box contents, can be different from the requested height.
+	virtual double naturalHeight() const { return height(); }
+
+	/// The bounding box and position of the box relative to its parent.
 	QRectF bbox() const { return QRectF(m_x, m_y, m_width, height()); }
 
+	/// Whether the coordinate is inside the box or not.
 	virtual bool containsPoint(QPointF coord) const { return bbox().contains(coord); }
+	/// Whether the character at index pos is inside the box or not.
 	bool containsPos(int pos) const { return firstChar() <= pos && pos <= lastChar(); }
 
-	/// returns a char position for the point coord + (m_x, m_y)
+	/// Returns the character index at coorddinate.
 	virtual int pointToPosition(QPointF coord) const = 0;
+	/// Returns the position of cursor before the character at index pos.
 	virtual QLineF positionToPoint(int pos) const { return QLineF(); }
 
+	/// The first character within the box.
 	int firstChar() const { return m_firstChar == INT_MAX ? 0 : m_firstChar; }
+	/// The last character within the box.
 	int lastChar() const { return m_lastChar == INT_MIN ? 0 : m_lastChar; }
 
+	/// Sets the transformation matrix to applied to the box.
 	void setMatrix(QTransform x) { m_matrix = x; }
+	/// The transformation matrix applied to the box.
 	const QTransform& matrix() const { return m_matrix; }
 
 //	virtual void justify(const ParagraphStyle& style) {}
 
+	/// Returns the children of the box.
 	QList<Box*>& boxes() { return m_boxes; }
 	const QList<const Box*>& boxes() const {
 		return reinterpret_cast<const QList<const Box*> & > (m_boxes);
 	}
 
-	/// Render the box and any boxes it contains, recursively.
+	/// Renders the box and any boxes it contains, recursively.
 	virtual void render(TextLayoutPainter *p) const = 0;
 
 	/// Same as render() but handles text selection, for rendering on screen.
 	virtual void render(TextLayoutPainter *p, PageItem *item) const = 0;
-
-	virtual double naturalWidth() const { return width(); }
-	virtual double naturalHeight() const { return height(); }
 
 public slots:
 	virtual void childChanged() { }
@@ -143,7 +165,9 @@ public:
 
 //	void justify(const ParagraphStyle& style);
 
+	/// Adds a new child to the box.
 	virtual void addBox(const Box* box);
+	/// Remove the child at i.
 	virtual void removeBox(int i);
 
 	void childChanged()
