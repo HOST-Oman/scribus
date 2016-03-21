@@ -95,6 +95,7 @@ void TextLayout::appendLine(LineBox* ls)
 	assert( ls->firstChar() >= 0 );
 	assert( ls->firstChar() < story()->length() );
 	assert( ls->lastChar() < story()->length() );
+
 	// HACK: the ascent set by PageItem_TextFrame::layout()
 	// is useless, we reset it again based on the y position
 	ls->setAscent(ls->y() - m_box->boxes().last()->naturalHeight());
@@ -138,11 +139,17 @@ void TextLayout::render(TextLayoutPainter *p)
 	p->restore();
 }
 
-void TextLayout::addColumn(double colLeft)
+void TextLayout::addColumn(double colLeft, double colWidth)
 {
 	GroupBox *newBox = new GroupBox(Box::D_Vertical);
 	newBox->moveTo(colLeft, 0.0);
+	newBox->setWidth(colWidth);
+	newBox->setAscent(m_frame->height());
 	m_box->addBox(newBox);
+
+	// Update the box width and height, any better place to do this?
+	m_box->setAscent(m_frame->height());
+	m_box->setWidth(m_frame->width());
 }
 
 void TextLayout::clear() 

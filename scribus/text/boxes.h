@@ -176,12 +176,15 @@ private:
 class LineBox : public GroupBox
 {
 	void drawBackGround(TextLayoutPainter *p) const;
+	void update();
 
 public:
 	LineBox()
 		: GroupBox(D_Horizontal)
 	{
 		m_type = T_Line;
+		m_firstChar = INT_MAX;
+		m_lastChar = INT_MIN;
 		m_naturalWidth = m_naturalHeight = 0;
 	}
 
@@ -195,7 +198,7 @@ public:
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
 	double naturalWidth() const { return m_naturalWidth; }
-	double naturalHeight() const { return m_naturalHeight; }
+	double naturalHeight() const { return height(); }
 
 //	void justify(const ParagraphStyle& style);
 };

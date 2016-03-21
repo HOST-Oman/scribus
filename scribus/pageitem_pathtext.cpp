@@ -344,7 +344,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			CurX += glyphs.xadvance+itemRenderText.charStyle(a).fontSize() *itemRenderText.charStyle(a).tracking() / 10000.0 + extraOffset;
 	}
 
-	textLayout.addColumn(0);
+	textLayout.addColumn(0, 0);
 	textLayout.appendLine(linebox);
 
 	if (!m_Doc->RePos)
