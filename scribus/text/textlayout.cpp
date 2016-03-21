@@ -114,6 +114,23 @@ void TextLayout::render(TextLayoutPainter *p, PageItem *item)
 	p->restore();
 }
 
+void TextLayout::renderBackground(TextLayoutPainter *p)
+{
+	foreach (const Box* column, m_box->boxes())
+	{
+		const ParagraphStyle& style = m_story->paragraphStyle(column->firstChar());
+		if (style.backgroundColor() != CommonStrings::None)
+		{
+			p->save();
+			TextLayoutColor backColor(style.backgroundColor(), style.backgroundShade());
+			p->setFillColor(backColor);
+			p->setStrokeColor(backColor);
+			p->drawRect(column->bbox());
+			p->restore();
+		}
+	}
+}
+
 void TextLayout::render(TextLayoutPainter *p)
 {
 	p->save();
@@ -295,9 +312,4 @@ QLineF TextLayout::positionToPoint(int pos) const
 	}
 	
 	return result;
-}
-
-const QList<const Box*>& TextLayout::columns() const
-{
-	return reinterpret_cast<const QList<const Box*> & > (m_box->boxes());
 }

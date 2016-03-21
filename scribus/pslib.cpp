@@ -5187,19 +5187,7 @@ void PSLib::SetColor(const ScColor& farb, double shade, int *h, int *s, int *v, 
 void PSLib::setTextSt(ScribusDoc* Doc, PageItem* ite, uint argh, ScPage* pg, bool sep, bool farb, bool master)
 {
 	PSPainter p(Doc, argh, pg, sep, farb, master, this);
-	foreach (const Box* column, ite->textLayout.columns())
-	{
-		const ParagraphStyle& LineStyle = ite->itemText.paragraphStyle(column->firstChar());
-		if (LineStyle.backgroundColor() != CommonStrings::None)
-		{
-			p.save();
-			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
-			p.setFillColor(backColor);
-			p.setStrokeColor(backColor);
-			p.drawRect(column->bbox());
-			p.restore();
-		}
-	}
+	ite->textLayout.renderBackground(&p);
 	ite->textLayout.render(&p);
 }
 

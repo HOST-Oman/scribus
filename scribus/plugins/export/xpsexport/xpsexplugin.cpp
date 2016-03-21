@@ -993,19 +993,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 
 	parentElem.appendChild(grp);
 	XPSPainter p(Item, grp, this, xps_fontMap, rel_root);
-	foreach (const Box* column, Item->textLayout.columns())
-	{
-		const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(column->firstChar());
-		if (LineStyle.backgroundColor() != CommonStrings::None)
-		{
-			p.save();
-			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
-			p.setFillColor(backColor);
-			p.setStrokeColor(backColor);
-			p.drawRect(column->bbox());
-			p.restore();
-		}
-	}
+	Item->textLayout.renderBackground(&p);
 	Item->textLayout.render(&p);
 }
 

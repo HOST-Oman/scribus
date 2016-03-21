@@ -5728,19 +5728,7 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
 	PdfPainter p(ite, this, PNr, pag);
-	foreach (const Box* column, ite->textLayout.columns())
-	{
-		const ParagraphStyle& LineStyle = ite->itemText.paragraphStyle(column->firstChar());
-		if (LineStyle.backgroundColor() != CommonStrings::None)
-		{
-			p.save();
-			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
-			p.setFillColor(backColor);
-			p.setStrokeColor(backColor);
-			p.drawRect(column->bbox());
-			p.restore();
-		}
-	}
+	ite->textLayout.renderBackground(&p);
 	ite->textLayout.render(&p);
 	return p.getBuffer();
 }

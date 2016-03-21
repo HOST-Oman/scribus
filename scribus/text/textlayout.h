@@ -57,6 +57,7 @@ public:
 	void setStory(StoryText* story);
 	void render(TextLayoutPainter *p, PageItem *item);
 	void render(TextLayoutPainter *p);
+	void renderBackground(TextLayoutPainter *p);
 	int startOfLine(int pos) const;
 	int endOfLine(int pos) const;
 	int prevLine(int pos) const;
@@ -74,7 +75,6 @@ public:
 	Box* box();
 	const PathData& point(int pos) const;
 	PathData& point(int pos);
-	const QList<const Box*>& columns() const;
 
 	void appendLine(LineBox* ls);
 	void removeLastLine ();

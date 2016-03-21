@@ -4007,19 +4007,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		p->setFillMode(1);
 		p->setStrokeMode(1);
 		TextFramePainter painter(p, this);
-		foreach (const Box* column, textLayout.columns())
-		{
-			const ParagraphStyle& LineStyle = itemText.paragraphStyle(column->firstChar());
-			if (LineStyle.backgroundColor() != CommonStrings::None)
-			{
-				painter.save();
-				TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
-				painter.setFillColor(backColor);
-				painter.setStrokeColor(backColor);
-				painter.drawRect(column->bbox());
-				painter.restore();
-			}
-		}
+		textLayout.renderBackground(&painter);
 		textLayout.render(&painter, this);
 		p->setFillMode(fm);
 		p->setStrokeMode(sm);
