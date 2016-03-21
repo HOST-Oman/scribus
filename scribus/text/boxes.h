@@ -5,8 +5,8 @@
  for which a new license (GPL+exception) is in place.
  */
 
-#ifndef __Scribus__boxes__
-#define __Scribus__boxes__
+#ifndef BOXES_H
+#define BOXES_H
 
 #include <QObject>
 
@@ -15,8 +15,12 @@
 class StoryText;
 class TextLayoutPainter;
 
+
 /**
- class Box has a similar role as TeX's boxes. Scribus packs glyph runs into GlyphBoxes, GlyphBoxes and InlineBoxes into LineBoxes and LineBoxes into GroupBox(T_Block). (and in the future: math atoms, tables & table cells, ...)
+ Class Box has a similar role as TeX's boxes.
+ Scribus packs glyph runs into GlyphBoxes, GlyphBoxes and ObjectBoxes into LineBoxes
+ and LineBoxes into GroupBox(T_Block).
+ (and in the future: math atoms, tables & table cells, ...)
  */
 class Box: public QObject {
 	Q_OBJECT
@@ -36,20 +40,6 @@ public:
 		D_Vertical
 	};
 
-protected:
-	BoxType m_type;
-	BoxDirection m_direction;
-	double m_x;
-	double m_y;
-	double m_width;
-	double m_descent;
-	double m_ascent;
-	QList<Box*> m_boxes;
-	int m_firstChar;
-	int m_lastChar;
-	QTransform m_matrix;
-
-public:
 	Box()
 	{
 		m_type = T_Invalid;
@@ -73,19 +63,17 @@ public:
 	double width() const { return m_width; }
 	void setWidth(double w) { m_width = w; }
 
-	double height() const { return m_ascent - m_descent; }
-	void setHeight(double h, double vBase) { m_ascent = h * (1-vBase); m_descent = h * vBase; }
-
 	double ascent() const { return m_ascent; }
 	double descent() const { return m_descent; }
+	double height() const { return m_ascent - m_descent; }
 	void setAscent(double a) { m_ascent = a; }
 	void setDescent(double d) { m_descent = d; }
-	BoxDirection getDirection() { return m_direction; }
 
 	QRectF bbox() const { return QRectF(m_x, m_y, m_width, height()); }
 
 	virtual bool containsPoint(QPointF coord) const { return bbox().contains(coord); }
 	bool containsPos(int pos) const { return firstChar() <= pos && pos <= lastChar(); }
+
 	/// returns a char position for the point coord + (m_x, m_y)
 	virtual int pointToPosition(QPointF coord) const = 0;
 	virtual QLineF positionToPoint(int pos) const { return QLineF(); }
@@ -96,7 +84,6 @@ public:
 	void setMatrix(QTransform x) { m_matrix = x; }
 	const QTransform& matrix() const { return m_matrix; }
 
-//	virtual QList<const Box*> pathForPos(int pos) const = 0;
 //	virtual void justify(const ParagraphStyle& style) {}
 
 	QList<Box*>& boxes() { return m_boxes; }
@@ -112,28 +99,29 @@ public:
 
 	virtual double naturalWidth() const { return width(); }
 	virtual double naturalHeight() const { return height(); }
-//	virtual double minWidth() const { return width(); }
-//	virtual double minHeight() const { return height(); }
-//	virtual double maxWidth() const { return width(); }
-//	virtual double maxHeight() const { return height(); }
-//	virtual void  justifyLine(double width) {}
-//	virtual void  justifyBlock(double width) {}
-
-//	virtual QString toString() const = 0;
 
 public slots:
 	virtual void childChanged() { }
 signals:
 	void boxChanged();
+
+protected:
+	BoxType m_type;
+	BoxDirection m_direction;
+	double m_x;
+	double m_y;
+	double m_width;
+	double m_descent;
+	double m_ascent;
+	QList<Box*> m_boxes;
+	int m_firstChar;
+	int m_lastChar;
+	QTransform m_matrix;
 };
 
 
 class GroupBox: public Box
 {
-protected:
-	double m_naturalWidth;
-	double m_naturalHeight;
-
 public:
 	GroupBox(BoxDirection direction)
 	{
@@ -147,11 +135,6 @@ public:
 	int pointToPosition(QPointF coord) const;
 	QLineF positionToPoint(int pos) const;
 
-//	QList<const Box*> pathForPos(int pos) const;
-
-	virtual void addBox(const Box* box);
-	virtual void removeBox(int i);
-
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
@@ -160,10 +143,17 @@ public:
 
 //	void justify(const ParagraphStyle& style);
 
+	virtual void addBox(const Box* box);
+	virtual void removeBox(int i);
+
 	void childChanged()
 	{
 		update();
 	}
+
+protected:
+	double m_naturalWidth;
+	double m_naturalHeight;
 
 private:
 	void update();
@@ -172,10 +162,6 @@ private:
 
 class LineBox: public GroupBox
 {
-protected:
-	virtual void drawBackGround(TextLayoutPainter *p) const;
-	virtual void update();
-
 public:
 	LineBox()
 		: GroupBox(D_Horizontal)
@@ -186,9 +172,6 @@ public:
 	int pointToPosition(QPointF coord) const;
 	QLineF positionToPoint(int pos) const;
 
-	void addBox(const Box* box);
-	void removeBox(int i);
-
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
@@ -196,20 +179,26 @@ public:
 	double naturalHeight() const { return height(); }
 
 //	void justify(const ParagraphStyle& style);
+
+	void addBox(const Box* box);
+	void removeBox(int i);
+
+protected:
+	virtual void drawBackGround(TextLayoutPainter *p) const;
+	virtual void update();
 };
 
 class PathLineBox: public LineBox
 {
-protected:
-	void update();
-	void drawBackGround(TextLayoutPainter *p) const;
-
 public:
 	PathLineBox()
 	{
 		m_type = T_PathLine;
 	}
 
+protected:
+	void update();
+	void drawBackGround(TextLayoutPainter *p) const;
 };
 
 class GlyphBox: public Box
@@ -227,7 +216,6 @@ public:
 
 	int pointToPosition(QPointF coord) const;
 
-//	QList<const Box*> pathForPos(int pos) const;
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
@@ -240,8 +228,6 @@ private:
 
 class ObjectBox: public GlyphBox
 {
-	PageItem* m_item;
-
 public:
 	ObjectBox(const GlyphRun& run)
 		: GlyphBox(run)
@@ -252,5 +238,9 @@ public:
 
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter*, PageItem *item) const;
+
+private:
+	PageItem* m_item;
 };
-#endif /* defined(__Scribus__boxes__) */
+
+#endif // BOXES_H
