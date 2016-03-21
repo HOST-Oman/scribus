@@ -1785,19 +1785,7 @@ void ScPageOutput::drawItem_Table( PageItem_Table* item, ScPainterExBase* painte
 void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase* painter, QRect cullingArea )
 {
 	ScpageoutputPainter p(item, painter, this);
-	foreach (const Box* column, item->textLayout.columns())
-	{
-		const ParagraphStyle& LineStyle = item->itemText.paragraphStyle(column->firstChar());
-		if (LineStyle.backgroundColor() != CommonStrings::None)
-		{
-			p.save();
-			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
-			p.setFillColor(backColor);
-			p.setStrokeColor(backColor);
-			p.drawRect(column->bbox());
-			p.restore();
-		}
-	}
+	item->textLayout.renderBackground(&p);
 	item->textLayout.render(&p);
 }
 

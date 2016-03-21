@@ -1268,19 +1268,7 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 			ob.setAttribute("clip-path", "url(#" + ob2.attribute("id") + ")");
 	}
 	SvgPainter p(trans, this, ob);
-	foreach (const Box* column, Item->textLayout.columns())
-	{
-		const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(column->firstChar());
-		if (LineStyle.backgroundColor() != CommonStrings::None)
-		{
-			p.save();
-			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
-			p.setFillColor(backColor);
-			p.setStrokeColor(backColor);
-			p.drawRect(column->bbox());
-			p.restore();
-		}
-	}
+	Item->textLayout.renderBackground(&p);
 	Item->textLayout.render(&p);
 	return ob;
 }
