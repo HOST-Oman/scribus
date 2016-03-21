@@ -2,6 +2,7 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_SOURCE_DIR}
 	${CMAKE_SOURCE_DIR}/scribus
 	${FREETYPE_INCLUDE_DIRS}
+	${CAIRO_INCLUDE_DIRS}
 )
 
 SET(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} ${CMAKE_CXX_FLAGS_FPIC}")
@@ -16,6 +17,7 @@ SET(SCRIBUS_TEXT_LIB_SOURCES
 	storytext.cpp
 	textlayout.cpp
 	textlayoutpainter.cpp
+	screenpainter.cpp
 	sctext_shared.cpp
 	fsize.cpp
 	frect.cpp
