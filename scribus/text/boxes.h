@@ -10,10 +10,7 @@
 
 #include <QObject>
 
-#include "fpoint.h"
-#include "frect.h"
 #include "sctextstruct.h"
-#include "scpainter.h"
 
 class StoryText;
 class TextLayoutPainter;
@@ -241,21 +238,17 @@ private:
 	const StyleFlag m_effects;
 };
 
-class ObjectBox: public Box
+class ObjectBox: public GlyphBox
 {
 	PageItem* m_item;
-	CharStyle m_style;
 
 public:
 	ObjectBox(const GlyphRun& run)
-		: m_item(run.object())
-		, m_style(run.style())
+		: GlyphBox(run)
+		, m_item(run.object())
 	{
 		m_type = T_Object;
-		m_width = run.width();
 	}
-
-	int pointToPosition(QPointF coord) const;
 
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter*, PageItem *item) const;
