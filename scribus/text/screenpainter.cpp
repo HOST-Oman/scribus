@@ -46,7 +46,7 @@ ScreenPainter::~ScreenPainter()
 void ScreenPainter::drawGlyph(const GlyphLayout gl)
 {
 	bool showControls = (m_item->doc()->guidesPrefs().showControls) &&
-						(gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS);
+			    (gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS);
 #if CAIRO_HAS_FC_FONT
 	if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0 && !showControls)
 	{
@@ -70,9 +70,9 @@ void ScreenPainter::drawGlyph(const GlyphLayout gl)
 			// painter.  FIXME: drop the FontConfig dependency here once
 			// Scribus font handling code is made sane!
 			FcPattern *pattern = FcPatternBuild(NULL,
-												FC_FILE, FcTypeString, QFile::encodeName(font().fontFilePath()).data(),
-												FC_INDEX, FcTypeInteger, font().faceIndex(),
-												NULL);
+							    FC_FILE, FcTypeString, QFile::encodeName(font().fontFilePath()).data(),
+							    FC_INDEX, FcTypeInteger, font().faceIndex(),
+							    NULL);
 			m_cairoFace = cairo_ft_font_face_create_for_pattern(pattern);
 			m_cairoFace = cairo_ft_font_face_create_for_ft_face(font().ftFace(), 0);
 			FcPatternDestroy(pattern);
@@ -168,7 +168,7 @@ void ScreenPainter::drawGlyph(const GlyphLayout gl)
 		outline.map(chma * chma4);
 		m_painter->setupPolygon(&outline, true);
 		QColor oldBrush = m_painter->brush();
-		// FIXME ME
+		// FIXME
 		/* p->setBrush( (flags & ScLayout_SuppressSpace) ? Qt::green
 				: PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);*/
 		m_painter->setBrush(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
