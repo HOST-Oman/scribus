@@ -793,13 +793,7 @@ struct LineControl {
 			result->setAscent(lineBox->ascent());
 			result->setDescent(lineBox->descent());
 		}
-		if (!lineBox->boxes().isEmpty())
-		{
-			Box* last = lineBox->boxes().last();
-			result->moveBy(last->x() + last->width(), 0);
-		}
 		lineBox->addBox(result);
-
 	}
 
 private:
