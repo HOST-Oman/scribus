@@ -88,6 +88,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 #include "util_ghostscript.h"
+#include "text/boxes.h"
 
 #ifdef HAVE_OSG
 	#include "third_party/prc/exportPRC.h"
@@ -5727,6 +5728,19 @@ QByteArray PDFLibCore::setStrokeMulti(struct SingleLine *sl)
 QByteArray PDFLibCore::setTextSt(PageItem *ite, uint PNr, const ScPage* pag)
 {
 	PdfPainter p(ite, this, PNr, pag);
+	foreach (const Box* column, ite->textLayout.columns())
+	{
+		const ParagraphStyle& LineStyle = ite->itemText.paragraphStyle(column->firstChar());
+		if (LineStyle.backgroundColor() != CommonStrings::None)
+		{
+			p.save();
+			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
+			p.setFillColor(backColor);
+			p.setStrokeColor(backColor);
+			p.drawRect(column->bbox());
+			p.restore();
+		}
+	}
 	ite->textLayout.render(&p);
 	return p.getBuffer();
 }
