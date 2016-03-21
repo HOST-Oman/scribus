@@ -43,11 +43,11 @@ public:
 protected:
 	BoxType m_type;
 	BoxDirection m_direction;
-	qreal m_x;
-	qreal m_y;
-	qreal m_width;
-	qreal m_descent;
-	qreal m_ascent;
+	double m_x;
+	double m_y;
+	double m_width;
+	double m_descent;
+	double m_ascent;
 	QList<Box*> m_boxes;
 	int m_firstChar;
 	int m_lastChar;
@@ -69,19 +69,19 @@ public:
 			delete m_boxes.takeFirst();
 	}
 
-	qreal x() const { return m_x; }
-	qreal y() const { return m_y; }
+	double x() const { return m_x; }
+	double y() const { return m_y; }
 	void moveTo (double x, double y) { m_x = x, m_y = y; }
 	void moveBy (double x, double y) { m_x += x, m_y += y; }
 
-	qreal width() const { return m_width; }
+	double width() const { return m_width; }
 	void setWidth(double w) { m_width = w; }
 
-	qreal height() const { return m_ascent - m_descent; }
+	double height() const { return m_ascent - m_descent; }
 	void setHeight(double h, double vBase) { m_ascent = h * (1-vBase); m_descent = h * vBase; }
 
-	qreal ascent() const { return m_ascent; }
-	qreal descent() const { return m_descent; }
+	double ascent() const { return m_ascent; }
+	double descent() const { return m_descent; }
 	void setAscent(double a) { m_ascent = a; }
 	void setDescent(double d) { m_descent = d; }
 	BoxDirection getDirection() { return m_direction; }
@@ -113,14 +113,14 @@ public:
 	/// Same as render() but handles text selection, for rendering on screen.
 	virtual void render(TextLayoutPainter *p, PageItem *item) const = 0;
 
-	virtual qreal naturalWidth() const { return width(); }
-	virtual qreal naturalHeight() const { return height(); }
-//	virtual qreal minWidth() const { return width(); }
-//	virtual qreal minHeight() const { return height(); }
-//	virtual qreal maxWidth() const { return width(); }
-//	virtual qreal maxHeight() const { return height(); }
-//	virtual void  justifyLine(qreal width) {}
-//	virtual void  justifyBlock(qreal width) {}
+	virtual double naturalWidth() const { return width(); }
+	virtual double naturalHeight() const { return height(); }
+//	virtual double minWidth() const { return width(); }
+//	virtual double minHeight() const { return height(); }
+//	virtual double maxWidth() const { return width(); }
+//	virtual double maxHeight() const { return height(); }
+//	virtual void  justifyLine(double width) {}
+//	virtual void  justifyBlock(double width) {}
 
 //	virtual QString toString() const = 0;
 
@@ -134,8 +134,8 @@ signals:
 class GroupBox : public Box
 {
 protected:
-	qreal m_naturalWidth;
-	qreal m_naturalHeight;
+	double m_naturalWidth;
+	double m_naturalHeight;
 
 public:
 	GroupBox(BoxDirection direction)
@@ -158,8 +158,8 @@ public:
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
-	qreal naturalWidth() const { return m_naturalWidth; }
-	qreal naturalHeight() const { return m_naturalHeight; }
+	double naturalWidth() const { return m_naturalWidth; }
+	double naturalHeight() const { return m_naturalHeight; }
 
 //	void justify(const ParagraphStyle& style);
 
@@ -194,8 +194,8 @@ public:
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
-	qreal naturalWidth() const { return m_naturalWidth; }
-	qreal naturalHeight() const { return m_naturalHeight; }
+	double naturalWidth() const { return m_naturalWidth; }
+	double naturalHeight() const { return m_naturalHeight; }
 
 //	void justify(const ParagraphStyle& style);
 };
