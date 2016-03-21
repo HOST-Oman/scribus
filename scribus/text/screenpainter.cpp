@@ -131,8 +131,7 @@ void ScreenPainter::drawGlyph(const GlyphLayout gl)
 			outline = m_item->doc()->symNewLine.copy();
 			chma4.translate(0, -fontSize() * gl.scaleV * 0.4);
 		}
-		else if (gid == SpecialChars::NBSPACE.unicode() ||
-				 +					 gid == 32)
+		else if (gid == SpecialChars::NBSPACE.unicode() || gid == 32)
 		{
 			stroke = (gid == 32);
 			outline = m_item->doc()->symNonBreak.copy();
