@@ -465,11 +465,11 @@ void GlyphBox::render(TextLayoutPainter *p) const
 {
 	// This is a very hot method and can be easily called tens of thousands of times per second,
 	// so it is always a good idea to profile changes to this code.
-	const CharStyle& style = m_glyphRun.style();
-	const ScFace& font = style.font();
-	double fontSize = style.fontSize() / 10.0;
-	bool hasFillColor = style.fillColor() != CommonStrings::None;
-	bool hasStrokeColor = style.strokeColor() != CommonStrings::None;
+	const CharStyle& charStyle = style();
+	const ScFace& font = charStyle.font();
+	double fontSize = charStyle.fontSize() / 10.0;
+	bool hasFillColor = charStyle.fillColor() != CommonStrings::None;
+	bool hasStrokeColor = charStyle.strokeColor() != CommonStrings::None;
 
 	p->save();
 
@@ -481,9 +481,9 @@ void GlyphBox::render(TextLayoutPainter *p) const
 	p->setMatrix(m_matrix);
 
 	if (hasFillColor)
-		p->setFillColor(TextLayoutColor(style.fillColor(), style.fillShade()));
+		p->setFillColor(TextLayoutColor(charStyle.fillColor(), charStyle.fillShade()));
 	if (hasStrokeColor)
-		p->setStrokeColor(TextLayoutColor(style.strokeColor(), style.strokeShade()));
+		p->setStrokeColor(TextLayoutColor(charStyle.strokeColor(), charStyle.strokeShade()));
 
 	foreach (const GlyphLayout gl, m_glyphRun.glyphs())
 	{
@@ -494,14 +494,14 @@ void GlyphBox::render(TextLayoutPainter *p) const
 		if (m_effects & ScStyle_Underline && hasStrokeColor)
 		{
 			double st, lw;
-			if ((style.underlineOffset() != -1) || (style.underlineWidth() != -1))
+			if ((charStyle.underlineOffset() != -1) || (charStyle.underlineWidth() != -1))
 			{
-				if (style.underlineOffset() != -1)
-					st = (style.underlineOffset() / 1000.0) * font.descent(fontSize);
+				if (charStyle.underlineOffset() != -1)
+					st = (charStyle.underlineOffset() / 1000.0) * font.descent(fontSize);
 				else
 					st = font.underlinePos(fontSize);
-				if (style.underlineWidth() != -1)
-					lw = (style.underlineWidth() / 1000.0) * fontSize;
+				if (charStyle.underlineWidth() != -1)
+					lw = (charStyle.underlineWidth() / 1000.0) * fontSize;
 				else
 					lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
@@ -510,15 +510,15 @@ void GlyphBox::render(TextLayoutPainter *p) const
 				st = font.underlinePos(fontSize);
 				lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
-			if (style.baselineOffset() != 0)
-				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
+			if (charStyle.baselineOffset() != 0)
+				st += fontSize * gl.scaleV * (charStyle.baselineOffset() / 1000.0);
 
 			double sw = p->strokeWidth();
 			const TextLayoutColor& sc = p->strokeColor();
 
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(lw);
-			if (style.effects() & ScStyle_Subscript)
+			if (charStyle.effects() & ScStyle_Subscript)
 				p->drawLine(QPointF(gl.xoffset, gl.yoffset - st), QPointF(gl.xoffset + gl.xadvance, gl.yoffset - st));
 			else
 				p->drawLine(QPointF(gl.xoffset, -st), QPointF(gl.xoffset + gl.xadvance, -st));
@@ -529,29 +529,29 @@ void GlyphBox::render(TextLayoutPainter *p) const
 
 		p->translate(gl.xoffset, gl.yoffset);
 
-		if (style.baselineOffset() != 0)
-			p->translate(0, -fontSize * (style.baselineOffset() / 1000.0));
-		double glxSc = gl.scaleH * style.fontSize() / 100.0;
-		double glySc = gl.scaleV * style.fontSize() / 100.0;
+		if (charStyle.baselineOffset() != 0)
+			p->translate(0, -fontSize * (charStyle.baselineOffset() / 1000.0));
+		double glxSc = gl.scaleH * charStyle.fontSize() / 100.0;
+		double glySc = gl.scaleV * charStyle.fontSize() / 100.0;
 
 		if (gl.glyph == 0)
 		{
 			p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name()));
-			p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() * 2 / 10000.0);
+			p->setStrokeWidth(charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() * 2 / 10000.0);
 			p->drawGlyphOutline(gl, false);
 		}
-		else if ((font.isStroked()) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
+		else if ((font.isStroked()) && hasStrokeColor && ((charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() / 10000.0) != 0))
 		{
 			p->setStrokeColor(p->fillColor());
-			p->setStrokeWidth(style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0);
+			p->setStrokeWidth(charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() / 10000.0);
 			p->drawGlyphOutline(gl, false);
 		}
 		else
 		{
 			if (m_effects & ScStyle_Shadowed && hasStrokeColor)
 			{
-				double xoff = (style.fontSize() * gl.scaleH * style.shadowXOffset() / 10000.0) / glxSc;
-				double yoff = (style.fontSize() * gl.scaleV * style.shadowYOffset() / 10000.0) / glySc;
+				double xoff = (charStyle.fontSize() * gl.scaleH * charStyle.shadowXOffset() / 10000.0) / glxSc;
+				double yoff = (charStyle.fontSize() * gl.scaleV * charStyle.shadowYOffset() / 10000.0) / glySc;
 
 				bool s = p->selected();
 				const TextLayoutColor& fc = p->fillColor();
@@ -567,9 +567,9 @@ void GlyphBox::render(TextLayoutPainter *p) const
 				p->setFillColor(fc);
 			}
 
-			if ((style.effects() & ScStyle_Outline) && hasStrokeColor && ((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) != 0))
+			if ((charStyle.effects() & ScStyle_Outline) && hasStrokeColor && ((charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() / 10000.0) != 0))
 			{
-				p->setStrokeWidth((style.fontSize() * gl.scaleV * style.outlineWidth() / 10000.0) / glySc);
+				p->setStrokeWidth((charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() / 10000.0) / glySc);
 				p->drawGlyphOutline(gl, hasFillColor);
 			}
 			else if (hasFillColor)
@@ -579,14 +579,14 @@ void GlyphBox::render(TextLayoutPainter *p) const
 		if (m_effects & ScStyle_Strikethrough && hasStrokeColor)
 		{
 			double st, lw;
-			if ((style.strikethruOffset() != -1) || (style.strikethruWidth() != -1))
+			if ((charStyle.strikethruOffset() != -1) || (charStyle.strikethruWidth() != -1))
 			{
-				if (style.strikethruOffset() != -1)
-					st = (style.strikethruOffset() / 1000.0) * font.ascent(fontSize);
+				if (charStyle.strikethruOffset() != -1)
+					st = (charStyle.strikethruOffset() / 1000.0) * font.ascent(fontSize);
 				else
 					st = font.strikeoutPos(fontSize);
-				if (style.strikethruWidth() != -1)
-					lw = (style.strikethruWidth() / 1000.0) * fontSize;
+				if (charStyle.strikethruWidth() != -1)
+					lw = (charStyle.strikethruWidth() / 1000.0) * fontSize;
 				else
 					lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
@@ -595,8 +595,8 @@ void GlyphBox::render(TextLayoutPainter *p) const
 				st = font.strikeoutPos(fontSize);
 				lw = qMax(font.strokeWidth(fontSize), 1.0);
 			}
-			if (style.baselineOffset() != 0)
-				st += fontSize * gl.scaleV * (style.baselineOffset() / 1000.0);
+			if (charStyle.baselineOffset() != 0)
+				st += fontSize * gl.scaleV * (charStyle.baselineOffset() / 1000.0);
 
 			double sw = p->strokeWidth();
 			const TextLayoutColor& sc = p->strokeColor();
@@ -639,17 +639,19 @@ void ObjectBox::render(TextLayoutPainter *p) const
 	double oldX = m_item->xPos();
 	double oldY = m_item->yPos();
 
+	const CharStyle& charStyle = style();
+
 	p->translate(x(), y() - ascent());
-	p->setScale(m_style.scaleH() / 1000.0, m_style.scaleV() / 1000.0);
+	p->setScale(charStyle.scaleH() / 1000.0, charStyle.scaleV() / 1000.0);
 	p->setMatrix(m_matrix);
 
 	m_item->setXPos(m_item->gXpos);
-	m_item->setYPos((m_item->gHeight * (m_style.scaleV() / 1000.0)) + m_item->gYpos);
+	m_item->setYPos((m_item->gHeight * (charStyle.scaleV() / 1000.0)) + m_item->gYpos);
 
-	if (m_style.baselineOffset() != 0)
+	if (charStyle.baselineOffset() != 0)
 	{
-		p->translate(0, -m_item->gHeight * (m_style.baselineOffset() / 1000.0));
-		m_item->setYPos(m_item->yPos() - m_item->gHeight * (m_style.baselineOffset() / 1000.0));
+		p->translate(0, -m_item->gHeight * (charStyle.baselineOffset() / 1000.0));
+		m_item->setYPos(m_item->yPos() - m_item->gHeight * (charStyle.baselineOffset() / 1000.0));
 	}
 
 	p->drawObject(m_item);
@@ -662,15 +664,4 @@ void ObjectBox::render(TextLayoutPainter *p) const
 void ObjectBox::render(TextLayoutPainter *p, PageItem *item) const
 {
 	render(p);
-}
-
-
-int ObjectBox::pointToPosition(QPointF coord) const
-{
-	if (x() <= coord.x() && coord.x() <= x() + width())
-	{
-		return firstChar();
-	}
-
-	return -1;
 }
