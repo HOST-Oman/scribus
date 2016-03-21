@@ -60,6 +60,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 #include "third_party/zip/scribus_zip.h"
+#include "text/boxes.h"
 
 int xpsexplugin_getPluginAPIVersion()
 {
@@ -992,6 +993,19 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 
 	parentElem.appendChild(grp);
 	XPSPainter p(Item, grp, this, xps_fontMap, rel_root);
+	foreach (const Box* column, Item->textLayout.columns())
+	{
+		const ParagraphStyle& LineStyle = Item->itemText.paragraphStyle(column->firstChar());
+		if (LineStyle.backgroundColor() != CommonStrings::None)
+		{
+			p.save();
+			TextLayoutColor backColor(LineStyle.backgroundColor(), LineStyle.backgroundShade());
+			p.setFillColor(backColor);
+			p.setStrokeColor(backColor);
+			p.drawRect(column->bbox());
+			p.restore();
+		}
+	}
 	Item->textLayout.render(&p);
 }
 

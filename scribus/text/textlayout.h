@@ -74,6 +74,7 @@ public:
 	Box* box();
 	const PathData& point(int pos) const;
 	PathData& point(int pos);
+	const QList<const Box*>& columns() const;
 
 	void appendLine(LineBox* ls);
 	void removeLastLine ();
