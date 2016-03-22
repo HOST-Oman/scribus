@@ -605,7 +605,6 @@ struct LineControl {
 		xPos = restartX;
 		startLine(restartIndex);
 		afterOverflow = false;
-
 		return restartIndex - 1;
 	}
 
