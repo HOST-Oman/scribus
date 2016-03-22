@@ -613,6 +613,18 @@ void PropertiesPalette_Text::handleDirection(int a)
 	Selection tempSelection(this, false);
 	tempSelection.addItem(m_item, true);
 	m_doc->itemSelection_SetDirection(a, &tempSelection);
+	//set alignment to RTL if direction is RTL
+	if (a == 0 && textAlignment->selectedId() == 2)
+	{
+		m_doc->itemSelection_SetAlignment(0, &tempSelection);
+		textAlignment->setTypeStyle(0);
+	}
+	//set alignment to LTR if direction is LTR
+	if (a == 1 && textAlignment->selectedId() == 0)
+	{
+		m_doc->itemSelection_SetAlignment(2, &tempSelection);
+		textAlignment->setTypeStyle(2);
+	}
 }
 
 void PropertiesPalette_Text::handleTextFont(QString c)
