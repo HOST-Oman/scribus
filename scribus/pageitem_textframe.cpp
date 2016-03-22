@@ -1297,9 +1297,9 @@ QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeFonts(QList<TextRu
 			int end = start;
 			while (end < run.start + run.len)
 			{
-				ScFace startFont = itemText.charStyle(textMap.value(start)).font();
-				ScFace endFont = itemText.charStyle(textMap.value(end)).font();
-				if (endFont != startFont)
+				CharStyle startstyle = itemText.charStyle(start);
+				CharStyle endstyle = itemText.charStyle(end);
+				if (!startstyle.equalForShaping(endstyle))
 					break;
 				end++;
 			}

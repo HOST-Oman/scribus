@@ -92,7 +92,7 @@ public:
 	static const QString SMALLCAPS;
 
     CharStyle() : Style() {
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 		m_##attr_NAME = attr_DEFAULT; \
 		inh_##attr_NAME = true;
 #include "charstyle.attrdefs.cxx"
@@ -101,7 +101,7 @@ public:
     };
 	
     CharStyle(const ScFace& font, int size, StyleFlag style = ScStyle_Default) : Style() {
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 		m_##attr_NAME = attr_DEFAULT; \
 		inh_##attr_NAME = true;
 #include "charstyle.attrdefs.cxx"
@@ -151,34 +151,34 @@ public:
 	
 	/** getter: validates and returns the attribute's value */
 	
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	const attr_TYPE &attr_GETTER() const { validate(); return m_##attr_NAME; }
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF
 	
 	/** setter: sets the attribute's value and clears inherited flag */
 	
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	void set##attr_NAME(attr_TYPE v) { m_##attr_NAME = v; inh_##attr_NAME = false; }
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF
 	
 	/** setter: resets the attribute's value and sets inherited flag */
 	
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	void reset##attr_NAME() { m_##attr_NAME = attr_DEFAULT; inh_##attr_NAME = true; }
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF
 	
 	/** isInherited: returns true if the attribute is inherited */
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	bool isInh##attr_NAME() const { return inh_##attr_NAME; }
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF
 	
 	
 	/** isDefined: returns true if the attribute is defined in this style or any parent */
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	bool isDef##attr_NAME() const { \
 		if ( !inh_##attr_NAME ) return true; \
 		const CharStyle * par = dynamic_cast<const CharStyle*>(parentStyle()); \
@@ -186,7 +186,17 @@ public:
 	}
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF
-	
+
+	bool equalForShaping(const CharStyle& other)
+	{
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
+		m_##attr_NAME = other.m_##attr_NAME; \
+		if (attr_BREAKSHAPING && other.m_##attr_NAME != m_##attr_NAME) \
+			return false;
+#include "charstyle.attrdefs.cxx"
+#undef ATTRDEF
+		return true;
+	}
 	
 private:
 
@@ -195,7 +205,7 @@ private:
 	StyleFlag m_Effects;
 	// member declarations:
 		
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	attr_TYPE m_##attr_NAME; \
 	bool inh_##attr_NAME;
 #include "charstyle.attrdefs.cxx"
@@ -206,7 +216,7 @@ private:
 inline CharStyle & CharStyle::operator=(const CharStyle & other)
 {
 	static_cast<Style&>(*this) = static_cast<const Style&>(other);
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	m_##attr_NAME = other.m_##attr_NAME; \
 	inh_##attr_NAME = other.inh_##attr_NAME;
 #include "charstyle.attrdefs.cxx"
@@ -219,7 +229,7 @@ inline CharStyle & CharStyle::operator=(const CharStyle & other)
 
 inline CharStyle::CharStyle(const CharStyle & other) : Style(other) 
 {
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	m_##attr_NAME = other.m_##attr_NAME; \
 	inh_##attr_NAME = other.inh_##attr_NAME;
 #include "charstyle.attrdefs.cxx"
