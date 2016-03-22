@@ -876,10 +876,6 @@ static int allowedCJKBreakBefore(QChar ch) {
 	return true;
 }
 
-//static bool implicitSpace(QChar f, QChar s) {
-//	return checkCJK(f) && checkCJK(s);
-//}
-
 static bool implicitBreak(QChar f, QChar s) {
 	if (checkCJK(f) && checkCJK(s)) {
 		return allowedCJKBreakAfter(f) && allowedCJKBreakBefore(s);
@@ -912,7 +908,6 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 				imSpace = glyphrun.width();
 		}
 		if (i != curr.line.firstRun && glyphrun.hasFlag(ScLayout_ImplicitSpace))
-										   //implicitSpace(itemText.text(sof - 1), ch))
 		{
 			spaceInsertion += 1;
 		}
