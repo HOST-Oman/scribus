@@ -1579,8 +1579,7 @@ void PageItem_TextFrame::layout()
 		double autoLeftIndent = 0.0;
 		for (int i = 0; i < glyphRuns.length(); ++i)
 		{
-			GlyphRun& run = glyphRuns[i];
-			if (run.glyphs().isEmpty())
+			if (glyphRuns[i].glyphs().isEmpty())
 				continue;
 
 			int a = glyphRuns[i].firstChar();
@@ -2752,8 +2751,11 @@ void PageItem_TextFrame::layout()
 						{
 							if (itemText.text(a) != '-')
 								current.hyphenCount = 0;
-							glyphRuns[i].clearFlag(ScLayout_SoftHyphenVisible);
-							glyphRuns[i].glyphs().removeLast();
+							if (glyphRuns[i].hasFlag(ScLayout_SoftHyphenVisible))
+							{
+								glyphRuns[i].clearFlag(ScLayout_SoftHyphenVisible);
+								glyphRuns[i].glyphs().removeLast();
+							}
 						}
 
 						// Justification
