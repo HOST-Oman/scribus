@@ -39,8 +39,6 @@ public:
 
 public slots:
 	void languageChange();
-		
-private slots:
 	void setTypeStyle(int a);
 
 signals:
