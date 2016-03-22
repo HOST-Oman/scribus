@@ -1278,7 +1278,7 @@ QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeBiDi(QString text)
 	return textRuns;
 }
 
-QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeFonts(QList<TextRun> runs, QMap<int, int> textMap)
+QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeStyles(QList<TextRun> runs, QMap<int, int> textMap)
 {
 	QList<TextRun> newRuns;
 
@@ -1418,7 +1418,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 	}
 
 	QList<TextRun> bidiRuns = itemizeBiDi(text);
-	QList<TextRun> textRuns = itemizeFonts(bidiRuns, textMap);
+	QList<TextRun> textRuns = itemizeStyles(bidiRuns, textMap);
 
 	QList<GlyphRun> glyphRuns;
 
