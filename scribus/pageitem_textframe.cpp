@@ -564,7 +564,7 @@ struct LineControl {
 	}
 
 	/// called when a mandatory break is found
-	void breakLine(const QList<GlyphRun> runs, const ParagraphStyle& style, FirstLineOffsetPolicy offsetPolicy, int last)
+	void breakLine(const ParagraphStyle& style, FirstLineOffsetPolicy offsetPolicy, int last)
 	{
 		breakIndex = last;
 		breakXPos  = line.x;
@@ -572,7 +572,7 @@ struct LineControl {
 			breakXPos += glyphRuns.at(i).width();
 		// #8194, #8717 : update line ascent and descent with sensible values
 		// so that endOfLine() returns correct result
-		updateHeightMetrics(runs);
+		updateHeightMetrics();
 		// #9060 : update line offset too
 	//	updateLineOffset(itemText, style, offsetPolicy);
 	}
@@ -708,13 +708,13 @@ struct LineControl {
 		return qMin(EndX2, maxX);
 	}
 
-	void updateHeightMetrics(const QList<GlyphRun> runs)
+	void updateHeightMetrics()
 	{
 		line.ascent = line.descent = 0;
 		// Can happen when inserting a new line at end of text, WTF!
-		if (line.firstRun >= runs.length())
+		if (line.firstRun >= glyphRuns.length())
 			return;
-		const CharStyle& cStyle(runs[line.firstRun].style());
+		const CharStyle& cStyle(glyphRuns.at(line.firstRun).style());
 		double scaleV = cStyle.scaleV() / 1000.0;
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
 		line.ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
@@ -2414,7 +2414,7 @@ void PageItem_TextFrame::layout()
 						a = glyphRuns[i].firstChar();
 						current.mustLineEnd = current.line.x;
 					}
-					current.breakLine(glyphRuns, style, firstLineOffset(), i);
+					current.breakLine(style, firstLineOffset(), i);
 				}
 				if (!current.addLine && !current.lastInRowLine && current.afterOverflow)
 				{
@@ -2523,7 +2523,7 @@ void PageItem_TextFrame::layout()
 					{
 						i--;
 						a = glyphRuns[i].firstChar();
-						current.breakLine(glyphRuns, style, firstLineOffset(), i);
+						current.breakLine(style, firstLineOffset(), i);
 					}
 					//check if after overflow text can be placed
 					overflowWidth = realEnd - (current.xPos - current.maxShrink);
@@ -2649,7 +2649,7 @@ void PageItem_TextFrame::layout()
 				if (SpecialChars::isBreak(itemText.text(a), Cols > 1))
 				{
 					// find end of line
-					current.breakLine(glyphRuns, style, firstLineOffset(), i);
+					current.breakLine(style, firstLineOffset(), i);
 					EndX = current.endOfLine(m_availableRegion, style.rightMargin(), regionMinY, regionMaxY);
 					current.finishLine(EndX);
 					//addLine = true;
@@ -2727,7 +2727,7 @@ void PageItem_TextFrame::layout()
 							glyphRuns[i].glyphs()[0].xadvance = 0;
 						}
 
-						current.updateHeightMetrics(glyphRuns);
+						current.updateHeightMetrics();
 						//current.updateLineOffset(itemText, style, firstLineOffset());
 						//current.xPos = current.breakXPos;
 						EndX = current.endOfLine(m_availableRegion, current.rightMargin, regionMinY, regionMaxY);
@@ -2808,7 +2808,7 @@ void PageItem_TextFrame::layout()
 				if (current.isEndOfCol(desc))
 				{
 					//check if really line extends bottom margin
-					current.updateHeightMetrics(glyphRuns);
+					current.updateHeightMetrics();
 					if (current.isEndOfCol(current.line.descent))
 					{
 						if (current.isEmpty || current.column+1 == Cols)
@@ -2944,7 +2944,7 @@ void PageItem_TextFrame::layout()
 				{
 					current.addLine = true;
 					current.lastInRowLine = true;
-					current.breakLine(glyphRuns, style, firstLineOffset(), i);
+					current.breakLine(style, firstLineOffset(), i);
 				}
 				if (current.afterOverflow && !current.addLine)
 				{
@@ -2954,7 +2954,7 @@ void PageItem_TextFrame::layout()
 						continue;
 					}
 					else
-						current.breakLine(glyphRuns, style, firstLineOffset(), i);
+						current.breakLine(style, firstLineOffset(), i);
 				}
 			}
 		}
@@ -2969,7 +2969,7 @@ void PageItem_TextFrame::layout()
 		{
 			int a = itemText.length()-1;
 			int i = glyphRuns.length() - 1;
-			current.breakLine(glyphRuns, style, firstLineOffset(), i);
+			current.breakLine(style, firstLineOffset(), i);
 
 			if (current.startOfCol)
 			{
