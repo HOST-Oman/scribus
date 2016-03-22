@@ -255,7 +255,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			chstr += itemRenderText.text(a+1, 1);
 
 		GlyphLayout glyphs = layoutGlyphs(itemRenderText.charStyle(a), chstr, itemRenderText.flags(a));
-		GlyphRun run(&itemRenderText.charStyle(a), itemRenderText.flags(a), a, a, itemRenderText.object(a));
+		GlyphRun run(&itemRenderText.charStyle(a), itemRenderText.flags(a), a, a, itemRenderText.object(a), false);
 		run.glyphs().append(glyphs);
 
 		if (itemRenderText.hasObject(a))
