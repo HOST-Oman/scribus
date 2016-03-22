@@ -1427,10 +1427,13 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 
 		CharStyle cs = itemText.charStyle(textMap.value(textRun.start));
 		FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
+		QString lang = cs.language();
+		hb_language_t language = hb_language_from_string (lang.toStdString().c_str(), lang.toStdString().length());
 
 		// TODO: move to ScFace
 		hb_font_t *hbFont = hb_ft_font_create_referenced(cs.font().ftFace());
 		hb_buffer_t *hbBuffer = hb_buffer_create();
+		hb_buffer_set_language(hbBuffer, language);
 
 		hb_buffer_clear_contents(hbBuffer);
 		hb_buffer_add_utf32(hbBuffer, ucs4.data(), ucs4.length(), textRun.start, textRun.len);
