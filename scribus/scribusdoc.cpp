@@ -11700,11 +11700,6 @@ void ScribusDoc::itemSelection_SetDirection(int s, Selection* customSelection)
 {
 	ParagraphStyle newStyle;
 	newStyle.setDirection(static_cast<ParagraphStyle::DirectionType>(s));
-	if (s == 0)
-		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(0));
-	else if (s == 1)
-		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(2));
-
 	itemSelection_ApplyParagraphStyle(newStyle, customSelection);
 }
 
