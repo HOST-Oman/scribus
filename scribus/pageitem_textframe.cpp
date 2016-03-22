@@ -2752,8 +2752,11 @@ void PageItem_TextFrame::layout()
 						{
 							if (itemText.text(a) != '-')
 								current.hyphenCount = 0;
-							glyphRuns[i].clearFlag(ScLayout_SoftHyphenVisible);
-							glyphRuns[i].glyphs().removeLast();
+							if (glyphRuns[i].hasFlag(ScLayout_SoftHyphenVisible))
+							{
+								glyphRuns[i].clearFlag(ScLayout_SoftHyphenVisible);
+								glyphRuns[i].glyphs().removeLast();
+							}
 						}
 
 						// Justification
