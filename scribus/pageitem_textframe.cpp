@@ -1791,7 +1791,7 @@ void PageItem_TextFrame::layout()
 				glyphRuns[i].clearFlag(ScLayout_StartOfLine);
 			}
 //			glyphs->yadvance = 0;
-			
+
 			GlyphLayout& firstGlyph = glyphRuns[i].glyphs().first();
 			GlyphLayout& lastGlyph = glyphRuns[i].glyphs().last();
 
