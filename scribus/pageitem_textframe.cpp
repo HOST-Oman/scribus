@@ -787,7 +787,7 @@ struct LineControl {
 				}
 				for (int j = rtlCount - 1; j >= 0; j--)
 					addBox(result, glyphRuns.at(i + j));
-				i += rtlCount;
+				i += rtlCount - 1;
 			}
 			else
 			{
