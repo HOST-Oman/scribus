@@ -1291,8 +1291,8 @@ QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeStyles(QList<TextR
 			int end = start;
 			while (end < run.start + run.len)
 			{
-				CharStyle startstyle = itemText.charStyle(start);
-				CharStyle endstyle = itemText.charStyle(end);
+				CharStyle startstyle = itemText.charStyle(textMap.value(start));
+				CharStyle endstyle = itemText.charStyle(textMap.value(end));
 				if (!startstyle.equalForShaping(endstyle))
 					break;
 				end++;
@@ -1425,7 +1425,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 	foreach (TextRun textRun, textRuns) {
 		QVector<uint> ucs4 = text.toUcs4();
 
-		CharStyle cs = itemText.charStyle(textRun.start);
+		CharStyle cs = itemText.charStyle(textMap.value(textRun.start));
 		FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
 
 		// TODO: move to ScFace
