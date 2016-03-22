@@ -114,7 +114,7 @@ void CharStyle::applyCharStyle(const CharStyle & other)
 		return;
 	}
 	Style::applyStyle(other);
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	if (! other.inh_##attr_NAME) \
 		set##attr_NAME(other.m_##attr_NAME);
 #include "charstyle.attrdefs.cxx"
@@ -127,7 +127,7 @@ void CharStyle::eraseCharStyle(const CharStyle & other)
 {
 	other.validate();
 	Style::eraseStyle(other);
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	if (!inh_##attr_NAME && m_##attr_NAME == other.m_##attr_NAME) \
 		reset##attr_NAME();
 #include "charstyle.attrdefs.cxx"
@@ -137,7 +137,7 @@ void CharStyle::eraseCharStyle(const CharStyle & other)
 
 void CharStyle::eraseDirectFormatting()
 {
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	if (!inh_##attr_NAME) \
 		reset##attr_NAME();
 #include "charstyle.attrdefs.cxx"
@@ -151,7 +151,7 @@ bool CharStyle::equiv(const Style & other) const
 	const CharStyle * oth = reinterpret_cast<const CharStyle*> ( & other );
 	return  oth &&
 		parent() == oth->parent() 
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 		&& (inh_##attr_NAME == oth->inh_##attr_NAME) \
 		&& (inh_##attr_NAME || isequiv(m_##attr_NAME, oth->m_##attr_NAME))
 #include "charstyle.attrdefs.cxx"
@@ -212,7 +212,7 @@ void CharStyle::update(const StyleContext* context)
 	Style::update(context);
 	const CharStyle * oth = dynamic_cast<const CharStyle*> ( parentStyle() );
 	if (oth) {
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 		if (inh_##attr_NAME) \
 			m_##attr_NAME = oth->attr_GETTER();
 #include "charstyle.attrdefs.cxx"
@@ -370,7 +370,7 @@ void CharStyle::setStyle(const CharStyle& other)
 	other.validate();
 	setParent(other.parent());
 	m_contextversion = -1; 
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	inh_##attr_NAME = other.inh_##attr_NAME; \
 	m_##attr_NAME = other.m_##attr_NAME;
 #include "charstyle.attrdefs.cxx"
@@ -463,7 +463,7 @@ void CharStyle::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 {
 	Xml_attr att;
 	Style::saxxAttributes(att);
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	if (!inh_##attr_NAME) \
 		att.insert(# attr_NAME, toXMLString(m_##attr_NAME));
 #include "charstyle.attrdefs.cxx"
@@ -503,7 +503,7 @@ void CharStyle::desaxeRules(const Xml_string& prefixPattern, Digester& ruleset, 
 	ruleset.addRule(stylePrefix, Factory<CharStyle>());
 	ruleset.addRule(stylePrefix, IdRef<CharStyle>());
 	Style::desaxeRules<CharStyle>(prefixPattern, ruleset, elemtag);
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT) \
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
 	ruleset.addRule(stylePrefix, SetAttributeWithConversion<CharStyle, attr_TYPE> ( & CharStyle::set##attr_NAME,  # attr_NAME, &parse<attr_TYPE> ));
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF		
