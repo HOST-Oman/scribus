@@ -1568,6 +1568,49 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 			if (gl.xadvance > 0)
 				gl.xadvance += tracking;
 
+			const ScFace font = cs.font();
+			double asce = font.ascent(cs.fontSize() / 10.0);
+			int chst = cs.effects() & ScStyle_UserStyles;
+			QString chars = itemText.text(i,1);
+			if (chst != ScStyle_Default)
+			{
+				if (chst & ScStyle_Superscript)
+				{
+					gl.yoffset -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
+					gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSuperScript / 100.0, 10.0 / cs.fontSize());
+				}
+				else if (chst & ScStyle_Subscript)
+				{
+					gl.yoffset += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
+					gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSubScript / 100.0, 10.0 / cs.fontSize());
+				}
+				else
+				{
+					gl.scaleV = gl.scaleH = 1.0;
+				}
+
+				gl.scaleH *= cs.scaleH() / 1000.0;
+				gl.scaleV *= cs.scaleV() / 1000.0;
+				if (chst & ScStyle_AllCaps)
+				{
+					gl.glyph = font.char2CMap(chars[0].toUpper().unicode());
+				}
+				if (chst & ScStyle_SmallCaps)
+				{
+					double smallcapsScale = m_Doc->typographicPrefs().valueSmallCaps / 100.0;
+					QChar uc = chars[0].toUpper();
+					if (uc != chars[0])
+					{
+						gl.glyph = font.char2CMap(chars[0].toUpper().unicode());
+						gl.scaleV *= smallcapsScale;
+						gl.scaleH *= smallcapsScale;
+					}
+				}
+				gl.xadvance = font.glyphWidth(gl.glyph, cs.fontSize() / 10);
+				gl.yadvance = font.glyphBBox(gl.glyph, cs.fontSize() / 10).ascent;
+				if (gl.xadvance > 0)
+					gl.xadvance += tracking;
+			}
 			run.glyphs().append(gl);
 			glyphRuns.append(run);
 
