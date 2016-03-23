@@ -58,6 +58,7 @@ for which a new license (GPL+exception) is in place.
 #include "text/textlayout.h"
 #include "text/textlayoutpainter.h"
 #include "text/boxes.h"
+
 int svgexplugin_getPluginAPIVersion()
 {
 	return PLUGIN_API_VERSION;

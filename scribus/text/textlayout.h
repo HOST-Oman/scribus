@@ -39,6 +39,7 @@ struct PathData
 	float PDx;
 };
 
+
 /**
 	This class manages the physical layout of a textframe, ie. its line 
 	structure and the lines' glyph layouts. It will use some of the layouters above to create a Box.
@@ -49,7 +50,7 @@ class SCRIBUS_API TextLayout
 public:
 	TextLayout(StoryText* text, PageItem* frame);
 	~TextLayout();
-	
+
 	bool overflows() const;
 	
 	StoryText* story() { return m_story; }

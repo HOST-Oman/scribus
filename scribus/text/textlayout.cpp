@@ -27,6 +27,8 @@
 #include "boxes.h"
 
 
+
+
 TextLayout::TextLayout(StoryText* text, PageItem* frame)
 {
 	m_story = text;
@@ -35,7 +37,7 @@ TextLayout::TextLayout(StoryText* text, PageItem* frame)
 	m_validLayout = false;
 	m_magicX = 0.0;
 	m_lastMagicPos = -1;
-	
+
 	m_box = new GroupBox(Box::D_Horizontal);
 }
 
@@ -202,7 +204,7 @@ int TextLayout::prevLine(int pos) const
 			qreal xpos = ls->positionToPoint(pos).x1();
 			if (pos != m_lastMagicPos || xpos > m_magicX)
 				m_magicX = xpos;
-			
+
 			const LineBox* ls2 = line(i-1);
 			// find new cpos
 			for (int j = ls2->firstChar(); j <= ls2->lastChar(); ++j)
@@ -235,7 +237,7 @@ int TextLayout::nextLine(int pos) const
 
 			if (pos != m_lastMagicPos || xpos > m_magicX)
 				m_magicX = xpos;
-			
+
 			const LineBox* ls2 = line(i+1);
 			// find new cpos
 			for (int j = ls2->firstChar(); j <= ls2->lastChar(); ++j)
@@ -317,6 +319,6 @@ QLineF TextLayout::positionToPoint(int pos) const
 		}
 		result.translate(m_box->x(), m_box->y());
 	}
-	
+
 	return result;
 }
