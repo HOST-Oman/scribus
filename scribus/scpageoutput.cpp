@@ -516,16 +516,6 @@ void ScPageOutput::drawGlyphs(PageItem* item, ScPainterExBase *painter, const Ch
 	else if (glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBHYPHEN.unicode())) // NBHYPHEN
 		glyph = style.font().char2CMap(QChar('-'));
 	
-	if (glyph >= ScFace::CONTROL_GLYPHS)
-	{
-		//if (glyphs)
-		//{
-			painter->translate(glyphs.xadvance, 0);
-			drawGlyphs(item, painter, style, glyphs, clip);
-		//}
-		return;
-	}
-	
 	//if (style.font().canRender(QChar(glyph)))
 	{
 		QTransform chma, chma2, chma3, chma4, chma5, chma6;
@@ -662,11 +652,6 @@ void ScPageOutput::drawGlyphs(PageItem* item, ScPainterExBase *painter, const Ch
 		painter->setFillMode(1);
 		painter->drawRect(glyphs.xoffset, glyphs.yoffset - (style.fontSize() / 10.0) * glyphs.scaleV , (style.fontSize() / 10.0) * glyphs.scaleH, (style.fontSize() / 10.0) * glyphs.scaleV);
 	}*/
-	//if (glyphs)
-	//{
-		painter->translate(glyphs.xadvance, 0);
-		drawGlyphs(item, painter, style, glyphs, clip);
-	//}
 }
 
 void ScPageOutput::drawItem_Embedded( PageItem* item, ScPainterExBase *p, QRect clip, const CharStyle& style, PageItem* cembedded)
