@@ -34,6 +34,7 @@ for which a new license (GPL+exception) is in place.
 #include <cassert>
 #include <hb.h>
 #include <hb-ft.h>
+#include <hb-icu.h>
 #include <unicode/ubidi.h>
 
 #include "actionmanager.h"
@@ -59,6 +60,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribusstructs.h"
 #include "selection.h"
 #include "text/boxes.h"
+#include "text/scrptrun.h"
 #include "text/screenpainter.h"
 #include "ui/guidemanager.h"
 #include "ui/marksmanager.h"
@@ -1304,9 +1306,9 @@ QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeStyles(QList<TextR
 				end++;
 			}
 			if (run.dir == UBIDI_RTL)
-				subRuns.prepend(TextRun(start, end - start, run.dir));
+				subRuns.prepend(TextRun(start, end - start, run.dir, run.script));
 			else
-				subRuns.append(TextRun(start, end - start, run.dir));
+				subRuns.append(TextRun(start, end - start, run.dir, run.script));
 			start = end;
 		}
 
@@ -1314,6 +1316,42 @@ QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeStyles(QList<TextR
 	}
 
 	return newRuns;
+}
+
+QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeScript(QList<TextRun> bidiRuns, QString text)
+{
+	QList<TextRun> runs;
+	ScriptRun scriptrun (text.utf16(), text.length());
+
+	foreach (TextRun bidirun, bidiRuns)
+	{
+		int start = bidirun.start;
+		QList<TextRun> subruns;
+		while (scriptrun.next())
+		{
+			if (scriptrun.getScriptStart() <= start && scriptrun.getScriptEnd() > start)
+				break;
+		}
+
+		while (start < bidirun.start + bidirun.len)
+		{
+			int end = qMin(scriptrun.getScriptEnd(), bidirun.start + bidirun.len);
+			UScriptCode script = scriptrun.getScriptCode();
+			subruns.push_back(TextRun(start, end - start, bidirun.dir, script));
+			if (bidirun.dir == UBIDI_RTL)
+				subruns.prepend(TextRun(start, end - start, bidirun.dir, script));
+			else
+				subruns.append(TextRun(start, end - start, bidirun.dir, script));
+
+			start = end;
+			scriptrun.next();
+		}
+
+		scriptrun.reset();
+		runs.append(subruns);
+	}
+
+	return runs;
 }
 
 QList<GlyphRun> PageItem_TextFrame::shapeText()
@@ -1424,7 +1462,8 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 	}
 
 	QList<TextRun> bidiRuns = itemizeBiDi(text);
-	QList<TextRun> textRuns = itemizeStyles(bidiRuns, textMap);
+	QList<TextRun> scriptRuns = itemizeScript(bidiRuns, text);
+	QList<TextRun> textRuns = itemizeStyles(scriptRuns, textMap);
 
 	QList<GlyphRun> glyphRuns;
 
@@ -1444,8 +1483,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		hb_buffer_clear_contents(hbBuffer);
 		hb_buffer_add_utf32(hbBuffer, ucs4.data(), ucs4.length(), textRun.start, textRun.len);
 		hb_buffer_set_direction(hbBuffer, textRun.dir == UBIDI_LTR ? HB_DIRECTION_LTR : HB_DIRECTION_RTL);
-//		hb_buffer_set_script(hbBuffer, textRun.script);
-		hb_buffer_guess_segment_properties(hbBuffer);
+		hb_buffer_set_script(hbBuffer, hb_icu_script_to_script(textRun.script));
 
 		hb_shape(hbFont, hbBuffer, NULL, 0);
 
