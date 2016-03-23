@@ -26,13 +26,6 @@ qreal GlyphRun::width() const
 
 ScText::~ScText() 
 {
-	// delete the linked list if present
-	/*GlyphLayout  more = glyph.more;
-	while (more) {
-		glyph.more = glyph.more->more;
-		delete more;
-		more = glyph.more;
-	}*/
 	if (parstyle)
 		delete parstyle;
 	parstyle = NULL;
