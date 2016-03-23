@@ -92,7 +92,7 @@ private:
 	QDomElement processImageItem(PageItem *Item, QString trans, QString fill, QString stroke);
 	QDomElement processTextItem(PageItem *Item, QString trans, QString fill, QString stroke);
 	QDomElement processInlineItem(PageItem* embItem, QString trans, double scaleH, double scaleV);
-	QString handleGlyph(uint gl, const ScFace font);
+	QString handleGlyph(uint gid, const ScFace font);
 	QDomElement processArrows(PageItem *Item, QDomElement line, QString trans);
 	QString handleMask(PageItem *Item, double xOffset, double yOffset);
 	QString getFillStyle(PageItem *Item);

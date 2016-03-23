@@ -806,11 +806,11 @@ class XPSPainter: public TextLayoutPainter
 	PageItem *m_item;
 	QDomElement m_group;
 	XPSExPlug *m_xps;
-	QMap<QString, QString> m_fontMap;
-	QDomElement m_relRoot;
+	QMap<QString, QString> &m_fontMap;
+	QDomElement &m_relRoot;
 
 public:
-	XPSPainter(PageItem *item, QDomElement &group, XPSExPlug *xps, QMap<QString, QString> XPSfontMap, QDomElement &rel_root):
+	XPSPainter(PageItem *item, QDomElement &group, XPSExPlug *xps, QMap<QString, QString> &XPSfontMap, QDomElement &rel_root):
 		m_item(item),
 		m_group(group),
 		m_xps(xps),
