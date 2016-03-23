@@ -1539,7 +1539,7 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 				gl.xadvance *= run.style().wordTracking();
 
 			if (itemText.hasObject(firstChar))
-				gl.xadvance = run.width() * gl.scaleH;
+				gl.xadvance = run.width();
 
 			double tracking = 0;
 			if (flags & ScLayout_StartOfLine)
@@ -1591,8 +1591,6 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 			if (gl.yadvance <= 0)
 				gl.yadvance = charStyle.font().glyphBBox(gl.glyph, charStyle.fontSize() / 10).ascent * gl.scaleV;
 
-			gl.xadvance *= gl.scaleH;
-			gl.yadvance *= gl.scaleV;
 			if (gl.xadvance > 0)
 				gl.xadvance += tracking;
 
