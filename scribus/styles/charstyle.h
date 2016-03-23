@@ -40,7 +40,8 @@ enum StyleFlagValue {
 	xScStyle_SoftHyphenVisible=8192, //Soft Hyphen visible at line end
 	xScStyle_StartOfLine   = 16384,
 	ScStyle_UserStyles    = 1919, // == 1024 + 512 + 256 + 64 + 32 + 16 + 8 + 4 + 2 + 1
-    ScStyle_NonUserStyles = 30848, // == 128 + 2048 + 4096 + 8192 + 16384
+	ScStyle_NonUserStyles = 30848, // == 128 + 2048 + 4096 + 8192 + 16384
+	ScStyle_RunBreakingStyles = 99,   // == 1 + 2 + 32 + 64
     ScStyle_All           = 65535
 };
 
@@ -57,7 +58,7 @@ public:
 	operator StyleFlagValue() const { return value; }
 
 	QStringList featureList() const; 
-	
+
 	StyleFlag& operator=  (StyleFlagValue val) { value = val; return *this;}
 	StyleFlag& operator&= (const StyleFlag& right);
 	StyleFlag& operator|= (const StyleFlag& right);
@@ -68,6 +69,7 @@ public:
 	StyleFlag  operator^  (int right);
 	StyleFlag  operator~  ();
 
+	bool equalForShaping(const StyleFlag& right) const;
 	bool operator== (const StyleFlag& right) const;
 	bool operator== (const StyleFlagValue right) const;
 	bool operator== (int right) const;
@@ -195,6 +197,8 @@ public:
 			return false;
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF
+		if (!m_Effects.equalForShaping(other.m_Effects))
+			return false;
 		return true;
 	}
 	

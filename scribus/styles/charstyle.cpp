@@ -76,6 +76,12 @@ StyleFlag StyleFlag::operator~ ()
 	return result;
 }
 
+bool StyleFlag::equalForShaping(const StyleFlag& right) const
+{
+	int result = static_cast<int>( (value ^ right.value) & ScStyle_RunBreakingStyles);
+	return (result == 0);
+}
+
 bool StyleFlag::operator== (const StyleFlag& right) const
 {        
 	int result = static_cast<int>( (value ^ right.value) & ScStyle_UserStyles);
