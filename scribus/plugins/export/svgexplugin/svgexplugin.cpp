@@ -1143,6 +1143,7 @@ QDomElement SVGExPlug::processImageItem(PageItem *Item, QString trans, QString f
 	}
 	return ob;
 }
+
 class SvgPainter: public TextLayoutPainter
 {
 	QDomElement m_elem;
@@ -1334,13 +1335,12 @@ QDomElement SVGExPlug::processInlineItem(PageItem* embItem, QString trans, doubl
 	return layerGroup;
 }
 
-QString SVGExPlug::handleGlyph(uint gl, const ScFace font)
+QString SVGExPlug::handleGlyph(uint gid, const ScFace font)
 {
-
-	QString glName = QString("Gl%1%2").arg(font.psName().simplified().replace(QRegExp("[\\s\\/\\{\\[\\]\\}\\<\\>\\(\\)\\%]"), "_" )).arg(gl);
+	QString glName = QString("Gl%1%2").arg(font.psName().simplified().replace(QRegExp("[\\s\\/\\{\\[\\]\\}\\<\\>\\(\\)\\%]"), "_" )).arg(gid);
 	if (glyphNames.contains(glName))
 		return glName;
-	FPointArray pts = font.glyphOutline(gl);
+	FPointArray pts = font.glyphOutline(gid);
 	QDomElement ob = docu.createElement("path");
 	ob.setAttribute("d", SetClipPath(&pts, true));
 	ob.setAttribute("id", glName);
