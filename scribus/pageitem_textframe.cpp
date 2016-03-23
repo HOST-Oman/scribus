@@ -1355,6 +1355,8 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 	QString text;
 	for (int i = firstInFrame(); i < itemText.length(); ++i)
 	{
+		CharStyle currStyle(itemText.charStyle(i));
+
 		Mark* mark = itemText.mark(i);
 		if (itemText.hasMark(i))
 		{
@@ -1380,7 +1382,6 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 				NotesStyle* nStyle = note->notesStyle();
 				Q_ASSERT(nStyle != NULL);
 				QString chsName = nStyle->marksChStyle();
-				CharStyle currStyle(itemText.charStyle(i));
 				if (!chsName.isEmpty())
 				{
 					CharStyle marksStyle(m_Doc->charStyle(chsName));
@@ -1449,6 +1450,10 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
 
+		int effects = currStyle.effects() & ScStyle_UserStyles;
+		if (effects & ScStyle_AllCaps)
+			str = str.toUpper();
+
 		for (int j = 0; j < str.length(); j++)
 			textMap.insert(text.length() + j, i);
 
@@ -1461,10 +1466,11 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 
 	QList<GlyphRun> glyphRuns;
 
+	QVector<uint> ucs4 = text.toUcs4();
 	foreach (TextRun textRun, textRuns) {
-		QVector<uint> ucs4 = text.toUcs4();
-
 		CharStyle cs = itemText.charStyle(textMap.value(textRun.start));
+		int effects = cs.effects() & ScStyle_UserStyles;
+
 		FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
 		QString lang = cs.language();
 		hb_language_t language = hb_language_from_string (lang.toStdString().c_str(), lang.toStdString().length());
@@ -1543,26 +1549,16 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 			gl.scaleH = charStyle.scaleH() / 1000.0;
 			gl.scaleV = charStyle.scaleV() / 1000.0;
 
-			if (gl.yadvance <= 0)
-				gl.yadvance = charStyle.font().glyphBBox(gl.glyph, charStyle.fontSize() / 10).ascent * gl.scaleV;
 
-			gl.xadvance *= gl.scaleH;
-			gl.yadvance *= gl.scaleV;
-			if (gl.xadvance > 0)
-				gl.xadvance += tracking;
-
-			const ScFace font = cs.font();
-			double asce = font.ascent(cs.fontSize() / 10.0);
-			int chst = cs.effects() & ScStyle_UserStyles;
-			QString chars = itemText.text(i,1);
-			if (chst != ScStyle_Default)
+			if (effects != ScStyle_Default)
 			{
-				if (chst & ScStyle_Superscript)
+				double asce = cs.font().ascent(cs.fontSize() / 10.0);
+				if (effects & ScStyle_Superscript)
 				{
 					gl.yoffset -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
 					gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSuperScript / 100.0, 10.0 / cs.fontSize());
 				}
-				else if (chst & ScStyle_Subscript)
+				else if (effects & ScStyle_Subscript)
 				{
 					gl.yoffset += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
 					gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSubScript / 100.0, 10.0 / cs.fontSize());
@@ -1574,31 +1570,34 @@ QList<GlyphRun> PageItem_TextFrame::shapeText()
 
 				gl.scaleH *= cs.scaleH() / 1000.0;
 				gl.scaleV *= cs.scaleV() / 1000.0;
-				if (chst & ScStyle_AllCaps)
-				{
-					gl.glyph = font.char2CMap(chars[0].toUpper().unicode());
-				}
-				if (chst & ScStyle_SmallCaps)
+
+				if (effects & ScStyle_SmallCaps)
 				{
 					double smallcapsScale = m_Doc->typographicPrefs().valueSmallCaps / 100.0;
-					QChar uc = chars[0].toUpper();
-					if (uc != chars[0])
+					// FIXME HOST: This is completely wrong, we shouldn’t be changing
+					// the glyph ids after the shaping!
+					QChar uc = ch.toUpper();
+					if (uc != ch)
 					{
-						gl.glyph = font.char2CMap(chars[0].toUpper().unicode());
+						gl.glyph = cs.font().char2CMap(uc);
+						gl.xadvance = cs.font().glyphWidth(gl.glyph, cs.fontSize() / 10);
+						gl.yadvance = cs.font().glyphBBox(gl.glyph, cs.fontSize() / 10).ascent;
 						gl.scaleV *= smallcapsScale;
 						gl.scaleH *= smallcapsScale;
 					}
 				}
-				gl.xadvance = font.glyphWidth(gl.glyph, cs.fontSize() / 10);
-				gl.yadvance = font.glyphBBox(gl.glyph, cs.fontSize() / 10).ascent;
-				if (gl.xadvance > 0)
-					gl.xadvance += tracking;
 			}
+
+			if (gl.yadvance <= 0)
+				gl.yadvance = charStyle.font().glyphBBox(gl.glyph, charStyle.fontSize() / 10).ascent * gl.scaleV;
+
+			gl.xadvance *= gl.scaleH;
+			gl.yadvance *= gl.scaleV;
+			if (gl.xadvance > 0)
+				gl.xadvance += tracking;
+
 			run.glyphs().append(gl);
 			glyphRuns.append(run);
-
-			//int effects = style.effects() & ScStyle_UserStyles;
-			// TODO: handle effects, see layoutGlyphs().
 		}
 	}
 
