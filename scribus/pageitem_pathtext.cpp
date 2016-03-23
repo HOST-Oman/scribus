@@ -307,32 +307,31 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				trafo *= QTransform( a, 4 * a, 0, -1, point.x(), point.y() );
 		}
 
-//		if (!m_Doc->RePos)
-		{
-			const CharStyle& cStyle(run.style());
-			double scaleV = cStyle.scaleV() / 1000.0;
-			double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
-			double ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
-			double descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
-			linebox->setAscent(ascent);
-			linebox->setDescent(descent);
-			Box* box;
-			if (itemRenderText.hasObject(a))
-			{
-				box = new ObjectBox(run);
-				box->setAscent(run.object()->height() - run.object()->lineWidth());
-				box->setDescent(0);
-			}
-			else
-			{
-				box = new GlyphBox(run);
-				box->setAscent(linebox->ascent());
-				box->setDescent(linebox->descent());
-			}
 
-			box->setMatrix(trafo);
-			linebox->addBox(box);
+		const CharStyle& cStyle(run.style());
+		double scaleV = cStyle.scaleV() / 1000.0;
+		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
+		double ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
+		double descent = cStyle.font().descent(cStyle.fontSize()/10.00) * scaleV - offset;
+		linebox->setAscent(ascent);
+		linebox->setDescent(descent);
+		Box* box;
+		if (itemRenderText.hasObject(a))
+		{
+			box = new ObjectBox(run);
+			box->setAscent(run.object()->height() - run.object()->lineWidth());
+			box->setDescent(0);
 		}
+		else
+		{
+			box = new GlyphBox(run);
+			box->setAscent(linebox->ascent());
+			box->setDescent(linebox->descent());
+		}
+
+		box->setMatrix(trafo);
+		linebox->addBox(box);
+
 
 		MaxChars = a+1;
 		CurX -= dx;
