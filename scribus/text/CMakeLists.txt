@@ -22,6 +22,7 @@ SET(SCRIBUS_TEXT_LIB_SOURCES
 	fsize.cpp
 	frect.cpp
 	boxes.cpp
+	scrptrun.cpp
 )
 
 QT5_WRAP_CPP(SCRIBUS_TEXT_MOC_SOURCES ${SCRIBUS_TEXT_MOC_CLASSES})
