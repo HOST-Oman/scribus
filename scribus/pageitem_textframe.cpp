@@ -395,6 +395,17 @@ static void layoutDropCap(GlyphLayout layout, double curX, double curY, double o
 }
 */
 
+
+static bool logicalGlyphRunComp(const GlyphRun &r1, const GlyphRun &r2)
+{
+	return r1.firstChar() < r2.firstChar();
+}
+
+static bool visualGlyphRunComp(const GlyphRun &r1, const GlyphRun &r2)
+{
+	return r1.visualIndex() < r2.visualIndex();
+}
+
 enum TabStatus {
 	TabNONE    = 0,
 	TabLEFT    = TabNONE,
@@ -432,23 +443,12 @@ struct LineSpec
 	qreal height;
 };
 
-struct glyphRunsVisualOrder: std::binary_function<GlyphRun,GlyphRun,bool> {
-	glyphRunsVisualOrder(QMap<int, int>& glyphMap): m_glyphMap(glyphMap) {}
-	bool operator()(const GlyphRun &r1, const GlyphRun &r2)
-	{
-		return m_glyphMap[r1.firstChar()] < m_glyphMap[r2.firstChar()];
-	}
-private:
-	QMap<int, int>& m_glyphMap;
-};
-
 /**
 fields which describe how the current line is placed into the frame
 */
 struct LineControl {
 	LineSpec line;
 	QList<GlyphRun>& glyphRuns;
-	QMap<int, int>& glyphMap;
 	bool     isEmpty;
 	int      hyphenCount;
 	double   colWidth;
@@ -486,9 +486,8 @@ struct LineControl {
 	StoryText *story;
 
 	/// remember frame dimensions and offsets
-	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap, StoryText *s, QMap<int, int>& glyphmap)
+	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap, StoryText *s)
 		: glyphRuns(runs)
-		, glyphMap(glyphmap)
 		, hasDropCap(false)
 		, doc(d)
 		, story(s)
@@ -799,7 +798,7 @@ struct LineControl {
 		QList<GlyphRun> runs;
 		for (int i = line.firstRun; i <= line.lastRun; ++i)
 			runs.append(glyphRuns.at(i));
-		std::sort(runs.begin(), runs.end(), glyphRunsVisualOrder(glyphMap));
+		std::sort(runs.begin(), runs.end(), visualGlyphRunComp);
 
 		foreach (const GlyphRun& run, runs)
 		{
@@ -1356,18 +1355,12 @@ QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeScript(QList<TextR
 	return runs;
 }
 
-static bool glyphRunsComparison(const GlyphRun &r1, const GlyphRun &r2)
-{
-	return r1.firstChar() < r2.firstChar();
-}
-
-void PageItem_TextFrame::shapeText(QMap<int, int>& glyphMap, QList<GlyphRun>& glyphRuns)
+QList<GlyphRun> PageItem_TextFrame::shapeText()
 {
 	// maps expanded characters to itemText tokens.
 	QMap<int, int> textMap;
 	QString text;
-	glyphRuns.clear();
-	glyphMap.clear();
+	QList<GlyphRun> glyphRuns;
 	for (int i = firstInFrame(); i < itemText.length(); ++i)
 	{
 		CharStyle currStyle(itemText.charStyle(i));
@@ -1525,7 +1518,7 @@ void PageItem_TextFrame::shapeText(QMap<int, int>& glyphMap, QList<GlyphRun>& gl
 			LayoutFlags flags = itemText.flags(firstChar);
 			const CharStyle& charStyle(itemText.charStyle(firstChar));
 
-			GlyphRun run(&charStyle, flags, firstChar, lastChar, itemText.object(firstChar), textRun.dir == UBIDI_RTL);
+			GlyphRun run(&charStyle, flags, firstChar, lastChar, itemText.object(firstChar), textRun.dir == UBIDI_RTL, glyphRuns.length());
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
 
@@ -1610,9 +1603,7 @@ void PageItem_TextFrame::shapeText(QMap<int, int>& glyphMap, QList<GlyphRun>& gl
 		}
 	}
 
-	for (int i = 0; i < glyphRuns.length(); i++)
-		glyphMap.insert(glyphRuns[i].firstChar(), i);
-	std::sort(glyphRuns.begin(), glyphRuns.end(), glyphRunsComparison);
+	return glyphRuns;
 }
 
 void PageItem_TextFrame::layout()
@@ -1750,12 +1741,11 @@ void PageItem_TextFrame::layout()
 			}
 			m_availableRegion = matrix.map(m_availableRegion);
 		}
-		QMap<int, int> glyphMap;
-		QList<GlyphRun> glyphRuns;
 
-		shapeText(glyphMap, glyphRuns);
+		QList<GlyphRun> glyphRuns = shapeText();
+		std::sort(glyphRuns.begin(), glyphRuns.end(), logicalGlyphRunComp);
 
-		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap, &itemText, glyphMap);
+		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap, &itemText);
 		current.nextColumn(textLayout);
 
 		lastLineY = m_textDistanceMargins.top();
