@@ -249,6 +249,7 @@ public:
 	}
 
 	int pointToPosition(QPointF coord) const;
+	QLineF positionToPoint(int pos) const;
 
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;

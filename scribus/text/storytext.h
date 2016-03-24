@@ -91,6 +91,11 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	void normalizeCursorPosition();
 	int  normalizedCursorPosition();
 
+	void moveToLeft();
+	void moveToLeft(int pos);
+	void moveToRight();
+	void moveToRight(int pos);
+
  	void clear();
 	StoryText copy() const;
 
