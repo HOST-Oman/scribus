@@ -1,4 +1,4 @@
-#include "numeration.h"
+﻿#include "numeration.h"
 #include "util.h"
 
 QString getStringFromNum(NumFormat format, int num, QChar leadingChar, int charsLen)
@@ -22,6 +22,8 @@ QString getFormatName(int format)
 	QString name;
 	if (format == Type_1_2_3)
 		name = "1_2_3";
+	else if (format == Type_1_2_3_ar)
+		name = "1_2_3_ar";
 	else if (format == Type_i_ii_iii)
 		name = "i_ii_iii";
 	else if (format == Type_I_II_III)
@@ -30,6 +32,10 @@ QString getFormatName(int format)
 		name = "a_b_c";
 	else if (format == Type_A_B_C)
 		name = "A_B_C";
+	else if (format == Type_ArabicAbgd)
+		name = "arabic_abgd";
+	else if (format == Type_ArabicAbgd)
+		name = "abgd_hoz";
 	else if (format == Type_asterix)
 		name = "*";
 	else if (format == Type_CJK)
@@ -48,7 +54,7 @@ QStringList getFormatList()
 QStringList getFormatListTr()
 {
 	QStringList list;
-	list << QObject::tr("1, 2, 3, ...") << QObject::tr("i, ii, iii, ...") << QObject::tr("I, II, III, ...") << QObject::tr("a, b, c, ...") << QObject::tr("A, B, C, ...") << QObject::tr("*") << QObject::tr("CJK");
+	list << QObject::tr("1, 2, 3, ...") << QObject::tr("١, ٢, ٣, ...") << QObject::tr("i, ii, iii, ...") << QObject::tr("I, II, III, ...") << QObject::tr("a, b, c, ...") << QObject::tr("A, B, C, ...") << QObject::tr("ا, ب , ت , ...")<<QObject::tr("أ, ب, ج, ...")  << QObject::tr("*") << QObject::tr("CJK");
 	return list;
 }
 
