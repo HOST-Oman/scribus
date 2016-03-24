@@ -1,4 +1,4 @@
-/*
+﻿/*
 For general Scribus (>=1.3.2) copyright and licensing information please refer
 to the COPYING file provided with the program. Following this notice may exist
 a copyright and/or license notice that predates the release of Scribus 1.3.2
@@ -1231,6 +1231,9 @@ void Scribus150Format::writeSections(ScXmlStreamWriter & docu)
 			case Type_1_2_3:
 				docu.writeAttribute("Type", "Type_1_2_3");
 				break;
+			case Type_1_2_3_ar:
+				docu.writeAttribute("Type", "Type_1_2_3_ar");
+				break;
 			case Type_i_ii_iii:
 				docu.writeAttribute("Type", "Type_i_ii_iii");
 				break;
@@ -1242,6 +1245,12 @@ void Scribus150Format::writeSections(ScXmlStreamWriter & docu)
 				break;
 			case Type_A_B_C:
 				docu.writeAttribute("Type", "Type_A_B_C");
+				break;
+			case Type_ArabicAbgd:
+				docu.writeAttribute("Type", "Type_ArabicAbgd");
+				break;
+			case Type_Abgd_hoz:
+				docu.writeAttribute("Type", "abgd_hoz");
 				break;
 			case Type_asterix:
 				docu.writeAttribute("Type", "Type_asterix");
@@ -1314,6 +1323,9 @@ void Scribus150Format::writeNotesStyles(ScXmlStreamWriter & docu)
 			case Type_1_2_3:
 				docu.writeAttribute("Type", "Type_1_2_3");
 				break;
+			case Type_1_2_3_ar:
+				docu.writeAttribute("Type", "Type_1_2_3_ar");
+				break;
 			case Type_i_ii_iii:
 				docu.writeAttribute("Type", "Type_i_ii_iii");
 				break;
@@ -1325,6 +1337,12 @@ void Scribus150Format::writeNotesStyles(ScXmlStreamWriter & docu)
 				break;
 			case Type_A_B_C:
 				docu.writeAttribute("Type", "Type_A_B_C");
+				break;
+			case Type_ArabicAbgd:
+				docu.writeAttribute("Type", "Type_ArabicAbgd");
+				break;
+			case Type_Abgd_hoz:
+				docu.writeAttribute("Type", "abgd_hoz");
 				break;
 			case Type_asterix:
 				docu.writeAttribute("Type", "Type_asterix");
