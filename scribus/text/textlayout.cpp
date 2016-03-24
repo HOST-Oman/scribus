@@ -38,7 +38,7 @@ TextLayout::TextLayout(StoryText* text, PageItem* frame)
 	m_magicX = 0.0;
 	m_lastMagicPos = -1;
 
-	m_box = new GroupBox(Box::B_Horizontal);
+	m_box = new GroupBox(Box::D_Horizontal);
 }
 
 TextLayout::~TextLayout()
@@ -146,7 +146,7 @@ void TextLayout::render(TextLayoutPainter *p)
 
 void TextLayout::addColumn(double colLeft, double colWidth)
 {
-	GroupBox *newBox = new GroupBox(Box::B_Vertical);
+	GroupBox *newBox = new GroupBox(Box::D_Vertical);
 	newBox->moveTo(colLeft, 0.0);
 	newBox->setWidth(colWidth);
 	newBox->setAscent(m_frame->height());
@@ -160,7 +160,7 @@ void TextLayout::addColumn(double colLeft, double colWidth)
 void TextLayout::clear() 
 {
 	delete m_box;
-	m_box = new GroupBox(Box::B_Horizontal);
+	m_box = new GroupBox(Box::D_Horizontal);
 	m_path.clear();
 	if (m_frame->asPathText() != NULL)
 		m_path.resize(story()->length());
