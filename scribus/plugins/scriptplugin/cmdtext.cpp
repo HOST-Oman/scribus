@@ -1297,5 +1297,5 @@ void cmdtextdocwarnings()
 	  << scribus_gettextdistances__doc__ << scribus_settextdistances__doc__
 	  << scribus_settextscalingh__doc__ << scribus_settextscalingv__doc__
 	  << scribus_setlinespacemode__doc__ << scribus_setdirection__doc__
-	  << scribus_getfontfeatures__doc__;
+	  << scribus_setfontfeatures__doc__ << scribus_getfontfeatures__doc__;
 }
