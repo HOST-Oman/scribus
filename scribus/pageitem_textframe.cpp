@@ -1348,7 +1348,6 @@ QList<PageItem_TextFrame::TextRun> PageItem_TextFrame::itemizeScript(QList<TextR
 		{
 			int end = qMin(scriptrun.getScriptEnd(), bidirun.start + bidirun.len);
 			UScriptCode script = scriptrun.getScriptCode();
-			subruns.push_back(TextRun(start, end - start, bidirun.dir, script));
 			if (bidirun.dir == UBIDI_RTL)
 				subruns.prepend(TextRun(start, end - start, bidirun.dir, script));
 			else
