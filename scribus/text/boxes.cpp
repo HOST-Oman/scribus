@@ -126,9 +126,9 @@ int LineBox::pointToPosition(QPointF coord) const
 		if (containsPoint(coord))
 		{
 			if (coord.x() < x())
-				position = firstChar();
+				position = boxes().first()->firstChar();
 			else
-				position = lastChar();
+				position = boxes().last()->lastChar();
 		}
 	}
 
@@ -142,12 +142,17 @@ QLineF LineBox::positionToPoint(int pos) const
 	{
 		if (box->containsPos(pos))
 		{
-			double xPos = x() + box->x();
+			double xPos = x() + box->positionToPoint(pos).x1();
 			result = QLineF(xPos, y(), xPos, y() + height());
 			break;
 		}
 	}
 	return result;
+}
+
+bool LineBox::containsPoint(QPointF coord) const
+{
+	return QRectF(0, m_y, m_width, height()).contains(coord);
 }
 
 void LineBox::render(TextLayoutPainter *p) const
@@ -631,6 +636,18 @@ int GlyphBox::pointToPosition(QPointF coord) const
 		}
 	}
 	return -1;
+}
+
+QLineF GlyphBox::positionToPoint(int pos) const
+{
+	double xPos;
+
+	if (m_glyphRun.rtl())
+		xPos = x() + width();
+	else
+		xPos = x();
+
+	return QLineF(xPos, y(), xPos, y() + height());
 }
 
 void ObjectBox::render(TextLayoutPainter *p) const
