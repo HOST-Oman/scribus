@@ -480,14 +480,12 @@ struct LineControl {
 	double   maxShrink;
 	double   maxStretch;
 	ScribusDoc *doc;
-	StoryText *story;
 
 	/// remember frame dimensions and offsets
-	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap, StoryText *s)
+	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap)
 		: glyphRuns(runs)
 		, hasDropCap(false)
 		, doc(d)
-		, story(s)
 	{
 		insets = extra;
 		lineCorr = lCorr;
@@ -804,12 +802,7 @@ struct LineControl {
 
 	LineBox* createLineBox()
 	{
-		int firstChar = glyphRuns.at(line.firstRun).firstChar();
-		LineBox* result;
-		if (story->paragraphStyle(firstChar).direction() == 0)
-			result = new LineBox(Box::I_LTR);
-		else
-			result = new LineBox(Box::I_RTL);
+		LineBox* result = new LineBox();
 		result->moveTo(line.x - colLeft, line.y);
 		result->setWidth(line.width);
 		result->setAscent(line.ascent);
@@ -1762,7 +1755,7 @@ void PageItem_TextFrame::layout()
 		QList<GlyphRun> glyphRuns = shapeText();
 		std::sort(glyphRuns.begin(), glyphRuns.end(), logicalGlyphRunComp);
 
-		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap, &itemText);
+		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap);
 		current.nextColumn(textLayout);
 
 		lastLineY = m_textDistanceMargins.top();
