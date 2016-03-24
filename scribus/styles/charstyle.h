@@ -192,7 +192,6 @@ public:
 	bool equalForShaping(const CharStyle& other)
 	{
 #define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
-		m_##attr_NAME = other.m_##attr_NAME; \
 		if (attr_BREAKSHAPING && other.m_##attr_NAME != m_##attr_NAME) \
 			return false;
 #include "charstyle.attrdefs.cxx"
