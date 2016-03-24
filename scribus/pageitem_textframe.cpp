@@ -507,7 +507,10 @@ struct LineControl {
 	void nextColumn(TextLayout &textLayout)
 	{
 		startOfCol = true;
-		colLeft = (colWidth + colGap) * column + insets.left() + lineCorr;
+		if(textLayout.story()->defaultStyle().direction() == ParagraphStyle::RTL)
+			colLeft = textLayout.frame()->width() - insets.right() - ((colWidth * (column + 1)) + (colGap * column));
+		else
+			colLeft = (colWidth + colGap) * column + insets.left() + lineCorr;
 		textLayout.addColumn(colLeft, colWidth);
 		//now colRight is REAL column right edge
 		colRight = colLeft + colWidth;
