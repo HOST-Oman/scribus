@@ -472,12 +472,14 @@ struct LineControl {
 	double   maxShrink;
 	double   maxStretch;
 	ScribusDoc *doc;
+	StoryText *story;
 
 	/// remember frame dimensions and offsets
-	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap)
+	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap, StoryText *s)
 		: glyphRuns(runs)
 		, hasDropCap(false)
 		, doc(d)
+		, story(s)
 	{
 		insets = extra;
 		lineCorr = lCorr;
@@ -768,7 +770,12 @@ struct LineControl {
 
 	LineBox* createLineBox()
 	{
-		LineBox* result = new LineBox();
+		int firstChar = glyphRuns.at(line.firstRun).firstChar();
+		LineBox* result;
+		if (story->paragraphStyle(firstChar).direction() == 0)
+			result = new LineBox(Box::I_LTR);
+		else
+			result = new LineBox(Box::I_RTL);
 		result->moveTo(line.x - colLeft, line.y);
 		result->setWidth(line.width);
 		result->setAscent(line.ascent);
@@ -1739,7 +1746,7 @@ void PageItem_TextFrame::layout()
 
 		QList<GlyphRun> glyphRuns = shapeText();
 
-		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap);
+		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap, &itemText);
 		current.nextColumn(textLayout);
 
 		lastLineY = m_textDistanceMargins.top();
@@ -4474,20 +4481,20 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Left:
 		if ( buttonModifiers & Qt::ControlModifier )
 		{
-			setNewPos(oldPos, itemText.length(), -1);
+			itemText.moveToLeft(oldPos);
 			if ( buttonModifiers & Qt::ShiftModifier )
 				ExpandSel(-1, oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			int pos = itemText.cursorPosition();
-			itemText.setCursorPosition(-1, true);
+			itemText.moveToLeft();
 			if ( pos > 0 )
 				ExpandSel(-1, oldPos);
 		}
 		else
 		{
-			itemText.setCursorPosition(-1, true);
+			itemText.moveToLeft();
 			if (itemText.cursorPosition() < firstInFrame())
 			{
 				itemText.setCursorPosition( firstInFrame() );
@@ -4508,7 +4515,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 //				--CPos;
 				while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 				{
-					itemText.setCursorPosition(-1, true);
+					itemText.moveToLeft();
 					if (itemText.cursorPosition() == 0)
 						break;
 				}
@@ -4518,7 +4525,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		{
 			while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 			{
-				itemText.setCursorPosition(-1, true);
+				itemText.moveToLeft();
 				if (itemText.cursorPosition() == 0)
 					break;
 			}
@@ -4530,20 +4537,20 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Right:
 		if ( buttonModifiers & Qt::ControlModifier )
 		{
-			setNewPos(oldPos, itemText.length(), 1);
+			itemText.moveToRight(oldPos);
 			if ( buttonModifiers & Qt::ShiftModifier )
 				ExpandSel(1, oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			int pos = itemText.cursorPosition();
-			itemText.setCursorPosition(1, true);
+			itemText.moveToRight();
 			if ( pos < itemText.length() )
 				ExpandSel(1, oldPos);
 		}
 		else
 		{
-			itemText.setCursorPosition(1, true); // new position within text ?
+			itemText.moveToRight(); // new position within text ?
 			if (itemText.cursorPosition() > lastInFrame())
 			{
 //				--CPos;
@@ -4994,68 +5001,6 @@ void PageItem_TextFrame::deleteSelectedTextFromFrame(/*bool findNotes*/)
 	HasSel = false;
 //	m_Doc->updateFrameItems();
 	m_Doc->scMW()->DisableTxEdit();
-}
-
-
-//CB Rewrote JJSA code, March 06
-// jjsa added on 15-mar-2004
-// calculate the end position while ctrl + arrow pressed
-
-void PageItem_TextFrame::setNewPos(int oldPos, int len, int dir)
-{
-
-	bool isSpace, wasSpace;
-	if ( dir > 0 && oldPos < len )
-	{
-		wasSpace = itemText.text(oldPos).isSpace();
-		itemText.setCursorPosition(oldPos + 1);
-		while (itemText.cursorPosition() < len)
-		{
-			isSpace = itemText.text().isSpace();
-			if (wasSpace && !isSpace)
-				break;
-			itemText.setCursorPosition(1, true);
-			wasSpace=isSpace;
-
-		}
-		/*
-		isSpace = itemText.at(oldPos)->ch.at(0).isSpace();
-		CPos = oldPos +1;
-		for (int i=oldPos+1; i < len; i++)
-		{
-			if ( itemText.at(i)->ch.at(0).isSpace() != isSpace )
-				break;
-			CPos++;
-		}
-		*/
-	}
-	else if ( dir < 0 && oldPos > 0 )
-	{
-		itemText.setCursorPosition(oldPos - 1);
-		wasSpace = itemText.text().isSpace();
-		while (itemText.cursorPosition() > 0)
-		{
-			isSpace = itemText.text().isSpace();
-			if (!wasSpace && isSpace)
-			{
-				itemText.setCursorPosition(1, true);
-				break;
-			}
-			itemText.setCursorPosition(-1, true);
-			wasSpace=isSpace;
-		}
-		/*
-		oldPos--;
-		isSpace = itemText.at(oldPos)->ch.at(0).isSpace();
-		for (int i=oldPos; i >= 0; i--)
-		{
-			if (  itemText.at(i)->ch.at(0).isSpace() != isSpace )
-				break;
-			CPos--;
-		}
-		*/
-	}
-	cursorBiasBackward = (dir < 0);
 }
 
 bool PageItem_TextFrame::checkKeyIsShortcut(QKeyEvent *k)

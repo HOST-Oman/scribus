@@ -35,15 +35,21 @@ public:
 		T_Object
 	};
 
-	enum BoxDirection {
-		D_Horizontal,
-		D_Vertical
+	enum BlockDirection {
+		B_Horizontal,
+		B_Vertical
+	};
+
+	enum InlineDirection {
+		I_LTR,
+		I_RTL
 	};
 
 	Box()
 	{
 		m_type = T_Invalid;
-		m_direction = D_Horizontal;
+		m_blockDirection = B_Horizontal;
+		m_lineDirection = I_LTR;
 		m_x = m_y = m_width = m_ascent = m_descent = 0;
 		m_firstChar = 0;
 		m_lastChar = 0;
@@ -129,7 +135,8 @@ signals:
 
 protected:
 	BoxType m_type;
-	BoxDirection m_direction;
+	BlockDirection m_blockDirection;
+	InlineDirection m_lineDirection;
 	double m_x;
 	double m_y;
 	double m_width;
@@ -145,10 +152,10 @@ protected:
 class GroupBox: public Box
 {
 public:
-	GroupBox(BoxDirection direction)
+	GroupBox(BlockDirection direction)
 	{
 		m_type = T_Block;
-		m_direction = direction;
+		m_blockDirection = direction;
 		m_firstChar = INT_MAX;
 		m_lastChar = INT_MIN;
 		m_naturalWidth = m_naturalHeight = 0;
@@ -187,15 +194,17 @@ private:
 class LineBox: public GroupBox
 {
 public:
-	LineBox()
-		: GroupBox(D_Horizontal)
+	LineBox(InlineDirection direction)
+		: GroupBox(B_Horizontal)
 	{
 		m_type = T_Line;
+		m_lineDirection = direction;
 	}
 
 	int pointToPosition(QPointF coord) const;
 	QLineF positionToPoint(int pos) const;
 
+	bool containsPoint(QPointF coord) const;
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
@@ -216,6 +225,7 @@ class PathLineBox: public LineBox
 {
 public:
 	PathLineBox()
+		: LineBox(I_LTR)
 	{
 		m_type = T_PathLine;
 	}
@@ -239,6 +249,7 @@ public:
 	}
 
 	int pointToPosition(QPointF coord) const;
+	QLineF positionToPoint(int pos) const;
 
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
