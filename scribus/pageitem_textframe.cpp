@@ -432,12 +432,12 @@ struct LineSpec
 	qreal height;
 };
 
-struct glyphRunsVisualOrder : std::binary_function<GlyphRun,GlyphRun,bool>{
-	glyphRunsVisualOrder(QMap<int, int>& glyphMap): m_glyphMap( glyphMap ) {}
-	bool operator()( const GlyphRun &r1, const GlyphRun &r2 )
-		{
-			return m_glyphMap[r1.firstChar()] < m_glyphMap[r2.firstChar()];
-		}
+struct glyphRunsVisualOrder: std::binary_function<GlyphRun,GlyphRun,bool> {
+	glyphRunsVisualOrder(QMap<int, int>& glyphMap): m_glyphMap(glyphMap) {}
+	bool operator()(const GlyphRun &r1, const GlyphRun &r2)
+	{
+		return m_glyphMap[r1.firstChar()] < m_glyphMap[r2.firstChar()];
+	}
 private:
 	QMap<int, int>& m_glyphMap;
 };
@@ -485,10 +485,10 @@ struct LineControl {
 	/// remember frame dimensions and offsets
 	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap, StoryText *s, QMap<int, int>& glyphmap)
 		: glyphRuns(runs)
+		, glyphMap(glyphmap)
 		, hasDropCap(false)
 		, doc(d)
 		, story(s)
-		, glyphMap(glyphmap)
 	{
 		insets = extra;
 		lineCorr = lCorr;
@@ -816,13 +816,14 @@ struct LineControl {
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
 
-		QList<GlyphRun> subRun;
+		QList<GlyphRun> runs;
 		for (int i = line.firstRun; i <= line.lastRun; ++i)
-			subRun.append(glyphRuns.at(i));
-		std::sort(subRun.begin(), subRun.end(),glyphRunsVisualOrder(glyphMap));
-		foreach(const GlyphRun& run, subRun)
+			runs.append(glyphRuns.at(i));
+		std::sort(runs.begin(), runs.end(), glyphRunsVisualOrder(glyphMap));
+
+		foreach (const GlyphRun& run, runs)
 		{
-			addBox(result,run);
+			addBox(result, run);
 		}
 
 		return result;
@@ -1626,9 +1627,9 @@ void PageItem_TextFrame::shapeText(QMap<int, int>& glyphMap, QList<GlyphRun>& gl
 		}
 	}
 
-	for (int r = 0; r < glyphRuns.length(); r++)
-		glyphMap.insert(glyphRuns[r].firstChar(), r);
-	qSort(glyphRuns.begin(), glyphRuns.end(),glyphRunsComparison);
+	for (int i = 0; i < glyphRuns.length(); i++)
+		glyphMap.insert(glyphRuns[i].firstChar(), i);
+	std::sort(glyphRuns.begin(), glyphRuns.end(), glyphRunsComparison);
 }
 
 void PageItem_TextFrame::layout()
