@@ -526,6 +526,224 @@ QString getFileNameByPage(ScribusDoc* currDoc, uint pageNo, QString extension, Q
 	return QString("%1-%2%3.%4").arg(defaultName).arg(QObject::tr("page", "page export")).arg(number, 3, 10, QChar('0')).arg(extension);
 }
 
+QChar arabicChar(uint i)
+{
+	switch (i)
+	{
+		case 0:
+			return QChar(0x0623);
+			break;
+		case 1:
+			return QChar(0x0628);
+			break;
+		case 2:
+			return QChar(0x062A);
+			break;
+		case 3:
+			return QChar(0x062B);
+			break;
+		case 4:
+			return QChar(0x062C);
+			break;
+		case 5:
+			return QChar(0x062D);
+			break;
+		case 6:
+			return QChar(0x062E);
+			break;
+		case 7:
+			return QChar(0x062F);
+			break;
+		case 8:
+			return QChar(0x0630);
+			break;
+		case 9:
+			return QChar(0x0631);
+			break;
+		case 10:
+			return QChar(0x0632);
+			break;
+		case 11:
+			return QChar(0x0633);
+			break;
+		case 12:
+			return QChar(0x0634);
+			break;
+		case 13:
+			return QChar(0x0635);
+			break;
+		case 14:
+			return QChar(0x0636);
+			break;
+		case 15:
+			return QChar(0x0637);
+			break;
+		case 16:
+			return QChar(0x0638);
+			break;
+		case 17:
+			return QChar(0x0639);
+			break;
+		case 18:
+			return QChar(0x063A);
+			break;
+		case 19:
+			return QChar(0x0641);
+			break;
+		case 20:
+			return QChar(0x0642);
+			break;
+		case 21:
+			return QChar(0x0643);
+			break;
+		case 22:
+			return QChar(0x0644);
+			break;
+		case 23:
+			return QChar(0x0645);
+			break;
+		case 24:
+			return QChar(0x0646);
+			break;
+		case 25:
+			return QChar(0x0647);
+			break;
+		case 26:
+			return QChar(0x0648);
+			break;
+		case 27:
+			return QChar(0x064A);
+			break;
+	}
+	return QChar::Null;
+}
+
+const QString numberToAbgd(uint i)
+{
+	QString retVal("");
+	unsigned digits = 1;
+	unsigned offset = 0;
+	uint column=i-1;
+
+	if( column > 4058115285U ) return  QString("@");
+
+	for( unsigned limit = 28; column >= limit+offset; limit *= 28, digits++ )
+		offset += limit;
+
+	for( unsigned c = column - offset; digits; --digits, c/=28 )
+		retVal.prepend( arabicChar(c%28));
+	return retVal;
+}
+
+QChar abgdChar(uint i)
+{
+	switch (i)
+	{
+		case 0:
+			return QChar(0x0623);
+			break;
+		case 1:
+			return QChar(0x0628);
+			break;
+		case 2:
+			return QChar(0x062C);
+			break;
+		case 3:
+			return QChar(0x062F);
+			break;
+		case 4:
+			return QChar(0x0647);
+			break;
+		case 5:
+			return QChar(0x0648);
+			break;
+		case 6:
+			return QChar(0x0632);
+			break;
+		case 7:
+			return QChar(0x062D);
+			break;
+		case 8:
+			return QChar(0x0637);
+			break;
+		case 9:
+			return QChar(0x064A);
+			break;
+		case 10:
+			return QChar(0x0643);
+			break;
+		case 11:
+			return QChar(0x0644);
+			break;
+		case 12:
+			return QChar(0x0645);
+			break;
+		case 13:
+			return QChar(0x0646);
+			break;
+		case 14:
+			return QChar(0x0633);
+			break;
+		case 15:
+			return QChar(0x0639);
+			break;
+		case 16:
+			return QChar(0x0641);
+			break;
+		case 17:
+			return QChar(0x0635);
+			break;
+		case 18:
+			return QChar(0x0642);
+			break;
+		case 19:
+			return QChar(0x0631);
+			break;
+		case 20:
+			return QChar(0x0634);
+			break;
+		case 21:
+			return QChar(0x062A);
+			break;
+		case 22:
+			return QChar(0x062B);
+			break;
+		case 23:
+			return QChar(0x062E);
+			break;
+		case 24:
+			return QChar(0x0630);
+			break;
+		case 25:
+			return QChar(0x0636);
+			break;
+		case 26:
+			return QChar(0x0638);
+			break;
+		case 27:
+			return QChar(0x063A);
+			break;
+	}
+	return QChar::Null;
+}
+
+const QString abgdHoz(uint i)
+{
+	QString retVal("");
+	unsigned digits = 1;
+	unsigned offset = 0;
+	uint column=i-1;
+
+	if( column > 4058115285U ) return  QString("@");
+
+	for( unsigned limit = 28; column >= limit+offset; limit *= 28, digits++ )
+		offset += limit;
+
+	for( unsigned c = column - offset; digits; --digits, c/=28 )
+		retVal.prepend( abgdChar(c%28));
+	return retVal;
+}
+
 const QString getStringFromSequence(NumFormat type, uint position, QString asterix)
 {
 	QString retVal("");
@@ -534,11 +752,20 @@ const QString getStringFromSequence(NumFormat type, uint position, QString aster
 		case Type_1_2_3:
 			retVal=QString::number(position);
 			break;
+		case Type_1_2_3_ar:
+			retVal=QLocale("ar").toString(position);
+			break;
 		case Type_A_B_C:
 			retVal=numberToLetterSequence(position).toUpper();
 			break;
 		case Type_a_b_c:
 			retVal=numberToLetterSequence(position);
+			break;
+		case Type_ArabicAbgd:
+			retVal= numberToAbgd(position);
+			break;
+		case Type_Abgd_hoz:
+			retVal = abgdHoz(position);
 			break;
 		case Type_I_II_III:
 			retVal=arabicToRoman(position);
