@@ -54,6 +54,7 @@ public:
 	bool overflows() const;
 	
 	StoryText* story() { return m_story; }
+	PageItem*  frame() { return m_frame; }
 	const StoryText* story() const { return m_story; }
 	void setStory(StoryText* story);
 	void render(TextLayoutPainter *p, PageItem *item);
