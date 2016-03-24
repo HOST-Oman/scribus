@@ -175,7 +175,7 @@ private:
 		int dir;
 		UScriptCode script;
 	};
-	void shapeText(QMap<int, int> &glyphMap, QList<GlyphRun> &glyphRuns);
+	QList<GlyphRun> shapeText();
 	QList<TextRun> itemizeBiDi(QString text);
 	QList<TextRun> itemizeScript(QList<TextRun> runs, QString text);
 	QList<TextRun> itemizeStyles(QList<TextRun> runs, QMap<int, int> textMap);
