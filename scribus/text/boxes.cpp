@@ -90,7 +90,7 @@ void GroupBox::update()
 	foreach (Box* box, boxes()) {
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
-		if (m_direction == D_Horizontal)
+		if (m_blockDirection == B_Horizontal)
 		{
 			m_naturalWidth += box->width();
 			m_naturalHeight = qMax(m_naturalHeight, box->naturalHeight());
