@@ -48,6 +48,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_math.h"
 #include "text/boxes.h"
 #include "text/textlayoutpainter.h"
+#include "text/textshaper.h"
 #include "text/screenpainter.h"
 
 using namespace std;
@@ -77,9 +78,6 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	itemText.invalidateAll();
 	firstChar = 0;
 	MaxChars = 0;
-	int a;
-	QString chstr, chstr2, chstr3;
-	double dx;
 	FPoint point = FPoint(0, 0);
 	FPoint tangent = FPoint(0, 0);
 	CurX = m_textDistanceMargins.left();
@@ -161,16 +159,15 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	if (itemText.length() != 0)
 	{
 		CurX += itemText.charStyle(0).fontSize() * itemText.charStyle(0).tracking() / 10000.0;
-		totalTextLen += itemText.charStyle(0).fontSize() * itemText.charStyle(0).tracking() / 10000.0;
 	}
 	itemRenderText.clear();
 	itemRenderText.setDoc(m_Doc);
 	itemRenderText.setDefaultStyle(itemText.defaultStyle());
-	for (a = firstChar; a < itemText.length(); ++a)
+	for (int a = firstChar; a < itemText.length(); ++a)
 	{
 		CharStyle nstyle = itemText.charStyle(a);
 		ParagraphStyle pstyle = itemText.paragraphStyle(a);
-		chstr = itemText.text(a, 1);
+		QString chstr = itemText.text(a, 1);
 		if ((chstr[0] == SpecialChars::OBJECT) && (itemText.hasObject(a)))
 		{
 			int pot = itemRenderText.length();
@@ -188,41 +185,33 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				itemRenderText.applyCharStyle(pot, 1, nstyle);
 			}
 		}
-		chstr.clear();
 	}
 	textLayout.setStory(&itemRenderText);
 	int spaceCount = 0;
 	double wordExtra = 0;
-	for (a = firstChar; a < itemRenderText.length(); ++a)
-	{
-		chstr = itemRenderText.text(a, 1);
-		if (chstr[0] == SpecialChars::PAGENUMBER || chstr[0] == SpecialChars::PARSEP || chstr[0] == SpecialChars::PAGECOUNT
-			|| chstr[0] == SpecialChars::TAB || chstr[0] == SpecialChars::LINEBREAK)
-			continue;
-		if (chstr[0] == SpecialChars::BLANK)
+
+	TextShaper textShaper(this, itemRenderText, firstChar);
+	QList<GlyphRun> glyphRuns = textShaper.shape();
+	foreach (const GlyphRun run, glyphRuns) {
+		totalTextLen += run.width();
+		if (run.hasFlag(ScLayout_ExpandingSpace))
 			spaceCount++;
-		if (a < itemRenderText.length()-1)
-			chstr += itemRenderText.text(a+1, 1);
-		GlyphLayout glyphs = layoutGlyphs(itemRenderText.charStyle(a), chstr, itemRenderText.flags(a));
-		if (itemRenderText.hasObject(a))
-			totalTextLen += (itemRenderText.object(a)->width() + itemRenderText.object(a)->lineWidth()) * glyphs.scaleH;
-		else
-			totalTextLen += glyphs.xadvance+itemRenderText.charStyle(a).fontSize() * itemRenderText.charStyle(a).tracking() / 10000.0;
 	}
+
 	for (int segs = 0; segs < PoLine.size()-3; segs += 4)
 	{
 		totalCurveLen += PoLine.lenPathSeg(segs);
 	}
-	if ((itemRenderText.paragraphStyle(0).alignment() != 0) && (totalCurveLen >= totalTextLen + m_textDistanceMargins.left()))
+	if ((itemRenderText.paragraphStyle(0).alignment() != ParagraphStyle::Leftaligned) && (totalCurveLen >= totalTextLen + m_textDistanceMargins.left()))
 	{
-		if (itemRenderText.paragraphStyle(0).alignment() == 2)
+		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Rightaligned)
 		{
-			CurX = totalCurveLen  - totalTextLen;
+			CurX = totalCurveLen - totalTextLen;
 			CurX -= m_textDistanceMargins.left();
 		}
-		if (itemRenderText.paragraphStyle(0).alignment() == 1)
+		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Centered)
 			CurX = (totalCurveLen - totalTextLen) / 2.0;
-		if (itemRenderText.paragraphStyle(0).alignment() == 3)
+		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Justified)
 		{
 			if (spaceCount != 0)
 			{
@@ -235,7 +224,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				wordExtra = 0;
 			}
 		}
-		if (itemRenderText.paragraphStyle(0).alignment() == 4)
+		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Extended)
 			extraOffset = (totalCurveLen - m_textDistanceMargins.left() - totalTextLen) / static_cast<double>(itemRenderText.length());
 	}
 	QPainterPath guidePath = PoLine.toQPainterPath(false);
@@ -243,33 +232,18 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	QPainterPath currPath = pathList[0];
 	int currPathIndex = 0;
 	PathLineBox* linebox = new PathLineBox();
-	for (a = firstChar; a < itemRenderText.length(); ++a)
+	foreach (GlyphRun run, glyphRuns)
 	{
-		CurY = 0;
-		PathData* pdata = & (textLayout.point(a));
-		chstr = itemRenderText.text(a,1);
-		if (chstr[0] == SpecialChars::PAGENUMBER || chstr[0] == SpecialChars::PARSEP || chstr[0] == SpecialChars::PAGECOUNT
-			|| chstr[0] == SpecialChars::TAB || chstr[0] == SpecialChars::LINEBREAK)
-			continue;
-		if (a < itemRenderText.length()-1)
-			chstr += itemRenderText.text(a+1, 1);
-
-		GlyphLayout glyphs = layoutGlyphs(itemRenderText.charStyle(a), chstr, itemRenderText.flags(a));
-		GlyphRun run(&itemRenderText.charStyle(a), itemRenderText.flags(a), a, a, itemRenderText.object(a), false, 0);
-		run.glyphs().append(glyphs);
-
-		if (itemRenderText.hasObject(a))
-			dx = (itemRenderText.object(a)->width() + itemRenderText.object(a)->lineWidth()) * glyphs.scaleH / 2.0;
-		else
-			dx = glyphs.xadvance / 2.0;
+		double dx = run.width() / 2.0;
 		CurX += dx;
+		CurY = 0;
 		double currPerc = currPath.percentAtLength(CurX);
 		if (currPerc >= 0.9999999)
 		{
 			currPathIndex++;
 			if (currPathIndex == pathList.count())
 			{
-				MaxChars = a;
+				MaxChars = run.firstChar();
 				break;
 			}
 			currPath = pathList[currPathIndex];
@@ -284,11 +258,6 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		QPointF currPoint = currPath.pointAtPercent(currPerc);
 		tangent = FPoint(cos(currAngle * M_PI / 180.0), sin(currAngle * M_PI / 180.0));
 		point = FPoint(currPoint.x(), currPoint.y());
-		glyphs.xoffset = 0;
-		pdata->PtransX = point.x();
-		pdata->PtransY = point.y();
-		pdata->PRot    = currAngle * M_PI / 180.0;
-		pdata->PDx     = dx;
 		QTransform trafo = QTransform( 1, 0, 0, -1, -dx, 0 );
 		if (textPathFlipped)
 			trafo *= QTransform(1, 0, 0, -1, 0, 0);
@@ -316,7 +285,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		linebox->setAscent(ascent);
 		linebox->setDescent(descent);
 		Box* box;
-		if (itemRenderText.hasObject(a))
+		if (run.object())
 		{
 			box = new ObjectBox(run);
 			box->setAscent(run.object()->height() - run.object()->lineWidth());
@@ -332,14 +301,11 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		box->setMatrix(trafo);
 		linebox->addBox(box);
 
-		MaxChars = a+1;
+		MaxChars = run.lastChar() + 1;
 		CurX -= dx;
-		if (itemRenderText.hasObject(a))
-			CurX += (itemRenderText.object(a)->width() + itemRenderText.object(a)->lineWidth()) * glyphs.scaleH + extraOffset;
-		else if (chstr[0] == SpecialChars::BLANK)
-			CurX += glyphs.xadvance+itemRenderText.charStyle(a).fontSize() * itemRenderText.charStyle(a).tracking() / 10000.0 + wordExtra + extraOffset;
-		else
-			CurX += glyphs.xadvance+itemRenderText.charStyle(a).fontSize() *itemRenderText.charStyle(a).tracking() / 10000.0 + extraOffset;
+		CurX += run.width() + cStyle.fontSize() * cStyle.tracking() / 10000.0 + extraOffset;
+		if (run.hasFlag(ScLayout_ExpandingSpace))
+			CurX += wordExtra;
 	}
 
 	textLayout.addColumn(0, 0);
