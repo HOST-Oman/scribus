@@ -6,13 +6,15 @@
 #include <unicode/uscript.h>
 
 class GlyphRun;
+class StoryText;
+class PageItem;
 
 class TextShaper
 {
 public:
-	TextShaper();
+	TextShaper(PageItem *item, StoryText &story, int first);
 
-	QList<GlyphRun> shapeText();
+	QList<GlyphRun> shape();
 
 private:
 	struct TextRun {
@@ -30,9 +32,14 @@ private:
 		UScriptCode script;
 	};
 
+	void buildText(QString &text, QMap<int, int> &textMap);
 	QList<TextRun> itemizeBiDi(QString &text);
-	QList<TextRun> itemizeScript(QList<TextRun> &runs, QString &text);
-	QList<TextRun> itemizeStyles(QList<TextRun> &runs, QMap<int, int> &textMap);
+	QList<TextRun> itemizeScripts(QString &text, QList<TextRun> &runs);
+	QList<TextRun> itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs);
+
+	PageItem *m_item;
+	StoryText &m_story;
+	int m_firstChar;
 };
 
 #endif // TEXTSHAPER_H
