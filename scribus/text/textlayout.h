@@ -31,15 +31,6 @@ class GroupBox;
 class LineBox;
 class TextLayoutPainter;
 
-struct PathData
-{
-	float PtransX;
-	float PtransY;
-	float PRot;
-	float PDx;
-};
-
-
 /**
 	This class manages the physical layout of a textframe, ie. its line 
 	structure and the lines' glyph layouts. It will use some of the layouters above to create a Box.
@@ -75,8 +66,6 @@ public:
 	const LineBox*  line(uint i) const;
 	const Box* box() const;
 	Box* box();
-	const PathData& point(int pos) const;
-	PathData& point(int pos);
 
 	void appendLine(LineBox* ls);
 	void removeLastLine ();
@@ -91,7 +80,6 @@ protected:
     PageItem* m_frame;
 	GroupBox* m_box;
 	
-	QVector<PathData> m_path;
 	bool m_validLayout;
 	mutable qreal m_magicX;
 	mutable int m_lastMagicPos;

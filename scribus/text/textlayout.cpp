@@ -79,19 +79,6 @@ Box* TextLayout::box()
 	return m_box;
 }
 
-const PathData& TextLayout::point(int pos) const
-{
-	return m_path[pos];
-}
-
-PathData& TextLayout::point(int pos)
-{
-	if (pos >= story()->length())
-		m_path.resize(story()->length());
-	return m_path[pos];
-}
-
-
 void TextLayout::appendLine(LineBox* ls)
 {
 	assert(ls);
@@ -173,9 +160,6 @@ void TextLayout::clear()
 {
 	delete m_box;
 	m_box = new GroupBox(Box::D_Horizontal);
-	m_path.clear();
-	if (m_frame->asPathText() != NULL)
-		m_path.resize(story()->length());
 }
 
 void TextLayout::setStory(StoryText *story)
