@@ -159,26 +159,6 @@ protected:
 
 public:
 	void setTextFrameHeight();
-
-private:
-	struct TextRun {
-		TextRun(int s, int l, int d)
-			: start(s), len(l), dir(d), script(USCRIPT_INVALID_CODE)
-		{ }
-
-		TextRun(int s, int l, int d, UScriptCode sc)
-			: start(s), len(l), dir(d), script(sc)
-		{ }
-
-		int start;
-		int len;
-		int dir;
-		UScriptCode script;
-	};
-	QList<GlyphRun> shapeText();
-	QList<TextRun> itemizeBiDi(QString text);
-	QList<TextRun> itemizeScript(QList<TextRun> runs, QString text);
-	QList<TextRun> itemizeStyles(QList<TextRun> runs, QMap<int, int> textMap);
 };
 
 #endif

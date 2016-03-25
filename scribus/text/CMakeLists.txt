@@ -17,6 +17,7 @@ SET(SCRIBUS_TEXT_LIB_SOURCES
 	storytext.cpp
 	textlayout.cpp
 	textlayoutpainter.cpp
+	textshaper.cpp
 	screenpainter.cpp
 	sctext_shared.cpp
 	fsize.cpp
