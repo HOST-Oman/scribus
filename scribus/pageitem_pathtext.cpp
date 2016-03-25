@@ -192,6 +192,9 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 
 	TextShaper textShaper(this, itemRenderText, firstChar);
 	QList<GlyphRun> glyphRuns = textShaper.shape();
+	if (glyphRuns.isEmpty())
+		return;
+
 	foreach (const GlyphRun run, glyphRuns) {
 		totalTextLen += run.width();
 		if (run.hasFlag(ScLayout_ExpandingSpace))
