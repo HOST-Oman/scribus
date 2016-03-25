@@ -1,9 +1,23 @@
 #include "textshaper.h"
 
-TextShaper::TextShaper()
-{
+#include <hb.h>
+#include <hb-ft.h>
+#include <hb-icu.h>
+#include <unicode/ubidi.h>
 
-}
+#include "scrptrun.h"
+
+#include "pageitem.h"
+#include "scribusdoc.h"
+#include "storytext.h"
+#include "styles/paragraphstyle.h"
+
+
+TextShaper::TextShaper(PageItem *item, StoryText &story, int first)
+	: m_item(item)
+	, m_story(story)
+	, m_firstChar(first)
+{ }
 
 QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 {
@@ -12,11 +26,11 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 	UErrorCode err = U_ZERO_ERROR;
 
 	UBiDiLevel parLevel = UBIDI_LTR;
-	ParagraphStyle style = itemText.paragraphStyle(firstInFrame());
+	ParagraphStyle style = m_story.paragraphStyle(m_firstChar);
 	if (style.direction() == ParagraphStyle::RTL)
 		parLevel = UBIDI_RTL;
 
-	ubidi_setPara(obj, text.utf16(), -1, parLevel, NULL, &err);
+	ubidi_setPara(obj, text.utf16(), text.length(), parLevel, NULL, &err);
 	if (U_SUCCESS(err))
 	{
 		int32_t count = ubidi_countRuns(obj, &err);
@@ -36,7 +50,43 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 	return textRuns;
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeStyles(QList<TextRun> &runs, QMap<int, int> &textMap)
+QList<TextShaper::TextRun> TextShaper::itemizeScripts(QString &text, QList<TextRun> &runs)
+{
+	QList<TextRun> newRuns;
+	ScriptRun scriptrun(text.utf16(), text.length());
+
+	foreach (TextRun run, runs)
+	{
+		int start = run.start;
+		QList<TextRun> subRuns;
+
+		while (scriptrun.next())
+		{
+			if (scriptrun.getScriptStart() <= start && scriptrun.getScriptEnd() > start)
+				break;
+		}
+
+		while (start < run.start + run.len)
+		{
+			int end = qMin(scriptrun.getScriptEnd(), run.start + run.len);
+			UScriptCode script = scriptrun.getScriptCode();
+			if (run.dir == UBIDI_RTL)
+				subRuns.prepend(TextRun(start, end - start, run.dir, script));
+			else
+				subRuns.append(TextRun(start, end - start, run.dir, script));
+
+			start = end;
+			scriptrun.next();
+		}
+
+		scriptrun.reset();
+		newRuns.append(subRuns);
+	}
+
+	return newRuns;
+}
+
+QList<TextShaper::TextRun> TextShaper::itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs)
 {
 	QList<TextRun> newRuns;
 
@@ -49,9 +99,9 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(QList<TextRun> &runs, QMap<
 			int end = start;
 			while (end < run.start + run.len)
 			{
-				CharStyle startstyle = itemText.charStyle(textMap.value(start));
-				CharStyle endstyle = itemText.charStyle(textMap.value(end));
-				if (!startstyle.equalForShaping(endstyle))
+				CharStyle startStyle = m_story.charStyle(textMap.value(start));
+				CharStyle endStyle = m_story.charStyle(textMap.value(end));
+				if (!startStyle.equalForShaping(endStyle))
 					break;
 				end++;
 			}
@@ -68,60 +118,22 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(QList<TextRun> &runs, QMap<
 	return newRuns;
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeScript(QList<TextRun> &bidiRuns, QString &text)
+void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 {
-	QList<TextRun> runs;
-	ScriptRun scriptrun (text.utf16(), text.length());
-
-	foreach (TextRun bidirun, bidiRuns)
+	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
-		int start = bidirun.start;
-		QList<TextRun> subruns;
-		while (scriptrun.next())
+		CharStyle currStyle(m_story.charStyle(i));
+
+#if 1 // FIXME HOST: review this insanity
+		Mark* mark = m_story.mark(i);
+		if (m_story.hasMark(i))
 		{
-			if (scriptrun.getScriptStart() <= start && scriptrun.getScriptEnd() > start)
-				break;
-		}
-
-		while (start < bidirun.start + bidirun.len)
-		{
-			int end = qMin(scriptrun.getScriptEnd(), bidirun.start + bidirun.len);
-			UScriptCode script = scriptrun.getScriptCode();
-			if (bidirun.dir == UBIDI_RTL)
-				subruns.prepend(TextRun(start, end - start, bidirun.dir, script));
-			else
-				subruns.append(TextRun(start, end - start, bidirun.dir, script));
-
-			start = end;
-			scriptrun.next();
-		}
-
-		scriptrun.reset();
-		runs.append(subruns);
-	}
-
-	return runs;
-}
-
-QList<GlyphRun> TextShaper::shapeText()
-{
-	// maps expanded characters to itemText tokens.
-	QMap<int, int> textMap;
-	QString text;
-	QList<GlyphRun> glyphRuns;
-	for (int i = firstInFrame(); i < itemText.length(); ++i)
-	{
-		CharStyle currStyle(itemText.charStyle(i));
-
-		Mark* mark = itemText.mark(i);
-		if (itemText.hasMark(i))
-		{
-			mark->OwnPage = OwnPage;
+			mark->OwnPage = m_item->OwnPage;
 			//itemPtr and itemName set to this frame only if mark type is different than MARK2ItemType
 			if (!mark->isType(MARK2ItemType))
 			{
-				mark->setItemPtr(this);
-				mark->setItemName(itemName());
+				mark->setItemPtr(m_item);
+				mark->setItemName(m_item->itemName());
 			}
 
 			//anchors and indexes has no visible inserts in text
@@ -134,21 +146,21 @@ QList<GlyphRun> TextShaper::shapeText()
 				TextNote* note = mark->getNotePtr();
 				if (note == NULL)
 					continue;
-				mark->setItemPtr(this);
+				mark->setItemPtr(m_item);
 				NotesStyle* nStyle = note->notesStyle();
 				Q_ASSERT(nStyle != NULL);
 				QString chsName = nStyle->marksChStyle();
 				if (!chsName.isEmpty())
 				{
-					CharStyle marksStyle(m_Doc->charStyle(chsName));
+					CharStyle marksStyle(m_item->doc()->charStyle(chsName));
 					if (!currStyle.equiv(marksStyle))
 					{
 						currStyle.setParent(chsName);
-						itemText.applyCharStyle(i, 1, currStyle);
+						m_story.applyCharStyle(i, 1, currStyle);
 					}
 				}
 
-				StyleFlag s(itemText.charStyle(i).effects());
+				StyleFlag s(m_story.charStyle(i).effects());
 				if (mark->isType(MARKNoteMasterType))
 				{
 					if (nStyle->isSuperscriptInMaster())
@@ -163,25 +175,25 @@ QList<GlyphRun> TextShaper::shapeText()
 					else
 						s &= ~ScStyle_Superscript;
 				}
-				if (s != itemText.charStyle(i).effects())
+				if (s != m_story.charStyle(i).effects())
 				{
 					CharStyle haveSuperscript;
 					haveSuperscript.setFeatures(s.featureList());
-					itemText.applyCharStyle(i, 1, haveSuperscript);
+					m_story.applyCharStyle(i, 1, haveSuperscript);
 				}
 			}
 		}
 
 		bool bullet = false;
-		if (i == 0 || itemText.text(i - 1) == SpecialChars::PARSEP)
+		if (i == 0 || m_story.text(i - 1) == SpecialChars::PARSEP)
 		{
-			ParagraphStyle style = itemText.paragraphStyle(i);
+			ParagraphStyle style = m_story.paragraphStyle(i);
 			if (style.hasBullet() || style.hasNum())
 			{
 				bullet = true;
 				if (mark == NULL || !mark->isType(MARKBullNumType))
 				{
-					itemText.insertMark(new BulNumMark(), i);
+					m_story.insertMark(new BulNumMark(), i);
 					i--;
 					continue;
 				}
@@ -190,19 +202,19 @@ QList<GlyphRun> TextShaper::shapeText()
 				else if (style.hasNum() && mark->getString().isEmpty())
 				{
 					mark->setString("?");
-					m_Doc->flag_Renumber = true;
+					m_item->doc()->flag_Renumber = true;
 				}
 			}
 		}
 
 		if (!bullet && mark && mark->isType(MARKBullNumType))
 		{
-			itemText.removeChars(i, 1);
+			m_story.removeChars(i, 1);
 			i--;
 			continue;
 		}
-
-		QString str = ExpandToken(i);
+#endif
+		QString str = m_item->ExpandToken(i);
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
 
@@ -215,30 +227,42 @@ QList<GlyphRun> TextShaper::shapeText()
 
 		text.append(str);
 	}
+}
+
+QList<GlyphRun> TextShaper::shape()
+{
+	// maps expanded characters to itemText tokens.
+	QMap<int, int> textMap;
+	QString text;
+
+	buildText(text, textMap);
 
 	QList<TextRun> bidiRuns = itemizeBiDi(text);
-	QList<TextRun> scriptRuns = itemizeScript(bidiRuns, text);
-	QList<TextRun> textRuns = itemizeStyles(scriptRuns, textMap);
+	QList<TextRun> scriptRuns = itemizeScripts(text, bidiRuns);
+	QList<TextRun> textRuns = itemizeStyles(textMap, scriptRuns);
 
-
+	QList<GlyphRun> glyphRuns;
 	QVector<uint> ucs4 = text.toUcs4();
 	foreach (TextRun textRun, textRuns) {
-		CharStyle cs = itemText.charStyle(textMap.value(textRun.start));
+		CharStyle cs = m_story.charStyle(textMap.value(textRun.start));
 		int effects = cs.effects() & ScStyle_UserStyles;
 
 		FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
-		QString lang = cs.language();
-		hb_language_t language = hb_language_from_string (lang.toStdString().c_str(), lang.toStdString().length());
 
 		// TODO: move to ScFace
 		hb_font_t *hbFont = hb_ft_font_create_referenced(cs.font().ftFace());
 		hb_buffer_t *hbBuffer = hb_buffer_create();
-		hb_buffer_set_language(hbBuffer, language);
+
+		hb_direction_t hbDirection = (textRun.dir == UBIDI_LTR) ? HB_DIRECTION_LTR : HB_DIRECTION_RTL;
+		hb_script_t hbScript = hb_icu_script_to_script(textRun.script);
+		std::string language = cs.language().toStdString();
+		hb_language_t hbLanguage = hb_language_from_string(language.c_str(), language.length());
 
 		hb_buffer_clear_contents(hbBuffer);
 		hb_buffer_add_utf32(hbBuffer, ucs4.data(), ucs4.length(), textRun.start, textRun.len);
-		hb_buffer_set_direction(hbBuffer, textRun.dir == UBIDI_LTR ? HB_DIRECTION_LTR : HB_DIRECTION_RTL);
-		hb_buffer_set_script(hbBuffer, hb_icu_script_to_script(textRun.script));
+		hb_buffer_set_direction(hbBuffer, hbDirection);
+		hb_buffer_set_script(hbBuffer, hbScript);
+		hb_buffer_set_language(hbBuffer, hbLanguage);
 
 		hb_shape(hbFont, hbBuffer, NULL, 0);
 
@@ -246,7 +270,7 @@ QList<GlyphRun> TextShaper::shapeText()
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);
 		hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(hbBuffer, NULL);
 
-		glyphRuns.reserve(count);
+		glyphRuns.reserve(glyphRuns.size() + count);
 		for (size_t i = 0; i < count; i++)
 		{
 			uint32_t firstCluster = glyphs[i].cluster;
@@ -262,11 +286,11 @@ QList<GlyphRun> TextShaper::shapeText()
 			int lastChar = firstChar;
 //			int lastChar = textMap.value(nextCluster - 1);
 
-			QChar ch = itemText.text(firstChar);
-			LayoutFlags flags = itemText.flags(firstChar);
-			const CharStyle& charStyle(itemText.charStyle(firstChar));
+			QChar ch = m_story.text(firstChar);
+			LayoutFlags flags = m_story.flags(firstChar);
+			const CharStyle& charStyle(m_story.charStyle(firstChar));
 
-			GlyphRun run(&charStyle, flags, firstChar, lastChar, itemText.object(firstChar), textRun.dir == UBIDI_RTL, glyphRuns.length());
+			GlyphRun run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), textRun.dir == UBIDI_RTL, glyphRuns.length());
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
 
@@ -280,7 +304,7 @@ QList<GlyphRun> TextShaper::shapeText()
 			gl.xadvance = positions[i].x_advance / 10.0;
 			gl.yadvance = positions[i].y_advance / 10.0;
 
-			if (itemText.hasMark(firstChar))
+			if (m_story.hasMark(firstChar))
 			{
 				GlyphLayout control;
 				control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
@@ -290,7 +314,7 @@ QList<GlyphRun> TextShaper::shapeText()
 			if (SpecialChars::isExpandingSpace(ch))
 				gl.xadvance *= run.style().wordTracking();
 
-			if (itemText.hasObject(firstChar))
+			if (m_story.hasObject(firstChar))
 				gl.xadvance = run.width();
 
 			double tracking = 0;
@@ -307,13 +331,13 @@ QList<GlyphRun> TextShaper::shapeText()
 				double asce = cs.font().ascent(cs.fontSize() / 10.0);
 				if (effects & ScStyle_Superscript)
 				{
-					gl.yoffset -= asce * m_Doc->typographicPrefs().valueSuperScript / 100.0;
-					gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSuperScript / 100.0, 10.0 / cs.fontSize());
+					gl.yoffset -= asce * m_item->doc()->typographicPrefs().valueSuperScript / 100.0;
+					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / cs.fontSize());
 				}
 				else if (effects & ScStyle_Subscript)
 				{
-					gl.yoffset += asce * m_Doc->typographicPrefs().valueSubScript / 100.0;
-					gl.scaleV = gl.scaleH = qMax(m_Doc->typographicPrefs().scalingSubScript / 100.0, 10.0 / cs.fontSize());
+					gl.yoffset += asce * m_item->doc()->typographicPrefs().valueSubScript / 100.0;
+					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / cs.fontSize());
 				}
 				else
 				{
@@ -325,7 +349,7 @@ QList<GlyphRun> TextShaper::shapeText()
 
 				if (effects & ScStyle_SmallCaps)
 				{
-					double smallcapsScale = m_Doc->typographicPrefs().valueSmallCaps / 100.0;
+					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
 					// FIXME HOST: This is completely wrong, we shouldn’t be changing
 					// the glyph ids after the shaping!
 					QChar uc = ch.toUpper();
@@ -353,4 +377,3 @@ QList<GlyphRun> TextShaper::shapeText()
 
 	return glyphRuns;
 }
-

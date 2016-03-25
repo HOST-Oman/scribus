@@ -32,10 +32,6 @@ for which a new license (GPL+exception) is in place.
 #include <QRegion>
 #include <cairo.h>
 #include <cassert>
-#include <hb.h>
-#include <hb-ft.h>
-#include <hb-icu.h>
-#include <unicode/ubidi.h>
 
 #include "actionmanager.h"
 #include "appmodes.h"
@@ -60,8 +56,8 @@ for which a new license (GPL+exception) is in place.
 #include "scribusstructs.h"
 #include "selection.h"
 #include "text/boxes.h"
-#include "text/scrptrun.h"
 #include "text/screenpainter.h"
+#include "text/textshaper.h"
 #include "ui/guidemanager.h"
 #include "ui/marksmanager.h"
 #include "undomanager.h"
@@ -1386,7 +1382,8 @@ void PageItem_TextFrame::layout()
 			m_availableRegion = matrix.map(m_availableRegion);
 		}
 
-		QList<GlyphRun> glyphRuns = shapeText();
+		TextShaper textShaper(this, itemText, firstInFrame());
+		QList<GlyphRun> glyphRuns = textShaper.shape();
 		std::sort(glyphRuns.begin(), glyphRuns.end(), logicalGlyphRunComp);
 
 		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap);

@@ -31,7 +31,6 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "marks.h"
 #include "notesstyles.h"
-#include "unicode/uscript.h"
 
 class PageItem_NoteFrame;
 class ScPainter;
