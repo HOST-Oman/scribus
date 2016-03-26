@@ -54,7 +54,7 @@ for which a new license (GPL+exception) is in place.
 using namespace std;
 
 PageItem_PathText::PageItem_PathText(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
-	: PageItem(pa, PageItem::PathText, x, y, w, h, w2, fill, outline), itemRenderText(pa)
+	: PageItem(pa, PageItem::PathText, x, y, w, h, w2, fill, outline)
 {
 	firstChar = 0;
 	MaxChars = itemText.length();
@@ -160,37 +160,12 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	{
 		CurX += itemText.charStyle(0).fontSize() * itemText.charStyle(0).tracking() / 10000.0;
 	}
-	itemRenderText.clear();
-	itemRenderText.setDoc(m_Doc);
-	itemRenderText.setDefaultStyle(itemText.defaultStyle());
-	for (int a = firstChar; a < itemText.length(); ++a)
-	{
-		CharStyle nstyle = itemText.charStyle(a);
-		ParagraphStyle pstyle = itemText.paragraphStyle(a);
-		QString chstr = itemText.text(a, 1);
-		if ((chstr[0] == SpecialChars::OBJECT) && (itemText.hasObject(a)))
-		{
-			int pot = itemRenderText.length();
-			itemRenderText.insertObject(pot, itemText.object(a)->inlineCharID);
-		}
-		else
-		{
-			if (!(chstr[0] == SpecialChars::PARSEP || chstr[0] == SpecialChars::TAB || chstr[0] == SpecialChars::LINEBREAK))
-				chstr = ExpandToken(a);
-			for (int cc = 0; cc < chstr.count(); cc++)
-			{
-				int pot = itemRenderText.length();
-				itemRenderText.insertChars(pot, chstr.mid(cc, 1));
-				itemRenderText.applyStyle(pot, pstyle);
-				itemRenderText.applyCharStyle(pot, 1, nstyle);
-			}
-		}
-	}
-	textLayout.setStory(&itemRenderText);
+
+	textLayout.setStory(&itemText);
 	int spaceCount = 0;
 	double wordExtra = 0;
 
-	TextShaper textShaper(this, itemRenderText, firstChar);
+	TextShaper textShaper(this, itemText, firstChar, true);
 	QList<GlyphRun> glyphRuns = textShaper.shape();
 	if (glyphRuns.isEmpty())
 		return;
@@ -205,16 +180,16 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	{
 		totalCurveLen += PoLine.lenPathSeg(segs);
 	}
-	if ((itemRenderText.paragraphStyle(0).alignment() != ParagraphStyle::Leftaligned) && (totalCurveLen >= totalTextLen + m_textDistanceMargins.left()))
+	if ((itemText.paragraphStyle(0).alignment() != ParagraphStyle::Leftaligned) && (totalCurveLen >= totalTextLen + m_textDistanceMargins.left()))
 	{
-		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Rightaligned)
+		if (itemText.paragraphStyle(0).alignment() == ParagraphStyle::Rightaligned)
 		{
 			CurX = totalCurveLen - totalTextLen;
 			CurX -= m_textDistanceMargins.left();
 		}
-		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Centered)
+		if (itemText.paragraphStyle(0).alignment() == ParagraphStyle::Centered)
 			CurX = (totalCurveLen - totalTextLen) / 2.0;
-		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Justified)
+		if (itemText.paragraphStyle(0).alignment() == ParagraphStyle::Justified)
 		{
 			if (spaceCount != 0)
 			{
@@ -223,12 +198,12 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			}
 			else
 			{
-				extraOffset = (totalCurveLen - m_textDistanceMargins.left()  - totalTextLen) / static_cast<double>(itemRenderText.length());
+				extraOffset = (totalCurveLen - m_textDistanceMargins.left()  - totalTextLen) / static_cast<double>(itemText.length());
 				wordExtra = 0;
 			}
 		}
-		if (itemRenderText.paragraphStyle(0).alignment() == ParagraphStyle::Extended)
-			extraOffset = (totalCurveLen - m_textDistanceMargins.left() - totalTextLen) / static_cast<double>(itemRenderText.length());
+		if (itemText.paragraphStyle(0).alignment() == ParagraphStyle::Extended)
+			extraOffset = (totalCurveLen - m_textDistanceMargins.left() - totalTextLen) / static_cast<double>(itemText.length());
 	}
 	QPainterPath guidePath = PoLine.toQPainterPath(false);
 	QList<QPainterPath> pathList = decomposePath(guidePath);

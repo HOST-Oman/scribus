@@ -12,7 +12,7 @@ class PageItem;
 class TextShaper
 {
 public:
-	TextShaper(PageItem *item, StoryText &story, int first);
+	TextShaper(PageItem *item, StoryText &story, int first, bool singlePar=false);
 
 	QList<GlyphRun> shape();
 
@@ -40,6 +40,7 @@ private:
 	PageItem *m_item;
 	StoryText &m_story;
 	int m_firstChar;
+	bool m_singlePar;
 };
 
 #endif // TEXTSHAPER_H
