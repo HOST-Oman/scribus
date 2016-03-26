@@ -414,8 +414,6 @@ public: // Start public functions
 	const CharStyle& currentCharStyle() const;
 	/// Return current text properties (current char + paragraph properties)
 	void currentTextProps(ParagraphStyle& parStyle) const;
-	// deprecated:
-	GlyphLayout layoutGlyphs(const CharStyle& style, const QString& chars, LayoutFlags flags);
 	void SetQColor(QColor *tmp, QString farbe, double shad);
 	void DrawPolyL(QPainter *p, QPolygon pts);
 	QString ExpandToken(uint base);
