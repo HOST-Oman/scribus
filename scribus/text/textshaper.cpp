@@ -364,15 +364,11 @@ QList<GlyphRun> TextShaper::shape()
 					{
 						gl.glyph = style.font().char2CMap(uc);
 						gl.xadvance = style.font().glyphWidth(gl.glyph, style.fontSize() / 10);
-						gl.yadvance = style.font().glyphBBox(gl.glyph, style.fontSize() / 10).ascent;
 						gl.scaleV *= smallcapsScale;
 						gl.scaleH *= smallcapsScale;
 					}
 				}
 			}
-
-			if (gl.yadvance <= 0)
-				gl.yadvance = style.font().glyphBBox(gl.glyph, style.fontSize() / 10).ascent * gl.scaleV;
 
 			if (gl.xadvance > 0)
 				gl.xadvance += tracking;
