@@ -76,7 +76,7 @@ StyleFlag StyleFlag::operator~ ()
 	return result;
 }
 
-bool StyleFlag::equalForShaping(const StyleFlag& right) const
+bool StyleFlag::equivForShaping(const StyleFlag& right) const
 {
 	int result = static_cast<int>( (value ^ right.value) & ScStyle_RunBreakingStyles);
 	return (result == 0);
@@ -165,6 +165,19 @@ bool CharStyle::equiv(const Style & other) const
 		;	
 }
 
+bool CharStyle::equivForShaping(const CharStyle& other) const
+{
+	other.validate();
+
+#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
+	if (attr_BREAKSHAPING && !isequiv(m_##attr_NAME, other.m_##attr_NAME)) \
+		return false;
+#include "charstyle.attrdefs.cxx"
+#undef ATTRDEF
+	if (!m_Effects.equivForShaping(other.m_Effects))
+		return false;
+	return true;
+}
 
 QString CharStyle::displayName() const
 {

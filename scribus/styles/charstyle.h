@@ -69,7 +69,7 @@ public:
 	StyleFlag  operator^  (int right);
 	StyleFlag  operator~  ();
 
-	bool equalForShaping(const StyleFlag& right) const;
+	bool equivForShaping(const StyleFlag& right) const;
 	bool operator== (const StyleFlag& right) const;
 	bool operator== (const StyleFlagValue right) const;
 	bool operator== (int right) const;
@@ -137,7 +137,8 @@ public:
 	void updateFeatures();
 	
 	bool equiv(const Style& other) const;	
-	
+	bool equivForShaping(const CharStyle &other) const;
+
 	void applyCharStyle(const CharStyle & other);
 	void eraseCharStyle(const CharStyle & other);
 	void setStyle(const CharStyle & other);
@@ -188,18 +189,6 @@ public:
 	}
 #include "charstyle.attrdefs.cxx"
 #undef ATTRDEF
-
-	bool equalForShaping(const CharStyle& other)
-	{
-#define ATTRDEF(attr_TYPE, attr_GETTER, attr_NAME, attr_DEFAULT, attr_BREAKSHAPING) \
-		if (attr_BREAKSHAPING && other.m_##attr_NAME != m_##attr_NAME) \
-			return false;
-#include "charstyle.attrdefs.cxx"
-#undef ATTRDEF
-		if (!m_Effects.equalForShaping(other.m_Effects))
-			return false;
-		return true;
-	}
 	
 private:
 
