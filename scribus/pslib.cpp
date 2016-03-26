@@ -40,7 +40,6 @@ for which a new license (GPL+exception) is in place.
 #include "scconfig.h"
 #include "pluginapi.h"
 #include "pageitem_latexframe.h"
-#include "pageitem_pathtext.h"
 #include "pageitem_table.h"
 #include "prefsmanager.h"
 #include "scclocale.h"
