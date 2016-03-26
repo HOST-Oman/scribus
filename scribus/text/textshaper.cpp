@@ -122,8 +122,6 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
-		CharStyle currStyle(m_story.charStyle(i));
-
 #if 1 // FIXME HOST: review this insanity
 		Mark* mark = m_story.mark(i);
 		if (m_story.hasMark(i))
@@ -149,6 +147,7 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 				mark->setItemPtr(m_item);
 				NotesStyle* nStyle = note->notesStyle();
 				Q_ASSERT(nStyle != NULL);
+				CharStyle currStyle(m_story.charStyle(i));
 				QString chsName = nStyle->marksChStyle();
 				if (!chsName.isEmpty())
 				{
@@ -187,7 +186,7 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		bool bullet = false;
 		if (i == 0 || m_story.text(i - 1) == SpecialChars::PARSEP)
 		{
-			ParagraphStyle style = m_story.paragraphStyle(i);
+			const ParagraphStyle &style = m_story.paragraphStyle(i);
 			if (style.hasBullet() || style.hasNum())
 			{
 				bullet = true;
@@ -218,7 +217,8 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
 
-		int effects = currStyle.effects() & ScStyle_UserStyles;
+		const CharStyle &style = m_story.charStyle(i);
+		int effects = style.effects() & ScStyle_UserStyles;
 		if (effects & ScStyle_AllCaps)
 			str = str.toUpper();
 
