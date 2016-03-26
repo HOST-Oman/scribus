@@ -1094,8 +1094,8 @@ static double opticalRightMargin(const StoryText& itemText, const QList<GlyphRun
 {
 	int b = line.lastRun;
 	while (b > line.firstRun &&
-		   (SpecialChars::isBreakingSpace(itemText.text(runs[b].firstChar())) ||
-			SpecialChars::isBreak(itemText.text(runs[b].firstChar())))
+		   (SpecialChars::isBreakingSpace(itemText.text(runs[b].lastChar())) ||
+			SpecialChars::isBreak(itemText.text(runs[b].lastChar())))
 		   )
 		--b;
 	if (b >= line.firstRun)
@@ -1103,7 +1103,7 @@ static double opticalRightMargin(const StoryText& itemText, const QList<GlyphRun
 		const CharStyle& chStyle(runs[b].style());
 		double chs = chStyle.fontSize() * (chStyle.scaleH() / 1000.0);
 		QChar chr = runs[b].hasFlag(ScLayout_SoftHyphenVisible) ?
-			QChar('-') : itemText.text(runs[b].firstChar());
+			QChar('-') : itemText.text(runs[b].lastChar());
 		double rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
 		if (QString("-,.`´'~").indexOf(chr) >= 0
 			|| chr == QChar(0x2018)
@@ -1127,8 +1127,9 @@ static double opticalRightMargin(const StoryText& itemText, const QList<GlyphRun
 				 )
 			rightCorr *= 0.5;
 		else {
-			rightCorr = chStyle.font().charWidth(chr, chs / 10.0);
-			rightCorr -= chStyle.font().charWidth(chr, chs / 10.0, QChar('.'));
+			// FIXME HOST: is the kerning with "." a realy reliable way to check this?
+//			rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
+//			rightCorr -= chStyle.font().charWidth(chr, chs / 10.0, QChar('.'));
 		}
 		return rightCorr;
 	}
@@ -2275,7 +2276,7 @@ void PageItem_TextFrame::layout()
 			double hyphWidth = 0.0;
 			bool inOverflow = false;
 			if (glyphRuns[i].hasFlag(ScLayout_HyphenationPossible) || itemText.text(a) == SpecialChars::SHYPHEN)
-				hyphWidth = font.charWidth('-', hlcsize10) * (charStyle.scaleH() / 1000.0);
+				hyphWidth = font.realCharWidth('-', hlcsize10) * (charStyle.scaleH() / 1000.0);
 			if ((current.isEndOfLine(style.rightMargin() + hyphWidth)) || current.isEndOfCol(realDesc) || SpecialChars::isBreak(itemText.text(a), Cols > 1) || (current.xPos - current.maxShrink + hyphWidth) >= current.mustLineEnd)
 			{
 

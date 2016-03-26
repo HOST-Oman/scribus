@@ -229,31 +229,6 @@ void FtFace::loadGlyph(ScFace::gid_type gl) const
 }
 
 
-qreal FtFace::glyphKerning(ScFace::gid_type gl, ScFace::gid_type gl2, qreal size) const
-{
-	FT_Vector  delta;
-	FT_Face    face = ftFace();
-	qreal result = 0;
-	/****
-		Ok, this looks like a regression between Freetype 2.1.9 -> 2.1.10.
-		Ignoring the value of FT_HAS_KERNING for now -- AV
-		****/
-	if (true || FT_HAS_KERNING(face) )
-	{
-		FT_Error error = FT_Get_Kerning(face, gl, gl2, FT_KERNING_UNSCALED, &delta);
-		if (error) {
-			sDebug(QString("Error %2 when accessing kerning pair for font %1").arg(scName).arg(error));
-		}
-		else {
-			result = delta.x / m_uniEM * size;
-		}
-	}
-	else {
-		sDebug(QString("Font %1 has no kerning pairs (according to Freetype)").arg(scName));
-	}
-	return result;
-}
-
 /*
 GlyphMetrics FtFace::glyphBBox (gid_type gl, qreal sz) const
 {

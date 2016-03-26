@@ -29,15 +29,12 @@ public:
 
 	bool EmbedFont(QByteArray &str) const;
 	void RawData(QByteArray & bb) const;
-
-	qreal glyphKerning ( ScFace::gid_type gl1, ScFace::gid_type gl2, qreal sz ) const;
 	
 	virtual bool glyphNames(ScFace::FaceEncoding& GList) const;
 	virtual bool hasNames() const;
 	virtual bool isSymbolic() const;
 
 private:
-	mutable KernFeature * m_kernFeature;
 	mutable sfnt::PostTable m_checkPost;
 
 };

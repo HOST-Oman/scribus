@@ -81,7 +81,6 @@ struct SCRIBUS_API FtFace : public ScFace::ScFaceData
 
 	ScFace::gid_type    char2CMap(QChar ch)                         const;
 
-	qreal       glyphKerning (ScFace::gid_type gl1, ScFace::gid_type gl2, qreal sz) const;
 //	GlyphMetrics glyphBBox (gid_type gl,               qreal sz) const;
 
 	void RawData   (QByteArray & bb)            const;
