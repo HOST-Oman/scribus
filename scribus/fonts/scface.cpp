@@ -32,12 +32,6 @@ ScFace::ScFaceData::ScFaceData() :
 {
 }
 
-qreal ScFace::ScFaceData::glyphKerning(gid_type /*gl1*/, gid_type /*gl2*/, qreal /*sz*/) const
-{ 
-	return 0.0; 
-}
-
-
 bool ScFace::ScFaceData::glyphNames(FaceEncoding& /*gList*/) const
 { 
 	return false; 
@@ -383,24 +377,6 @@ bool ScFace::canRender(QChar ch) const
 			m_m->loadGlyph(gl);
 			return ! m_m->m_glyphOutline[gl].broken; 
 		}
-	}
-}
-
-
-qreal ScFace::charWidth(QChar ch, qreal size, QChar ch2) const
-{
-	if (!canRender(ch)) // calls loadGlyph()
-		return size;
-	else if (ch.unicode() == 28 || ch.unicode() == 13 || ch.unicode() == 9)
-		return ch.unicode() == 9 ? 1.0 : 0.0;
-	else {
-		gid_type gl1 = char2CMap(ch);
-		gid_type gl2 = char2CMap(ch2);
-		qreal width = glyphWidth(gl1, size);
-		if (gl2 != 0)
-			width += glyphKerning(gl1, gl2, size);
-//		qDebug() << QString("scface::glyphkerning: %1_%2 = %3 (%4, %5)").arg(ch).arg(ch2).arg(glyphKerning(gl1, gl2,size)).arg(gl1).arg(gl2);
-		return width;
 	}
 }
 

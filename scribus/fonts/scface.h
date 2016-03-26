@@ -183,7 +183,6 @@ public:
 		virtual qreal strokeWidth(qreal /*sz*/)      const { return 0.1; }
 		virtual qreal maxAdvanceWidth(qreal sz)  const { return sz; }
 		virtual gid_type char2CMap(QChar /*ch*/)         const { return 0; }
-		virtual qreal glyphKerning(gid_type gl1, gid_type gl2, qreal sz) const;
 		virtual QMap<QString,QString> fontDictionary(qreal sz=1.0) const;
 		virtual GlyphMetrics glyphBBox(gid_type gl, qreal sz) const;
 		virtual bool EmbedFont(QByteArray &/*str*/)       const { return false; }
@@ -365,9 +364,6 @@ public:
 	/// returns the glyphs normal advance width at size 'sz'
 	qreal glyphWidth(gid_type gl, qreal sz=1.0) const { return m_m->glyphWidth(gl, sz); }
 
-	/// returns the glyph kerning between 'gl1' and 'gl2' at size 'sz'
-	qreal glyphKerning(gid_type gl1, gid_type gl2, qreal sz=1.0) const { return qMax(gl1,gl2) < CONTROL_GLYPHS ? m_m->glyphKerning(gl1, gl2, sz) : 0; }
-
 	/// returns the glyphs bounding box at size 'sz', ie. the area where this glyph will produce marks
 	GlyphMetrics glyphBBox(gid_type gl, qreal sz=1.0) const { return m_m->glyphBBox(gl, sz); }
 
@@ -384,9 +380,6 @@ public:
 
 	/// translate unicode to glyph index
 	gid_type char2CMap(QChar ch)   const;
-
-	/// returns the combined glyph width and kerning for 'ch' if followed by 'ch2'
-	qreal charWidth(QChar ch, qreal sz=1.0, QChar ch2 = QChar(0)) const;
 
 	/// deprecated, see glyphBBox()
 	qreal realCharWidth(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch),sz).width; }
