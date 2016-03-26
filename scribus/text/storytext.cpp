@@ -181,7 +181,7 @@ int StoryText::normalizedCursorPosition()
 	return (int) qMax((uint) 0, qMin(d->cursorPosition, d->len));
 }
 
-void StoryText::moveToLeft()
+void StoryText::moveCursorLeft()
 {
 	QString currWord = wordAt(cursorPosition());
 	if (currWord.isRightToLeft())
@@ -190,7 +190,7 @@ void StoryText::moveToLeft()
 		setCursorPosition(-1, true);
 }
 
-void StoryText::moveToLeft(int pos)
+void StoryText::moveCursorLeft(int pos)
 {
 	bool isSpace, wasSpace, isRTL;
 	isRTL = wordAt(cursorPosition()).isRightToLeft();
@@ -226,7 +226,7 @@ void StoryText::moveToLeft(int pos)
 	}
 }
 
-void StoryText::moveToRight()
+void StoryText::moveCursorRight()
 {
 	QString currWord = wordAt(cursorPosition());
 	if (currWord.isRightToLeft())
@@ -235,7 +235,7 @@ void StoryText::moveToRight()
 		setCursorPosition(1, true);
 }
 
-void StoryText::moveToRight(int pos)
+void StoryText::moveCursorRight(int pos)
 {
 	bool isSpace, wasSpace, isRTL;
 	isRTL = wordAt(cursorPosition()).isRightToLeft();
