@@ -13,10 +13,11 @@
 #include "styles/paragraphstyle.h"
 
 
-TextShaper::TextShaper(PageItem *item, StoryText &story, int first)
+TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singlePar)
 	: m_item(item)
 	, m_story(story)
 	, m_firstChar(first)
+	, m_singlePar(singlePar)
 { }
 
 QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
@@ -122,6 +123,12 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
+		if (m_singlePar)
+		{
+			QChar ch = m_story.text(i);
+			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
+				continue;
+		}
 #if 1 // FIXME HOST: review this insanity
 		Mark* mark = m_story.mark(i);
 		if (m_story.hasMark(i))
