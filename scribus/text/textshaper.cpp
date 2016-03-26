@@ -99,9 +99,9 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(QMap<int, int> &textMap, QL
 			int end = start;
 			while (end < run.start + run.len)
 			{
-				CharStyle startStyle = m_story.charStyle(textMap.value(start));
-				CharStyle endStyle = m_story.charStyle(textMap.value(end));
-				if (!startStyle.equalForShaping(endStyle))
+				const CharStyle &startStyle = m_story.charStyle(textMap.value(start));
+				const CharStyle &endStyle = m_story.charStyle(textMap.value(end));
+				if (!startStyle.equivForShaping(endStyle))
 					break;
 				end++;
 			}
