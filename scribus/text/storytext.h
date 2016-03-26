@@ -261,6 +261,7 @@ signals:
 private:
  	ScText * item(uint index);
  	const ScText * item(uint index) const;
+	void fixSurrogateSelection();
 
 //public:
 //	ScText * item_p(uint index) { return item(index); }

@@ -1714,6 +1714,8 @@ void StoryText::select(int pos, uint len, bool on)
 			// Grr, deselection splits selection
 			m_selLast = pos - 1;
 	}
+
+	fixSurrogateSelection();
 	
 //	qDebug("new selection: %d - %d", m_selFirst, m_selLast);
 }
@@ -1746,6 +1748,17 @@ void StoryText::extendSelection(int oldPos, int newPos)
 		m_selFirst = newPos;
 		m_selLast = oldPos - 1;
 	}
+
+	fixSurrogateSelection();
+}
+
+
+void StoryText::fixSurrogateSelection()
+{
+	if (isLowSurrogate(m_selFirst) && isHighSurrogate(m_selFirst - 1))
+		m_selFirst -= 1;
+	if (isHighSurrogate(m_selLast) && isLowSurrogate(m_selLast + 1))
+		m_selLast += 1;
 }
 
 void StoryText::selectAll()
