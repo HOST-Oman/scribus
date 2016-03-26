@@ -249,7 +249,6 @@ QList<GlyphRun> TextShaper::shape()
 	QList<TextRun> textRuns = itemizeStyles(textMap, scriptRuns);
 
 	QList<GlyphRun> glyphRuns;
-	QVector<uint> ucs4 = text.toUcs4();
 	foreach (TextRun textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(textMap.value(textRun.start));
 		int effects = style.effects() & ScStyle_UserStyles;
@@ -266,7 +265,7 @@ QList<GlyphRun> TextShaper::shape()
 		hb_language_t hbLanguage = hb_language_from_string(language.c_str(), language.length());
 
 		hb_buffer_clear_contents(hbBuffer);
-		hb_buffer_add_utf32(hbBuffer, ucs4.data(), ucs4.length(), textRun.start, textRun.len);
+		hb_buffer_add_utf16(hbBuffer, text.utf16(), text.length(), textRun.start, textRun.len);
 		hb_buffer_set_direction(hbBuffer, hbDirection);
 		hb_buffer_set_script(hbBuffer, hbScript);
 		hb_buffer_set_language(hbBuffer, hbLanguage);
