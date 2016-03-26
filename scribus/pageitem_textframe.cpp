@@ -4141,20 +4141,20 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Left:
 		if ( buttonModifiers & Qt::ControlModifier )
 		{
-			itemText.moveToLeft(oldPos);
+			itemText.moveCursorLeft(oldPos);
 			if ( buttonModifiers & Qt::ShiftModifier )
 				ExpandSel(-1, oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			int pos = itemText.cursorPosition();
-			itemText.moveToLeft();
+			itemText.moveCursorLeft();
 			if ( pos > 0 )
 				ExpandSel(-1, oldPos);
 		}
 		else
 		{
-			itemText.moveToLeft();
+			itemText.moveCursorLeft();
 			if (itemText.cursorPosition() < firstInFrame())
 			{
 				itemText.setCursorPosition( firstInFrame() );
@@ -4175,7 +4175,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 //				--CPos;
 				while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 				{
-					itemText.moveToLeft();
+					itemText.moveCursorLeft();
 					if (itemText.cursorPosition() == 0)
 						break;
 				}
@@ -4185,7 +4185,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		{
 			while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 			{
-				itemText.moveToLeft();
+				itemText.moveCursorLeft();
 				if (itemText.cursorPosition() == 0)
 					break;
 			}
@@ -4197,20 +4197,20 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Right:
 		if ( buttonModifiers & Qt::ControlModifier )
 		{
-			itemText.moveToRight(oldPos);
+			itemText.moveCursorRight(oldPos);
 			if ( buttonModifiers & Qt::ShiftModifier )
 				ExpandSel(1, oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			int pos = itemText.cursorPosition();
-			itemText.moveToRight();
+			itemText.moveCursorRight();
 			if ( pos < itemText.length() )
 				ExpandSel(1, oldPos);
 		}
 		else
 		{
-			itemText.moveToRight(); // new position within text ?
+			itemText.moveCursorRight(); // new position within text ?
 			if (itemText.cursorPosition() > lastInFrame())
 			{
 //				--CPos;
