@@ -3839,7 +3839,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		uc = "\r";
 #endif
 	int as = uc[0].unicode();
-	QString cr, Tcha, Twort;
+	QString Tcha, Twort;
 	uint Tcoun;
 	int len, pos;
 	int keyModifiers=0;
@@ -4257,7 +4257,6 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			keyRepeat = false;
 			return;
 		}
-		cr = itemText.text();
 		if (itemText.lengthOfSelection() == 0)
 			itemText.select(itemText.cursorPosition(), 1, true);
 		deleteSelectedTextFromFrame();
@@ -4306,7 +4305,6 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		if (itemText.length() == 0)
 			break;
-		cr = itemText.text(qMax((int) itemText.cursorPosition() - 1, 0), 1);
 		if (itemText.lengthOfSelection() == 0)
 		{
 			itemText.setCursorPosition(-1, true);
