@@ -29,12 +29,12 @@ struct TextLayoutColor
 		, shade(s)
 	{ }
 
-	bool operator ==(TextLayoutColor other)
+	bool operator ==(const TextLayoutColor &other) const
 	{
 		return other.color == color && other.shade == shade;
 	}
 
-	bool operator !=(TextLayoutColor other)
+	bool operator !=(const TextLayoutColor &other) const
 	{
 		return !(*this == other);
 	}
