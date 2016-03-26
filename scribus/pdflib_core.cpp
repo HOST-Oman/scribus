@@ -63,7 +63,6 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "pageitem_textframe.h"
 #include "pageitem_group.h"
-#include "pageitem_pathtext.h"
 #include "pageitem_table.h"
 #include "pdfoptions.h"
 #include "prefscontext.h"

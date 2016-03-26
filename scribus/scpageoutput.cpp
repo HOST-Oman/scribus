@@ -19,13 +19,11 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem_group.h"
 #include "pageitem_imageframe.h"
 #include "pageitem_line.h"
-#include "pageitem_pathtext.h"
 #include "pageitem_polygon.h"
 #include "pageitem_polyline.h"
 #include "pageitem_regularpolygon.h"
 #include "pageitem_spiral.h"
 #include "pageitem_table.h"
-#include "pageitem_textframe.h"
 #include "prefsmanager.h"
 #include "scfonts.h"
 #include "scimage.h"
@@ -210,7 +208,7 @@ void ScPageOutput::drawItem( PageItem* item, ScPainterExBase* painter, QRect cli
 	else if (itemType == PageItem::Line)
 		drawItem_Line( (PageItem_Line*) item, painter, clip);
 	else if (itemType == PageItem::PathText)
-		drawItem_PathText(  (PageItem_PathText*) item, painter, clip);
+		drawItem_PathText(item, painter, clip);
 	else if (itemType == PageItem::Polygon)
 		drawItem_Polygon( (PageItem_Polygon*) item, painter, clip);
 	else if (itemType == PageItem::PolyLine)
@@ -1095,7 +1093,7 @@ public:
 };
 
 
-void ScPageOutput::drawItem_PathText( PageItem_PathText* item, ScPainterExBase* painter, QRect clip )
+void ScPageOutput::drawItem_PathText(PageItem *item, ScPainterExBase* painter, QRect clip )
 {
 	ScPageOutputPainter p(item, painter, this);
 	item->textLayout.renderBackground(&p);

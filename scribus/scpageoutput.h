@@ -92,7 +92,7 @@ protected:
 	virtual void drawItem_Group( PageItem_Group* item, ScPainterExBase* painter, QRect clip );
 	virtual void drawItem_ImageFrame( PageItem_ImageFrame* item, ScPainterExBase* painter, QRect clip );
 	virtual void drawItem_Line( PageItem_Line* item, ScPainterExBase* painter, QRect clip);
-	virtual void drawItem_PathText( PageItem_PathText* item, ScPainterExBase* painter, QRect clip );
+	virtual void drawItem_PathText( PageItem* item, ScPainterExBase* painter, QRect clip );
 	virtual void drawItem_Polygon ( PageItem_Polygon* item , ScPainterExBase* painter, QRect clip );
 	virtual void drawItem_PolyLine( PageItem_PolyLine* item, ScPainterExBase* painte, QRect clip );
 	virtual void drawItem_RegularPolygon( PageItem_RegularPolygon* item, ScPainterExBase* painte, QRect clip );

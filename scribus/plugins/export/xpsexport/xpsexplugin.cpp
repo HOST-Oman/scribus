@@ -39,7 +39,6 @@ for which a new license (GPL+exception) is in place.
 #include "canvas.h"
 #include "cmsettings.h"
 #include "commonstrings.h"
-#include "pageitem_pathtext.h"
 #include "pageitem_table.h"
 #include "prefsmanager.h"
 #include "prefsfile.h"
