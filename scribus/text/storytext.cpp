@@ -167,7 +167,17 @@ int StoryText::cursorPosition() const
 void StoryText::setCursorPosition(int pos, bool relative)
 {
 	if (relative)
+	{
+		bool forward = (pos >= 0);
 		pos += d->cursorPosition;
+		if (isLowSurrogate(pos) && isHighSurrogate(pos - 1))
+		{
+			if (forward)
+				pos += 1;
+			else
+				pos -= 1;
+		}
+	}
 	d->cursorPosition = qMin((uint) qMax(pos, 0), d->len);
 }
 
@@ -927,6 +937,17 @@ void StoryText::replaceMark(int pos, Mark* mrk)
     assert(pos < length());
 
     this->d->at(pos)->mark = mrk;
+}
+
+
+bool StoryText::isHighSurrogate(int pos) const
+{
+	return pos >= 0 && pos < length() && text(pos).isHighSurrogate();
+}
+
+bool StoryText::isLowSurrogate(int pos) const
+{
+	return pos >= 0 && pos < length() && text(pos).isLowSurrogate();
 }
 
 

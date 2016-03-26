@@ -157,6 +157,9 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	Mark *mark(int pos) const;
     void replaceMark(int pos, Mark* mrk);
 
+	bool isHighSurrogate(int pos) const;
+	bool isLowSurrogate(int pos) const;
+
 	// Get charstyle at current cursor position
 	const CharStyle& charStyle() const;
 	// Get charstyle at specific position
