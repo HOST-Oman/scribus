@@ -244,7 +244,7 @@ QList<GlyphRun> TextShaper::shape()
 	QList<GlyphRun> glyphRuns;
 	QVector<uint> ucs4 = text.toUcs4();
 	foreach (TextRun textRun, textRuns) {
-		CharStyle cs = m_story.charStyle(textMap.value(textRun.start));
+		const CharStyle &cs = m_story.charStyle(textMap.value(textRun.start));
 		int effects = cs.effects() & ScStyle_UserStyles;
 
 		FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
@@ -319,7 +319,7 @@ QList<GlyphRun> TextShaper::shape()
 
 			double tracking = 0;
 			if (flags & ScLayout_StartOfLine)
-				tracking = charStyle.fontSize() * charStyle.tracking() / 10000.0;
+				tracking = cs.fontSize() * cs.tracking() / 10000.0;
 			gl.xoffset += tracking;
 
 			gl.scaleH = charStyle.scaleH() / 1000.0;
@@ -365,7 +365,7 @@ QList<GlyphRun> TextShaper::shape()
 			}
 
 			if (gl.yadvance <= 0)
-				gl.yadvance = charStyle.font().glyphBBox(gl.glyph, charStyle.fontSize() / 10).ascent * gl.scaleV;
+				gl.yadvance = cs.font().glyphBBox(gl.glyph, cs.fontSize() / 10).ascent * gl.scaleV;
 
 			if (gl.xadvance > 0)
 				gl.xadvance += tracking;
