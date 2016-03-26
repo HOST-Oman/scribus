@@ -207,8 +207,6 @@ void ScPageOutput::drawItem( PageItem* item, ScPainterExBase* painter, QRect cli
 		drawItem_ImageFrame( (PageItem_ImageFrame*) item, painter, clip);
 	else if (itemType == PageItem::Line)
 		drawItem_Line( (PageItem_Line*) item, painter, clip);
-	else if (itemType == PageItem::PathText)
-		drawItem_PathText(item, painter, clip);
 	else if (itemType == PageItem::Polygon)
 		drawItem_Polygon( (PageItem_Polygon*) item, painter, clip);
 	else if (itemType == PageItem::PolyLine)
@@ -219,8 +217,8 @@ void ScPageOutput::drawItem( PageItem* item, ScPainterExBase* painter, QRect cli
 		drawItem_Spiral( (PageItem_Spiral*) item, painter, clip);
 	else if (itemType == PageItem::Table)
 		drawItem_Table( (PageItem_Table*) item, painter, clip);
-	else if (itemType == PageItem::TextFrame)
-		drawItem_TextFrame( (PageItem_TextFrame*) item, painter, clip);
+	else if (itemType == PageItem::TextFrame || itemType == PageItem::PathText)
+		drawItem_Text(item, painter, clip);
 	drawItem_Post(item, painter);
 }
 
@@ -1092,14 +1090,6 @@ public:
 	}
 };
 
-
-void ScPageOutput::drawItem_PathText(PageItem *item, ScPainterExBase* painter, QRect clip )
-{
-	ScPageOutputPainter p(item, painter, this);
-	item->textLayout.renderBackground(&p);
-	item->textLayout.render(&p);
-}
-
 void ScPageOutput::drawItem_Polygon ( PageItem_Polygon* item , ScPainterExBase* painter, QRect clip )
 {
 	painter->setupPolygon(&item->PoLine);
@@ -1447,7 +1437,7 @@ void ScPageOutput::drawItem_Table( PageItem_Table* item, ScPainterExBase* painte
 	painter->restore();
 }
 
-void ScPageOutput::drawItem_TextFrame( PageItem_TextFrame* item, ScPainterExBase* painter, QRect cullingArea )
+void ScPageOutput::drawItem_Text( PageItem* item, ScPainterExBase* painter, QRect cullingArea )
 {
 	ScPageOutputPainter p(item, painter, this);
 	item->textLayout.renderBackground(&p);
