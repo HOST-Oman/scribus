@@ -244,18 +244,18 @@ QList<GlyphRun> TextShaper::shape()
 	QList<GlyphRun> glyphRuns;
 	QVector<uint> ucs4 = text.toUcs4();
 	foreach (TextRun textRun, textRuns) {
-		const CharStyle &cs = m_story.charStyle(textMap.value(textRun.start));
-		int effects = cs.effects() & ScStyle_UserStyles;
+		const CharStyle &style = m_story.charStyle(textMap.value(textRun.start));
+		int effects = style.effects() & ScStyle_UserStyles;
 
-		FT_Set_Char_Size(cs.font().ftFace(), cs.fontSize(), 0, 72, 0);
+		FT_Set_Char_Size(style.font().ftFace(), style.fontSize(), 0, 72, 0);
 
 		// TODO: move to ScFace
-		hb_font_t *hbFont = hb_ft_font_create_referenced(cs.font().ftFace());
+		hb_font_t *hbFont = hb_ft_font_create_referenced(style.font().ftFace());
 		hb_buffer_t *hbBuffer = hb_buffer_create();
 
 		hb_direction_t hbDirection = (textRun.dir == UBIDI_LTR) ? HB_DIRECTION_LTR : HB_DIRECTION_RTL;
 		hb_script_t hbScript = hb_icu_script_to_script(textRun.script);
-		std::string language = cs.language().toStdString();
+		std::string language = style.language().toStdString();
 		hb_language_t hbLanguage = hb_language_from_string(language.c_str(), language.length());
 
 		hb_buffer_clear_contents(hbBuffer);
@@ -298,7 +298,7 @@ QList<GlyphRun> TextShaper::shape()
 			gl.glyph = glyphs[i].codepoint;
 			// indirect way to call ScFace::emulateGlyph() as it is private.
 			if (gl.glyph == 0)
-				gl.glyph = cs.font().char2CMap(ch);
+				gl.glyph = style.font().char2CMap(ch);
 			gl.xoffset = positions[i].x_offset / 10.0;
 			gl.yoffset = -positions[i].y_offset / 10.0;
 			gl.xadvance = positions[i].x_advance / 10.0;
@@ -319,7 +319,7 @@ QList<GlyphRun> TextShaper::shape()
 
 			double tracking = 0;
 			if (flags & ScLayout_StartOfLine)
-				tracking = cs.fontSize() * cs.tracking() / 10000.0;
+				tracking = style.fontSize() * style.tracking() / 10000.0;
 			gl.xoffset += tracking;
 
 			gl.scaleH = charStyle.scaleH() / 1000.0;
@@ -328,24 +328,24 @@ QList<GlyphRun> TextShaper::shape()
 
 			if (effects != ScStyle_Default)
 			{
-				double asce = cs.font().ascent(cs.fontSize() / 10.0);
+				double asce = style.font().ascent(style.fontSize() / 10.0);
 				if (effects & ScStyle_Superscript)
 				{
 					gl.yoffset -= asce * m_item->doc()->typographicPrefs().valueSuperScript / 100.0;
-					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / cs.fontSize());
+					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
 				}
 				else if (effects & ScStyle_Subscript)
 				{
 					gl.yoffset += asce * m_item->doc()->typographicPrefs().valueSubScript / 100.0;
-					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / cs.fontSize());
+					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
 				}
 				else
 				{
 					gl.scaleV = gl.scaleH = 1.0;
 				}
 
-				gl.scaleH *= cs.scaleH() / 1000.0;
-				gl.scaleV *= cs.scaleV() / 1000.0;
+				gl.scaleH *= style.scaleH() / 1000.0;
+				gl.scaleV *= style.scaleV() / 1000.0;
 
 				if (effects & ScStyle_SmallCaps)
 				{
@@ -355,9 +355,9 @@ QList<GlyphRun> TextShaper::shape()
 					QChar uc = ch.toUpper();
 					if (uc != ch)
 					{
-						gl.glyph = cs.font().char2CMap(uc);
-						gl.xadvance = cs.font().glyphWidth(gl.glyph, cs.fontSize() / 10);
-						gl.yadvance = cs.font().glyphBBox(gl.glyph, cs.fontSize() / 10).ascent;
+						gl.glyph = style.font().char2CMap(uc);
+						gl.xadvance = style.font().glyphWidth(gl.glyph, style.fontSize() / 10);
+						gl.yadvance = style.font().glyphBBox(gl.glyph, style.fontSize() / 10).ascent;
 						gl.scaleV *= smallcapsScale;
 						gl.scaleH *= smallcapsScale;
 					}
@@ -365,7 +365,7 @@ QList<GlyphRun> TextShaper::shape()
 			}
 
 			if (gl.yadvance <= 0)
-				gl.yadvance = cs.font().glyphBBox(gl.glyph, cs.fontSize() / 10).ascent * gl.scaleV;
+				gl.yadvance = style.font().glyphBBox(gl.glyph, style.fontSize() / 10).ascent * gl.scaleV;
 
 			if (gl.xadvance > 0)
 				gl.xadvance += tracking;
