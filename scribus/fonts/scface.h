@@ -182,7 +182,7 @@ public:
 		virtual qreal underlinePos(qreal /*sz*/)     const { return -1.0; }
 		virtual qreal strokeWidth(qreal /*sz*/)      const { return 0.1; }
 		virtual qreal maxAdvanceWidth(qreal sz)  const { return sz; }
-		virtual gid_type char2CMap(QChar /*ch*/)         const { return 0; }
+		virtual gid_type char2CMap(uint /*ch*/)         const { return 0; }
 		virtual QMap<QString,QString> fontDictionary(qreal sz=1.0) const;
 		virtual GlyphMetrics glyphBBox(gid_type gl, qreal sz) const;
 		virtual bool EmbedFont(QByteArray &/*str*/)       const { return false; }
@@ -379,7 +379,8 @@ public:
 	bool canRender(QChar ch)   const;
 
 	/// translate unicode to glyph index
-	gid_type char2CMap(QChar ch)   const;
+	gid_type char2CMap(uint ch)   const;
+	gid_type char2CMap(QChar ch) const { return char2CMap(ch.unicode()); }
 
 	/// deprecated, see glyphBBox()
 	qreal realCharWidth(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch),sz).width; }
@@ -404,7 +405,7 @@ private:
 
 	void initFaceData();
 	void checkAllGlyphs();
-	gid_type emulateGlyph(QChar c) const;
+	gid_type emulateGlyph(uint u) const;
 };
 
 #endif

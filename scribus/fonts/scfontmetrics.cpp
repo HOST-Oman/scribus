@@ -228,7 +228,7 @@ FPointArray traceChar(FT_Face face, ScFace::ucs4_type chr, int chs, qreal *x, qr
 }
 
 
-QPixmap FontSample(const ScFace& fnt, int s, QString ts, QColor back, bool force)
+QPixmap FontSample(const ScFace& fnt, int s, QVector<uint> ts, QColor back, bool force)
 {
 	FT_Face face;
 	FT_Library library;
@@ -266,7 +266,7 @@ QPixmap FontSample(const ScFace& fnt, int s, QString ts, QColor back, bool force
 	p->setBrush(Qt::black);
 	FPointArray gly;
 	ScFace::ucs4_type dv;
-	dv = ts[0].unicode();
+	dv = ts[0];
 	error = false;
 	gly = traceChar(face, dv, s, &x, &y, &error);
 	if (((encode != 0) || (error)) && (!force))
@@ -299,7 +299,7 @@ QPixmap FontSample(const ScFace& fnt, int s, QString ts, QColor back, bool force
 	{
 		for (int n = 0; n < ts.length(); ++n)
 		{
-			dv = ts[n].unicode();
+			dv = ts[n];
 			error = false;
 			gly = traceChar(face, dv, s, &x, &y, &error);
 			if (gly.size() > 3)
