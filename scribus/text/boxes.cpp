@@ -5,6 +5,8 @@
  for which a new license (GPL+exception) is in place.
  */
 
+#include <math.h>
+
 #include "pageitem.h"
 #include "boxes.h"
 #include "appmodes.h"
@@ -97,9 +99,8 @@ void GroupBox::update()
 		}
 		else
 		{
-			box->moveTo(box->x(), naturalHeight());
 			m_naturalWidth = qMax(m_naturalWidth, box->naturalWidth());
-			m_naturalHeight += box->height();
+			m_naturalHeight = ceil(box->y() + box->ascent() + box->naturalDecent());
 		}
 	}
 
@@ -290,6 +291,9 @@ void LineBox::update()
 
 		box->moveTo(m_naturalWidth, box->y());
 		m_naturalWidth += box->width();
+
+		m_naturalAscent = qMax(m_naturalAscent, box->naturalAsc());
+		m_naturalDecent = qMax(m_naturalDecent, box->naturalDecent());
 	}
 
 	emit boxChanged();

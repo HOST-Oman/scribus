@@ -105,6 +105,8 @@ public:
 	PageItem* object()				const	{ return m_object; }
 	bool rtl()					const   { return m_rtl; }
 	int visualIndex()				const	{ return m_visualIndex; }
+	double ascent() const;
+	double desent() const;
 };
 
 
