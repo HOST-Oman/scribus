@@ -172,11 +172,11 @@ void FtFace::unload() const
 }
 
 
-ScFace::gid_type FtFace::char2CMap(QChar ch) const
+ScFace::gid_type FtFace::char2CMap(uint ch) const
 {
 	// FIXME use cMap cache
 	FT_Face face = ftFace();
-	ScFace::gid_type gl = FT_Get_Char_Index(face, ch.unicode());
+	ScFace::gid_type gl = FT_Get_Char_Index(face, ch);
 	return gl;
 }
 

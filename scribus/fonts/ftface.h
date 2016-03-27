@@ -79,7 +79,7 @@ struct SCRIBUS_API FtFace : public ScFace::ScFaceData
 
 //FIXME	QMap<QString,QString> fontDictionary(qreal sz=1.0)      const;
 
-	ScFace::gid_type    char2CMap(QChar ch)                         const;
+	ScFace::gid_type    char2CMap(uint ch)                         const;
 
 //	GlyphMetrics glyphBBox (gid_type gl,               qreal sz) const;
 
