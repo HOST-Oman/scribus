@@ -205,13 +205,27 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		if (itemText.paragraphStyle(0).alignment() == ParagraphStyle::Extended)
 			extraOffset = (totalCurveLen - m_textDistanceMargins.left() - totalTextLen) / static_cast<double>(itemText.length());
 	}
+	int firstRun = 0;
+	if (totalTextLen + m_textDistanceMargins.left() > totalCurveLen && itemText.paragraphStyle(0).direction() == ParagraphStyle::RTL)
+	{
+		double totalLenDiff = totalTextLen + m_textDistanceMargins.left() - totalCurveLen;
+		while (firstRun < glyphRuns.count())
+		{
+			const GlyphRun &run = glyphRuns.at(firstRun);
+			totalLenDiff -= run.width();
+			firstRun++;
+			if (totalLenDiff <= 0)
+				break;
+		}
+	}
 	QPainterPath guidePath = PoLine.toQPainterPath(false);
 	QList<QPainterPath> pathList = decomposePath(guidePath);
 	QPainterPath currPath = pathList[0];
 	int currPathIndex = 0;
 	PathLineBox* linebox = new PathLineBox();
-	foreach (GlyphRun run, glyphRuns)
+	for (int i = firstRun; i < glyphRuns.length(); i++)
 	{
+		const GlyphRun &run = glyphRuns.at(i);
 		double dx = run.width() / 2.0;
 		CurX += dx;
 		CurY = 0;
