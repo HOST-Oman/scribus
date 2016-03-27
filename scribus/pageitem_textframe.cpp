@@ -798,7 +798,7 @@ struct LineControl {
 	LineBox* createLineBox()
 	{
 		LineBox* result = new LineBox();
-		result->moveTo(line.x - colLeft, line.y);
+		result->moveTo(line.x - colLeft, line.y - line.ascent);
 		result->setWidth(line.width);
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);

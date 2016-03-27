@@ -47,6 +47,8 @@ public:
 		m_x = m_y = m_width = m_ascent = m_descent = 0;
 		m_firstChar = 0;
 		m_lastChar = 0;
+		m_naturalAscent = 0;
+		m_naturalDecent = 0;
 	}
 
 	virtual ~Box()
@@ -122,6 +124,10 @@ public:
 	/// Same as render() but handles text selection, for rendering on screen.
 	virtual void render(TextLayoutPainter *p, PageItem *item) const = 0;
 
+	/// Get natural ascent and decent.
+	virtual double naturalAsc() const { return m_naturalAscent; }
+	virtual double naturalDecent() const { return m_naturalDecent; }
+
 public slots:
 	virtual void childChanged() { }
 signals:
@@ -139,6 +145,8 @@ protected:
 	int m_firstChar;
 	int m_lastChar;
 	QTransform m_matrix;
+	double m_naturalAscent;
+	double m_naturalDecent;
 };
 
 
@@ -238,6 +246,8 @@ public:
 		m_firstChar = run.firstChar();
 		m_lastChar = run.lastChar();
 		m_width = run.width();
+		m_naturalAscent = run.ascent();
+		m_naturalDecent = run.desent();
 	}
 
 	int pointToPosition(QPointF coord) const;

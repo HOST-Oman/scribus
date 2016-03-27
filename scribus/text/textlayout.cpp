@@ -92,7 +92,6 @@ void TextLayout::appendLine(LineBox* ls)
 
 	// HACK: the ascent set by PageItem_TextFrame::layout()
 	// is useless, we reset it again based on the y position
-	ls->setAscent(ls->y() - column->naturalHeight());
 	ls->setWidth(column->width());
 	column->addBox(ls);
 }
