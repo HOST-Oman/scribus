@@ -298,15 +298,9 @@ void SEditor::inputMethodEvent(QInputMethodEvent *event)
 	pos = -1;
 	if(!uc.isEmpty())
 	{
-		if ((*doc->AllFonts)[CurrFont].canRender(uc[0]))
-		{
-			pos = textCursor().hasSelection() ? textCursor().selectionStart() : textCursor().position();
-			pos = qMin(pos, StyledText.length());
-		}
-		else
-		{
-			event->setCommitString("");
-		}
+		pos = textCursor().hasSelection() ? textCursor().selectionStart() : textCursor().position();
+		pos = qMin(pos, StyledText.length());
+
 	}
 	QTextEdit::inputMethodEvent(event);
 	SuspendContentsChange = 0;
@@ -320,14 +314,6 @@ void SEditor::inputMethodEvent(QInputMethodEvent *event)
 		emit SideBarUp(true);
 		emit SideBarUpdate();
 	}
-/*	if ((!uc.isEmpty()) && ((*doc->AllFonts)[CurrFont].canRender(uc[0])))
-	{
-		// Should be processed by the handleContentsChange slot
-		// insertCharsInternal(event->commitString());
-		QTextEdit::inputMethodEvent(event);
-		emit SideBarUp(true);
-		emit SideBarUpdate();
-	} */
 }
 
 void SEditor::keyPressEvent(QKeyEvent *k)
@@ -462,7 +448,7 @@ void SEditor::keyPressEvent(QKeyEvent *k)
 			case Qt::Key_End:
 				break;
 			default:
-				if ((!k->text().isEmpty()) && ((*doc->AllFonts)[CurrFont].canRender(uc[0])))
+				if (!k->text().isEmpty())
 				{
 					QTextEdit::keyPressEvent(k);
 					emit SideBarUp(true);
