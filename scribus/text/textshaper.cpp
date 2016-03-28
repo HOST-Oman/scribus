@@ -322,7 +322,7 @@ QList<GlyphRun> TextShaper::shape()
 				gl.xadvance *= run.style().wordTracking();
 
 			if (m_story.hasObject(firstChar))
-				gl.xadvance = 	m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
+				gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
 
 			double tracking = 0;
 			if (flags & ScLayout_StartOfLine)
