@@ -18,7 +18,7 @@ DirectionSelect::DirectionSelect(QWidget* parent) : QWidget(parent)
 
         LTR = new QToolButton( this );
         LTR->setMaximumSize( QSize( 22, 22 ) );
-        LTR->setIcon(im->loadIcon("16/draw-arrow-forward.png"));
+        LTR->setIcon(im->loadIcon("16/text-direction-ltr.png"));
         LTR->setCheckable( true );
         LTR->setChecked( true );
         GroupSelectLayout->addWidget( LTR );
@@ -26,7 +26,7 @@ DirectionSelect::DirectionSelect(QWidget* parent) : QWidget(parent)
 
         RTL = new QToolButton( this );
         RTL->setMaximumSize( QSize( 22, 22 ) );
-        RTL->setIcon(im->loadIcon("16/draw-arrow-back.png"));
+        RTL->setIcon(im->loadIcon("16/text-direction-rtl.png"));
         RTL->setCheckable( true );
         GroupSelectLayout->addWidget( RTL );
         buttonGroup->addButton(RTL, 1);
