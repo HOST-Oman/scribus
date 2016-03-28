@@ -43,7 +43,7 @@ double GlyphRun::desent() const
 		GlyphMetrics gm = font.glyphBBox(gl.glyph, m_style->fontSize() / 10.0);
 		des = qMax(des, gm.descent * gl.scaleV);
 	}
-	return des;
+	return -des;
 }
 
 ScText::~ScText() 

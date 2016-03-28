@@ -100,7 +100,7 @@ void GroupBox::update()
 		else
 		{
 			m_naturalWidth = qMax(m_naturalWidth, box->naturalWidth());
-			m_naturalHeight = ceil(box->y() + box->ascent() + box->naturalDecent());
+			m_naturalHeight = ceil(box->y() + box->ascent() - box->naturalDecent());
 		}
 	}
 
@@ -284,7 +284,7 @@ void LineBox::removeBox(int i)
 
 void LineBox::update()
 {
-	m_naturalWidth = 0;
+	m_naturalWidth = m_naturalAscent = m_naturalDecent = 0;
 	foreach (Box* box, boxes()) {
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
@@ -293,7 +293,7 @@ void LineBox::update()
 		m_naturalWidth += box->width();
 
 		m_naturalAscent = qMax(m_naturalAscent, box->naturalAsc());
-		m_naturalDecent = qMax(m_naturalDecent, box->naturalDecent());
+		m_naturalDecent = qMin(m_naturalDecent, box->naturalDecent());
 	}
 
 	emit boxChanged();
