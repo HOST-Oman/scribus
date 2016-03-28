@@ -625,31 +625,33 @@ void GlyphBox::render(TextLayoutPainter *p) const
 
 int GlyphBox::pointToPosition(QPointF coord) const
 {
-	double relX = coord.x() - m_x;
-	double xPos = 0.0;
+	int componentCount = lastChar() - firstChar() + 1;
+	double componentWidth = width() / componentCount;
 
-	const QList<GlyphLayout>& glyphs = m_glyphRun.glyphs();
-	for (int i = 0; i < glyphs.length(); ++i)
+	for (int i =0; i< componentCount; i++)
 	{
-		double width = glyphs.at(i).xadvance;
-		xPos += width;
-		if (xPos >= relX)
-		{
-			int index = (xPos - width / 2.0 > relX) ? i : i + 1; // FIXME: use clusters
-			return m_firstChar + index;
-		}
+		double componentX;
+		componentX = x() + (componentWidth * i);
+		if (m_glyphRun.rtl())
+			componentX = x() + width() - (componentWidth * (i + 1));
+
+		if (coord.x() >= componentX && coord.x() <= componentX +componentWidth)
+			return firstChar() + i;
 	}
+
 	return -1;
 }
 
 QLineF GlyphBox::positionToPoint(int pos) const
 {
 	double xPos;
+	int componentCount = lastChar() - firstChar() + 1;
+	int componentIndex = pos - firstChar();
+	double componentWidth = width() / componentCount;
 
+	xPos = x() + (componentWidth * componentIndex);
 	if (m_glyphRun.rtl())
-		xPos = x() + width();
-	else
-		xPos = x();
+		xPos = x() + width() - (componentWidth * componentIndex);
 
 	return QLineF(xPos, y(), xPos, y() + height());
 }

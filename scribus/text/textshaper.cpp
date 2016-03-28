@@ -281,17 +281,22 @@ QList<GlyphRun> TextShaper::shape()
 		for (size_t i = 0; i < count; i++)
 		{
 			uint32_t firstCluster = glyphs[i].cluster;
-//			uint32_t nextCluster = firstCluster;
-//			for (size_t j = i + 1; j < count && nextCluster == firstCluster; j++)
-//				nextCluster = glyphs[j].cluster;
-//			if (nextCluster == firstCluster)
-//				nextCluster = textRun.start + textRun.len;
+			uint32_t nextCluster = firstCluster;
+			if (hbDirection == HB_DIRECTION_LTR)
+				for (int j = i + 1; j < count && nextCluster == firstCluster; j++)
+					nextCluster = glyphs[j].cluster;
+			else
+				for (int j = i - 1; j >=0 && nextCluster == firstCluster; j--)
+					nextCluster = glyphs[j].cluster;
+
+
+			if (nextCluster == firstCluster)
+				nextCluster = textRun.start + textRun.len;
 
 			assert(textMap.contains(firstCluster));
-//			assert(textMap.contains(nextCluster - 1));
+			assert(textMap.contains(nextCluster - 1));
 			int firstChar = textMap.value(firstCluster);
-			int lastChar = firstChar;
-//			int lastChar = textMap.value(nextCluster - 1);
+			int lastChar = textMap.value(nextCluster - 1);
 
 			QChar ch = m_story.text(firstChar);
 			LayoutFlags flags = m_story.flags(firstChar);
