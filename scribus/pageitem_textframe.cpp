@@ -2893,8 +2893,8 @@ void PageItem_TextFrame::layout()
 			}
 			else // #11727, #11628, etc.
 			{
-				regionMinY = static_cast<int>(qMax(0.0, floor(current.yPos - (asce + offset))));
-				regionMaxY = static_cast<int>(floor(current.yPos + desc));
+				regionMinY = static_cast<int>(qMax(0.0, floor(current.yPos - (realAsce + offset))));
+				regionMaxY = static_cast<int>(floor(current.yPos + realDesc));
 			}
 
 			EndX = current.endOfLine(m_availableRegion, style.rightMargin(), regionMinY, regionMaxY);
