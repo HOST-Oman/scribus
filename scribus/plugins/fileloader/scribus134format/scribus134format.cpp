@@ -2873,7 +2873,6 @@ PageItem* Scribus134Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 	else
 		currItem->setTextFlowMode(PageItem::TextFlowDisabled);
 	currItem->DashOffset = attrs.valueAsDouble("DASHOFF", 0.0);
-	currItem->setReversed(attrs.valueAsBool("REVERS", false));
 	currItem->setLocked (attrs.valueAsBool("LOCK", false));
 	currItem->setSizeLocked(attrs.valueAsBool("LOCKR", false));
 	currItem->setFillTransparency(attrs.valueAsDouble("TransValue", 0.0));

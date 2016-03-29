@@ -2675,8 +2675,6 @@ void Scribus150Format::SetItemProps(ScXmlStreamWriter& docu, PageItem* item, con
 		docu.writeAttribute("LOCK", 1);
 	if (item->sizeLocked())
 		docu.writeAttribute("LOCKR", 1);
-	if (item->reversed())
-		docu.writeAttribute("REVERS", 1);
 	if (item->fillTransparency() != 0)
 		docu.writeAttribute("TransValue", item->fillTransparency());
 	if (item->lineTransparency() != 0)
