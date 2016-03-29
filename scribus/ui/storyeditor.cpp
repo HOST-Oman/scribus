@@ -1835,15 +1835,6 @@ void StoryEditor::buildMenus()
 	seMenuMgr->addMenuItemString("unicodeNewLine", "InsertSpace");
 	seMenuMgr->addMenuItemString("unicodeFrameBreak", "InsertSpace");
 	seMenuMgr->addMenuItemString("unicodeColumnBreak", "InsertSpace");
-	seMenuMgr->createMenu("InsertLigature", tr("Ligature"), "Insert");
-	seMenuMgr->addMenuItemString("InsertLigature", "Insert");
-	seMenuMgr->addMenuItemString("unicodeLigature_ff", "InsertLigature");
-	seMenuMgr->addMenuItemString("unicodeLigature_fi", "InsertLigature");
-	seMenuMgr->addMenuItemString("unicodeLigature_fl", "InsertLigature");
-	seMenuMgr->addMenuItemString("unicodeLigature_ffi", "InsertLigature");
-	seMenuMgr->addMenuItemString("unicodeLigature_ffl", "InsertLigature");
-	seMenuMgr->addMenuItemString("unicodeLigature_ft", "InsertLigature");
-	seMenuMgr->addMenuItemString("unicodeLigature_st", "InsertLigature");
 	seMenuMgr->addMenuItemString("insertSampleText", "Insert");
 
 	seMenuMgr->createMenu("Settings", tr("&Settings"));
