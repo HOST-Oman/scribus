@@ -495,6 +495,7 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/smcheckbox.h
 	ui/smcolorcombo.h
 	ui/smcstylewidget.h
+	ui/smdirectionselect.h
 	ui/smtablestylewidget.h
 	ui/smfontcomboh.h
 	ui/smlinestyle.h
@@ -963,6 +964,7 @@ SET(SCRIBUS_SOURCES
 	ui/smcheckbox.cpp
 	ui/smcolorcombo.cpp
 	ui/smcstylewidget.cpp
+	ui/smdirectionselect.cpp
 	ui/smfontcomboh.cpp
 	ui/smlinestyle.cpp
 	ui/smlinestylewidget.cpp

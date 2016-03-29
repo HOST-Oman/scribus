@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>695</width>
-    <height>540</height>
+    <height>558</height>
    </rect>
   </property>
   <layout class="QVBoxLayout">
@@ -73,6 +73,9 @@
                  </sizepolicy>
                 </property>
                </widget>
+              </item>
+              <item>
+               <widget class="SMDirectionSelect" name="direction" native="true"/>
               </item>
               <item>
                <spacer>
@@ -1294,6 +1297,12 @@
    <class>SMCStyleWidget</class>
    <extends>QWidget</extends>
    <header>ui/smcstylewidget.h</header>
+   <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SMDirectionSelect</class>
+   <extends>QWidget</extends>
+   <header location="global">ui/smdirectionselect.h</header>
    <container>1</container>
   </customwidget>
  </customwidgets>
