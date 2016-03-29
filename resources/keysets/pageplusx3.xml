@@ -210,13 +210,6 @@
     <function shortcut="" name="unicodeDashFigure" />
     <function shortcut="" name="unicodeDashQuotation" />
     <function shortcut="Ctrl+Shift++" name="unicodeFrameBreak" />
-    <function shortcut="" name="unicodeLigature_ff" />
-    <function shortcut="" name="unicodeLigature_ffi" />
-    <function shortcut="" name="unicodeLigature_ffl" />
-    <function shortcut="" name="unicodeLigature_fi" />
-    <function shortcut="" name="unicodeLigature_fl" />
-    <function shortcut="" name="unicodeLigature_ft" />
-    <function shortcut="" name="unicodeLigature_st" />
     <function shortcut="" name="unicodeMidpoint" />
     <function shortcut="Shift+Return" name="unicodeNewLine" />
     <function shortcut="Ctrl+Alt+-" name="unicodeNonBreakingHyphen" />

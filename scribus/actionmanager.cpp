@@ -1127,21 +1127,6 @@ void ActionManager::initUnicodeActions(QMap<QString, QPointer<ScrAction> > *acti
 	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0x300E));
 	name="unicodeQuoteCJKDoubleRight";
 	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0x300F));
-	//Ligatures
-	name="unicodeLigature_ff";
-	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0xFB00));
-	name="unicodeLigature_fi";
-	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0xFB01));
-	name="unicodeLigature_fl";
-	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0xFB02));
-	name="unicodeLigature_ffi";
-	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0xFB03));
-	name="unicodeLigature_ffl";
-	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0xFB04));
-	name="unicodeLigature_ft";
-	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0xFB05));
-	name="unicodeLigature_st";
-	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, 0xFB06));
 
 	//Spaces and special characters
 
@@ -1169,8 +1154,6 @@ void ActionManager::initUnicodeActions(QMap<QString, QPointer<ScrAction> > *acti
 	*actionNamesList << "unicodeQuoteLowSingleComma" << "unicodeQuoteLowDoubleComma";
 	//CJK Quotes
 	*actionNamesList << "unicodeQuoteCJKSingleLeft" << "unicodeQuoteCJKSingleRight" << "unicodeQuoteCJKDoubleLeft" << "unicodeQuoteCJKDoubleRight";
-	//Ligatures
-	*actionNamesList << "unicodeLigature_ff" << "unicodeLigature_fi" << "unicodeLigature_fl" << "unicodeLigature_ffi" << "unicodeLigature_ffl" << "unicodeLigature_ft" << "unicodeLigature_st";
 	for ( QStringList::Iterator it = actionNamesList->begin(); it != actionNamesList->end(); ++it )
 		connect( (*actionMap)[*it], SIGNAL(triggeredUnicodeShortcut(int)), actionParent, SLOT(specialActionKeyEvent(int)) );
 }
@@ -1873,14 +1856,6 @@ void ActionManager::languageChangeUnicodeActions(QMap<QString, QPointer<ScrActio
 	(*actionMap)["unicodeSpaceThick"]->setTexts( tr("Thick Space"));
 	(*actionMap)["unicodeSpaceMid"]->setTexts( tr("Mid Space"));
 	(*actionMap)["unicodeSpaceHair"]->setTexts( tr("Hair Space"));
-
-	(*actionMap)["unicodeLigature_ff"]->setTexts( tr("ff"));
-	(*actionMap)["unicodeLigature_fi"]->setTexts( tr("fi"));
-	(*actionMap)["unicodeLigature_fl"]->setTexts( tr("fl"));
-	(*actionMap)["unicodeLigature_ffi"]->setTexts( tr("ffi"));
-	(*actionMap)["unicodeLigature_ffl"]->setTexts( tr("ffl"));
-	(*actionMap)["unicodeLigature_ft"]->setTexts( tr("ft"));
-	(*actionMap)["unicodeLigature_st"]->setTexts( tr("st"));
 }
 
 void ActionManager::createDefaultShortcuts()
@@ -2263,15 +2238,6 @@ void ActionManager::createDefaultMenus()
 		 << "unicodeFrameBreak"
 		 << "unicodeColumnBreak";
 
-	 itmenu->second
-		 << "unicodeLigature_ff"
-		 << "unicodeLigature_fi"
-		 << "unicodeLigature_fl"
-		 << "unicodeLigature_ffi"
-		 << "unicodeLigature_ffl"
-		 << "unicodeLigature_ft"
-		 << "unicodeLigature_st";
-
 
 	//Page
 	++itmenu;
@@ -2502,14 +2468,6 @@ void ActionManager::createDefaultNonMenuActions()
 	itnmenua->second << "unicodePageNumber";
 	itnmenua->second << "unicodePageCount";
 	itnmenua->second << "unicodeNewLine";
-
-	itnmenua->second << "unicodeLigature_ff";
-	itnmenua->second << "unicodeLigature_fi";
-	itnmenua->second << "unicodeLigature_fl";
-	itnmenua->second << "unicodeLigature_ffi";
-	itnmenua->second << "unicodeLigature_ffl";
-	itnmenua->second << "unicodeLigature_ft";
-	itnmenua->second << "unicodeLigature_st";
 }
 
 void ActionManager::handleMultipleSelections(bool isMultiple)

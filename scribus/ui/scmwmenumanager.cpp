@@ -64,7 +64,6 @@ void ScMWMenuManager::languageChange()
 	setText("InsertChar", tr("Character"));
 	setText("InsertQuote", tr("Quote"));
 	setText("InsertSpace", tr("Space"));
-	setText("InsertLigature", tr("Liga&ture"));
 	setText("InsertMark", tr("Marks"));
 	setText("Page", ActionManager::defaultMenuNameEntryTranslated("Page"));
 	setText("ItemTable", ActionManager::defaultMenuNameEntryTranslated("Table"));
