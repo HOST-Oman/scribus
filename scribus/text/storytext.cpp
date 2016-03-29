@@ -193,8 +193,7 @@ int StoryText::normalizedCursorPosition()
 
 void StoryText::moveCursorLeft()
 {
-	QString currWord = wordAt(cursorPosition());
-	if (currWord.isRightToLeft())
+	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 		setCursorPosition(1, true);
 	else
 		setCursorPosition(-1, true);
@@ -203,7 +202,7 @@ void StoryText::moveCursorLeft()
 void StoryText::moveCursorLeft(int pos)
 {
 	bool isSpace, wasSpace, isRTL;
-	isRTL = wordAt(cursorPosition()).isRightToLeft();
+	isRTL = (paragraphStyle().direction() == ParagraphStyle::RTL);
 
 	if (isRTL && pos < length())
 	{
@@ -238,8 +237,7 @@ void StoryText::moveCursorLeft(int pos)
 
 void StoryText::moveCursorRight()
 {
-	QString currWord = wordAt(cursorPosition());
-	if (currWord.isRightToLeft())
+	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 		setCursorPosition(-1, true);
 	else
 		setCursorPosition(1, true);
@@ -248,7 +246,7 @@ void StoryText::moveCursorRight()
 void StoryText::moveCursorRight(int pos)
 {
 	bool isSpace, wasSpace, isRTL;
-	isRTL = wordAt(cursorPosition()).isRightToLeft();
+	isRTL = (paragraphStyle().direction() == ParagraphStyle::RTL);
 
 	if (isRTL && pos > 0)
 	{
