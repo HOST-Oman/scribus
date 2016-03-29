@@ -350,7 +350,6 @@ PageItem::PageItem(const PageItem & other)
 	m_imageXOffset(other.m_imageXOffset),
 	m_imageYOffset(other.m_imageYOffset),
 	m_imageRotation(other.m_imageRotation),
-	m_isReversed(other.m_isReversed),
 	firstLineOffsetP(other.firstLineOffsetP),
 	m_groupClips(other.m_groupClips),
 	hatchBackgroundQ(other.hatchBackgroundQ),
@@ -630,7 +629,6 @@ PageItem::PageItem(ScribusDoc *pa, ItemType newType, double x, double y, double 
 	LayerID = m_Doc->activeLayer();
 	ScaleType = true;
 	AspectRatio = true;
-	m_isReversed = false;
 	NamedLStyle = "";
 	DashValues.clear();
 	DashOffset = 0;
@@ -1149,19 +1147,6 @@ void PageItem::setImageRotation(const double newRotation)
 	if (m_Doc->isLoading())
 		return;
 	checkChanges();
-}
-
-void PageItem::setReversed(bool newReversed)
-{
-	if (m_isReversed == newReversed)
-		return;
-	if (UndoManager::undoEnabled())
-	{
-		SimpleState *ss = new SimpleState(Um::FlipH, 0, Um::IFlipH);
-		ss->set("REVERSE_TEXT", newReversed);
-		undoManager->action(this, ss);
-	}
-	m_isReversed = newReversed;
 }
 
 //return frame where is text end
@@ -5073,8 +5058,6 @@ void PageItem::restore(UndoState *state, bool isUndo)
 				restoreLinkTextFrame(ss,isUndo);
 			else if (ss->contains("UNLINK_TEXT_FRAME"))
 				restoreUnlinkTextFrame(ss,isUndo);
-			else if (ss->contains("REVERSE_TEXT"))
-				restoreReverseText(ss, isUndo);
 			else if (ss->contains("CLEAR_IMAGE"))
 				restoreClearImage(ss,isUndo);
 			else if (ss->contains("PASTE_INLINE"))
@@ -7210,13 +7193,6 @@ void PageItem::restoreVerticalAlign(SimpleState *ss, bool isUndo)
 	else
 		verticalAlign = ss->getInt("NEW_VERTALIGN");
 	update();
-}
-
-void PageItem::restoreReverseText(UndoState *state, bool /*isUndo*/)
-{
-	if (!isTextFrame())
-		return;
-	m_isReversed = !m_isReversed;
 }
 
 void PageItem::restorePathOperation(UndoState *state, bool isUndo)

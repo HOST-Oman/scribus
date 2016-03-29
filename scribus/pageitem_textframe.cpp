@@ -3960,15 +3960,6 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 	}
 
-	// #7430 hack : inverted selection with RTL writing enabled
-	if (reversed())
-	{  //inverting left and rigt keys
-		if (kk == Qt::Key_Left)
-			kk = Qt::Key_Right;
-		else if (kk == Qt::Key_Right)
-			kk = Qt::Key_Left;
-	}
-
 	int oldLast = lastInFrame();
 	switch (kk)
 	{

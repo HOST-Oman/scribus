@@ -11417,34 +11417,6 @@ void ScribusDoc::itemSelection_DeleteItem(Selection* customSelection, bool force
 	changed();
 }
 
-void ScribusDoc::itemSelection_SetItemTextReversed(bool reversed, Selection *customSelection)
-{
-	Selection* itemSelection = (customSelection!=0) ? customSelection : m_Selection;
-	uint selectedItemCount = itemSelection->count();
-	if (selectedItemCount != 0)
-	{
-		UndoTransaction activeTransaction;
-		if (UndoManager::undoEnabled())
-			activeTransaction = m_undoManager->beginTransaction();
-		for (uint i = 0; i < selectedItemCount; ++i)
-		{
-			PageItem *currItem = itemSelection->itemAt(i);
-			currItem->setImageFlippedH(reversed);
-			currItem->setReversed(reversed);
-		}
-		if (activeTransaction)
-		{
-			activeTransaction.commit(Um::Selection,
-									 Um::IGroup,
-									 Um::FlipH,
-									 0,
-									 Um::IFlipH);
-		}
-		regionsChanged()->update(QRectF());
-		changed();
-	}
-}
-
 
 void ScribusDoc::itemSelection_SetItemFillTransparency(double t)
 {

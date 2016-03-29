@@ -233,7 +233,6 @@ class PLUGIN_API Scribus12Format : public LoadSavePlugin
 			double TranspStroke;
 			int TransBlend;
 			int TransBlendS;
-			bool Reverse;
 			QString NamedLStyle;
 			QString Language;
 			QString guiLanguage;

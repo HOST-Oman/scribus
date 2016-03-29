@@ -124,7 +124,6 @@ class SCRIBUS_API PageItem : public QObject, public UndoObject, public SaxIO, pu
 	Q_PROPERTY(double m_imageYScale READ imageYScale WRITE setImageYScale DESIGNABLE false)
 	Q_PROPERTY(double imageXOffset READ imageXOffset WRITE setImageXOffset DESIGNABLE false)
 	Q_PROPERTY(double imageYOffset READ imageYOffset WRITE setImageYOffset DESIGNABLE false)
-	Q_PROPERTY(bool m_isReversed READ reversed WRITE setReversed DESIGNABLE false)
 	Q_PROPERTY(double m_roundedCorderRadius READ cornerRadius WRITE setCornerRadius DESIGNABLE false)
 	Q_PROPERTY(double textToFrameDistLeft READ textToFrameDistLeft WRITE setTextToFrameDistLeft DESIGNABLE false)
 	Q_PROPERTY(double textToFrameDistRight READ textToFrameDistRight WRITE setTextToFrameDistRight DESIGNABLE false)
@@ -518,9 +517,6 @@ public: // Start public functions
 	void setImageXYOffset(const double, const double);
 	double imageRotation() const { return m_imageRotation; }
 	void setImageRotation(const double newRotation);
-	//Reverse
-	bool reversed() const { return m_isReversed; }
-	void setReversed(bool);
 	//Rounded Corners
 	double cornerRadius() const { return m_roundedCorderRadius; }
 	void setCornerRadius(double);
@@ -1605,7 +1601,6 @@ protected: // Start protected functions
 	void restoreResTyp(SimpleState *state, bool isUndo);
 	void restoreResetMeshGrad(SimpleState *state, bool isUndo);
 	void restoreResize(SimpleState *state, bool isUndo);
-	void restoreReverseText(UndoState *state, bool isUndo);
 	void restoreRightTextFrameDist(SimpleState *state, bool isUndo);
 	void restoreRotate(SimpleState *state, bool isUndo);
 	void restoreSetCharStyle(SimpleState *state, bool isUndo);
@@ -1827,7 +1822,6 @@ protected: // Start protected variables
 	double m_imageXOffset; ///< Image X Offset to frame
 	double m_imageYOffset; ///< Image Y Offset to frame
 	double m_imageRotation; ///< Image rotation in frame
-	bool m_isReversed; ///< Is the frame is reversed?
 	FirstLineOffsetPolicy firstLineOffsetP;
 	bool m_groupClips;
 	QColor hatchBackgroundQ;

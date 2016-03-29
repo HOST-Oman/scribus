@@ -516,7 +516,6 @@ void Scribus12Format::PasteItem(struct CopyPasteBuffer *Buffer, bool drag, bool 
 	currItem->setEndArrowIndex(Buffer->endArrowIndex);
 	currItem->setStartArrowScale(Buffer->startArrowScale);
 	currItem->setEndArrowScale(Buffer->endArrowScale);
-	currItem->setReversed(Buffer->Reverse);
 	currItem->NamedLStyle = Buffer->NamedLStyle;
 	currItem->Cols = Buffer->Cols;
 	currItem->ColGap = Buffer->ColGap;
@@ -1611,7 +1610,6 @@ void Scribus12Format::GetItemProps(QDomElement *obj, struct CopyPasteBuffer *OB,
 	OB->UseEmbedded = obj->attribute("EMBEDDED", "1").toInt();
 	OB->Locked = static_cast<bool>(obj->attribute("LOCK", "0").toInt());
 	OB->LockRes = static_cast<bool>(obj->attribute("LOCKR", "0").toInt());
-	OB->Reverse = static_cast<bool>(obj->attribute("REVERS", "0").toInt());
 	OB->isTableItem = static_cast<bool>(obj->attribute("isTableItem", "0").toInt());
 	OB->TopLine = static_cast<bool>(obj->attribute("TopLine", "0").toInt());
 	OB->LeftLine = static_cast<bool>(obj->attribute("LeftLine", "0").toInt());

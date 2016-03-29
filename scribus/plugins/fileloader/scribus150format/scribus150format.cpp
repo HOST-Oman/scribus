@@ -5239,7 +5239,6 @@ PageItem* Scribus150Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 	}
 	else
 		currItem->setTextFlowMode(PageItem::TextFlowDisabled);
-	currItem->setReversed(attrs.valueAsBool("REVERS", false));
 	currItem->setLocked (attrs.valueAsBool("LOCK", false));
 	currItem->setSizeLocked(attrs.valueAsBool("LOCKR", false));
 	currItem->fillRule    = attrs.valueAsBool("fillRule", true);

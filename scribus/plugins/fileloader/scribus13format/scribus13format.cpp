@@ -1861,7 +1861,6 @@ PageItem* Scribus13Format::PasteItem(QDomElement *obj, ScribusDoc *doc, const QS
 	else
 		currItem->setTextFlowMode(PageItem::TextFlowDisabled);
 	currItem->DashOffset = ScCLocale::toDoubleC(obj->attribute("DASHOFF"), 0.0);
-	currItem->setReversed(static_cast<bool>(obj->attribute("REVERS", "0").toInt()));
 	currItem->setLocked(static_cast<bool>(obj->attribute("LOCK", "0").toInt()));
 	currItem->setSizeLocked(static_cast<bool>(obj->attribute("LOCKR", "0").toInt()));
 	currItem->setFillTransparency(ScCLocale::toDoubleC(obj->attribute("TransValue"), 0.0));
