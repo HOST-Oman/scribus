@@ -1012,10 +1012,9 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 		double wide = glyphrun.width();
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
-			GlyphLayout& glyph = glyphrun.glyphs().last();
 			for (int j = 0; j < glyphrun.glyphs().count(); ++j)
 			{
-				glyph = glyphrun.glyphs()[j];
+				GlyphLayout& glyph = glyphrun.glyphs()[j];
 				glyph.xoffset *= glyphScale;
 				glyph.scaleH *= glyphScale;
 			}
