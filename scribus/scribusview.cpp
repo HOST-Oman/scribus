@@ -3011,26 +3011,30 @@ class TextToPathPainter: public TextLayoutPainter
 {
 	ScribusView* m_view;
 	PageItem* m_item;
-	QList<PageItem*> m_group;
+	QList<PageItem*> &m_group;
 	int m_counter;
 
 public:
-	TextToPathPainter(ScribusView* view, PageItem* item)
+	TextToPathPainter(ScribusView* view, PageItem* item, QList<PageItem*> &group)
 		: m_view(view)
 		, m_item(item)
+		, m_group(group)
 		, m_counter(0)
 	{}
 
 	void drawGlyph(const GlyphLayout gl)
 	{
-
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		if (outline.size() < 4)
 			return;
-		QTransform transform = matrix();
-		transform.scale(x(), y());
+		QTransform transform;
+		if (m_item->isPathText())
+			transform = matrix();
+		transform.translate(x(), y());
+		transform.translate(0, -(fontSize() * gl.scaleV));
+		transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
 		outline.map(transform);
-		uint z = m_view->Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_item->xPos(), m_item->yPos(), m_item->width(), m_item->height(), m_item->lineWidth(), m_item->lineColor(), m_item->fillColor());
+		uint z = m_view->Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_item->xPos(), m_item->yPos(), m_item->width(), m_item->height(), 0, fillColor().color, CommonStrings::None);
 		PageItem* item = m_view->Doc->Items->at(z);
 		m_view->undoManager->setUndoEnabled(false);
 		item->setTextFlowMode(m_item->textFlowMode());
@@ -3043,7 +3047,6 @@ public:
 			item->setRotation(m_item->rotation());
 		item->setFillColor(fillColor().color);
 		item->setFillShade(fillColor().shade);
-		item->setLineWidth(strokeWidth());
 		m_view->Doc->adjustItemSize(item);
 		item->ContourLine = item->PoLine.copy();
 		item->ClipEdited = true;
@@ -3056,7 +3059,41 @@ public:
 	}
 	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
-		drawGlyph(gl);
+		FPointArray outline = font().glyphOutline(gl.glyph);
+		if (outline.size() < 4)
+			return;
+		QTransform transform;
+		if (m_item->isPathText())
+			transform = matrix();
+		transform.translate(x(), y());
+		transform.translate(0, -(fontSize() * gl.scaleV));
+		transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
+		outline.map(transform);
+		uint z = m_view->Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_item->xPos(), m_item->yPos(), m_item->width(), m_item->height(), strokeWidth(), fillColor().color, strokeColor().color);
+		PageItem* item = m_view->Doc->Items->at(z);
+		m_view->undoManager->setUndoEnabled(false);
+		item->setTextFlowMode(m_item->textFlowMode());
+		item->setSizeLocked(m_item->sizeLocked());
+		item->setLocked(m_item->locked());
+		item->NamedLStyle = m_item->NamedLStyle;
+		item->setItemName(m_item->itemName() + "+U" + QString::number(m_counter++));
+		item->PoLine = outline.copy();
+		if (!m_item->asPathText())
+			item->setRotation(m_item->rotation());
+		item->setFillColor(fillColor().color);
+		item->setFillShade(fillColor().shade);
+		item->setLineColor(strokeColor().color);
+		item->setLineShade(strokeColor().shade);
+		item->setLineWidth(strokeWidth());
+		m_view->Doc->adjustItemSize(item);
+		item->ContourLine = item->PoLine.copy();
+		item->ClipEdited = true;
+		item->FrameType = 3;
+		item->OldB2 = item->width();
+		item->OldH2 = item->height();
+		m_view->Doc->setRedrawBounding(item);
+		m_view->undoManager->setUndoEnabled(true);
+		m_group.append(m_view->Doc->Items->takeAt(z));
 	}
 	void drawLine(QPointF start, QPointF end)
 	{
@@ -3141,7 +3178,7 @@ void ScribusView::TextToPath()
 				continue;
 			}
 
-			TextToPathPainter p(this, currItem);
+			TextToPathPainter p(this, currItem, newGroupedItems);
 			currItem->textLayout.render(&p);
 			if ((currItem->asPathText()) && (currItem->PoShow))
 			{

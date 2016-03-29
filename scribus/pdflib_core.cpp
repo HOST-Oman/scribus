@@ -248,7 +248,7 @@ public:
 		{
 			if (!StrokeColor.isEmpty())
 			{
-				m_pathBuffer += FToStr(strokeWidth() / 10.0) + " w\n[] 0 d\n0 J\n0 j\n";
+				m_pathBuffer += FToStr(strokeWidth() / fontSize()) + " w\n[] 0 d\n0 J\n0 j\n";
 				m_pathBuffer += StrokeColor;
 			}
 

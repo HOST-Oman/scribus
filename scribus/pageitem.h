@@ -412,7 +412,7 @@ public: // Start public functions
 	/// returns the style at the current charpos
 	const CharStyle& currentCharStyle() const;
 	/// Return current text properties (current char + paragraph properties)
-	void currentTextProps(ParagraphStyle& parStyle) const;
+	virtual void currentTextProps(ParagraphStyle& parStyle) const;
 	void SetQColor(QColor *tmp, QString farbe, double shad);
 	void DrawPolyL(QPainter *p, QPolygon pts);
 	QString ExpandToken(uint base);

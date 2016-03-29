@@ -836,7 +836,15 @@ public:
 		glyph.setAttribute("Fill", m_xps->SetColor(fillColor().color,fillColor().shade, 0));
 		glyph.setAttribute("OriginX", m_xps->FToStr(x() * m_xps->conversionFactor));
 		glyph.setAttribute("OriginY", m_xps->FToStr(y() * m_xps->conversionFactor));
-		glyph.setAttribute("Indices", QString::number(gl.glyph));
+		glyph.setAttribute("Indices", QString("%1,%2").arg(gl.glyph).arg((gl.xadvance * m_xps->conversionFactor) / size * 100));
+		for (int a = 32; a < 65536; a++)
+		{
+			if (gl.glyph == font().char2CMap(QChar(a)))
+			{
+				glyph.setAttribute("UnicodeString", QChar(a));
+				break;
+			}
+		}
 
 		m_group.appendChild(glyph);
 	}
@@ -865,6 +873,7 @@ public:
 			glyph.setAttribute("StrokeThickness", m_xps->FToStr(strokeWidth() * m_xps->conversionFactor));
 			glyph.setAttribute("Stroke", m_xps->SetColor(strokeColor().color, strokeColor().shade, 0));
 			m_group.appendChild(glyph);
+			qDebug() << "StrokeWidth XPS" << strokeWidth();
 		}
 	}
 
@@ -990,11 +999,189 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			grp.appendChild(ob);
 		}
 	}
+	if (Item->isPathText())
+	{
+		if ((Item->PoShow) && (Item->lineColor() != CommonStrings::None))
+		{
+			QDomElement ob = p_docu.createElement("Path");
+			FPointArray path = Item->PoLine.copy();
+			path.scale(conversionFactor, conversionFactor);
+			QString pa = SetClipPath(&path, false);
+			ob.setAttribute("Data", pa);
+			if (Item->NamedLStyle.isEmpty())
+			{
+				if ((!Item->strokePattern().isEmpty()) && (Item->patternStrokePath))
+				{
+					processSymbolStroke(xOffset, yOffset, Item, parentElem, rel_root);
+				}
+				else
+				{
+					getStrokeStyle(Item, ob, rel_root, xOffset, yOffset);
+					grp.appendChild(ob);
+				}
+			}
+			else
+			{
+				QDomElement grp2 = p_docu.createElement("Canvas");
+				multiLine ml = m_Doc->MLineStyles[Item->NamedLStyle];
+				for (int it = ml.size()-1; it > -1; it--)
+				{
+					if ((ml[it].Color != CommonStrings::None) && (ml[it].Width != 0))
+					{
+						QDomElement ob3 = p_docu.createElement("Path");
+						ob3.setAttribute("Data", pa);
+						GetMultiStroke(&ml[it], ob3);
+						grp2.appendChild(ob3);
+					}
+				}
+				if (Item->lineTransparency() != 0)
+					grp2.setAttribute("Opacity", FToStr(1.0 - Item->lineTransparency()));
+				grp.appendChild(grp2);
+			}
+		}
+	}
 
-	parentElem.appendChild(grp);
+//	parentElem.appendChild(grp);
 	XPSPainter p(Item, grp, this, xps_fontMap, rel_root);
 	Item->textLayout.renderBackground(&p);
 	Item->textLayout.render(&p);
+	QDomElement grp2 = p_docu.createElement("Canvas");
+	if (grp.hasAttribute("RenderTransform"))
+		grp2.setAttribute("RenderTransform", grp.attribute("RenderTransform"));
+	if (grp.hasAttribute("Name"))
+		grp2.setAttribute("Name", grp.attribute("Name"));
+	if (grp.hasAttribute("Opacity"))
+		grp2.setAttribute("Opacity", grp.attribute("Opacity"));
+	bool first = true;
+	QString RenderTransform = "";
+	QString FontRenderingEmSize = "";
+	QString FontUri = "";
+	QString Fill = "";
+	QString OriginX = "";
+	QString OriginY = "";
+	QString Indices = "";
+	QString UnicodeString = "";
+	QDomElement glyph;
+	for(QDomElement txtGrp = grp.firstChildElement(); !txtGrp.isNull(); txtGrp = txtGrp.nextSiblingElement() )
+	{
+		if (txtGrp.tagName() != "Glyphs")
+		{
+			if (!first)
+			{
+				glyph.setAttribute("Indices", Indices);
+				glyph.setAttribute("UnicodeString", UnicodeString);
+				first = true;
+			}
+			grp2.appendChild(txtGrp.cloneNode(true));
+		}
+		else
+		{
+			if (first)
+			{
+				RenderTransform = txtGrp.attribute("RenderTransform");
+				FontRenderingEmSize = txtGrp.attribute("FontRenderingEmSize");
+				FontUri = txtGrp.attribute("FontUri");
+				Fill = txtGrp.attribute("Fill");
+				OriginX = txtGrp.attribute("OriginX");
+				OriginY = txtGrp.attribute("OriginY");
+				Indices = txtGrp.attribute("Indices");
+				UnicodeString = txtGrp.attribute("UnicodeString");
+				glyph = p_docu.createElement("Glyphs");
+				glyph.setAttribute("RenderTransform", RenderTransform);
+				glyph.setAttribute("BidiLevel", "0");
+				glyph.setAttribute("StyleSimulations", "None");
+				glyph.setAttribute("FontRenderingEmSize", FontRenderingEmSize);
+				glyph.setAttribute("FontUri", FontUri);
+				glyph.setAttribute("Fill", Fill);
+				glyph.setAttribute("OriginX", OriginX);
+				glyph.setAttribute("OriginY", OriginY);
+				glyph.setAttribute("Indices", Indices);
+				glyph.setAttribute("UnicodeString", UnicodeString);
+				grp2.appendChild(glyph);
+				first = false;
+			}
+			else
+			{
+				if ((RenderTransform == txtGrp.attribute("RenderTransform")) && (FontRenderingEmSize == txtGrp.attribute("FontRenderingEmSize")) && (FontUri == txtGrp.attribute("FontUri")) && (OriginY == txtGrp.attribute("OriginY")) && (Fill == txtGrp.attribute("Fill")))
+				{
+					Indices.append(";" + txtGrp.attribute("Indices"));
+					UnicodeString.append(txtGrp.attribute("UnicodeString"));
+				}
+				else
+				{
+					glyph.setAttribute("Indices", Indices);
+					glyph.setAttribute("UnicodeString", UnicodeString);
+					RenderTransform = txtGrp.attribute("RenderTransform");
+					FontRenderingEmSize = txtGrp.attribute("FontRenderingEmSize");
+					FontUri = txtGrp.attribute("FontUri");
+					Fill = txtGrp.attribute("Fill");
+					OriginX = txtGrp.attribute("OriginX");
+					OriginY = txtGrp.attribute("OriginY");
+					Indices = txtGrp.attribute("Indices");
+					UnicodeString = txtGrp.attribute("UnicodeString");
+					glyph = p_docu.createElement("Glyphs");
+					glyph.setAttribute("RenderTransform", RenderTransform);
+					glyph.setAttribute("BidiLevel", "0");
+					glyph.setAttribute("StyleSimulations", "None");
+					glyph.setAttribute("FontRenderingEmSize", FontRenderingEmSize);
+					glyph.setAttribute("FontUri", FontUri);
+					glyph.setAttribute("Fill", Fill);
+					glyph.setAttribute("OriginX", OriginX);
+					glyph.setAttribute("OriginY", OriginY);
+					glyph.setAttribute("Indices", Indices);
+					glyph.setAttribute("UnicodeString", UnicodeString);
+					grp2.appendChild(glyph);
+					first = false;
+				}
+			}
+			if (txtGrp == grp.lastChildElement())
+			{
+				glyph.setAttribute("Indices", Indices);
+				glyph.setAttribute("UnicodeString", UnicodeString);
+			}
+		}
+	}
+	parentElem.appendChild(grp2);
+	if (Item->isTextFrame())
+	{
+		if ((Item->GrTypeStroke != 0) || (Item->lineColor() != CommonStrings::None) || !Item->NamedLStyle.isEmpty())
+		{
+			if (Item->NamedLStyle.isEmpty())
+			{
+				if ((!Item->strokePattern().isEmpty()) && (Item->patternStrokePath))
+				{
+					processSymbolStroke(xOffset, yOffset, Item, parentElem, rel_root);
+				}
+				else
+				{
+					QDomElement ob3 = p_docu.createElement("Path");
+					ob3.setAttribute("Data", pa);
+					getStrokeStyle(Item, ob3, rel_root, xOffset, yOffset);
+					ob3.setAttribute("RenderTransform", MatrixToStr(mpl));
+					parentElem.appendChild(ob3);
+				}
+			}
+			else
+			{
+				QDomElement grp2 = p_docu.createElement("Canvas");
+				multiLine ml = m_Doc->MLineStyles[Item->NamedLStyle];
+				for (int it = ml.size()-1; it > -1; it--)
+				{
+					if ((ml[it].Color != CommonStrings::None) && (ml[it].Width != 0))
+					{
+						QDomElement ob3 = p_docu.createElement("Path");
+						ob3.setAttribute("Data", pa);
+						GetMultiStroke(&ml[it], ob3);
+						grp2.appendChild(ob3);
+					}
+				}
+				if (Item->lineTransparency() != 0)
+					grp2.setAttribute("Opacity", FToStr(1.0 - Item->lineTransparency()));
+				grp2.setAttribute("RenderTransform", MatrixToStr(mpl));
+				parentElem.appendChild(grp2);
+			}
+		}
+	}
 }
 
 void XPSExPlug::processSymbolItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)

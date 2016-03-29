@@ -143,17 +143,17 @@ void PSPainter::drawGlyphOutline(const GlyphLayout gl, bool fill)
 		chma.scale((fontSize() * gl.scaleH) / 10.0, (fontSize() * gl.scaleV) / 10.0);
 		gly.map(chma);
 		m_ps->PS_translate(0, -(fontSize() - fontSize() * gl.scaleV));
+		if (gl.scaleH != 1.0 || gl.scaleV != 1.0)
+			m_ps->PS_scale(gl.scaleH, gl.scaleV);
+		if (fill)
+			m_ps->putColorNoDraw(fillColor().color, fillColor().shade);
+		m_ps->PS_showSub(gl.glyph, m_ps->FontSubsetMap[font().scName()], fontSize(), false);
 		m_ps->SetColor(strokeColor().color, strokeColor().shade, &h, &s, &v, &k);
 		m_ps->PS_setcmykcolor_stroke(h / 255.0, s / 255.0, v / 255.0, k / 255.0);
 		m_ps->SetClipPath(&gly, true);
 		m_ps->PS_closepath();
 		m_ps->putColor(strokeColor().color, strokeColor().shade, false);
 
-		if (gl.scaleH != 1.0 || gl.scaleV != 1.0)
-			m_ps->PS_scale(gl.scaleH, gl.scaleV);
-		if (fill)
-			m_ps->putColorNoDraw(fillColor().color, fillColor().shade);
-		m_ps->PS_showSub(gl.glyph, m_ps->FontSubsetMap[font().scName()], fontSize(), false);
 	}
 	m_ps->PS_restore();
 }
@@ -282,17 +282,18 @@ PSLib::PSLib(PrintOptions &options, bool psart, SCFonts &AllFonts, QMap<QString,
 	}
 	QMap<QString, QString> psNameMap;
 	QMap<QString, QMap<uint, FPointArray> >::Iterator it;
-	int a = 0;
+//	int a = 0;
 	for (it = DocFonts.begin(); it != DocFonts.end(); ++it)
 	{
 		// Subset all TTF Fonts until the bug in the TTF-Embedding Code is fixed
 		// Subset also font whose postscript name conflicts with an already used font
+		// Subset always now with new boxes code.
 		ScFace &face (AllFonts[it.key()]);
-		ScFace::FontType type = face.type();
+//		ScFace::FontType type = face.type();
 		QString encodedName = face.psName().simplified().replace( QRegExp("[\\s\\/\\{\\[\\]\\}\\<\\>\\(\\)\\%]"), "_" );
 
-		if ((type == ScFace::TTF) || (face.isOTF()) || (face.subset()) || psNameMap.contains(encodedName))
-		{
+//		if ((type == ScFace::TTF) || (face.isOTF()) || (face.subset()) || psNameMap.contains(encodedName))
+//		{
 			QMap<uint, FPointArray>& RealGlyphs(it.value());
 			// Handle possible PostScript name conflict in oft/ttf fonts
 			int psNameIndex = 1;
@@ -338,7 +339,7 @@ PSLib::PSLib(PrintOptions &options, bool psart, SCFonts &AllFonts, QMap<QString,
 			}
 			FontDesc += "end\n";
 			FontSubsetMap.insert(face.scName(), encodedName);
-		}
+/*		}
 		else
 		{
 			UsedFonts.insert(it.key(), "/Fo"+IToStr(a));
@@ -356,7 +357,7 @@ PSLib::PSLib(PrintOptions &options, bool psart, SCFonts &AllFonts, QMap<QString,
 			face.glyphNames(gl);
 			GlyphsOfFont.insert(it.key(), gl);
 			a++;
-		}
+		} */
 		psNameMap.insert(encodedName, face.scName());
 	}
 	Prolog = "%%BeginProlog\n";

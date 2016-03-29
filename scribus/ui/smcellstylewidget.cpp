@@ -7,10 +7,12 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 
-#include "smcellstylewidget.h"
 #include "iconmanager.h"
+#include "scribus.h"
+#include "smcellstylewidget.h"
 
-SMCellStyleWidget::SMCellStyleWidget(QWidget *parent) : QWidget()
+SMCellStyleWidget::SMCellStyleWidget(QWidget *parent) : QWidget(),
+	m_Doc(0)
 {
 	setupUi(this);
 
@@ -31,6 +33,26 @@ void SMCellStyleWidget::changeEvent(QEvent *e)
 		QWidget::changeEvent(e);
 }
 
+void SMCellStyleWidget::handleUpdateRequest(int updateFlags)
+{
+	if (!m_Doc)
+		return;
+	if (updateFlags & reqColorsUpdate)
+		fillFillColorCombo(m_Doc->PageColors);
+}
+
+void SMCellStyleWidget::setDoc(ScribusDoc* doc)
+{
+	if (m_Doc)
+		disconnect(m_Doc->scMW(), SIGNAL(UpdateRequest(int)), this , SLOT(handleUpdateRequest(int)));
+
+	m_Doc = doc;
+	if (!m_Doc)
+		return;
+
+	fillFillColorCombo(m_Doc->PageColors);
+	connect(m_Doc->scMW(), SIGNAL(UpdateRequest(int)), this , SLOT(handleUpdateRequest(int)));
+}
 
 void SMCellStyleWidget::show(CellStyle *cellStyle, QList<CellStyle> &cellStyles, const QString &defLang, int unitIndex)
 {

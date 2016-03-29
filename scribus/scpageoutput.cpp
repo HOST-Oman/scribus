@@ -1000,6 +1000,9 @@ public:
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
 
+		if (fill)
+			drawGlyph(gl);
+
 		m_painter->save();
 		bool fr = m_painter->fillRule();
 		m_painter->setFillRule(false);
@@ -1020,9 +1023,6 @@ public:
 
 		m_painter->setFillRule(fr);
 		m_painter->restore();
-
-		if (fill)
-			drawGlyph(gl);
 	}
 
 	void drawLine(QPointF start, QPointF end)
