@@ -1013,8 +1013,6 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
 			GlyphLayout& glyph = glyphrun.glyphs().last();
-			glyph.xadvance += wide * glyphExtension;
-
 			for (int j = 0; j < glyphrun.glyphs().count(); ++j)
 			{
 				glyph = glyphrun.glyphs()[j];
