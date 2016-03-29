@@ -283,10 +283,10 @@ QList<GlyphRun> TextShaper::shape()
 			uint32_t firstCluster = glyphs[i].cluster;
 			uint32_t nextCluster = firstCluster;
 			if (hbDirection == HB_DIRECTION_LTR)
-				for (int j = i + 1; j < count && nextCluster == firstCluster; j++)
+				for (size_t j = i + 1; j < count && nextCluster == firstCluster; j++)
 					nextCluster = glyphs[j].cluster;
 			else
-				for (int j = i - 1; j >=0 && nextCluster == firstCluster; j--)
+				for (size_t j = i - 1; j >=0 && nextCluster == firstCluster; j--)
 					nextCluster = glyphs[j].cluster;
 
 
