@@ -505,6 +505,9 @@ void SMParagraphStyle::setupConnections()
 	connect(m_pwidget->alignment->TextB, SIGNAL(clicked()), this, SLOT(slotAlignment()));
 	connect(m_pwidget->alignment->TextF, SIGNAL(clicked()), this, SLOT(slotAlignment()));
 	connect(m_pwidget->alignment->parentButton, SIGNAL(clicked()), this, SLOT(slotAlignment()));
+	connect(m_pwidget->direction->RTL, SIGNAL(clicked()), this, SLOT(slotDirection()));
+	connect(m_pwidget->direction->LTR, SIGNAL(clicked()), this, SLOT(slotDirection()));
+	connect(m_pwidget->direction->parentButton, SIGNAL(clicked()), this, SLOT(slotDirection()));
 //	connect(m_pwidget->optMarginCombo, SIGNAL(activated(int)), this, SLOT(slotOpticalMargin(int)));
 	connect(m_pwidget->optMarginRadioNone, SIGNAL(clicked()), this, SLOT(slotOpticalMarginSelector()));
 	connect(m_pwidget->optMarginRadioLeft, SIGNAL(clicked()), this, SLOT(slotOpticalMarginSelector()));
@@ -594,6 +597,9 @@ void SMParagraphStyle::removeConnections()
 	disconnect(m_pwidget->alignment->TextB, SIGNAL(clicked()), this, SLOT(slotAlignment()));
 	disconnect(m_pwidget->alignment->TextF, SIGNAL(clicked()), this, SLOT(slotAlignment()));
 	disconnect(m_pwidget->alignment->parentButton, SIGNAL(clicked()), this, SLOT(slotAlignment()));
+	disconnect(m_pwidget->direction->RTL, SIGNAL(clicked()), this, SLOT(slotDirection()));
+	disconnect(m_pwidget->direction->LTR, SIGNAL(clicked()), this, SLOT(slotDirection()));
+	disconnect(m_pwidget->direction->parentButton, SIGNAL(clicked()), this, SLOT(slotDirection()));
 //	disconnect(m_pwidget->optMarginCombo, SIGNAL(activated(int)), this, SLOT(slotOpticalMargin(int)));
 	disconnect(m_pwidget->optMarginRadioNone, SIGNAL(clicked()), this, SLOT(slotOpticalMarginSelector()));
 	disconnect(m_pwidget->optMarginRadioLeft, SIGNAL(clicked()), this, SLOT(slotOpticalMarginSelector()));
@@ -758,6 +764,29 @@ void SMParagraphStyle::slotAlignment()
 	else 
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->setAlignment(style);
+
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMParagraphStyle::slotDirection()
+{
+	ParagraphStyle::DirectionType style = static_cast<ParagraphStyle::DirectionType>(m_pwidget->direction->getStyle());
+	if (m_pwidget->direction->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->resetDirection();
+	else
+		for (int i = 0; i < m_selection.count(); ++i)
+		{
+			m_selection[i]->setDirection(style);
+			if (style == 0)
+				m_selection[i]->setAlignment(static_cast<ParagraphStyle::AlignmentType>(0));
+			else
+				m_selection[i]->setAlignment(static_cast<ParagraphStyle::AlignmentType>(2));
+		}
 
 	if (!m_selectionIsDirty)
 	{

@@ -54,6 +54,7 @@ private:
 	void showBullet(QList<ParagraphStyle*> &pstyles, QList<CharStyle> &cstyles, int unitIndex);
 	void showNumeration(QList<ParagraphStyle*> &pstyles, QList<CharStyle> &cstyles, int unitIndex);
 	void showAlignment(QList<ParagraphStyle*> &pstyles);
+	void showDirection(QList<ParagraphStyle*> &pstyles);
 	void showOpticalMargin(QList<ParagraphStyle*> &pstyles);
 	void showMinSpace(QList<ParagraphStyle*> &pstyles);
 	void showMinGlyphExt(QList<ParagraphStyle*> &pstyles);
