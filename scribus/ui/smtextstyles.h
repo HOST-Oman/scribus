@@ -94,6 +94,7 @@ private slots:
 	void slotSpaceAbove();
 	void slotSpaceBelow();
 	void slotAlignment();
+	void slotDirection();
 	void slotOpticalMargin(int i);
 	void slotOpticalMarginSelector();
 	void slotParentOpticalMargin();

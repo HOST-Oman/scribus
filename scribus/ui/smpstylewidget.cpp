@@ -548,6 +548,8 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 		tabList->setFirstLineValue(pstyle->firstIndent() * unitRatio);
 		tabList->setRightIndentValue(pstyle->rightMargin() * unitRatio);
 
+		direction->setStyle(pstyle->direction());
+
 		keepLinesStart->setValue (pstyle->keepLinesStart());
 		keepLinesEnd->setValue (pstyle->keepLinesEnd());
 		keepTogether->setChecked (pstyle->keepTogether());
@@ -613,6 +615,7 @@ void SMPStyleWidget::show(QList<ParagraphStyle*> &pstyles, QList<ParagraphStyle>
 		showBullet(pstyles, cstyles, unitIndex);
 		showNumeration(pstyles, cstyles, unitIndex);
 		showAlignment(pstyles);
+		showDirection(pstyles);
 		showOpticalMargin(pstyles);
 		showMinSpace(pstyles);
 		showMinGlyphExt(pstyles);
@@ -874,6 +877,30 @@ void SMPStyleWidget::showAlignment(QList<ParagraphStyle*> &pstyles)
 		}
 	}
 	alignment->setStyle(a);
+}
+
+void SMPStyleWidget::showDirection(QList<ParagraphStyle*> &pstyles)
+{
+	if(pstyles.isEmpty())
+	{
+		qDebug()<<"Warning showDirection called with an empty list of styles";
+		return;
+	}
+	ParagraphStyle::DirectionType a = pstyles[0]->direction();
+	for (int i = 0; i < pstyles.count(); ++i)
+	{
+		if (a != pstyles[i]->direction())
+		{
+			if (direction->selectedId() > -1 && direction->selectedId() < 2)
+			{
+				direction->buttonGroup->setExclusive(false);
+				direction->buttonGroup->button(direction->selectedId())->toggle();
+				direction->buttonGroup->setExclusive(true);
+			}
+			return;
+		}
+	}
+	direction->setStyle(a);
 }
 
 void SMPStyleWidget::showOpticalMargin(QList< ParagraphStyle * > & pstyles)
