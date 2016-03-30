@@ -38,19 +38,19 @@ class ScribusDoc;
 
 // from charstlye.h ScStyleFlags
 enum LayoutFlags {
-	ScLayout_None          = 0,
-	ScLayout_BulletNum     = 1,       // new: marks list layout glyphs
-	ScLayout_FixedSpace    = 2,       // new: marks a fixed space
-	ScLayout_ExpandingSpace= 4,       // new: marks an expanding space
-	ScLayout_ImplicitSpace = 8,       // new: marks an implicit space
-	ScLayout_TabLeaders    = 16,      // new: marks a tab with fillchar
-	ScLayout_HyphenationPossible=128, //Hyphenation possible here (Soft Hyphen)
-	ScLayout_DropCap       = 2048,
-	ScLayout_SuppressSpace = 4096,    //internal use in PageItem (Suppresses spaces when in Block alignment)
-	ScLayout_SoftHyphenVisible=8192,  //Soft Hyphen visible at line end
-	ScLayout_StartOfLine   = 16384,   //set for start of line
-	ScLayout_LineBoundry   = 1<<15,   // line break is allowed before here
-	ScLayout_RightToLeft   = 1<<16    // right-to-left glyph run
+	ScLayout_None			= 0,
+	ScLayout_BulletNum		= 1<<0, 	// new: marks list layout glyphs
+	ScLayout_FixedSpace		= 1<<1, 	// new: marks a fixed space
+	ScLayout_ExpandingSpace		= 1<<2, 	// new: marks an expanding space
+	ScLayout_ImplicitSpace		= 1<<3, 	// new: marks an implicit space
+	ScLayout_TabLeaders		= 1<<4, 	// new: marks a tab with fillchar
+	ScLayout_HyphenationPossible	= 1<<7, 	//Hyphenation possible here (Soft Hyphen)
+	ScLayout_DropCap		= 1<<11,
+	ScLayout_SuppressSpace		= 1<<12,	//internal use in PageItem (Suppresses spaces when in Block alignment)
+	ScLayout_SoftHyphenVisible	= 1<<13,	//Soft Hyphen visible at line end
+	ScLayout_StartOfLine		= 1<<14,	//set for start of line
+	ScLayout_LineBoundry		= 1<<15,	// line break is allowed before here
+	ScLayout_RightToLeft		= 1<<16		// right-to-left glyph run
 };
 
 
