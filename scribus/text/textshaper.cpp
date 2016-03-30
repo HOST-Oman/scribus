@@ -243,8 +243,7 @@ QList<GlyphRun> TextShaper::shape()
 
 	buildText(m_text, m_textMap);
 
-	QTextBoundaryFinder boundery(QTextBoundaryFinder::Line, m_text);
-	int index = 0;
+	QTextBoundaryFinder lineBoundery(QTextBoundaryFinder::Line, m_text);
 
 	QList<TextRun> bidiRuns = itemizeBiDi(m_text);
 	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
@@ -317,6 +316,9 @@ QList<GlyphRun> TextShaper::shape()
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 
 			GlyphRun run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), textRun.dir == UBIDI_RTL, glyphRuns.length());
+			lineBoundery.setPosition(firstCluster);
+			if (lineBoundery.isAtBoundary())
+				run.setFlag(ScLayout_LineBoundry);
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
 
@@ -399,10 +401,6 @@ QList<GlyphRun> TextShaper::shape()
 				i++;
 			}
 			glyphRuns.append(run);
-			boundery.setPosition(index);
-			index++;
-			if(boundery.isAtBoundary())
-				glyphRuns.last().setBoundery(true);
 		}
 	}
 
