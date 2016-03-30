@@ -1703,7 +1703,6 @@ void SMParagraphStyle::slotStrokeShade()
 
 void SMParagraphStyle::slotLanguage()
 {
-	QMap<QString,QString>::Iterator it;
 	QString language = m_doc->paragraphStyle("").charStyle().language();
 
 	if (m_pwidget->cpage->language_->useParentValue())
@@ -1713,7 +1712,7 @@ void SMParagraphStyle::slotLanguage()
 	}
 	else
 	{
-		QString la=LanguageManager::instance()->getAbbrevFromLang(m_pwidget->cpage->language_->currentText(), true, false);
+		QString la=LanguageManager::instance()->getAbbrevFromLang(m_pwidget->cpage->language_->currentText(), false);
 		if (!la.isEmpty())
 			language=la;
 		for (int i = 0; i < m_selection.count(); ++i)
@@ -2643,7 +2642,6 @@ void SMCharacterStyle::slotStrokeShade()
 
 void SMCharacterStyle::slotLanguage()
 {
-	QMap<QString,QString>::Iterator it;
 	QString language = m_doc->paragraphStyle("").charStyle().language();
 
 	if (m_page->language_->useParentValue())
@@ -2651,7 +2649,7 @@ void SMCharacterStyle::slotLanguage()
 			m_selection[i]->resetLanguage();
 	else
 	{
-		QString tl(LanguageManager::instance()->getAbbrevFromLang(m_page->language_->currentText(), true));
+		QString tl(LanguageManager::instance()->getAbbrevFromLang(m_page->language_->currentText(), false));
 		if (!tl.isEmpty())
 			language=tl;
 		for (int i = 0; i < m_selection.count(); ++i)

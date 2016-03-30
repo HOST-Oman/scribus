@@ -374,7 +374,7 @@ QString LoremManager::getName()
 	if (li->text(0)==standardloremtext)
 		name="la";
 	else
-		name=LanguageManager::instance()->getAbbrevFromLang(li->text(0), true, false);
+		name=LanguageManager::instance()->getAbbrevFromLang(li->text(0), false);
 
 	return availableLorems[name];
 }

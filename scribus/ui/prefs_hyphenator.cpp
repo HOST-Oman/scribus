@@ -79,7 +79,7 @@ void Prefs_Hyphenator::restoreDefaults(struct ApplicationPrefs *prefsData)
 void Prefs_Hyphenator::saveGuiToPrefs(struct ApplicationPrefs *prefsData) const
 {
 	prefsData->hyphPrefs.MinWordLen = smallestWordSpinBox->value();
-	prefsData->hyphPrefs.Language = LanguageManager::instance()->getAbbrevFromLang(hyphLanguageComboBox->currentText(), true, false);
+	prefsData->hyphPrefs.Language = LanguageManager::instance()->getAbbrevFromLang(hyphLanguageComboBox->currentText(), false);
 	prefsData->hyphPrefs.Automatic = !hyphSuggestionsCheckBox->isChecked();
 	prefsData->hyphPrefs.AutoCheck = hyphAutoCheckBox->isChecked();
 	prefsData->hyphPrefs.HyCount = maxConsecutiveCountSpinBox->value();

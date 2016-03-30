@@ -1053,6 +1053,7 @@ public:
 	void itemSelection_SetDirection(int w, Selection* customSelection=0);
 	void itemSelection_SetLineSpacing(double w, Selection* customSelection=0);
 	void itemSelection_SetLineSpacingMode(int w, Selection* customSelection=0);
+	void itemSelection_SetLanguage(QString w, Selection* customSelection=0);
 	void itemSetFont(const QString& newFont);
 	void itemSelection_SetFont(QString fon, Selection* customSelection=0);
 	void itemSelection_SetParBackgroundColor(QString farbe, Selection* customSelection=0);
