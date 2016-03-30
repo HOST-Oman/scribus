@@ -631,7 +631,7 @@ void SEditor::setAlign(int align)
 void SEditor::setAlign(QTextCursor& tCursor, int align)
 {
 	++blockContentsChangeHook;
-	QTextBlockFormat blockFormat;
+	QTextBlockFormat blockFormat = tCursor.blockFormat();
 	switch (align)
 	{
 	case 0:
@@ -650,7 +650,7 @@ void SEditor::setAlign(QTextCursor& tCursor, int align)
 	default:
 		break;
 	}
-	tCursor.setBlockFormat(blockFormat);
+	tCursor.mergeBlockFormat(blockFormat);
 	--blockContentsChangeHook;
 }
 
@@ -663,19 +663,19 @@ void SEditor::setDirection(int dir)
 void SEditor::setDirection(QTextCursor& tCursor, int dir)
 {
 	++blockContentsChangeHook;
-	QTextBlockFormat blockFormat;
+	QTextBlockFormat blockFormat = tCursor.blockFormat();
 	switch (dir)
 	{
 	case 0:
-		blockFormat.setAlignment(Qt::AlignLeft);
+		blockFormat.setLayoutDirection(Qt::LeftToRight);
 		break;
 	case 1:
-		blockFormat.setAlignment(Qt::AlignRight);
+		blockFormat.setLayoutDirection(Qt::RightToLeft);
 		break;
 	default:
 		break;
 	}
-	tCursor.setBlockFormat(blockFormat);
+	tCursor.mergeBlockFormat(blockFormat);
 	--blockContentsChangeHook;
 }
 
@@ -3071,6 +3071,10 @@ void StoryEditor::newAlign(int st)
 void StoryEditor::newDirection(int dir)
 {
 	Editor->CurrDirection = dir;
+	if (dir == ParagraphStyle::LTR && Editor->CurrAlign == ParagraphStyle::Rightaligned)
+		Editor->CurrAlign = ParagraphStyle::Leftaligned;
+	else if (dir == ParagraphStyle::RTL && Editor->CurrAlign == ParagraphStyle::Leftaligned)
+		Editor->CurrAlign = ParagraphStyle::Rightaligned;
 	changeDirection(dir);
 }
 
@@ -3309,10 +3313,7 @@ void StoryEditor::changeDirection(int )
 	ParagraphStyle newStyle;
 
 	newStyle.setDirection(static_cast<ParagraphStyle::DirectionType>(Editor->CurrDirection));
-	if (Editor->CurrDirection == 0)
-		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(0));
-	else
-		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(2));
+	newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(Editor->CurrAlign));
 
 	int pos = Editor->textCursor().position();
 	p = Editor->StyledText.nrOfParagraph(pos);
