@@ -271,7 +271,17 @@ QList<GlyphRun> TextShaper::shape()
 		hb_buffer_set_language(hbBuffer, hbLanguage);
 		hb_buffer_set_cluster_level(hbBuffer, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
 
-		hb_shape(hbFont, hbBuffer, NULL, 0);
+		QStringList features = style.fontFeatures().split(",");
+		QVector<hb_feature_t> hbFeatures;
+		hbFeatures.reserve(features.length());
+		foreach (QString feature, features) {
+			hb_feature_t hbFeature;
+			hb_bool_t ok = hb_feature_from_string(feature.toStdString().c_str(), feature.toStdString().length(), &hbFeature);
+			if (ok)
+				hbFeatures.append(hbFeature);
+		}
+
+		hb_shape_full(hbFont, hbBuffer, hbFeatures.data(), hbFeatures.length(), NULL);
 
 		unsigned int count = hb_buffer_get_length(hbBuffer);
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);
