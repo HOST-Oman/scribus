@@ -15,6 +15,7 @@ class TextShaper
 public:
 	TextShaper(PageItem *item, StoryText &story, int first, bool singlePar=false);
 
+	bool isBoundery(int);
 	QList<GlyphRun> shape();
 
 private:

@@ -4,6 +4,7 @@
 #include <hb-ft.h>
 #include <hb-icu.h>
 #include <unicode/ubidi.h>
+#include <QTextBoundaryFinder>
 
 #include "scrptrun.h"
 
@@ -399,4 +400,13 @@ QList<GlyphRun> TextShaper::shape()
 	}
 
 	return glyphRuns;
+}
+
+bool TextShaper::isBoundery(int i)
+{
+	QTextBoundaryFinder boundery(QTextBoundaryFinder::Line, m_text);
+	boundery.setPosition(m_textMap.keys(i).last());
+	if(boundery.isAtBoundary())
+		return true;
+	return false;
 }
