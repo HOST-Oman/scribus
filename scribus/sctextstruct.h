@@ -49,7 +49,8 @@ enum LayoutFlags {
 	ScLayout_SuppressSpace = 4096,    //internal use in PageItem (Suppresses spaces when in Block alignment)
 	ScLayout_SoftHyphenVisible=8192,  //Soft Hyphen visible at line end
 	ScLayout_StartOfLine   = 16384,   //set for start of line
-	ScLayout_LineBoundry   = 1<<15    // line break is allowed before here
+	ScLayout_LineBoundry   = 1<<15,   // line break is allowed before here
+	ScLayout_RightToLeft   = 1<<16    // right-to-left glyph run
 };
 
 
@@ -79,17 +80,15 @@ class GlyphRun
 	int m_firstChar;
 	int m_lastChar;
 	PageItem* m_object;
-	bool m_rtl;
 	int m_visualIndex;
 
 public:
-	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, bool rtl, int i)
+	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i)
 		: m_style(style)
 		, m_flags(flags)
 		, m_firstChar(first)
 		, m_lastChar(last)
 		, m_object(o)
-		, m_rtl(rtl)
 		, m_visualIndex(i)
 	{}
 
@@ -104,7 +103,6 @@ public:
 	int lastChar()					const	{ return m_lastChar; }
 	qreal width() const;
 	PageItem* object()				const	{ return m_object; }
-	bool rtl()					const   { return m_rtl; }
 	int visualIndex()				const	{ return m_visualIndex; }
 	double ascent() const;
 	double desent() const;
