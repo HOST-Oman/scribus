@@ -4132,20 +4132,20 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Left:
 		if ( buttonModifiers & Qt::ControlModifier )
 		{
-			itemText.moveCursorLeft(oldPos);
+			itemText.moveCursorWordLeft();
 			if ( buttonModifiers & Qt::ShiftModifier )
 				ExpandSel(-1, oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			int pos = itemText.cursorPosition();
-			itemText.moveCursorLeft();
+			itemText.moveCursorLeft(true);
 			if ( pos > 0 )
 				ExpandSel(-1, oldPos);
 		}
 		else
 		{
-			itemText.moveCursorLeft();
+			itemText.moveCursorLeft(true);
 			if (itemText.cursorPosition() < firstInFrame())
 			{
 				itemText.setCursorPosition( firstInFrame() );
@@ -4166,7 +4166,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 //				--CPos;
 				while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 				{
-					itemText.moveCursorLeft();
+					itemText.moveCursorLeft(true);
 					if (itemText.cursorPosition() == 0)
 						break;
 				}
@@ -4176,7 +4176,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		{
 			while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 			{
-				itemText.moveCursorLeft();
+				itemText.moveCursorLeft(true);
 				if (itemText.cursorPosition() == 0)
 					break;
 			}
@@ -4188,20 +4188,20 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Right:
 		if ( buttonModifiers & Qt::ControlModifier )
 		{
-			itemText.moveCursorRight(oldPos);
+			itemText.moveCursorWordRight();
 			if ( buttonModifiers & Qt::ShiftModifier )
 				ExpandSel(1, oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			int pos = itemText.cursorPosition();
-			itemText.moveCursorRight();
+			itemText.moveCursorRight(true);
 			if ( pos < itemText.length() )
 				ExpandSel(1, oldPos);
 		}
 		else
 		{
-			itemText.moveCursorRight(); // new position within text ?
+			itemText.moveCursorRight(true); // new position within text ?
 			if (itemText.cursorPosition() > lastInFrame())
 			{
 //				--CPos;
@@ -4249,7 +4249,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			return;
 		}
 		if (itemText.lengthOfSelection() == 0)
-			itemText.select(itemText.cursorPosition(), 1, true);
+		{
+			int pos1 = itemText.cursorPosition();
+			itemText.moveCursorLeft(true);
+			int pos2 = itemText.cursorPosition();
+			itemText.select(pos1, pos2 - pos1, true);
+		}
 		deleteSelectedTextFromFrame();
 		if (isAutoNoteFrame() && asNoteFrame()->notesList().isEmpty())
 		{
