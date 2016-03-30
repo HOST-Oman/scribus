@@ -296,11 +296,8 @@ const QString LanguageManager::getLangFromAbbrev(QString langAbbrev, bool getTra
 	return "";
 }
 
-const QString LanguageManager::getAbbrevFromLang(QString lang, bool getFromTranslated, bool useInstalled)
+const QString LanguageManager::getAbbrevFromLang(QString lang, bool useInstalled)
 {
-	QMap<QString, langPair>::Iterator it;
-	if (lang == "English" || lang == QObject::tr( "English"))
-		useInstalled = false;
 	for (int i = 0; i < m_langTable.size(); ++i)
 	{
 		if (useInstalled)
@@ -370,18 +367,10 @@ const QString LanguageManager::getAlternativeAbbrevfromAbbrev(QString langAbbrev
 	return "";
 }
 
-void LanguageManager::fillInstalledStringList(QStringList *stringListToFill, bool addDefaults) 
+void LanguageManager::fillInstalledStringList(QStringList *stringListToFill, bool addDefaults)
 {
 	if (stringListToFill)
 	{
-		QMap<QString, QString>::Iterator it;
-
-		if (addDefaults) 
-		{
-			stringListToFill->append("");
-			stringListToFill->append( QObject::tr( "English" ));
-		}
-
 		for (int i = 0; i < m_langTable.size(); ++i)
 			stringListToFill->append(m_langTable[i].m_transName);
 	}
@@ -391,12 +380,6 @@ void LanguageManager::fillInstalledGUIStringList(QStringList *stringListToFill, 
 {
 	if (stringListToFill)
 	{
-		if (addDefaults)
-		{
-			stringListToFill->append("");
-			stringListToFill->append( QObject::tr( "English" ));
-		}
-
 		for (int i = 0; i < m_langTable.size(); ++i)
 		{
 			//qDebug()<<langTable[i].m_transName<<langTable[i].m_transAvailable;

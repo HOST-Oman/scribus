@@ -43,6 +43,7 @@ for which a new license (GPL+exception) is in place.
 #include "units.h"
 #include "util.h"
 #include "util_math.h"
+#include "langmgr.h"
 
 //using namespace std;
 
@@ -111,6 +112,7 @@ PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(paren
 	connect(flopBox->flopGroup, SIGNAL(buttonClicked( int )), this, SLOT(handleFirstLinePolicy(int)));
 
 	connect(lineSpacingModeCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(handleLineSpacingMode(int)));
+	connect(langCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(changeLang(int)));
 
 	m_haveItem = false;
 	setEnabled(false);
@@ -402,6 +404,18 @@ void PropertiesPalette_Text::handleLineSpacingMode(int id)
 	}
 }
 
+void PropertiesPalette_Text::changeLang(int id)
+{
+	if (!m_haveDoc || !m_haveItem || !m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+	QStringList languageList;
+	LanguageManager::instance()->fillInstalledStringList(&languageList, true);
+	QString abrv = LanguageManager::instance()->getAbbrevFromLang(languageList.value(id),false);
+	Selection tempSelection(this, false);
+	tempSelection.addItem(m_item, true);
+	m_doc->itemSelection_SetLanguage(abrv, &tempSelection);
+}
+
 void PropertiesPalette_Text::showLineSpacing(double r)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
@@ -443,6 +457,24 @@ void PropertiesPalette_Text::showFontFeatures(QString s)
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	opentypefontWidget->showFontFeatures(s);
+}
+
+void PropertiesPalette_Text::showLanguage(QString w)
+{
+	if (!m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+	bool tmp = m_haveItem;
+	m_haveItem = false;
+	if (tmp)
+	{
+		QStringList lang;
+		LanguageManager::instance()->fillInstalledStringList(&lang, true);
+		QString langName = LanguageManager::instance()->getLangFromAbbrev(w, false);
+		langCombo->setCurrentIndex(lang.indexOf(langName));
+	}
+
+	m_haveItem = tmp;
+
 }
 
 void PropertiesPalette_Text::showFirstLinePolicy( FirstLineOffsetPolicy f )
@@ -491,6 +523,7 @@ void PropertiesPalette_Text::updateCharStyle(const CharStyle& charStyle)
 
 	showFontFace(charStyle.font().scName());
 	showFontSize(charStyle.fontSize());
+	showLanguage(charStyle.language());
 }
 
 void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
@@ -509,6 +542,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 
 	showFontFace(charStyle.font().scName());
 	showFontSize(charStyle.fontSize());
+	showLanguage(charStyle.language());
 
 	bool tmp = m_haveItem;
 	m_haveItem = false;
@@ -689,8 +723,13 @@ void PropertiesPalette_Text::languageChange()
 	advancedWidgetsItem->setText(0, tr("Advanced Settings"));
 	opentypefontWidgettsItem->setText(0, tr("Font Features"));
 	pathTextItem->setText(0, tr("Path Text Properties"));
-
+	QStringList languageList;
+	LanguageManager::instance()->fillInstalledStringList(&languageList, true);
 	int oldLineSpacingMode = lineSpacingModeCombo->currentIndex();
+	int oldLang = langCombo->currentIndex();
+	langCombo->clear();
+	langCombo->addItems(languageList);
+	langCombo->setCurrentIndex(oldLang);
 	lineSpacingModeCombo->clear();
 	lineSpacingModeCombo->addItem( tr("Fixed Linespacing"));
 	lineSpacingModeCombo->addItem( tr("Automatic Linespacing"));

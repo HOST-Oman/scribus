@@ -68,6 +68,7 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem_polyline.h"
 #include "pageitem_table.h"
 #include "pageitem_textframe.h"
+#include "langmgr.h"
 #ifdef HAVE_OSG
 	#include "pageitem_osgframe.h"
 #endif
@@ -8758,6 +8759,13 @@ void ScribusDoc::itemSelection_SetLineSpacingMode(int m, Selection* customSelect
 	ParagraphStyle newStyle;
 	newStyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(m));
 	itemSelection_ApplyParagraphStyle(newStyle, customSelection);
+}
+
+void ScribusDoc::itemSelection_SetLanguage(QString m, Selection* customSelection)
+{
+	CharStyle newStyle;
+	newStyle.setLanguage(m);
+	itemSelection_ApplyCharStyle(newStyle, customSelection, "LANGUAGE");
 }
 
 void ScribusDoc::itemSetFont(const QString &newFont)

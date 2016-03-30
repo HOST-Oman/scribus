@@ -2045,9 +2045,9 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, ScXmlStreamAttributes&
 			m_Doc->setHyphLanguage(l); //new style storage
 		else
 		{ //old style storage
-			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, true, false);
+			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
-				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false, false);
+				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			m_Doc->setHyphLanguage(lnew);
 		}
 	}
@@ -2534,11 +2534,12 @@ void Scribus150Format::readCharacterStyleAttrs(ScribusDoc *doc, ScXmlStreamAttri
 			newStyle.setLanguage(l); //new style storage
 		else
 		{ //old style storage
-			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, true, false);
+			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
-				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false, false);
+				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			newStyle.setLanguage(lnew);
 		}
+
 	}
 
 	static const QString SHORTCUT("SHORTCUT");

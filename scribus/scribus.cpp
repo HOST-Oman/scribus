@@ -6251,6 +6251,17 @@ void ScribusMainWindow::setItemFontFeatures(QString fontFeature)
 	propertiesPalette->textPal->showFontFeatures(fontFeature);
 }
 
+void ScribusMainWindow::setItemLanguage(QString language)
+{
+		Query dia(this, "New", 1, tr("&Language:"), tr("Language"));
+		if (dia.exec())
+		{
+				doc->itemSelection_SetLanguage(language);
+		}
+
+	propertiesPalette->textPal->showLanguage(language);
+}
+
 //CB-->Doc
 void ScribusMainWindow::setNewAlignment(int a)
 {
