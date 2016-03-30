@@ -315,7 +315,9 @@ QList<GlyphRun> TextShaper::shape()
 			LayoutFlags flags = m_story.flags(firstChar);
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 
-			GlyphRun run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), textRun.dir == UBIDI_RTL, glyphRuns.length());
+			GlyphRun run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
+			if (textRun.dir == UBIDI_RTL)
+				run.setFlag(ScLayout_RightToLeft);
 			lineBoundery.setPosition(firstCluster);
 			if (lineBoundery.isAtBoundary())
 				run.setFlag(ScLayout_LineBoundry);

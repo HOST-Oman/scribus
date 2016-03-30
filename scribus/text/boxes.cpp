@@ -632,7 +632,7 @@ int GlyphBox::pointToPosition(QPointF coord) const
 	{
 		double componentX;
 		componentX = x() + (componentWidth * i);
-		if (m_glyphRun.rtl())
+		if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
 			componentX = x() + width() - (componentWidth * (i + 1));
 
 		if (coord.x() >= componentX && coord.x() <= componentX +componentWidth)
@@ -650,7 +650,7 @@ QLineF GlyphBox::positionToPoint(int pos) const
 	double componentWidth = width() / componentCount;
 
 	xPos = x() + (componentWidth * componentIndex);
-	if (m_glyphRun.rtl())
+	if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
 		xPos = x() + width() - (componentWidth * componentIndex);
 
 	return QLineF(xPos, y(), xPos, y() + height());
