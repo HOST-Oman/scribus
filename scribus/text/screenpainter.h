@@ -21,8 +21,8 @@ public:
 
 	~ScreenPainter();
 
-	void drawGlyph(const GlyphLayout gl);
-	void drawGlyphOutline(const GlyphLayout gl, bool fill);
+	void drawGlyph(const QList<GlyphLayout> gl, int firstChar, int lastChar);
+	void drawGlyphOutline(const QList<GlyphLayout> gly, int firstChar, int lastChar, bool fill);
 	void drawLine(QPointF start, QPointF end);
 	void drawRect(QRectF rect);
 	void drawObject(PageItem* embedded);
