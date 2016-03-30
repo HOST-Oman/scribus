@@ -48,7 +48,8 @@ enum LayoutFlags {
 	ScLayout_DropCap       = 2048,
 	ScLayout_SuppressSpace = 4096,    //internal use in PageItem (Suppresses spaces when in Block alignment)
 	ScLayout_SoftHyphenVisible=8192,  //Soft Hyphen visible at line end
-	ScLayout_StartOfLine   = 16384    //set for start of line
+	ScLayout_StartOfLine   = 16384,   //set for start of line
+	ScLayout_LineBoundry   = 1<<15    // line break is allowed before here
 };
 
 
@@ -80,7 +81,6 @@ class GlyphRun
 	PageItem* m_object;
 	bool m_rtl;
 	int m_visualIndex;
-	bool m_isBoundery;
 
 public:
 	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, bool rtl, int i)
@@ -91,7 +91,6 @@ public:
 		, m_object(o)
 		, m_rtl(rtl)
 		, m_visualIndex(i)
-		, m_isBoundery(false)
 	{}
 
 	const CharStyle&         style()  const { return *m_style; }
@@ -109,8 +108,6 @@ public:
 	int visualIndex()				const	{ return m_visualIndex; }
 	double ascent() const;
 	double desent() const;
-	void setBoundery(bool state)		{ m_isBoundery = state; }
-	bool getBoundery()			{ return m_isBoundery; }
 };
 
 
