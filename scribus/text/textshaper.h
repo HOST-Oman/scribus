@@ -3,6 +3,7 @@
 
 #include <QList>
 #include <QMap>
+#include <QString>
 #include <unicode/uscript.h>
 
 class GlyphRun;
