@@ -1453,7 +1453,7 @@ void PageItem_TextFrame::layout()
 		current.rightMargin = 0.0;
 		current.mustLineEnd = current.colRight;
 		current.restartX = 0;
-		int lastStat = 0, curStat = 0;
+		int curStat = 0;
 
 		//why emit invalidating signals each time text is changed by appling styles?
 		//this speed up layouting in case of using notes marks and drop caps
@@ -2236,31 +2236,13 @@ void PageItem_TextFrame::layout()
 				current.xPos = qMax(current.xPos, current.colLeft);
 			}
 			// remember possible break
-			if ( (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a) == SpecialChars::TAB))
+			if (i != 0 && glyphRuns[i].getBoundery())
 			{
-				if ( a == firstInFrame() || !SpecialChars::isBreakingSpace(itemText.text(a-1)) )
-				{
-					current.rememberBreak(i, breakPos, style.rightMargin());
-				}
+				current.rememberBreak(i - 1, breakPos, style.rightMargin());
 			}
-			if  (HasObject)
+			if (HasObject)
 				current.rememberBreak(i, breakPos, style.rightMargin());
-			// CJK break
-			if (i > current.line.firstRun)
-			{ // not the first char
-				if ((lastStat == 0) && (curStat == 0))
-				{	// both non-CJK
-					// do nothing
-				} else {
-					// non-CJK char does not have CJK_NOBREAK_AFTER/CJK_NOBREAK_BEFORE
-					if ((lastStat & SpecialChars::CJK_NOBREAK_AFTER) == 0 &&
-							(curStat & SpecialChars::CJK_NOBREAK_BEFORE) == 0){
-						current.rememberBreak(i-1, breakPos, style.rightMargin());
-					}
-				}
 
-			}
-			lastStat = curStat;
 			//check against space before PARSEP
 			/*if (SpecialChars::isBreakingSpace(hl->ch) && (a + 1 < itemText.length()) && (itemText.item(a+1)->ch == SpecialChars::PARSEP))
 			{
@@ -2486,8 +2468,8 @@ void PageItem_TextFrame::layout()
 			if ((itemText.text(a) == SpecialChars::COLBREAK) && (Cols > 1))
 				goNextColumn = true;
 
-			if (a != firstInFrame() && implicitBreak(itemText.text(a - 1), itemText.text(a)))
-				current.rememberBreak(i -1, breakPos);
+			if (i != 0 && implicitBreak(glyphRuns[i - 1].lastChar(), glyphRuns[i].firstChar()))
+				current.rememberBreak(i - 1, breakPos);
 
 			current.isEmpty = (i - current.line.firstRun + 1) == 0;
 
