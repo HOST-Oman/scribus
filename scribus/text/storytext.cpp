@@ -24,6 +24,7 @@ pageitem.cpp  -  description
 //#include <QDebug>
 //FIXME: this include must go to sctextstruct.h !
 #include <QList>
+#include <QTextBoundaryFinder>
 #include <cassert>  //added to make Fedora-5 happy
 #include "fpoint.h"
 #include "notesstyles.h"
@@ -191,92 +192,109 @@ int StoryText::normalizedCursorPosition()
 	return (int) qMax((uint) 0, qMin(d->cursorPosition, d->len));
 }
 
-void StoryText::moveCursorLeft()
+void StoryText::moveCursorLeft(bool isGrapheme)
 {
-	if (paragraphStyle().direction() == ParagraphStyle::RTL)
-		setCursorPosition(1, true);
+	if (isGrapheme)
+	{
+		int pos;
+		QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Grapheme, plainText());
+		if (paragraphStyle().direction() == ParagraphStyle::RTL)
+		{
+			boundaryFinder.setPosition(cursorPosition() + 1);
+			for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
+				boundaryFinder.setPosition(boundaryFinder.position() + 1);
+		}
+		else
+		{
+			boundaryFinder.setPosition(cursorPosition() - 1);
+			for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
+				boundaryFinder.setPosition(boundaryFinder.position() - 1);
+		}
+		setCursorPosition(pos, true);
+	}
 	else
-		setCursorPosition(-1, true);
-}
-
-void StoryText::moveCursorLeft(int pos)
-{
-	bool isSpace, wasSpace, isRTL;
-	isRTL = (paragraphStyle().direction() == ParagraphStyle::RTL);
-
-	if (isRTL && pos < length())
 	{
-		wasSpace = text(pos).isSpace();
-		setCursorPosition(pos +1);
-		while (cursorPosition() < length())
-		{
-			isSpace = text().isSpace();
-			if (wasSpace && !isSpace)
-				break;
+		if (paragraphStyle().direction() == ParagraphStyle::RTL)
 			setCursorPosition(1, true);
-			wasSpace = isSpace;
-		}
-	}
-	else if (pos > 0)
-	{
-		setCursorPosition(pos -1);
-		wasSpace = text().isSpace();
-		while (cursorPosition() > 0)
-		{
-			isSpace = text().isSpace();
-			if (!wasSpace && isSpace)
-			{
-				setCursorPosition(1, true);
-				break;
-			}
+		else
 			setCursorPosition(-1, true);
-			wasSpace = isSpace;
-		}
 	}
 }
 
-void StoryText::moveCursorRight()
+void StoryText::moveCursorWordLeft()
 {
+	QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Word , plainText());
+	int pos;
+
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
-		setCursorPosition(-1, true);
+	{
+		boundaryFinder.setPosition(cursorPosition() + 1);
+		for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
+			boundaryFinder.setPosition(boundaryFinder.position() + 1);
+		if (text(boundaryFinder.position()).isSpace())
+			pos += 1;
+	}
 	else
-		setCursorPosition(1, true);
+	{
+		setCursorPosition(-1, true);
+		boundaryFinder.setPosition(cursorPosition() - 1);
+		for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
+			boundaryFinder.setPosition(boundaryFinder.position() - 1);
+	}
+
+	setCursorPosition(pos, true);
 }
 
-void StoryText::moveCursorRight(int pos)
+void StoryText::moveCursorRight(bool isGrapheme)
 {
-	bool isSpace, wasSpace, isRTL;
-	isRTL = (paragraphStyle().direction() == ParagraphStyle::RTL);
-
-	if (isRTL && pos > 0)
+	if (isGrapheme)
 	{
-		setCursorPosition(pos -1);
-		wasSpace = text().isSpace();
-		while (cursorPosition() > 0)
+		int pos;
+		QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Grapheme, plainText());
+		if (paragraphStyle().direction() == ParagraphStyle::RTL)
 		{
-			isSpace = text().isSpace();
-			if (!wasSpace && isSpace)
-			{
-				setCursorPosition(1, true);
-				break;
-			}
+			boundaryFinder.setPosition(cursorPosition() - 1);
+			for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
+				boundaryFinder.setPosition(boundaryFinder.position() - 1);
+		}
+		else
+		{
+			boundaryFinder.setPosition(cursorPosition() + 1);
+			for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
+				boundaryFinder.setPosition(boundaryFinder.position() + 1);
+		}
+		setCursorPosition(pos, true);
+	}
+	else
+	{
+		if (paragraphStyle().direction() == ParagraphStyle::RTL)
 			setCursorPosition(-1, true);
-			wasSpace = isSpace;
-		}
-	}
-	else if (pos < length())
-	{
-		wasSpace = text(pos).isSpace();
-		setCursorPosition(pos + 1);
-		while (cursorPosition() < length())
-		{
-			isSpace = text().isSpace();
-			if (wasSpace && !isSpace)
-				break;
+		else
 			setCursorPosition(1, true);
-			wasSpace = isSpace;
-		}
 	}
+}
+
+void StoryText::moveCursorWordRight()
+{
+	QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Word , plainText());
+	int pos;
+
+	if (paragraphStyle().direction() == ParagraphStyle::RTL)
+	{
+		setCursorPosition(-1, true);
+		boundaryFinder.setPosition(cursorPosition() - 1);
+		for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
+			boundaryFinder.setPosition(boundaryFinder.position() - 1);
+	}
+	else
+	{
+		boundaryFinder.setPosition(cursorPosition() + 1);
+		for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
+			boundaryFinder.setPosition(boundaryFinder.position() + 1);
+		if (text(boundaryFinder.position()).isSpace())
+			pos += 1;
+	}
+	setCursorPosition(pos, true);
 }
 
 void StoryText::clear()
