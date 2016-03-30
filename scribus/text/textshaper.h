@@ -38,8 +38,8 @@ private:
 	QList<TextRun> itemizeScripts(QString &text, QList<TextRun> &runs);
 	QList<TextRun> itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs);
 
-	PageItem *m_item;
-	StoryText &m_story;
+	PageItem* m_item;
+	StoryText& m_story;
 	int m_firstChar;
 	bool m_singlePar;
 	QString m_text;

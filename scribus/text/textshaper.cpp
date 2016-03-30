@@ -4,6 +4,7 @@
 #include <hb-ft.h>
 #include <hb-icu.h>
 #include <unicode/ubidi.h>
+#include <QTextBoundaryFinder>
 
 #include "scrptrun.h"
 
@@ -242,6 +243,9 @@ QList<GlyphRun> TextShaper::shape()
 
 	buildText(m_text, m_textMap);
 
+	QTextBoundaryFinder boundery(QTextBoundaryFinder::Line, m_text);
+	int index = 0;
+
 	QList<TextRun> bidiRuns = itemizeBiDi(m_text);
 	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
 	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
@@ -395,6 +399,10 @@ QList<GlyphRun> TextShaper::shape()
 				i++;
 			}
 			glyphRuns.append(run);
+			boundery.setPosition(index);
+			index++;
+			if(boundery.isAtBoundary())
+				glyphRuns.last().setBoundery(true);
 		}
 	}
 
