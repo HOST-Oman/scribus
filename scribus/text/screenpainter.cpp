@@ -43,191 +43,197 @@ ScreenPainter::~ScreenPainter()
 	m_painter->restore();
 }
 
-void ScreenPainter::drawGlyph(const GlyphLayout gl)
+void ScreenPainter::drawGlyph(const QList<GlyphLayout> gly, int firstChar, int lastChar)
 {
-	bool showControls = (m_item->doc()->guidesPrefs().showControls) &&
-			    (gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS);
-#if CAIRO_HAS_FC_FONT
-	if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0 && !showControls)
+	foreach (const GlyphLayout gl, gly)
 	{
+		bool showControls = (m_item->doc()->guidesPrefs().showControls) &&
+				(gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS);
+#if CAIRO_HAS_FC_FONT
+		if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0 && !showControls)
+		{
+			m_painter->save();
+
+			setupState(false);
+
+			cairo_t* cr = m_painter->context();
+			double r, g, b;
+			m_painter->brush().getRgbF(&r, &g, &b);
+			cairo_set_source_rgba(cr, r, g, b, m_painter->brushOpacity());
+			m_painter->setRasterOp(m_painter->blendModeFill());
+
+			if (m_fontPath != font().fontFilePath() || m_faceIndex != font().faceIndex() || m_cairoFace == NULL)
+			{
+				m_fontPath = font().fontFilePath();
+				m_faceIndex = font().faceIndex();
+				// A very ugly hack as we can’t use the font().ftFace() because
+				// Scribus liberally calls FT_Set_CharSize() with all sorts of
+				// crazy values, breaking any subsequent call to the layout
+				// painter.  FIXME: drop the FontConfig dependency here once
+				// Scribus font handling code is made sane!
+				FcPattern *pattern = FcPatternBuild(NULL,
+													FC_FILE, FcTypeString, QFile::encodeName(font().fontFilePath()).data(),
+													FC_INDEX, FcTypeInteger, font().faceIndex(),
+													NULL);
+				m_cairoFace = cairo_ft_font_face_create_for_pattern(pattern);
+				FcPatternDestroy(pattern);
+			}
+
+			cairo_set_font_face(cr, m_cairoFace);
+			cairo_set_font_size(cr, fontSize());
+
+			cairo_scale(cr, gl.scaleH, gl.scaleV);
+			cairo_glyph_t glyph = { gl.glyph, 0, 0 };
+			cairo_show_glyphs(cr, &glyph, 1);
+
+			m_painter->restore();
+			return;
+		}
+#endif
 		m_painter->save();
 
 		setupState(false);
 
-		cairo_t* cr = m_painter->context();
-		double r, g, b;
-		m_painter->brush().getRgbF(&r, &g, &b);
-		cairo_set_source_rgba(cr, r, g, b, m_painter->brushOpacity());
-		m_painter->setRasterOp(m_painter->blendModeFill());
+		bool fr = m_painter->fillRule();
+		m_painter->setFillRule(false);
 
-		if (m_fontPath != font().fontFilePath() || m_faceIndex != font().faceIndex() || m_cairoFace == NULL)
+		uint gid = gl.glyph;
+		if (showControls)
 		{
-			m_fontPath = font().fontFilePath();
-			m_faceIndex = font().faceIndex();
-			// A very ugly hack as we can’t use the font().ftFace() because
-			// Scribus liberally calls FT_Set_CharSize() with all sorts of
-			// crazy values, breaking any subsequent call to the layout
-			// painter.  FIXME: drop the FontConfig dependency here once
-			// Scribus font handling code is made sane!
-			FcPattern *pattern = FcPatternBuild(NULL,
-							    FC_FILE, FcTypeString, QFile::encodeName(font().fontFilePath()).data(),
-							    FC_INDEX, FcTypeInteger, font().faceIndex(),
-							    NULL);
-			m_cairoFace = cairo_ft_font_face_create_for_pattern(pattern);
-			FcPatternDestroy(pattern);
+			bool stroke = false;
+			if (gid >= ScFace::CONTROL_GLYPHS)
+				gid -= ScFace::CONTROL_GLYPHS;
+			else
+				gid = 32;
+			QTransform chma, chma4;
+			FPointArray outline;
+			if (gid == SpecialChars::TAB.unicode())
+			{
+				outline = m_item->doc()->symTab.copy();
+				chma4.translate(gl.xadvance - fontSize() * gl.scaleH * 0.7, -fontSize() * gl.scaleV * 0.5);
+			}
+			else if (gid == SpecialChars::COLBREAK.unicode())
+			{
+				outline = m_item->doc()->symNewCol.copy();
+				chma4.translate(0, -fontSize() * gl.scaleV * 0.6);
+			}
+			else if (gid == SpecialChars::FRAMEBREAK.unicode())
+			{
+				outline = m_item->doc()->symNewFrame.copy();
+				chma4.translate(0, -fontSize() * gl.scaleV * 0.6);
+			}
+			else if (gid == SpecialChars::PARSEP.unicode())
+			{
+				outline = m_item->doc()->symReturn.copy();
+				chma4.translate(0, -fontSize() * gl.scaleV * 0.8);
+			}
+			else if (gid == SpecialChars::LINEBREAK.unicode())
+			{
+				outline = m_item->doc()->symNewLine.copy();
+				chma4.translate(0, -fontSize() * gl.scaleV * 0.4);
+			}
+			else if (gid == SpecialChars::NBSPACE.unicode() || gid == 32)
+			{
+				stroke = (gid == 32);
+				outline = m_item->doc()->symNonBreak.copy();
+				chma4.translate(0, -fontSize() * gl.scaleV * 0.4);
+			}
+			else if (gid == SpecialChars::NBHYPHEN.unicode())
+			{
+				outline = font().glyphOutline(font().char2CMap(QChar('-')), fontSize());
+				chma4.translate(0, -fontSize() * gl.scaleV);
+			}
+			else if (gid == SpecialChars::SHYPHEN.unicode())
+			{
+				outline.resize(0);
+				outline.addQuadPoint(0, -10, 0, -10, 0, -6, 0, -6);
+				stroke = true;
+			}
+			else if (gid == SpecialChars::OBJECT.unicode())
+			{
+				//for showing marks entries as control chars
+				outline.resize(0);
+				outline.addQuadPoint(0, -8, 1, -8, 0, -6, 1, -6);
+				stroke = true;
+			}
+			else // ???
+			{
+				outline.resize(0);
+				outline.addQuadPoint(0, -10, 0, -10, 0, -9, 0, -9);
+				outline.addQuadPoint(0, -9, 0, -9, 1, -9, 1, -9);
+				outline.addQuadPoint(1, -9, 1, -9, 1, -10, 1, -10);
+				outline.addQuadPoint(1, -10, 1, -10, 0, -10, 0, -10);
+			}
+			chma.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
+			outline.map(chma * chma4);
+			m_painter->setupPolygon(&outline, true);
+			QColor oldBrush = m_painter->brush();
+			// FIXME
+			/* p->setBrush( (flags & ScLayout_SuppressSpace) ? Qt::green
+				: PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);*/
+			m_painter->setBrush(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
+			if (stroke)
+			{
+				QColor tmp = m_painter->pen();
+				m_painter->setStrokeMode(1);
+				m_painter->setPen(m_painter->brush(), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+				m_painter->setLineWidth(fontSize() * gl.scaleV / 20.0);
+				m_painter->strokePath();
+				m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+			}
+			else
+			{
+				m_painter->setFillMode(1);
+				m_painter->fillPath();
+			}
+			m_painter->setBrush(oldBrush);
 		}
-
-		cairo_set_font_face(cr, m_cairoFace);
-		cairo_set_font_size(cr, fontSize());
-
-		cairo_scale(cr, gl.scaleH, gl.scaleV);
-		cairo_glyph_t glyph = { gl.glyph, 0, 0 };
-		cairo_show_glyphs(cr, &glyph, 1);
+		else
+		{
+			m_painter->translate(0, -(fontSize() * gl.scaleV));
+			double scaleH = gl.scaleH * fontSize() / 10.0;
+			double scaleV = gl.scaleV * fontSize() / 10.0;
+			m_painter->scale(scaleH, scaleV);
+			FPointArray outline = font().glyphOutline(gid);
+			m_painter->setupPolygon(&outline, true);
+			if (outline.size() > 3)
+				m_painter->fillPath();
+		}
+		m_painter->setFillRule(fr);
 
 		m_painter->restore();
-		return;
 	}
-#endif
-	m_painter->save();
-
-	setupState(false);
-
-	bool fr = m_painter->fillRule();
-	m_painter->setFillRule(false);
-
-	uint gid = gl.glyph;
-	if (showControls)
-	{
-		bool stroke = false;
-		if (gid >= ScFace::CONTROL_GLYPHS)
-			gid -= ScFace::CONTROL_GLYPHS;
-		else
-			gid = 32;
-		QTransform chma, chma4;
-		FPointArray outline;
-		if (gid == SpecialChars::TAB.unicode())
-		{
-			outline = m_item->doc()->symTab.copy();
-			chma4.translate(gl.xadvance - fontSize() * gl.scaleH * 0.7, -fontSize() * gl.scaleV * 0.5);
-		}
-		else if (gid == SpecialChars::COLBREAK.unicode())
-		{
-			outline = m_item->doc()->symNewCol.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.6);
-		}
-		else if (gid == SpecialChars::FRAMEBREAK.unicode())
-		{
-			outline = m_item->doc()->symNewFrame.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.6);
-		}
-		else if (gid == SpecialChars::PARSEP.unicode())
-		{
-			outline = m_item->doc()->symReturn.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.8);
-		}
-		else if (gid == SpecialChars::LINEBREAK.unicode())
-		{
-			outline = m_item->doc()->symNewLine.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.4);
-		}
-		else if (gid == SpecialChars::NBSPACE.unicode() || gid == 32)
-		{
-			stroke = (gid == 32);
-			outline = m_item->doc()->symNonBreak.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.4);
-		}
-		else if (gid == SpecialChars::NBHYPHEN.unicode())
-		{
-			outline = font().glyphOutline(font().char2CMap(QChar('-')), fontSize());
-			chma4.translate(0, -fontSize() * gl.scaleV);
-		}
-		else if (gid == SpecialChars::SHYPHEN.unicode())
-		{
-			outline.resize(0);
-			outline.addQuadPoint(0, -10, 0, -10, 0, -6, 0, -6);
-			stroke = true;
-		}
-		else if (gid == SpecialChars::OBJECT.unicode())
-		{
-			//for showing marks entries as control chars
-			outline.resize(0);
-			outline.addQuadPoint(0, -8, 1, -8, 0, -6, 1, -6);
-			stroke = true;
-		}
-		else // ???
-		{
-			outline.resize(0);
-			outline.addQuadPoint(0, -10, 0, -10, 0, -9, 0, -9);
-			outline.addQuadPoint(0, -9, 0, -9, 1, -9, 1, -9);
-			outline.addQuadPoint(1, -9, 1, -9, 1, -10, 1, -10);
-			outline.addQuadPoint(1, -10, 1, -10, 0, -10, 0, -10);
-		}
-		chma.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
-		outline.map(chma * chma4);
-		m_painter->setupPolygon(&outline, true);
-		QColor oldBrush = m_painter->brush();
-		// FIXME
-		/* p->setBrush( (flags & ScLayout_SuppressSpace) ? Qt::green
-				: PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);*/
-		m_painter->setBrush(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
-		if (stroke)
-		{
-			QColor tmp = m_painter->pen();
-			m_painter->setStrokeMode(1);
-			m_painter->setPen(m_painter->brush(), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-			m_painter->setLineWidth(fontSize() * gl.scaleV / 20.0);
-			m_painter->strokePath();
-			m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-		}
-		else
-		{
-			m_painter->setFillMode(1);
-			m_painter->fillPath();
-		}
-		m_painter->setBrush(oldBrush);
-	}
-	else
-	{
-		m_painter->translate(0, -(fontSize() * gl.scaleV));
-		double scaleH = gl.scaleH * fontSize() / 10.0;
-		double scaleV = gl.scaleV * fontSize() / 10.0;
-		m_painter->scale(scaleH, scaleV);
-		FPointArray outline = font().glyphOutline(gid);
-		m_painter->setupPolygon(&outline, true);
-		if (outline.size() > 3)
-			m_painter->fillPath();
-	}
-	m_painter->setFillRule(fr);
-
-	m_painter->restore();
 }
 
-void ScreenPainter::drawGlyphOutline(const GlyphLayout gl, bool fill)
+void ScreenPainter::drawGlyphOutline(const QList<GlyphLayout> gly, int firstChar, int lastChar, bool fill)
 {
-	if (fill)
-		drawGlyph(gl);
-	m_painter->save();
-	bool fr = m_painter->fillRule();
-	m_painter->setFillRule(false);
-
-	setupState(false);
-	m_painter->translate(0, -(fontSize() * gl.scaleV));
-
-	FPointArray outline = font().glyphOutline(gl.glyph);
-	double scaleHv = gl.scaleH * fontSize() / 10.0;
-	double scaleVv = gl.scaleV * fontSize() / 10.0;
-	QTransform trans;
-	trans.scale(scaleHv, scaleVv);
-	outline.map(trans);
-	m_painter->setupPolygon(&outline, true);
-	if (outline.size() > 3)
+	foreach (const GlyphLayout gl, gly)
 	{
-		m_painter->setLineWidth(strokeWidth());
-		m_painter->strokePath();
-	}
+		if (fill)
+			drawGlyph(gly, firstChar, lastChar);
+		m_painter->save();
+		bool fr = m_painter->fillRule();
+		m_painter->setFillRule(false);
 
-	m_painter->setFillRule(fr);
-	m_painter->restore();
+		setupState(false);
+		m_painter->translate(0, -(fontSize() * gl.scaleV));
+
+		FPointArray outline = font().glyphOutline(gl.glyph);
+		double scaleHv = gl.scaleH * fontSize() / 10.0;
+		double scaleVv = gl.scaleV * fontSize() / 10.0;
+		QTransform trans;
+		trans.scale(scaleHv, scaleVv);
+		outline.map(trans);
+		m_painter->setupPolygon(&outline, true);
+		if (outline.size() > 3)
+		{
+			m_painter->setLineWidth(strokeWidth());
+			m_painter->strokePath();
+		}
+
+		m_painter->setFillRule(fr);
+		m_painter->restore();
+	}
 
 }
 
