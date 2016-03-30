@@ -239,18 +239,16 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 QList<GlyphRun> TextShaper::shape()
 {
 	// maps expanded characters to itemText tokens.
-	QMap<int, int> textMap;
-	QString text;
 
-	buildText(text, textMap);
+	buildText(m_text, m_textMap);
 
-	QList<TextRun> bidiRuns = itemizeBiDi(text);
-	QList<TextRun> scriptRuns = itemizeScripts(text, bidiRuns);
-	QList<TextRun> textRuns = itemizeStyles(textMap, scriptRuns);
+	QList<TextRun> bidiRuns = itemizeBiDi(m_text);
+	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
+	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
 
 	QList<GlyphRun> glyphRuns;
 	foreach (TextRun textRun, textRuns) {
-		const CharStyle &style = m_story.charStyle(textMap.value(textRun.start));
+		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
 		int effects = style.effects() & ScStyle_UserStyles;
 
 		FT_Set_Char_Size(style.font().ftFace(), style.fontSize(), 0, 72, 0);
@@ -265,7 +263,7 @@ QList<GlyphRun> TextShaper::shape()
 		hb_language_t hbLanguage = hb_language_from_string(language.c_str(), language.length());
 
 		hb_buffer_clear_contents(hbBuffer);
-		hb_buffer_add_utf16(hbBuffer, text.utf16(), text.length(), textRun.start, textRun.len);
+		hb_buffer_add_utf16(hbBuffer, m_text.utf16(), m_text.length(), textRun.start, textRun.len);
 		hb_buffer_set_direction(hbBuffer, hbDirection);
 		hb_buffer_set_script(hbBuffer, hbScript);
 		hb_buffer_set_language(hbBuffer, hbLanguage);
@@ -278,7 +276,7 @@ QList<GlyphRun> TextShaper::shape()
 		hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(hbBuffer, NULL);
 
 		glyphRuns.reserve(glyphRuns.size() + count);
-		for (size_t i = 0; i < count; i++)
+		for (size_t i = 0; i < count; )
 		{
 			uint32_t firstCluster = glyphs[i].cluster;
 			uint32_t nextCluster = firstCluster;
@@ -305,10 +303,10 @@ QList<GlyphRun> TextShaper::shape()
 					nextCluster = textRun.start + textRun.len;
 			}
 
-			assert(textMap.contains(firstCluster));
-			assert(textMap.contains(nextCluster - 1));
-			int firstChar = textMap.value(firstCluster);
-			int lastChar = textMap.value(nextCluster - 1);
+			assert(m_textMap.contains(firstCluster));
+			assert(m_textMap.contains(nextCluster - 1));
+			int firstChar = m_textMap.value(firstCluster);
+			int lastChar = m_textMap.value(nextCluster - 1);
 
 			QChar ch = m_story.text(firstChar);
 			LayoutFlags flags = m_story.flags(firstChar);
@@ -318,79 +316,84 @@ QList<GlyphRun> TextShaper::shape()
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
 
-			GlyphLayout gl;
-			gl.glyph = glyphs[i].codepoint;
-			// indirect way to call ScFace::emulateGlyph() as it is private.
-			if (gl.glyph == 0)
-				gl.glyph = style.font().char2CMap(ch);
-			gl.xoffset = positions[i].x_offset / 10.0;
-			gl.yoffset = -positions[i].y_offset / 10.0;
-			gl.xadvance = positions[i].x_advance / 10.0;
-			gl.yadvance = positions[i].y_advance / 10.0;
-
-			if (m_story.hasMark(firstChar))
+			while (i < count && glyphs[i].cluster == firstCluster)
 			{
-				GlyphLayout control;
-				control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
-				run.glyphs().append(control);
-			}
+				GlyphLayout gl;
+				gl.glyph = glyphs[i].codepoint;
+				// indirect way to call ScFace::emulateGlyph() as it is private.
+				if (gl.glyph == 0)
+					gl.glyph = style.font().char2CMap(ch);
+				gl.xoffset = positions[i].x_offset / 10.0;
+				gl.yoffset = -positions[i].y_offset / 10.0;
+				gl.xadvance = positions[i].x_advance / 10.0;
+				gl.yadvance = positions[i].y_advance / 10.0;
 
-			if (SpecialChars::isExpandingSpace(ch))
-				gl.xadvance *= run.style().wordTracking();
-
-			if (m_story.hasObject(firstChar))
-				gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
-
-			double tracking = 0;
-			if (flags & ScLayout_StartOfLine)
-				tracking = style.fontSize() * style.tracking() / 10000.0;
-			gl.xoffset += tracking;
-
-			gl.scaleH = charStyle.scaleH() / 1000.0;
-			gl.scaleV = charStyle.scaleV() / 1000.0;
-
-
-			if (effects != ScStyle_Default)
-			{
-				double asce = style.font().ascent(style.fontSize() / 10.0);
-				if (effects & ScStyle_Superscript)
+				if (m_story.hasMark(firstChar))
 				{
-					gl.yoffset -= asce * m_item->doc()->typographicPrefs().valueSuperScript / 100.0;
-					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
-				}
-				else if (effects & ScStyle_Subscript)
-				{
-					gl.yoffset += asce * m_item->doc()->typographicPrefs().valueSubScript / 100.0;
-					gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
-				}
-				else
-				{
-					gl.scaleV = gl.scaleH = 1.0;
+					GlyphLayout control;
+					control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
+					run.glyphs().append(control);
 				}
 
-				gl.scaleH *= style.scaleH() / 1000.0;
-				gl.scaleV *= style.scaleV() / 1000.0;
+				if (SpecialChars::isExpandingSpace(ch))
+					gl.xadvance *= run.style().wordTracking();
 
-				if (effects & ScStyle_SmallCaps)
+				if (m_story.hasObject(firstChar))
+					gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
+
+				double tracking = 0;
+				if (flags & ScLayout_StartOfLine)
+					tracking = style.fontSize() * style.tracking() / 10000.0;
+				gl.xoffset += tracking;
+
+				gl.scaleH = charStyle.scaleH() / 1000.0;
+				gl.scaleV = charStyle.scaleV() / 1000.0;
+
+
+				if (effects != ScStyle_Default)
 				{
-					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
-					// FIXME HOST: This is completely wrong, we shouldn’t be changing
-					// the glyph ids after the shaping!
-					QChar uc = ch.toUpper();
-					if (uc != ch)
+					double asce = style.font().ascent(style.fontSize() / 10.0);
+					if (effects & ScStyle_Superscript)
 					{
-						gl.glyph = style.font().char2CMap(uc);
-						gl.xadvance = style.font().glyphWidth(gl.glyph, style.fontSize() / 10);
-						gl.scaleV *= smallcapsScale;
-						gl.scaleH *= smallcapsScale;
+						gl.yoffset -= asce * m_item->doc()->typographicPrefs().valueSuperScript / 100.0;
+						gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+					}
+					else if (effects & ScStyle_Subscript)
+					{
+						gl.yoffset += asce * m_item->doc()->typographicPrefs().valueSubScript / 100.0;
+						gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
+					}
+					else
+					{
+						gl.scaleV = gl.scaleH = 1.0;
+					}
+
+					gl.scaleH *= style.scaleH() / 1000.0;
+					gl.scaleV *= style.scaleV() / 1000.0;
+
+					if (effects & ScStyle_SmallCaps)
+					{
+						double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
+						// FIXME HOST: This is completely wrong, we shouldn’t be changing
+						// the glyph ids after the shaping!
+						QChar uc = ch.toUpper();
+						if (uc != ch)
+						{
+							gl.glyph = style.font().char2CMap(uc);
+							gl.xadvance = style.font().glyphWidth(gl.glyph, style.fontSize() / 10);
+							gl.scaleV *= smallcapsScale;
+							gl.scaleH *= smallcapsScale;
+						}
 					}
 				}
+
+				if (gl.xadvance > 0)
+					gl.xadvance += tracking;
+
+				run.glyphs().append(gl);
+
+				i++;
 			}
-
-			if (gl.xadvance > 0)
-				gl.xadvance += tracking;
-
-			run.glyphs().append(gl);
 			glyphRuns.append(run);
 		}
 	}
