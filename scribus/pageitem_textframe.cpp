@@ -2236,7 +2236,7 @@ void PageItem_TextFrame::layout()
 				current.xPos = qMax(current.xPos, current.colLeft);
 			}
 			// remember possible break
-			if (i != 0 && textShaper.isBoundery(i))
+			if (i != 0 && glyphRuns[i].getBoundery())
 			{
 				current.rememberBreak(i - 1, breakPos, style.rightMargin());
 			}

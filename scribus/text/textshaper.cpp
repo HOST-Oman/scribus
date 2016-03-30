@@ -243,6 +243,9 @@ QList<GlyphRun> TextShaper::shape()
 
 	buildText(m_text, m_textMap);
 
+	QTextBoundaryFinder boundery(QTextBoundaryFinder::Line, m_text);
+	int index = 0;
+
 	QList<TextRun> bidiRuns = itemizeBiDi(m_text);
 	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
 	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
@@ -396,17 +399,12 @@ QList<GlyphRun> TextShaper::shape()
 				i++;
 			}
 			glyphRuns.append(run);
+			boundery.setPosition(index);
+			index++;
+			if(boundery.isAtBoundary())
+				glyphRuns.last().setBoundery(true);
 		}
 	}
 
 	return glyphRuns;
-}
-
-bool TextShaper::isBoundery(int i)
-{
-	QTextBoundaryFinder boundery(QTextBoundaryFinder::Line, m_text);
-	boundery.setPosition(m_textMap.keys(i).last());
-	if(boundery.isAtBoundary())
-		return true;
-	return false;
 }
