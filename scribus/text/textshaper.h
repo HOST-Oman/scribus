@@ -41,6 +41,9 @@ private:
 	StoryText &m_story;
 	int m_firstChar;
 	bool m_singlePar;
+	QString m_text;
+	BreakIterator* m_break;
+	QMap<int, int> m_textMap;
 };
 
 #endif // TEXTSHAPER_H
