@@ -26,7 +26,7 @@ qreal GlyphRun::width() const
 
 double GlyphRun::ascent() const
 {
-	ScFace font = m_style->font();
+	const ScFace &font = m_style->font();
 	double asc = 0;
 	foreach (const GlyphLayout gl, m_glyphs) {
 		GlyphMetrics gm = font.glyphBBox(gl.glyph, m_style->fontSize() / 10.0);
@@ -37,7 +37,7 @@ double GlyphRun::ascent() const
 
 double GlyphRun::desent() const
 {
-	ScFace font = m_style->font();
+	const ScFace &font = m_style->font();
 	double des = 0;
 	foreach (const GlyphLayout gl, m_glyphs) {
 		GlyphMetrics gm = font.glyphBBox(gl.glyph, m_style->fontSize() / 10.0);
