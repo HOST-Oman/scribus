@@ -2236,9 +2236,10 @@ void PageItem_TextFrame::layout()
 				current.xPos = qMax(current.xPos, current.colLeft);
 			}
 			// remember possible break
-			if (i != 0 && glyphRuns[i].hasFlag(ScLayout_LineBoundry))
+			if (glyphRuns[i].hasFlag(ScLayout_LineBoundry))
 			{
-				current.rememberBreak(i - 1, breakPos, style.rightMargin());
+				if (i == 0 || !glyphRuns[i - 1].hasFlag(ScLayout_LineBoundry))
+				current.rememberBreak(i, breakPos, style.rightMargin());
 			}
 			if (HasObject)
 				current.rememberBreak(i, breakPos, style.rightMargin());
