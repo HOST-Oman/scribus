@@ -817,64 +817,63 @@ public:
 		m_relRoot(rel_root)
 	{ }
 
-	void drawGlyph(const QList<GlyphLayout> gly, int firstChar, int lastChar)
+	void drawGlyph(const GlyphLayout gl)
 	{
-		foreach (const GlyphLayout gl, gly)
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
+
+		if (!m_fontMap.contains(font().replacementName()))
+			m_fontMap.insert(font().replacementName(), m_xps->embedFont(font(), m_relRoot));
+
+		QTransform transform = matrix();
+		QDomElement glyph = m_xps->p_docu.createElement("Glyphs");
+		double size = fontSize() * qMax(gl.scaleV, gl.scaleH) * m_xps->conversionFactor;
+		glyph.setAttribute("RenderTransform", m_xps->MatrixToStr(transform, m_xps->conversionFactor));
+		glyph.setAttribute("BidiLevel", "0");
+		glyph.setAttribute("StyleSimulations", "None");
+		glyph.setAttribute("FontRenderingEmSize", m_xps->FToStr(size));
+		glyph.setAttribute("FontUri", m_fontMap[font().replacementName()]);
+		glyph.setAttribute("Fill", m_xps->SetColor(fillColor().color,fillColor().shade, 0));
+		glyph.setAttribute("OriginX", m_xps->FToStr(x() * m_xps->conversionFactor));
+		glyph.setAttribute("OriginY", m_xps->FToStr(y() * m_xps->conversionFactor));
+		glyph.setAttribute("Indices", QString("%1,%2").arg(gl.glyph).arg((gl.xadvance * m_xps->conversionFactor) / size * 100));
+		for (int a = 32; a < 65536; a++)
 		{
-			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
-				return;
-
-			if (!m_fontMap.contains(font().replacementName()))
-				m_fontMap.insert(font().replacementName(), m_xps->embedFont(font(), m_relRoot));
-
-			QTransform transform = matrix();
-			QDomElement glyph = m_xps->p_docu.createElement("Glyphs");
-			double size = fontSize() * qMax(gl.scaleV, gl.scaleH) * m_xps->conversionFactor;
-			glyph.setAttribute("RenderTransform", m_xps->MatrixToStr(transform, m_xps->conversionFactor));
-			glyph.setAttribute("BidiLevel", "0");
-			glyph.setAttribute("StyleSimulations", "None");
-			glyph.setAttribute("FontRenderingEmSize", m_xps->FToStr(size));
-			glyph.setAttribute("FontUri", m_fontMap[font().replacementName()]);
-			glyph.setAttribute("Fill", m_xps->SetColor(fillColor().color,fillColor().shade, 0));
-			glyph.setAttribute("OriginX", m_xps->FToStr(x() * m_xps->conversionFactor));
-			glyph.setAttribute("OriginY", m_xps->FToStr(y() * m_xps->conversionFactor));
-			glyph.setAttribute("Indices", QString("%1,%2").arg(gl.glyph).arg((gl.xadvance * m_xps->conversionFactor) / size * 100));
-			glyph.setAttribute("UnicodeString", QString(m_item->itemText.text(firstChar, lastChar - firstChar + 1)));
-
-
-			m_group.appendChild(glyph);
-
+			if (gl.glyph == font().char2CMap(QChar(a)))
+			{
+				glyph.setAttribute("UnicodeString", QChar(a));
+				break;
+			}
 		}
+
+		m_group.appendChild(glyph);
 	}
 
-	void drawGlyphOutline(const QList<GlyphLayout> gly, int firstChar, int lastChar, bool fill)
+	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
-		foreach (const GlyphLayout gl, gly)
-		{
-			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
-				return;
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
 
-			FPointArray outline = font().glyphOutline(gl.glyph);
-			if (outline.size() >= 4)
-			{
-				QTransform transform = matrix();
-				transform.scale((fontSize() * gl.scaleH) / 10.0, (fontSize() * gl.scaleV) / 10.0);
-				outline.map(transform);
-				outline.translate(0, -fontSize() * gl.scaleV);
-				outline.translate(x(), y());
-				outline.scale(m_xps->conversionFactor, m_xps->conversionFactor);
-				QString pathData = m_xps->SetClipPath(&outline, true);
-				QDomElement glyph = m_xps->p_docu.createElement("Path");
-				glyph.setAttribute("Data", pathData);
-				if (!fill)
-					glyph.setAttribute("Fill", m_xps->SetColor("None", fillColor().shade, 0));
-				else
-					glyph.setAttribute("Fill", m_xps->SetColor(fillColor().color, fillColor().shade, 0));
-				glyph.setAttribute("StrokeThickness", m_xps->FToStr(strokeWidth() * m_xps->conversionFactor));
-				glyph.setAttribute("Stroke", m_xps->SetColor(strokeColor().color, strokeColor().shade, 0));
-				m_group.appendChild(glyph);
-				qDebug() << "StrokeWidth XPS" << strokeWidth();
-			}
+		FPointArray outline = font().glyphOutline(gl.glyph);
+		if (outline.size() >= 4)
+		{
+			QTransform transform = matrix();
+			transform.scale((fontSize() * gl.scaleH) / 10.0, (fontSize() * gl.scaleV) / 10.0);
+			outline.map(transform);
+			outline.translate(0, -fontSize() * gl.scaleV);
+			outline.translate(x(), y());
+			outline.scale(m_xps->conversionFactor, m_xps->conversionFactor);
+			QString pathData = m_xps->SetClipPath(&outline, true);
+			QDomElement glyph = m_xps->p_docu.createElement("Path");
+			glyph.setAttribute("Data", pathData);
+			if (!fill)
+				glyph.setAttribute("Fill", m_xps->SetColor("None", fillColor().shade, 0));
+			else
+				glyph.setAttribute("Fill", m_xps->SetColor(fillColor().color, fillColor().shade, 0));
+			glyph.setAttribute("StrokeThickness", m_xps->FToStr(strokeWidth() * m_xps->conversionFactor));
+			glyph.setAttribute("Stroke", m_xps->SetColor(strokeColor().color, strokeColor().shade, 0));
+			m_group.appendChild(glyph);
+			qDebug() << "StrokeWidth XPS" << strokeWidth();
 		}
 	}
 

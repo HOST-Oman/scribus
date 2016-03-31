@@ -94,74 +94,68 @@ public:
 		m_ps(ps)
 	{}
 
-	void drawGlyph(const QList<GlyphLayout> gl, int firstChar, int lastChar);
-	void drawGlyphOutline(const QList<GlyphLayout> gly, int firstChar, int lastChar, bool fill);
+	void drawGlyph(const GlyphLayout gl);
+	void drawGlyphOutline(const GlyphLayout gl, bool fill);
 	void drawLine(QPointF start, QPointF end);
 	void drawRect(QRectF rect);
 	void drawObject(PageItem* item);
 };
 
-void PSPainter::drawGlyph(const QList<GlyphLayout> gly, int firstChar, int lastChar)
+void PSPainter::drawGlyph(const GlyphLayout gl)
 {
-	foreach (const GlyphLayout gl, gly)
-	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
-			return;
+	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		return;
 
-		m_ps->PS_save();
-		applyTransform();
-		m_ps->PS_translate(x(), -(y() - fontSize()));
-		if (gl.scaleH != 1.0)
-			m_ps->PS_scale(gl.scaleH, 1);
-		if (gl.scaleV != 1.0)
-		{
-			m_ps->PS_translate(0, -(fontSize() - fontSize() * gl.scaleV));
-			m_ps->PS_scale(1, gl.scaleV);
-		}
-		if (fillColor().color != CommonStrings::None)
-			m_ps->putColorNoDraw(fillColor().color, fillColor().shade);
-		m_ps->PS_showSub(gl.glyph, m_ps->FontSubsetMap[font().scName()], fontSize(), false);
-		m_ps->PS_restore();
+	m_ps->PS_save();
+	applyTransform();
+	m_ps->PS_translate(x(), -(y() - fontSize()));
+	if (gl.scaleH != 1.0)
+		m_ps->PS_scale(gl.scaleH, 1);
+	if (gl.scaleV != 1.0)
+	{
+		m_ps->PS_translate(0, -(fontSize() - fontSize() * gl.scaleV));
+		m_ps->PS_scale(1, gl.scaleV);
 	}
+	if (fillColor().color != CommonStrings::None)
+		m_ps->putColorNoDraw(fillColor().color, fillColor().shade);
+	m_ps->PS_showSub(gl.glyph, m_ps->FontSubsetMap[font().scName()], fontSize(), false);
+	m_ps->PS_restore();
 }
 
-void PSPainter::drawGlyphOutline(const QList<GlyphLayout> gly, int firstChar, int lastChar, bool fill)
+void PSPainter::drawGlyphOutline(const GlyphLayout gl, bool fill)
 {
-	foreach (const GlyphLayout gl, gly)
+	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		return;
+
+	int h, s, v, k;
+	QVector<double> dum;
+	dum.clear();
+	m_ps->PS_save();
+	applyTransform();
+	if (strokeColor().color != CommonStrings::None)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
-			return;
+		m_ps->PS_setlinewidth(strokeWidth());
+		m_ps->PS_setcapjoin(Qt::FlatCap, Qt::MiterJoin);
+		m_ps->PS_setdash(Qt::SolidLine, 0, dum);
+		m_ps->PS_translate(x(), -(y() - fontSize()));
+		FPointArray gly = font().glyphOutline(gl.glyph);
+		QTransform chma;
+		chma.scale((fontSize() * gl.scaleH) / 10.0, (fontSize() * gl.scaleV) / 10.0);
+		gly.map(chma);
+		m_ps->PS_translate(0, -(fontSize() - fontSize() * gl.scaleV));
+		if (gl.scaleH != 1.0 || gl.scaleV != 1.0)
+			m_ps->PS_scale(gl.scaleH, gl.scaleV);
+		if (fill)
+			m_ps->putColorNoDraw(fillColor().color, fillColor().shade);
+		m_ps->PS_showSub(gl.glyph, m_ps->FontSubsetMap[font().scName()], fontSize(), false);
+		m_ps->SetColor(strokeColor().color, strokeColor().shade, &h, &s, &v, &k);
+		m_ps->PS_setcmykcolor_stroke(h / 255.0, s / 255.0, v / 255.0, k / 255.0);
+		m_ps->SetClipPath(&gly, true);
+		m_ps->PS_closepath();
+		m_ps->putColor(strokeColor().color, strokeColor().shade, false);
 
-		int h, s, v, k;
-		QVector<double> dum;
-		dum.clear();
-		m_ps->PS_save();
-		applyTransform();
-		if (strokeColor().color != CommonStrings::None)
-		{
-			m_ps->PS_setlinewidth(strokeWidth());
-			m_ps->PS_setcapjoin(Qt::FlatCap, Qt::MiterJoin);
-			m_ps->PS_setdash(Qt::SolidLine, 0, dum);
-			m_ps->PS_translate(x(), -(y() - fontSize()));
-			FPointArray gly = font().glyphOutline(gl.glyph);
-			QTransform chma;
-			chma.scale((fontSize() * gl.scaleH) / 10.0, (fontSize() * gl.scaleV) / 10.0);
-			gly.map(chma);
-			m_ps->PS_translate(0, -(fontSize() - fontSize() * gl.scaleV));
-			if (gl.scaleH != 1.0 || gl.scaleV != 1.0)
-				m_ps->PS_scale(gl.scaleH, gl.scaleV);
-			if (fill)
-				m_ps->putColorNoDraw(fillColor().color, fillColor().shade);
-			m_ps->PS_showSub(gl.glyph, m_ps->FontSubsetMap[font().scName()], fontSize(), false);
-			m_ps->SetColor(strokeColor().color, strokeColor().shade, &h, &s, &v, &k);
-			m_ps->PS_setcmykcolor_stroke(h / 255.0, s / 255.0, v / 255.0, k / 255.0);
-			m_ps->SetClipPath(&gly, true);
-			m_ps->PS_closepath();
-			m_ps->putColor(strokeColor().color, strokeColor().shade, false);
-
-		}
-		m_ps->PS_restore();
 	}
+	m_ps->PS_restore();
 }
 
 void PSPainter::drawRect(QRectF rect)

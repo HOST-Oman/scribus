@@ -4510,22 +4510,19 @@ public:
 		: m_really(Really)
 	{}
 
-	void drawGlyph(const QList<GlyphLayout> gly, int firstChar, int lastChar)
+	void drawGlyph(const GlyphLayout gl)
 	{
-		foreach (const GlyphLayout gl, gly)
-		{
-			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
-				return;
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			return;
 
-			if (!font().replacementName().isEmpty())
-			{
-				FPointArray outline(font().glyphOutline(gl.glyph));
-				m_really[font().replacementName()].insert(gl.glyph, outline);
-			}
+		if (!font().replacementName().isEmpty())
+		{
+			FPointArray outline(font().glyphOutline(gl.glyph));
+			m_really[font().replacementName()].insert(gl.glyph, outline);
 		}
 	}
 
-	void drawGlyphOutline(const QList<GlyphLayout> gly, int firstChar, int lastChar, bool) { drawGlyph(gly, firstChar, lastChar); }
+	void drawGlyphOutline(const GlyphLayout gl, bool) { drawGlyph(gl); }
 
 	// we don't need this one
 	void drawLine(QPointF, QPointF) {}
