@@ -291,7 +291,7 @@ QList<GlyphRun> TextShaper::shape()
 					nextCluster = glyphs[j].cluster;
 					j++;
 				}
-				if (j == count)
+				if (j == count && nextCluster == firstCluster)
 					nextCluster = textRun.start + textRun.len;
 			}
 			else
@@ -302,7 +302,7 @@ QList<GlyphRun> TextShaper::shape()
 					nextCluster = glyphs[j].cluster;
 					j--;
 				}
-				if (j <= 0)
+				if (j <= 0 && nextCluster == firstCluster)
 					nextCluster = textRun.start + textRun.len;
 			}
 
