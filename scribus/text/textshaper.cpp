@@ -319,8 +319,8 @@ QList<GlyphRun> TextShaper::shape()
 			if (textRun.dir == UBIDI_RTL)
 				run.setFlag(ScLayout_RightToLeft);
 			lineBoundery.setPosition(firstCluster);
-			if (lineBoundery.isAtBoundary())
-				run.setFlag(ScLayout_LineBoundry);
+			if (!glyphRuns.empty() && lineBoundery.isAtBoundary())
+				glyphRuns.last().setFlag(ScLayout_LineBoundry);
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
 
