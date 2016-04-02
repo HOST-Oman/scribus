@@ -62,7 +62,7 @@ void SMCStyleWidget::changeEvent(QEvent *e)
 void SMCStyleWidget::languageChange()
 {
 	QStringList languageList;
-	LanguageManager::instance()->fillInstalledHyphStringList(&languageList);
+	LanguageManager::instance()->fillInstalledStringList(&languageList, false);
 	fillLangComboFromList(languageList);
 
 	if (fillColor_->count() > 0)
@@ -209,7 +209,7 @@ void SMCStyleWidget::setDoc(ScribusDoc *doc)
 		return;
 
 	QStringList languageList;
-	LanguageManager::instance()->fillInstalledHyphStringList(&languageList);
+	LanguageManager::instance()->fillInstalledStringList(&languageList, false);
 	fillLangComboFromList(languageList);
 	fillColorCombo(m_Doc->PageColors);
 	fontFace_->RebuildList(m_Doc);
@@ -332,17 +332,16 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 	int ci = -1, pi = -1, di = -1;
 // 	LanguageManager langmgr;
 // 	langmgr.init(true);
-	QString tl;
+	QString tl = LanguageManager::instance()->getAbbrevFromLang(defLang, false);
 	for (int i = 0; i < language_->count(); ++i)
 	{
-		QString ltAbbrev=LanguageManager::instance()->getAbbrevFromLang(language_->itemText(i), true, false);
+		QString ltAbbrev=LanguageManager::instance()->getAbbrevFromLang(language_->itemText(i), false);
 //		qDebug()<<"ltabbrev"<<ltAbbrev<<language_->itemText(i);
 		if (ltAbbrev == clang)
 			ci = i;
 		
 		if (hasParent && ltAbbrev == plang)
 			pi = i;
-		tl=defLang;
 //		qDebug() << i << language_->itemText(i) << defLang << langMap_[defLang] << tl;
 		if (ltAbbrev == defLang || ltAbbrev == tl)
 //		{

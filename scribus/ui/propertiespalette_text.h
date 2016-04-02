@@ -83,12 +83,14 @@ public slots:
 
 	void languageChange();
 	void unitChange();
+	void changeLang(int id);
 
 	void showAlignment(int e);
 	void showDirection(int e);
 	void showCharStyle(const QString& name);
 	void showFontFace(const QString&);
 	void showFontSize(double s);
+	void showLanguage(QString w);
 	void showFontFeatures(QString s);
 	void showFirstLinePolicy(FirstLineOffsetPolicy);
 	void showLineSpacing(double r);

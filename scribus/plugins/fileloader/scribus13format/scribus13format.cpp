@@ -335,9 +335,9 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 			m_Doc->setHyphLanguage(l); //new style storage
 		else
 		{ //old style storage
-			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, true, false);
+			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
-				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false, false);
+				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			m_Doc->setHyphLanguage(lnew);
 		}
 

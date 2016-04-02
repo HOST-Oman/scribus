@@ -1251,9 +1251,9 @@ void Scribus134Format::readCharacterStyleAttrs(ScribusDoc *doc, ScXmlStreamAttri
 			newStyle.setLanguage(l); //new style storage
 		else
 		{ //old style storage
-			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, true, false);
+			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
-				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false, false);
+				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			newStyle.setLanguage(lnew);
 		}
 	}
