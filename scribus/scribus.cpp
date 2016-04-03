@@ -6253,11 +6253,11 @@ void ScribusMainWindow::setItemFontFeatures(QString fontFeature)
 
 void ScribusMainWindow::setItemLanguage(QString language)
 {
-		Query dia(this, "New", 1, tr("&Language:"), tr("Language"));
-		if (dia.exec())
-		{
-				doc->itemSelection_SetLanguage(language);
-		}
+	Query dia(this, "New", 1, tr("&Language:"), tr("Language"));
+	if (dia.exec())
+	{
+		doc->itemSelection_SetLanguage(language);
+	}
 
 	propertiesPalette->textPal->showLanguage(language);
 }

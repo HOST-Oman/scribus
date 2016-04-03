@@ -367,7 +367,7 @@ const QString LanguageManager::getAlternativeAbbrevfromAbbrev(QString langAbbrev
 	return "";
 }
 
-void LanguageManager::fillInstalledStringList(QStringList *stringListToFill, bool addDefaults)
+void LanguageManager::fillInstalledStringList(QStringList *stringListToFill, bool addDefaults) 
 {
 	if (stringListToFill)
 	{

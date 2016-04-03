@@ -148,6 +148,8 @@ public:
 	}
 #include "paragraphstyle.attrdefs.cxx"
 #undef ATTRDEF
+	
+	
 private:
 		
 	// member declarations:
