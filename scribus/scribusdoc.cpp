@@ -4973,6 +4973,9 @@ void ScribusDoc::recalculateColorItem(PageItem *item)
 
 void ScribusDoc::recalculateColors()
 {
+	// #12658, #13889 : disable undo temporarily, there is nothing to cancel here
+	m_undoManager->setUndoEnabled(false);
+
 	//Adjust Items of the 3 types to the colors
 	QHash<QString, VGradient>::Iterator itGrad;
 	for (itGrad = docGradients.begin(); itGrad != docGradients.end(); ++itGrad)
@@ -5107,6 +5110,8 @@ void ScribusDoc::recalculateColors()
 		maxy = qMax(maxy, y2);
 		docPatterns[patterns[c]].pattern = ite->DrawObj_toImage(qMin(qMax(maxx - minx, maxy - miny), 500.0));
 	}
+
+	m_undoManager->setUndoEnabled(true);
 }
 
 bool ScribusDoc::copyPageToMasterPage(const int pageNumber, const int leftPage, const int maxLeftPage,  const QString& masterPageName, bool copyFromAppliedMaster)
@@ -11378,8 +11383,9 @@ void ScribusDoc::itemSelection_DeleteItem(Selection* customSelection, bool force
 				currItem->asTextFrame()->removeMarksFromText(true);
 				currItem->asTextFrame()->delAllNoteFrames(false);
 				currItem->itemText.deselectAll();
-				currItem->dropLinks();
 			}
+			if (currItem->asTextFrame())
+				currItem->dropLinks();
 		}
 		if (currItem->isWelded())
 			currItem->unWeld();
@@ -13411,6 +13417,10 @@ void ScribusDoc::itemSelection_MultipleDuplicate(ItemMultipleDuplicateData& mdDa
 				PageItem* bItem = Items->at(as);
 				bItem->setLocked(false);
 				bItem->moveBy(dH2, dV2, true);
+				if (bItem->isGroup())
+					GroupOnPage(bItem);
+				else
+					bItem->OwnPage = OnPage(bItem);
 				m_Selection->addItem(bItem);
 			}
 			m_Selection->delaySignalsOff();
@@ -13467,6 +13477,10 @@ void ScribusDoc::itemSelection_MultipleDuplicate(ItemMultipleDuplicateData& mdDa
 					PageItem* bItem = Items->at(as);
 					bItem->setLocked(false);
 					bItem->moveBy(j*dX, i*dY, true);
+					if (bItem->isGroup())
+						GroupOnPage(bItem);
+					else
+						bItem->OwnPage = OnPage(bItem);
 					bItem->connectToGUI();
 					bItem->emitAllToGUI();
 				}
@@ -15832,10 +15846,7 @@ void ScribusDoc::setNewPrefs(const ApplicationPrefs& prefsData, const Applicatio
 
 //	bool viewToRecalcPictureRes = (m_docPrefsData.itemToolPrefs.imageLowResType==oldPrefsData.itemToolPrefs.imageLowResType);
 
-	autoSaveTimer->stop();
-	if (m_docPrefsData.docSetupPrefs.AutoSave)
-		autoSaveTimer->start(m_docPrefsData.docSetupPrefs.AutoSaveTime);
-	emit updateAutoSaveClock();
+	restartAutoSaveTimer();
 
 /*	FIXME: scribus determines dict by charstyle now, so this setting should go into the doc's default charstyle
 		currDoc->docHyphenator->slotNewDict(ScMW->GetLang(tabHyphenator->language->currentText()));

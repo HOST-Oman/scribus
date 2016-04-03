@@ -1662,9 +1662,12 @@ int PSLib::CreatePS(ScribusDoc* Doc, PrintOptions &options)
 	int ap=0;
 	for (; ap < Doc->MasterPages.count() && !abortExport && !errorOccured; ++ap)
 	{
-		progressDialog->setOverallProgress(ap);
-		progressDialog->setProgress("EMP", ap);
-		ScQApp->processEvents();
+		if (usingGUI)
+		{
+			progressDialog->setOverallProgress(ap);
+			progressDialog->setProgress("EMP", ap);
+			ScQApp->processEvents();
+		}
 		if (Doc->MasterItems.count() != 0)
 		{
 			int Lnr = 0;
@@ -1721,10 +1724,12 @@ int PSLib::CreatePS(ScribusDoc* Doc, PrintOptions &options)
 	PutStream("%%EndSetup\n");
 	while (aa < pageNs.size() && !abortExport && !errorOccured)
 	{
-		progressDialog->setProgress("EP", aa);
-		progressDialog->setOverallProgress(ap+aa);
 		if (usingGUI)
+		{
+			progressDialog->setProgress("EP", aa);
+			progressDialog->setOverallProgress(ap+aa);
 			ScQApp->processEvents();
+		}
 		a = pageNs[aa]-1;
 		ScPage* page = Doc->Pages->at(a);
 		if ((!psExport) && (Doc->m_Selection->count() != 0))
@@ -1800,7 +1805,8 @@ int PSLib::CreatePS(ScribusDoc* Doc, PrintOptions &options)
 			aa++;
 	}
 	PS_close();
-	if (usingGUI) progressDialog->close();
+	if (usingGUI)
+		progressDialog->close();
 	if (errorOccured)
 		return 1;
 	else if (abortExport)
@@ -4404,6 +4410,11 @@ void PSLib::SetColor(const ScColor& farb, double shade, int *h, int *s, int *v, 
  */
 void PSLib::setTextSt(ScribusDoc* Doc, PageItem* ite, uint argh, ScPage* pg, bool sep, bool farb, bool master)
 {
+	int savedOwnPage = ite->OwnPage;
+	ite->OwnPage = argh;
+	ite->layout();
+	ite->OwnPage = savedOwnPage;
+
 	PSPainter p(Doc, argh, pg, sep, farb, master, this);
 	ite->textLayout.renderBackground(&p);
 	ite->textLayout.render(&p);
