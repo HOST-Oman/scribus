@@ -520,7 +520,7 @@ struct LineControl {
 	void nextColumn(TextLayout &textLayout)
 	{
 		startOfCol = true;
-		if(textLayout.story()->defaultStyle().direction() == ParagraphStyle::RTL)
+		if (textLayout.story()->defaultStyle().direction() == ParagraphStyle::RTL)
 			colLeft = textLayout.frame()->width() - insets.right() - ((colWidth * (column + 1)) + (colGap * column));
 		else
 			colLeft = (colWidth + colGap) * column + insets.left() + lineCorr;

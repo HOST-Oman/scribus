@@ -878,7 +878,7 @@ PageItem* XpsPlug::parseObjectXML(QDomElement &dpg, QString path)
 				if (!utfString.isEmpty())
 				{
 					QVector<uint> ucs4 = utfString.toUcs4();
-					// FIXME HOST: this code is utter nonsense
+					// FIXME HOST: this code does not do any text layout!
 					for (int sti = 0; sti < ucs4.length(); sti++)
 					{
 						uint chr = ucs4[sti];
