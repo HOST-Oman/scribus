@@ -2764,7 +2764,7 @@ void ScribusMainWindow::HaveNewSel()
 			charPalette->setEnabled(true, currItem);
 			if (currItem->asTextFrame())
 			{
-				appModeHelper->enableTextActions(true, currItem->currentStyle().charStyle().font().scName());
+				appModeHelper->enableTextActions(true);
 				currItem->asTextFrame()->toggleEditModeActions();
 			}
 			view->horizRuler->setItem(currItem);
@@ -2785,8 +2785,7 @@ void ScribusMainWindow::HaveNewSel()
 		if (doc->appMode == modeEditTable)
 		{
 			charPalette->setEnabled(true, currItem);
-			PageItem *i2 = currItem->asTable()->activeCell().textFrame();
-			appModeHelper->enableTextActions(true, i2->currentCharStyle().font().scName());
+			appModeHelper->enableTextActions(true);
 		}
 		break;
 	case PageItem::PathText: //Path Text
