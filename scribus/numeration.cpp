@@ -1,4 +1,4 @@
-﻿#include "numeration.h"
+#include "numeration.h"
 #include "util.h"
 
 QString getStringFromNum(NumFormat format, int num, QChar leadingChar, int charsLen)
