@@ -32,7 +32,7 @@ public slots:
 		void setMainWindow(ScribusMainWindow *mw);
 		void setDoc(ScribusDoc *d);
 		void handleSelectionChanged();
-        void languageChange();
+		void languageChange();
 		void unitChange() {};
         void showFontFeatures(QString s);
 		void updateCharStyle(const CharStyle& charStyle);
