@@ -32,10 +32,10 @@ QString getFormatName(int format)
 		name = "a_b_c";
 	else if (format == Type_A_B_C)
 		name = "A_B_C";
-	else if (format == Type_ArabicAbgd)
-		name = "arabic_abgd";
-	else if (format == Type_ArabicAbgd)
-		name = "abgd_hoz";
+	else if (format == Type_Alphabet_ar)
+		name = "Alphabet_ar";
+	else if (format == Type_Abjad_ar)
+		name = "Abjad_ar";
 	else if (format == Type_asterix)
 		name = "*";
 	else if (format == Type_CJK)

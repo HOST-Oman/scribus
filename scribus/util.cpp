@@ -618,7 +618,7 @@ QChar arabicChar(uint i)
 	return QChar::Null;
 }
 
-const QString numberToAbgd(uint i)
+const QString numberToArabicLetterSequence(uint i)
 {
 	QString retVal("");
 	unsigned digits = 1;
@@ -635,7 +635,7 @@ const QString numberToAbgd(uint i)
 	return retVal;
 }
 
-QChar abgdChar(uint i)
+QChar abjadChar(uint i)
 {
 	switch (i)
 	{
@@ -727,7 +727,7 @@ QChar abgdChar(uint i)
 	return QChar::Null;
 }
 
-const QString abgdHoz(uint i)
+const QString numberToAbjad(uint i)
 {
 	QString retVal("");
 	unsigned digits = 1;
@@ -740,7 +740,7 @@ const QString abgdHoz(uint i)
 		offset += limit;
 
 	for( unsigned c = column - offset; digits; --digits, c/=28 )
-		retVal.prepend( abgdChar(c%28));
+		retVal.prepend( abjadChar(c%28));
 	return retVal;
 }
 
@@ -761,11 +761,11 @@ const QString getStringFromSequence(NumFormat type, uint position, QString aster
 		case Type_a_b_c:
 			retVal=numberToLetterSequence(position);
 			break;
-		case Type_ArabicAbgd:
-			retVal= numberToAbgd(position);
+		case Type_Alphabet_ar:
+			retVal= numberToArabicLetterSequence(position);
 			break;
-		case Type_Abgd_hoz:
-			retVal = abgdHoz(position);
+		case Type_Abjad_ar:
+			retVal = numberToAbjad(position);
 			break;
 		case Type_I_II_III:
 			retVal=arabicToRoman(position);
