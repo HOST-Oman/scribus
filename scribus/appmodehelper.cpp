@@ -278,7 +278,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 				scmw->charPalette->setEnabled(true, currItem);
 				if (currItem!=NULL && currItem->asTextFrame())
 				{
-					enableTextActions(true, currItem->currentCharStyle().font().scName());
+					enableTextActions(true);
 					currItem->asTextFrame()->toggleEditModeActions();
 				}
 				if (ScMimeData::clipboardHasScribusData())
@@ -338,8 +338,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 					scmw->charPalette->setEnabled(true, currItem);
 					(*a_scrActions)["insertSampleText"]->setEnabled(true);
 					(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(true);
-					PageItem *i2 = currItem->asTable()->activeCell().textFrame();
-					enableTextActions(true, i2->currentCharStyle().font().scName());
+					enableTextActions(true);
 					a_actMgr->saveActionShortcutsPreEditMode();
 					// #11938: Paste is not correctly enabled in modeEditTable
 					if (ScMimeData::clipboardHasScribusData())
@@ -649,7 +648,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 				(*a_scrActions)["editSelectAllOnLayer"]->setEnabled(false);
 				if (currItem->asTextFrame())
 				{
-					enableTextActions(true, currItem->currentStyle().charStyle().font().scName());
+					enableTextActions(true);
 				}
 			}
 			else
@@ -664,8 +663,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["toolsRotate"]->setEnabled(!inAnEditMode);
 			if (doc->appMode == modeEditTable)
 			{
-				PageItem *i2 = currItem->asTable()->activeCell().textFrame();
-				enableTextActions(true, i2->currentCharStyle().font().scName());
+				enableTextActions(true);
 				(*a_scrActions)["insertSampleText"]->setEnabled(true);
 				(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(true);
 			}
@@ -1676,10 +1674,10 @@ void AppModeHelper::setPreviewMode(bool b)
 	(*a_scrActions)["viewShowTextControls"]->setEnabled(b2);
 }
 
-void AppModeHelper::enableTextActions(bool enabled, const QString& fontName)
+void AppModeHelper::enableTextActions(bool enabled)
 {
 	(*a_scrActions)["insertGlyph"]->setEnabled(enabled);
-	a_actMgr->enableUnicodeActions(a_scrActions, enabled, fontName);
+	a_actMgr->enableUnicodeActions(a_scrActions, enabled);
 	if (!enabled)
 	{
 		(*a_scrActions)["insertMarkVariableText"]->setEnabled(false);

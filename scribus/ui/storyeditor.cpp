@@ -3497,5 +3497,5 @@ void StoryEditor::specialActionKeyEvent(int unicodevalue)
 void StoryEditor::updateUnicodeActions()
 {
 	if (Editor->prevFont!=Editor->CurrFont)
-		ScCore->primaryMainWindow()->actionManager->enableUnicodeActions(&seActions, true, Editor->CurrFont);
+		ScCore->primaryMainWindow()->actionManager->enableUnicodeActions(&seActions, true);
 }

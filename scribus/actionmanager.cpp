@@ -1368,39 +1368,17 @@ void ActionManager::restoreActionShortcutsPostEditMode()
 	}
 }
 
-void ActionManager::enableActionStringList(QMap<QString, QPointer<ScrAction> > *actionMap, QStringList *list, bool enabled, bool checkingUnicode, const QString& fontName)
+void ActionManager::enableActionStringList(QMap<QString, QPointer<ScrAction> > *actionMap, QStringList *list, bool enabled)
 {
 	for ( QStringList::Iterator it = list->begin(); it != list->end(); ++it )
 	{
-		if(!checkingUnicode)
-			(*actionMap)[*it]->setEnabled(enabled);
-		else
-		{
-			//For UnicodeChar actions, only enable when the current font has that character.
-			if (mainWindow->HaveDoc && (*actionMap)[*it]->actionType()==ScrAction::UnicodeChar)
-			{
-				int charCode=(*actionMap)[*it]->actionInt();
-				if(charCode==-1 ||
-					charCode==23 ||
-					charCode==24 ||
-					charCode==26 ||
-					charCode==27 ||
-					charCode==28 ||
-					charCode==29 ||
-					charCode==30 ||
-					((*mainWindow->doc->AllFonts)[fontName].usable() &&
-					(*mainWindow->doc->AllFonts)[fontName].canRender(charCode)) )
-						(*actionMap)[*it]->setEnabled(true);
-				else
-					(*actionMap)[*it]->setEnabled(false);
-			}
-		}
+		(*actionMap)[*it]->setEnabled(enabled);
 	}
 }
 
-void ActionManager::enableUnicodeActions(QMap<QString, QPointer<ScrAction> > *actionMap, bool enabled, const QString& fontName)
+void ActionManager::enableUnicodeActions(QMap<QString, QPointer<ScrAction> > *actionMap, bool enabled)
 {
-	enableActionStringList(actionMap, unicodeCharActionNames, enabled, enabled, fontName);
+	enableActionStringList(actionMap, unicodeCharActionNames, enabled);
 	(*actionMap)["insertGlyph"]->setEnabled(enabled);
 }
 
