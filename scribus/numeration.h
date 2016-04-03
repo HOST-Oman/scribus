@@ -13,8 +13,8 @@ typedef enum
 	Type_I_II_III,
 	Type_a_b_c,
 	Type_A_B_C,
-	Type_ArabicAbgd,
-	Type_Abgd_hoz,
+	Type_Alphabet_ar,
+	Type_Abjad_ar,
 	Type_asterix,
 	Type_CJK,
 	Type_None=99
