@@ -5,7 +5,7 @@
 #include <QStringList>
 #include <QMap>
 
-typedef enum
+typedef enum 
 {
 	Type_1_2_3,
 	Type_1_2_3_ar,
