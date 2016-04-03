@@ -747,6 +747,7 @@ void PropertiesPalette_Text::languageChange()
 	optMargins->languageChange();
 	advancedWidgets->languageChange();
 	pathTextWidgets->languageChange();
+	opentypefontWidget->languageChange();
 
 	textAlignment->languageChange();
 	textDirection->languageChange();
