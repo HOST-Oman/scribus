@@ -752,7 +752,7 @@ void PropertiesPalette_Text::languageChange()
 	textDirection->languageChange();
 
 	fontSize->setToolTip( tr("Font Size"));
-
+	langCombo->setToolTip( tr("Text language"));
 	lineSpacing->setToolTip( tr("Line Spacing"));
 	lineSpacingModeCombo->setToolTip( tr("Select the line spacing mode") );
 	paraStyleCombo->setToolTip( tr("Paragraph style of currently selected text or paragraph"));
