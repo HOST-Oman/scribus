@@ -119,8 +119,6 @@
      </item>
      <item>
       <widget class="AlignSelect" name="textAlignment" native="true">
-       <zorder>language</zorder>
-       <zorder>langCombo</zorder>
       </widget>
      </item>
      <item>
