@@ -171,6 +171,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("vi",     "",      "Vietnamese",             QObject::tr( "Vietnamese" )) );
 	m_langTable.append(LangDef("zh",     "",      "Chinese",                QObject::tr( "Chinese" )) );
 	m_langTable.append(LangDef("zh_TW",  "",      "Chinese (Trad.)",        QObject::tr( "Chinese (Trad.)" )) );
+	m_langTable.append(LangDef("ur",     "",      "Urdu",                   QObject::tr( "Urdu" )) );
 }
 
 void LanguageManager::generateInstalledGUILangList()
