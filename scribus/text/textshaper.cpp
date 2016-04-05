@@ -227,8 +227,16 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 
 		const CharStyle &style = m_story.charStyle(i);
 		int effects = style.effects() & ScStyle_UserStyles;
-		if (effects & ScStyle_AllCaps)
-			str = str.toUpper();
+		if ((effects & ScStyle_AllCaps) || (effects & ScStyle_SmallCaps))
+		{
+			QString upper = str.toUpper();
+			if (upper != str)
+			{
+				if (effects & ScStyle_SmallCaps)
+					m_story.setFlag(i, ScLayout_SmallCaps);
+				str = upper;
+			}
+		}
 
 		for (int j = 0; j < str.length(); j++)
 			textMap.insert(text.length() + j, i);
@@ -378,21 +386,13 @@ QList<GlyphRun> TextShaper::shape()
 
 					gl.scaleH *= style.scaleH() / 1000.0;
 					gl.scaleV *= style.scaleV() / 1000.0;
+				}
 
-					if (effects & ScStyle_SmallCaps)
-					{
-						double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
-						// FIXME HOST: This is completely wrong, we shouldn’t be changing
-						// the glyph ids after the shaping!
-						QChar uc = ch.toUpper();
-						if (uc != ch)
-						{
-							gl.glyph = style.font().char2CMap(uc);
-							gl.xadvance = style.font().glyphWidth(gl.glyph, style.fontSize() / 10);
-							gl.scaleV *= smallcapsScale;
-							gl.scaleH *= smallcapsScale;
-						}
-					}
+				if (run.hasFlag(ScLayout_SmallCaps))
+				{
+					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
+					gl.scaleV *= smallcapsScale;
+					gl.scaleH *= smallcapsScale;
 				}
 
 				if (gl.xadvance > 0)
