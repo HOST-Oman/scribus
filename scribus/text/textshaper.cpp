@@ -229,7 +229,8 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		int effects = style.effects() & ScStyle_UserStyles;
 		if ((effects & ScStyle_AllCaps) || (effects & ScStyle_SmallCaps))
 		{
-			QString upper = str.toUpper();
+			QLocale locale(style.language());
+			QString upper = locale.toUpper(str);
 			if (upper != str)
 			{
 				if (effects & ScStyle_SmallCaps)
