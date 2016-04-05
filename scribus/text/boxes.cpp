@@ -541,13 +541,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 		if (charStyle.baselineOffset() != 0)
 			p->translate(0, -fontSize * (charStyle.baselineOffset() / 1000.0));
 
-		if (gl.glyph == 0)
-		{
-			p->setStrokeColor(TextLayoutColor(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor.name()));
-			p->setStrokeWidth(charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() * 2 / 10000.0);
-			p->drawGlyphOutline(gl, false);
-		}
-		else if ((font.isStroked()) && hasStrokeColor && ((charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() / 10000.0) != 0))
+		if ((font.isStroked()) && hasStrokeColor && ((charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() / 10000.0) != 0))
 		{
 			p->setStrokeColor(p->fillColor());
 			p->setStrokeWidth(charStyle.fontSize() * gl.scaleV * charStyle.outlineWidth() / 10000.0);
