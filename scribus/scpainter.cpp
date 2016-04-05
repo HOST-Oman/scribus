@@ -16,6 +16,13 @@ for which a new license (GPL+exception) is in place.
 #include <math.h>
 #include <QDebug>
 
+#include <unicode/ubidi.h>
+#include <harfbuzz/hb.h>
+#include <harfbuzz/hb-ft.h>
+#include <harfbuzz/hb-icu.h>
+#include <unicode/unistr.h>
+#include <QApplication>
+
 ScPainter::ScPainter( QImage *target, unsigned int w, unsigned int h, double transparency, int blendmode )
 {
 	m_width = w;
@@ -1959,39 +1966,82 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	double ww = 0;
 	double hh = 0;
 	double r, g, b;
-	cairo_select_font_face(m_cr, m_font.family().toLatin1(), m_font.italic() ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL, m_font.bold() ? CAIRO_FONT_WEIGHT_BOLD : CAIRO_FONT_WEIGHT_NORMAL);
-	cairo_set_font_size(m_cr, m_font.pointSizeF());
-	cairo_font_extents (m_cr, &extentsF);
-	QStringList textList = text.split("\n");
-	for (int a = 0; a < textList.count(); ++a)
-	{
-		cairo_text_extents (m_cr, textList[a].toUtf8(), &extents);
-		if (align == 0)
-			x = qMin(area.center().x() - (extents.width / 2.0 + extents.x_bearing), x);
-		ww = qMax(ww, extents.width);
-	}
-	hh = extentsF.height * textList.count();
-	if ((align == 0) || (align == 1))
-		y = area.center().y() - ((extentsF.height * textList.count()) / 2.0);
-	if (filled)
-	{
-		m_fill.getRgbF(&r, &g, &b);
-		cairo_set_source_rgba( m_cr, r, g, b, m_fill_trans );
-		cairo_new_path( m_cr );
-		cairo_rectangle(m_cr, x, y, ww, hh);
-		cairo_fill( m_cr );
-	}
-	cairo_new_path( m_cr );
-	y += extentsF.ascent;
-	cairo_move_to (m_cr, x, y);
-	m_stroke.getRgbF(&r, &g, &b);
-	cairo_set_source_rgba( m_cr, r, g, b, m_stroke_trans );
-	for (int a = 0; a < textList.count(); ++a)
-	{
-		cairo_show_text (m_cr, textList[a].toUtf8());
-		y += extentsF.height;
-		cairo_move_to (m_cr, x, y);
-	}
+
+	/*Bidi initlization*/
+	UBiDi* bidi = ubidi_open();
+	UErrorCode errorCode = U_ZERO_ERROR;
+	UBiDiLevel paraLevel= UBIDI_DEFAULT_LTR;
+	ubidi_setPara(bidi, text.utf16(), text.length(), paraLevel, NULL, &errorCode);
+	int32_t count = ubidi_countRuns(bidi, &errorCode);
+	int32_t start, length;
+	cairo_glyph_t *cairo_glyphs[count];
+	if (U_SUCCESS(errorCode))
+		for (int32_t i = 0; i < count; i++)
+		{
+			UBiDiDirection dir = ubidi_getVisualRun(bidi, i, &start, &length);
+
+			//			hb_font_t *hb_font;
+			//			QFont qface = QApplication::font();
+			SCFonts* scfont = new SCFonts();
+			ScFace scface = scfont->findFont(m_font.family());
+			hb_font_t *hbFont = hb_ft_font_create(scface.ftFace(), NULL);
+			hb_buffer_t *hb_buffer = hb_buffer_create();
+			hb_direction_t hbDirection = (dir == UBIDI_LTR) ? HB_DIRECTION_LTR : HB_DIRECTION_RTL;
+			hb_buffer_clear_contents(hb_buffer);
+			hb_buffer_add_utf16(hb_buffer, text.utf16(), text.length(), start, length);
+			hb_buffer_set_direction(hb_buffer, hbDirection);
+			//			hb_buffer_guess_segment_properties(hb_buffer[i]);
+			hb_shape (hbFont, hb_buffer, NULL, 0);
+			//			unsigned int lenPos;
+			unsigned int size = hb_buffer_get_length(hb_buffer);
+
+			hb_glyph_info_t* glyphs = hb_buffer_get_glyph_infos(hb_buffer, NULL);
+			//			hb_glyph_position_t* positions = hb_buffer_get_glyph_positions(hb_buffer, &lenPos);
+
+			cairo_select_font_face(m_cr, m_font.family().toLatin1(), m_font.italic() ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL, m_font.bold() ? CAIRO_FONT_WEIGHT_BOLD : CAIRO_FONT_WEIGHT_NORMAL);
+			cairo_set_font_size(m_cr, m_font.pointSizeF());
+			cairo_font_extents (m_cr, &extentsF);
+			//			QStringList textList = text.split("\n");
+			for (unsigned int a = 0; a <= size; ++a)
+			{
+				//				hb_codepoint_t gid   = glyphs[a].codepoint;
+				//				unsigned int cluster = glyphs[a].cluster;
+				//				double x_advance = positions[j].x_advance / 64.;
+				//				double y_advance = positions[j].y_advance / 64.;
+				//				double x_offset  = positions[j].x_offset / 64.;
+				//				double y_offset  = positions[j].y_offset / 64.;
+
+				//				cairo_text_extents (m_cr, , &extents);
+
+				cairo_glyphs[a]->index = glyphs[a].codepoint;
+				cairo_glyph_extents (m_cr, cairo_glyphs[a], a, &extents);
+				if (align == 0)
+					x = qMin(area.center().x() - (extents.width / 2.0 + extents.x_bearing), x);
+				ww = qMax(ww, extents.width);
+
+				hh = extentsF.height * size;
+				if ((align == 0) || (align == 1))
+					y = area.center().y() - ((extentsF.height * size) / 2.0);
+				if (filled)
+				{
+					m_fill.getRgbF(&r, &g, &b);
+					cairo_set_source_rgba( m_cr, r, g, b, m_fill_trans );
+					cairo_new_path( m_cr );
+					cairo_rectangle(m_cr, x, y, ww, hh);
+					cairo_fill( m_cr );
+				}
+				cairo_new_path( m_cr );
+				y += extentsF.ascent;
+				cairo_move_to (m_cr, x, y);
+				m_stroke.getRgbF(&r, &g, &b);
+				cairo_set_source_rgba( m_cr, r, g, b, m_stroke_trans );
+
+				cairo_show_glyphs(m_cr, cairo_glyphs[a], size);
+				//				cairo_show_text (m_cr, );
+				y += extentsF.height;
+				cairo_move_to (m_cr, x, y);
+			}
+		}
 }
 
 void ScPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)
