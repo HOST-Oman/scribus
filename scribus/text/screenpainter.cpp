@@ -108,7 +108,17 @@ void ScreenPainter::drawGlyph(const GlyphLayout gl)
 		if (gid == 0)
 		{
 			outline = font().glyphOutline(gl.glyph);
-			m_painter->translate(0, -(fontSize() * gl.scaleV));
+			if (outline.size() <= 3)
+			{
+				outline.clear();
+				double sz = 10;
+				outline.addQuadPoint(0,0,0,0,sz,0,sz,0);
+				outline.addQuadPoint(sz,0,sz,0,sz,sz,sz,sz);
+				outline.addQuadPoint(sz,sz,sz,sz,0,sz,0,sz);
+				outline.addQuadPoint(0,sz,0,sz,0,0,0,0);
+				stroke = true;
+			}
+			chma4.translate(0, -fontSize() * gl.scaleV * 0.8);
 		}
 		else if (gid == SpecialChars::TAB.unicode())
 		{
