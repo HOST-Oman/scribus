@@ -719,6 +719,13 @@ const ScFace& SCFonts::findFont(const QString& fontname, ScribusDoc *doc)
 }
 
 
+const ScFace& SCFonts::findFont(const QString& fontFamily, const QString& fontStyle, ScribusDoc* doc)
+{
+	if (fontStyle.isEmpty())
+		return findFont(fontFamily + " Regular", doc);
+	return findFont(fontFamily + " " + fontStyle, doc);
+}
+
 QMap<QString,QString> SCFonts::getSubstitutions(const QList<QString> skip) const
 {
 	QMap<QString,QString> result;
