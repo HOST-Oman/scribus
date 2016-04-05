@@ -141,7 +141,7 @@ public:
 
 	void drawGlyph(const GlyphLayout gl)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 			return;
 
 		PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
@@ -231,7 +231,7 @@ public:
 
 	void drawGlyphOutline(const GlyphLayout gl, bool fill)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 			return;
 
 		PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
