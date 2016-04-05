@@ -103,7 +103,7 @@ public:
 
 void PSPainter::drawGlyph(const GlyphLayout gl)
 {
-	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+	if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 		return;
 
 	m_ps->PS_save();
@@ -124,7 +124,7 @@ void PSPainter::drawGlyph(const GlyphLayout gl)
 
 void PSPainter::drawGlyphOutline(const GlyphLayout gl, bool fill)
 {
-	if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+	if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 		return;
 
 	int h, s, v, k;
