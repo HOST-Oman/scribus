@@ -3105,7 +3105,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		QColor fontColor;
 		SetQColor(&fontColor, itemText.defaultStyle().charStyle().fillColor(), itemText.defaultStyle().charStyle().fillShade());
 		double fontSize = itemText.defaultStyle().charStyle().fontSize() / 10.0;
-		QString fontName = itemText.defaultStyle().charStyle().font().family();
+		ScFace font = itemText.defaultStyle().charStyle().font();
 		QString bmUtf16("");
 		QString cc;
 		if (!((itemText.length() == 1) && (itemText.text(0, 1) == QChar(13))))
@@ -3117,7 +3117,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					const CharStyle& charStyle(itemText.charStyle(d));
 					SetQColor(&fontColor, charStyle.fillColor(), charStyle.fillShade());
 					fontSize = charStyle.fontSize() / 10.0;
-					fontName = charStyle.font().family();
+					font = charStyle.font();
 				}
 				cc = itemText.text(d, 1);
 				bmUtf16 += (cc == QChar(13) ? QChar(10) : cc);
@@ -3199,7 +3199,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					p->setPen(QColor(255 - fontColor.red(), 255 - fontColor.green(), 255 - fontColor.blue(), fontColor.alpha()));
 				else
 					p->setPen(fontColor);
-				p->setFont(QFont(fontName, fontSize));
+				p->setFont(font, fontSize);
 				p->drawText(QRectF(wdt, wdt, m_width - (2 * wdt), m_height - (2 * wdt)), bmUtf16, false);
 			}
 			if ((!Pfile.isEmpty()) && (imageIsAvailable) && (m_imageVisible) && (annotation().UseIcons()))
@@ -3378,7 +3378,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					p->setupPolygon(&clpArr);
 					p->setClipPath();
 					p->setPen(fontColor);
-					p->setFont(QFont(fontName, fontSize));
+					p->setFont(font, fontSize);
 					QStringList textList = bmUtf16.split("\n");
 					p->drawText(QRectF(wdt + 1, wdt + 1, m_width - (2 * wdt) - 17, m_height - (2 * wdt) - 2), textList[0], false, 1);
 					p->restore();
@@ -3422,7 +3422,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					p->setupPolygon(&clpArr);
 					p->setClipPath();
 					p->setPen(fontColor);
-					p->setFont(QFont(fontName, fontSize));
+					p->setFont(font, fontSize);
 					p->drawText(QRectF(wdt + 1, wdt + 1, m_width - (2 * wdt) - 17, m_height - (2 * wdt) - 2), bmUtf16, false, 2);
 					p->restore();
 				}
@@ -3472,7 +3472,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					p->setupPolygon(&clpArr);
 					p->setClipPath();
 					p->setPen(fontColor);
-					p->setFont(QFont(fontName, fontSize));
+					p->setFont(font, fontSize);
 					p->drawText(QRectF(basX + 11, basY + 21, 228, 218), bmUtf16, false, 2);
 					p->restore();
 				}

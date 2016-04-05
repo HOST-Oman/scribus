@@ -482,14 +482,10 @@ void ScPainter::setOpacity( double op )
 	m_stroke_trans = op;
 }
 
-void ScPainter::setFont( const QFont &f)
+void ScPainter::setFont(const ScFace &f, double s)
 {
 	m_font = f;
-}
-
-QFont ScPainter::font()
-{
-	return m_font;
+	m_fontSize = s;
 }
 
 void ScPainter::save()
@@ -1959,8 +1955,9 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	double ww = 0;
 	double hh = 0;
 	double r, g, b;
-	cairo_select_font_face(m_cr, m_font.family().toLatin1(), m_font.italic() ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL, m_font.bold() ? CAIRO_FONT_WEIGHT_BOLD : CAIRO_FONT_WEIGHT_NORMAL);
-	cairo_set_font_size(m_cr, m_font.pointSizeF());
+	QString fontName = m_font.family() + " " + m_font.style();
+	cairo_select_font_face(m_cr, fontName.toLatin1(), CAIRO_FONT_SLANT_NORMAL, CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(m_cr, m_fontSize);
 	cairo_font_extents (m_cr, &extentsF);
 	QStringList textList = text.split("\n");
 	for (int a = 0; a < textList.count(); ++a)
