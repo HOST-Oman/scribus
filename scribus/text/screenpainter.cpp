@@ -45,8 +45,8 @@ ScreenPainter::~ScreenPainter()
 
 void ScreenPainter::drawGlyph(const GlyphLayout gl)
 {
-	bool showControls = (m_item->doc()->guidesPrefs().showControls) &&
-			    (gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS);
+	bool showControls = gl.glyph == 0 || (m_item->doc()->guidesPrefs().showControls &&
+			    (gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS));
 #if CAIRO_HAS_FC_FONT
 	if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0 && !showControls)
 	{
@@ -101,11 +101,16 @@ void ScreenPainter::drawGlyph(const GlyphLayout gl)
 		bool stroke = false;
 		if (gid >= ScFace::CONTROL_GLYPHS)
 			gid -= ScFace::CONTROL_GLYPHS;
-		else
+		else if (gid != 0)
 			gid = 32;
 		QTransform chma, chma4;
 		FPointArray outline;
-		if (gid == SpecialChars::TAB.unicode())
+		if (gid == 0)
+		{
+			outline = font().glyphOutline(gl.glyph);
+			m_painter->translate(0, -(fontSize() * gl.scaleV));
+		}
+		else if (gid == SpecialChars::TAB.unicode())
 		{
 			outline = m_item->doc()->symTab.copy();
 			chma4.translate(gl.xadvance - fontSize() * gl.scaleH * 0.7, -fontSize() * gl.scaleV * 0.5);
