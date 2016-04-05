@@ -327,11 +327,6 @@ const QString LanguageManager::getLangFromTransLang(QString transLang)
 
 const QString LanguageManager::getTransLangFromLang(QString lang)
 {
-	// Seems something is missing here!
-	QString enLang(QObject::tr( "English"));
-	if ((lang == "English") || (lang == enLang))
-		return enLang;
-	
 	for (int i = 0; i < m_langTable.size(); ++i)
 	{
 		if (m_langTable[i].m_name==lang)
