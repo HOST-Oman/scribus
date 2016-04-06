@@ -1951,7 +1951,6 @@ void ScPainter::drawSharpRect(double x, double y, double w, double h)
 
 void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 {
-//	text = "فهد السعيدي";
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
 	double x;
