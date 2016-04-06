@@ -121,6 +121,8 @@ void PageItem_LatexFrame::deleteImageFile()
 void PageItem_LatexFrame::DrawObj_Item(ScPainter *p, QRectF e)
 {
 	layout();
+	const QFont &font = QApplication::font();
+	p->setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.findFont(font.family(), font.styleName()), font.pointSizeF());
 	if (!m_imgValid && !m_err)
 	{
 		//Draw indicator that latex is running

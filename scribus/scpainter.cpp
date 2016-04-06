@@ -1963,13 +1963,7 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	double hh = 0;
 	double r, g, b;
 
-	if (m_font.isNone())
-	{
-		const QFont &font = QApplication::font();
-		setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.findFont(font.family(), font.styleName()), font.pointSizeF());
-
-	}
-
+	assert(!m_font.isNone());
 	cairo_font_face_t *cairo_face;
 	cairo_face = cairo_ft_font_face_create_for_ft_face (m_font.ftFace(), 0);
 	cairo_set_font_face (m_cr,cairo_face);
