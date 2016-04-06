@@ -1790,10 +1790,13 @@ void PageItem_TextFrame::layout()
 						realCharHeight = font.height(style.charStyle().fontSize() / 10.0);
 					asce = font.ascent(hlcsize10);
 					// qDebug() QString("dropcaps pre: chsd=%1 realCharHeight = %2 chstr=%3").arg(chsd).arg(asce).arg(chstr2[0]);
-					firstGlyph.scaleH /= firstGlyph.scaleV;
-					firstGlyph.scaleV = (realAsce / realCharHeight);
-					firstGlyph.scaleH *= firstGlyph.scaleV;
-					firstGlyph.xoffset -= 0.5; //drop caps are always to far from column left edge
+					if (itemText.text(a) != SpecialChars::BLANK)
+					{
+						firstGlyph.scaleH /= firstGlyph.scaleV;
+						firstGlyph.scaleV = (realAsce / realCharHeight);
+						firstGlyph.scaleH *= firstGlyph.scaleV;
+						firstGlyph.xoffset -= 0.5; //drop caps are always to far from column left edge
+					}
 				}
 				firstGlyph.xadvance = wide / firstGlyph.scaleH;
 				desc = realDesc = 0;
