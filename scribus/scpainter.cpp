@@ -7,7 +7,6 @@ for which a new license (GPL+exception) is in place.
 
 #include "scpainter.h"
 #include "scpattern.h"
-#include "prefsmanager.h"
 #include "util_color.h"
 #include "util.h"
 #include "util_math.h"
@@ -22,7 +21,6 @@ for which a new license (GPL+exception) is in place.
 
 #include <math.h>
 #include <QDebug>
-#include <QApplication>
 
 ScPainter::ScPainter( QImage *target, unsigned int w, unsigned int h, double transparency, int blendmode )
 {
