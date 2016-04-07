@@ -3,8 +3,12 @@
 #include <hb.h>
 #include <hb-ft.h>
 #include <hb-icu.h>
+#include <hb-ot.h>
 #include <unicode/ubidi.h>
 #include <QTextBoundaryFinder>
+
+#include <ft2build.h>
+#include FT_TRUETYPE_TABLES_H
 
 #include "scrptrun.h"
 
@@ -246,6 +250,25 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 	}
 }
 
+static hb_blob_t *referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
+{
+	FT_Face ftFace = reinterpret_cast<FT_Face>(userData);
+	FT_Byte *buffer;
+	FT_ULong length = 0;
+
+	if (FT_Load_Sfnt_Table(ftFace, tag, 0, NULL, &length))
+		return NULL;
+
+	buffer = reinterpret_cast<FT_Byte*>(malloc(length));
+	if (buffer == NULL)
+		return NULL;
+
+	if (FT_Load_Sfnt_Table(ftFace, tag, 0, buffer, &length))
+		return NULL;
+
+	return hb_blob_create((const char *) buffer, length, HB_MEMORY_MODE_WRITABLE, buffer, free);
+}
+
 QList<GlyphRun> TextShaper::shape()
 {
 	// maps expanded characters to itemText tokens.
@@ -263,18 +286,36 @@ QList<GlyphRun> TextShaper::shape()
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
 		int effects = style.effects() & ScStyle_UserStyles;
 
-		FT_Set_Char_Size(style.font().ftFace(), style.fontSize(), 0, 72, 0);
+		ScFace scFace = style.font();
+		FT_Face ftFace = scFace.ftFace();
+		hb_font_t *hbFont;
 
 		// TODO: move to ScFace
-		hb_font_t *hbFont = hb_ft_font_create_referenced(style.font().ftFace());
-		hb_buffer_t *hbBuffer = hb_buffer_create();
+		if (scFace.format() == ScFace::SFNT || scFace.format() == ScFace::TTCF)
+		{
+			FT_Reference_Face(ftFace);
+			hb_face_t *hbFace = hb_face_create_for_tables(referenceTable, ftFace, (hb_destroy_func_t) FT_Done_Face);
+			hb_face_set_index(hbFace, ftFace->face_index);
+			hb_face_set_upem(hbFace, ftFace->units_per_EM);
+
+			hbFont = hb_font_create(hbFace);
+			hb_font_set_scale(hbFont, style.fontSize(), style.fontSize());
+			hb_ot_font_set_funcs(hbFont);
+
+			hb_face_destroy(hbFace);
+		}
+		else
+		{
+			FT_Set_Char_Size(ftFace, style.fontSize(), 0, 72, 0);
+			hbFont = hb_ft_font_create_referenced(ftFace);
+		}
 
 		hb_direction_t hbDirection = (textRun.dir == UBIDI_LTR) ? HB_DIRECTION_LTR : HB_DIRECTION_RTL;
 		hb_script_t hbScript = hb_icu_script_to_script(textRun.script);
 		std::string language = style.language().toStdString();
 		hb_language_t hbLanguage = hb_language_from_string(language.c_str(), language.length());
 
-		hb_buffer_clear_contents(hbBuffer);
+		hb_buffer_t *hbBuffer = hb_buffer_create();
 		hb_buffer_add_utf16(hbBuffer, m_text.utf16(), m_text.length(), textRun.start, textRun.len);
 		hb_buffer_set_direction(hbBuffer, hbDirection);
 		hb_buffer_set_script(hbBuffer, hbScript);
@@ -415,6 +456,8 @@ QList<GlyphRun> TextShaper::shape()
 			}
 			glyphRuns.append(run);
 		}
+		hb_font_destroy(hbFont);
+		hb_buffer_destroy(hbBuffer);
 	}
 
 	return glyphRuns;
