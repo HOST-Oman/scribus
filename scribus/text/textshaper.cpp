@@ -290,9 +290,11 @@ QList<GlyphRun> TextShaper::shape()
 		FT_Face ftFace = scFace.ftFace();
 		hb_font_t *hbFont;
 
-		// TODO: move to ScFace
+		// TODO: move hb_font_t creation to ScFace
 		if (scFace.format() == ScFace::SFNT || scFace.format() == ScFace::TTCF)
 		{
+			// use HarfBuzz internal font functions for formats it supports,
+			// gives us more consistent glyph metrics.
 			FT_Reference_Face(ftFace);
 			hb_face_t *hbFace = hb_face_create_for_tables(referenceTable, ftFace, (hb_destroy_func_t) FT_Done_Face);
 			hb_face_set_index(hbFace, ftFace->face_index);
