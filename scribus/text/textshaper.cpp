@@ -291,7 +291,7 @@ QList<GlyphRun> TextShaper::shape()
 		hb_font_t *hbFont;
 
 		// TODO: move hb_font_t creation to ScFace
-		if (scFace.format() == ScFace::SFNT || scFace.format() == ScFace::TTCF)
+		if (scFace.format() == ScFace::SFNT || scFace.format() == ScFace::TTCF || scFace.format() == ScFace::TYPE42)
 		{
 			// use HarfBuzz internal font functions for formats it supports,
 			// gives us more consistent glyph metrics.
