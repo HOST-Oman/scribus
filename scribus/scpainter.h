@@ -102,7 +102,7 @@ public:
 	virtual void drawSharpLine(QPointF start, QPointF end);
 	virtual void drawRect(double, double, double, double);
 	virtual void drawSharpRect(double x, double y, double w, double h);
-	virtual void drawText(QRectF area, QString text, bool filled = true, int align = 0, PageItem *item=NULL);
+	virtual void drawText(PageItem *item, QRectF area, QString text, bool filled = true, int align = 0);
 	virtual void drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth);
 	virtual void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth);
 	virtual void colorizeAlpha(QColor color);

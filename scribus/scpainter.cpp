@@ -12,12 +12,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_math.h"
 
 #include <cairo.h>
-#include<cairo-ft.h>
-#include <unicode/ubidi.h>
-#include <harfbuzz/hb.h>
-#include <harfbuzz/hb-ft.h>
-#include <harfbuzz/hb-icu.h>
-#include <unicode/unistr.h>
+#include <cairo-ft.h>
 #include "text/storytext.h"
 #include "text/textshaper.h"
 
@@ -1949,7 +1944,7 @@ void ScPainter::drawSharpRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScPainter::drawText(QRectF area, QString text, bool filled, int align, PageItem *item)
+void ScPainter::drawText(PageItem *item, QRectF area, QString text, bool filled, int align)
 {
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
@@ -1964,22 +1959,20 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align, Page
 	double r, g, b;
 
 	assert(!m_font.isNone());
-//	FcPattern *pattern = FcPatternBuild(NULL,
-//						FC_FILE, FcTypeString, QFile::encodeName(m_font.fontFilePath()).data(),
-//						FC_INDEX, FcTypeInteger, m_font.faceIndex(),
-//						NULL);
-//	cairo_font_face_t *cairo_face = cairo_ft_font_face_create_for_pattern(pattern);
-//	FcPatternDestroy(pattern);
-	cairo_font_face_t *cairo_face = cairo_ft_font_face_create_for_ft_face (m_font.ftFace(), 0);
+	FcPattern *pattern = FcPatternBuild(NULL,
+										FC_FILE, FcTypeString, QFile::encodeName(m_font.fontFilePath()).data(),
+										FC_INDEX, FcTypeInteger, m_font.faceIndex(),
+										NULL);
+	cairo_font_face_t *cairo_face = cairo_ft_font_face_create_for_pattern(pattern);
+	FcPatternDestroy(pattern);
+	//	cairo_font_face_t *cairo_face = cairo_ft_font_face_create_for_ft_face (m_font.ftFace(), 0);
 	cairo_set_font_face (m_cr, cairo_face);
 	cairo_set_font_size(m_cr, m_fontSize);
-
 
 	cairo_font_options_t* options = cairo_font_options_create();
 	cairo_font_options_set_hint_style(options, CAIRO_HINT_STYLE_SLIGHT);
 	cairo_set_font_options(m_cr, options);
 	cairo_font_options_destroy(options);
-
 
 	cairo_font_extents (m_cr, &extentsF);
 	QStringList textList = text.split("\n");
@@ -2007,74 +2000,29 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align, Page
 	m_stroke.getRgbF(&r, &g, &b);
 	cairo_set_source_rgba( m_cr, r, g, b, m_stroke_trans );
 
-
-
 	for (int a = 0; a < textList.count(); ++a)
 	{
-
 		StoryText story;
-		story.insertChars(textList[a], false);
-		TextShaper textShaper(item, story, 0, true);
+		story.insertChars(textList[a]);
+		CharStyle charStyle(m_font, m_fontSize);
+		story.setCharStyle(0, textList[a].count(), charStyle);
+		TextShaper textShaper(item, story, 0);
 		QList<GlyphRun> glyphRun = textShaper.shape();
 
-
-	/*Bidi initlization*/
-	UBiDi* bidi = ubidi_open();
-	UErrorCode errorCode = U_ZERO_ERROR;
-	UBiDiLevel paraLevel= UBIDI_DEFAULT_LTR;
-	QString text1 = textList[a];
-	ubidi_setPara(bidi, text1.utf16(), text1.count(), paraLevel, NULL, &errorCode);
-	int32_t count = ubidi_countRuns(bidi, &errorCode);
-	int32_t start, length;
-	cairo_glyph_t cairo_glyphs[text1.count()];
-
-	if (U_SUCCESS(errorCode))
-	{
-		for (int32_t i = 0; i < count; i++)
+		QString text1 = textList[a];
+		cairo_glyph_t cairo_glyphs[text1.count()];
+		for (int i=0; i < glyphRun.size(); i++)
 		{
-			UBiDiDirection dir = ubidi_getVisualRun(bidi, i, &start, &length);
-
-			hb_font_t *hbFont = hb_ft_font_create_referenced(m_font.ftFace());
-			hb_buffer_t *hb_buffer = hb_buffer_create();
-
-			hb_direction_t hbDirection = (dir == UBIDI_LTR) ? HB_DIRECTION_LTR : HB_DIRECTION_RTL;
-
-			hb_buffer_clear_contents(hb_buffer);
-			hb_buffer_add_utf16(hb_buffer, text1.utf16(), text1.length(), start, length);
-			hb_buffer_set_direction(hb_buffer, hbDirection);
-			hb_buffer_guess_segment_properties (hb_buffer);
-
-			hb_shape (hbFont, hb_buffer, NULL, 0);
-
-			unsigned int size = hb_buffer_get_length(hb_buffer);
-			hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hb_buffer, NULL);
-			hb_glyph_position_t* positions = hb_buffer_get_glyph_positions(hb_buffer, NULL);
-
-			for (size_t j = 0; j <= size; ++j)
-			{
-				cairo_glyphs[j].index = glyphs[j].codepoint;
-				cairo_glyphs[j].x = x + (positions[j].x_offset/100.);
-				cairo_glyphs[j].y = y - (positions[j].y_offset/100.);
-//				x += positions[j].x_advance/100.;
-				qDebug() << "char: " << QString(glyphs[j].cluster).toUtf8() <<"\n";
-//				y -= positions[j].y_advance/100.;
-				cairo_show_text (m_cr, QString(glyphs[j].codepoint).toUtf8());
-				y += extentsF.height;
-				cairo_move_to (m_cr, x, y);
-
-			}
-
+			cairo_glyphs[i].index = glyphRun[i].glyphs().first().glyph;
+			cairo_glyphs[i].x = x + (glyphRun[i].glyphs().first().xoffset/100.);
+			cairo_glyphs[i].y = y - (glyphRun[i].glyphs().first().yoffset/100.);
+			x += glyphRun[i].glyphs().first().xadvance/100.;
+			y -= glyphRun[i].glyphs().first().yadvance/100.;
 		}
-
-
+		cairo_show_glyphs(m_cr, cairo_glyphs, text1.count());
+		y += extentsF.height;
+		cairo_move_to (m_cr, x, y);
 	}
-	ubidi_close(bidi);
-//	cairo_show_glyphs(m_cr, cairo_glyphs, text1.length());
-//	x = tmpc;
-//	y += extentsF.ascent;
-//	cairo_move_to (m_cr, x, y);
-	}
-
 }
 
 void ScPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)

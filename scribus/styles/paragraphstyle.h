@@ -100,7 +100,7 @@ public:
 	CharStyle & charStyle() { return m_cstyle; }
 	const CharStyle& charStyle() const { return m_cstyle; }
 	/** Normally the context for charStyle() is parentStyle()->charStyleContext()
-		Use this method to break that relation and set charStyle()'s context manually
+		Use this method to break that relatiopn and set charStyle()'s context manually
 	*/
 	void breakImplicitCharStyleInheritance(bool val = true);
 	/** used internally to establish the implicit relation 

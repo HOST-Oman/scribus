@@ -225,7 +225,12 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 			continue;
 		}
 #endif
-		QString str = m_item->ExpandToken(i);
+		QString str = "";
+		if (m_item->itemText.length() > 0)
+		{
+			str = m_item->ExpandToken(i);
+		}
+
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
 
