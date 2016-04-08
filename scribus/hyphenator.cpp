@@ -53,14 +53,14 @@ Hyphenator::Hyphenator(QWidget* parent, ScribusDoc *dok) : QObject( parent ),
 {
 	//FIXME:av pick up language from charstyle
 	LanguageManager * lmgr(LanguageManager::instance());
-	if (!lmgr->getHyphFilename(m_doc->hyphLanguage()).isEmpty() )
-		Language = m_doc->hyphLanguage();
+	if (!lmgr->getHyphFilename(m_doc->language()).isEmpty() )
+		Language = m_doc->language();
 	else
 	{
 		Language = PrefsManager::instance()->appPrefs.hyphPrefs.Language;
-		m_doc->setHyphLanguage(Language);
+		m_doc->setLanguage(Language);
 	}
-	QString pfad = lmgr->getHyphFilename(m_doc->hyphLanguage());
+	QString pfad = lmgr->getHyphFilename(m_doc->language());
 	QFile f(pfad);
 	if (f.open(QIODevice::ReadOnly))
 	{

@@ -332,13 +332,13 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 		static const QString LANGUAGE("LANGUAGE");
 		QString l(dc.attribute(LANGUAGE, "en"));
 		if (LanguageManager::instance()->langTableIndex(l)!=-1)
-			m_Doc->setHyphLanguage(l); //new style storage
+			m_Doc->setLanguage(l); //new style storage
 		else
 		{ //old style storage
 			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
 				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
-			m_Doc->setHyphLanguage(lnew);
+			m_Doc->setLanguage(lnew);
 		}
 
 		m_Doc->setHyphMinimumWordLength(dc.attribute("MINWORDLEN", "3").toInt());

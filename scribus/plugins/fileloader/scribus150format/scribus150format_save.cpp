@@ -275,7 +275,7 @@ bool Scribus150Format::saveFile(const QString & fileName, const FileFormat & /* 
 	docu.writeAttribute("DISc",m_Doc->cmsSettings().DefaultIntentColors);
 	docu.writeAttribute("DIIm",m_Doc->cmsSettings().DefaultIntentImages);
 	docu.writeAttribute("ALAYER", m_Doc->activeLayer());
-	docu.writeAttribute("LANGUAGE", m_Doc->hyphLanguage());
+	docu.writeAttribute("LANGUAGE", m_Doc->language());
 	docu.writeAttribute("MINWORDLEN", m_Doc->hyphMinimumWordLength());
 	docu.writeAttribute("HYCOUNT", m_Doc->hyphConsecutiveLines());
 	docu.writeAttribute("AUTOMATIC", static_cast<int>(m_Doc->hyphAutomatic()));
