@@ -288,6 +288,8 @@ QList<GlyphRun> TextShaper::shape()
 
 		ScFace scFace = style.font();
 		FT_Face ftFace = scFace.ftFace();
+		if (ftFace == NULL)
+			continue;
 		hb_font_t *hbFont;
 
 		// TODO: move hb_font_t creation to ScFace
