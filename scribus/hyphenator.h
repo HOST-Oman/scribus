@@ -52,6 +52,16 @@ private:
 	HyphenDict *m_hdict;
 	/*! Qt text codec which handles local characters. */
 	QTextCodec *m_codec;
+	/*! Language in use */
+	QString m_language;
+
+	/*! There are languages having rule not to hyphen word shorter than
+		MinWordLen */
+	int m_minWordLen;
+	/*! Maximum number of hyphenations allowed following each other */
+	int m_consecutiveLines;
+	/*! Flag - if user set auto hyphen processing.*/
+	bool m_automatic;
 
 	/*!
 		\brief Loads dictionary and fills parameters like \a useAble, \a codec, \a hdict.
@@ -62,15 +72,6 @@ private:
 	void NewDict(const QString& name);
 	
 public:
-	/*! There are languages having rule not to hyphen word shorter than
-		MinWordLen */
-	int MinWordLen;
-	/*! Maximum number of hyphenations allowed following each other */
-	int HyCount;
-	/*! Language in use */
-	QString Language;
-	/*! Flag - if user set auto hyphen processing.*/
-	bool Automatic;
 	/*! Flag - obsolete? */
 	bool AutoCheck;
 	QHash<QString, QString> rememberedWords;

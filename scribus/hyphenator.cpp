@@ -45,9 +45,9 @@ Hyphenator::Hyphenator(QWidget* parent, ScribusDoc *dok) : QObject( parent ),
 	m_doc(dok),
 	m_hdict(NULL),
 	m_codec(NULL),
-	MinWordLen(m_doc->hyphMinimumWordLength()),
-	HyCount(m_doc->hyphConsecutiveLines()),
-	Automatic(m_doc->hyphAutomatic()),
+	m_minWordLen(m_doc->hyphMinimumWordLength()),
+	m_consecutiveLines(m_doc->hyphConsecutiveLines()),
+	m_automatic(m_doc->hyphAutomatic()),
 	AutoCheck(m_doc->hyphAutoCheck())
 {
 	//FIXME:av pick up language from charstyle
@@ -71,12 +71,12 @@ void Hyphenator::NewDict(const QString& name)
 	if( LanguageManager::instance()->getHyphFilename(name).isEmpty() )
 		return;
 		
-	if (Language != name) 
+	if (m_language != name)
 	{
-		Language = name;
+		m_language = name;
 
 		char *filename = NULL;
-		QString pfad = LanguageManager::instance()->getHyphFilename(Language);
+		QString pfad = LanguageManager::instance()->getHyphFilename(m_language);
 		
 		if (m_hdict != NULL)
 			hnj_hyphen_free(m_hdict);
@@ -103,10 +103,10 @@ void Hyphenator::NewDict(const QString& name)
 
 void Hyphenator::slotNewSettings(int Wordlen, bool Autom, bool ACheck, int Num)
 {
-	MinWordLen = Wordlen;
-	Automatic = Autom;
+	m_minWordLen = Wordlen;
+	m_automatic = Autom;
 	AutoCheck = ACheck;
-	HyCount = Num;
+	m_consecutiveLines = Num;
 	m_doc->setHyphMinimumWordLength(Wordlen);
 	m_doc->setHyphAutomatic(Autom);
 	m_doc->setHyphAutoCheck(AutoCheck);
@@ -127,7 +127,7 @@ void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC
 	if (found.contains(SpecialChars::SHYPHEN))
 		return;
 	// else if (findException(found, &buffer) it->itemText.hyphenateWord(firstC, found.length(), buffer);
-	else if (signed(found.length()) >= MinWordLen)
+	else if (signed(found.length()) >= m_minWordLen)
 	{
 		NewDict(it->itemText.charStyle(firstC).language());
   		te = m_codec->fromUnicode( found );
@@ -214,7 +214,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 			++Ccount;
 			continue;
 		}
-		if (Ccount > MinWordLen-1)
+		if (Ccount > m_minWordLen-1)
 		{
 			found = text.mid(firstC, Ccount).toLower();
 			found2 = text.mid(firstC, Ccount);
@@ -260,7 +260,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 				{
 					if (!hasHyphen)
 						it->itemText.hyphenateWord(startC + firstC, found.length(), NULL);
-					else if (Automatic)
+					else if (m_automatic)
 					{
 						if (specialWords.contains(found2))
 						{
