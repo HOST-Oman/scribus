@@ -121,7 +121,7 @@ void PageItem_LatexFrame::deleteImageFile()
 void PageItem_LatexFrame::DrawObj_Item(ScPainter *p, QRectF e)
 {
 	layout();
-		if (!m_imgValid && !m_err)
+	if (!m_imgValid && !m_err)
 	{
 		//Draw indicator that latex is running
 		p->setBrush(Qt::white);
