@@ -50,9 +50,6 @@ private:
 	ScribusDoc *m_doc;
 	/*! Reference to the hyphen dictionary structure. */
 	HyphenDict *m_hdict;
-	/*! Flag - if is the dictionary without errors etc. If is it 'false'
-		hyphen aborted. */
-	bool m_usable;
 	/*! Qt text codec which handles local characters. */
 	QTextCodec *m_codec;
 

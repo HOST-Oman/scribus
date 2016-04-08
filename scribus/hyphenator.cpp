@@ -43,9 +43,8 @@ for which a new license (GPL+exception) is in place.
 
 Hyphenator::Hyphenator(QWidget* parent, ScribusDoc *dok) : QObject( parent ),
 	m_doc(dok),
-	m_hdict(0),
-	m_usable(false),
-	m_codec(0),
+	m_hdict(NULL),
+	m_codec(NULL),
 	MinWordLen(m_doc->hyphMinimumWordLength()),
 	HyCount(m_doc->hyphConsecutiveLines()),
 	Automatic(m_doc->hyphAutomatic()),
@@ -93,14 +92,12 @@ void Hyphenator::NewDict(const QString& name)
 		}
 		else
 		{
-			m_usable = false;
 			m_hdict = NULL;
 			return;
 		}
 		QByteArray fn = pfad.toLocal8Bit();
 		filename = fn.data();
 		m_hdict = hnj_hyphen_load(filename);
-		m_usable = m_hdict == NULL ? false : true;
 	}
 }
 
@@ -118,7 +115,7 @@ void Hyphenator::slotNewSettings(int Wordlen, bool Autom, bool ACheck, int Num)
 
 void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC)
 {
-	if ((!m_usable))//FIXME:av || (!ScMW->Sprachen.contains(it->Language)))
+	if (m_hdict == NULL)
 		return;
 	const char *word;
 	char *buffer;
@@ -167,7 +164,7 @@ void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC
 
 void Hyphenator::slotHyphenate(PageItem* it)
 {
-	if ((!m_usable) || !(it->asTextFrame()) || (it->itemText.length() == 0))
+	if (m_hdict == NULL || !(it->asTextFrame()) || (it->itemText.length() == 0))
 		return;
 	m_doc->DoDrawing = false;
 
