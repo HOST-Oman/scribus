@@ -52,34 +52,7 @@ Hyphenator::Hyphenator(QWidget* parent, ScribusDoc *dok) : QObject( parent ),
 	AutoCheck(m_doc->hyphAutoCheck())
 {
 	//FIXME:av pick up language from charstyle
-	LanguageManager * lmgr(LanguageManager::instance());
-	if (!lmgr->getHyphFilename(m_doc->language()).isEmpty() )
-		Language = m_doc->language();
-	else
-	{
-		Language = PrefsManager::instance()->appPrefs.hyphPrefs.Language;
-		m_doc->setLanguage(Language);
-	}
-	QString pfad = lmgr->getHyphFilename(m_doc->language());
-	QFile f(pfad);
-	if (f.open(QIODevice::ReadOnly))
-	{
-		QTextStream st(&f);
-		QString line;
-		line = st.readLine();
-		m_codec = QTextCodec::codecForName(line.toUtf8());
-		f.close();
-	}
-	else
-	{
-		m_usable = false;
-		m_hdict = NULL;
-		return;
-	}
-	QByteArray fn = pfad.toLocal8Bit();
-	const char * filename = fn.data();
-	m_hdict = hnj_hyphen_load(filename);
-	m_usable = m_hdict == NULL ? false : true;
+	NewDict(m_doc->language());
 	rememberedWords.clear();
 /* Add reading these special lists from prefs or doc here */
 	ignoredWords.clear();
