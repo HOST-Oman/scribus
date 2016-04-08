@@ -73,7 +73,7 @@ void PageItem_Symbol::DrawObj_Item(ScPainter *p, QRectF /*e*/)
 			p->drawLine(FPoint(0, m_height), FPoint(0, 0));
 			p->setBrush(QColor(255, 255, 255));
 			p->setBrushOpacity(0.0);
-			p->drawText(QRectF(0.0, 0.0, m_width, m_height), "Empty Symbol");
+			p->drawText(QRectF(0.0, 0.0, m_width, m_height), "Empty Symbol", this);
 			p->restore();
 		}
 		return;

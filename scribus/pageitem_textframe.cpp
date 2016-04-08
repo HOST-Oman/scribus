@@ -3203,7 +3203,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				else
 					p->setPen(fontColor);
 				p->setFont(font, fontSize);
-				p->drawText(QRectF(wdt, wdt, m_width - (2 * wdt), m_height - (2 * wdt)), bmUtf16, false);
+				p->drawText(QRectF(wdt, wdt, m_width - (2 * wdt), m_height - (2 * wdt)), bmUtf16, false, 0, this);
 			}
 			if ((!Pfile.isEmpty()) && (imageIsAvailable) && (m_imageVisible) && (annotation().UseIcons()))
 			{
@@ -3383,7 +3383,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					p->setPen(fontColor);
 					p->setFont(font, fontSize);
 					QStringList textList = bmUtf16.split("\n");
-					p->drawText(QRectF(wdt + 1, wdt + 1, m_width - (2 * wdt) - 17, m_height - (2 * wdt) - 2), textList[0], false, 1);
+					p->drawText(QRectF(wdt + 1, wdt + 1, m_width - (2 * wdt) - 17, m_height - (2 * wdt) - 2), textList[0], false, 1, this);
 					p->restore();
 				}
 				p->setFillMode(ScPainter::Solid);
@@ -3426,7 +3426,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					p->setClipPath();
 					p->setPen(fontColor);
 					p->setFont(font, fontSize);
-					p->drawText(QRectF(wdt + 1, wdt + 1, m_width - (2 * wdt) - 17, m_height - (2 * wdt) - 2), bmUtf16, false, 2);
+					p->drawText(QRectF(wdt + 1, wdt + 1, m_width - (2 * wdt) - 17, m_height - (2 * wdt) - 2), bmUtf16, false, 2, this);
 					p->restore();
 				}
 				p->restore();
@@ -3476,7 +3476,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 					p->setClipPath();
 					p->setPen(fontColor);
 					p->setFont(font, fontSize);
-					p->drawText(QRectF(basX + 11, basY + 21, 228, 218), bmUtf16, false, 2);
+					p->drawText(QRectF(basX + 11, basY + 21, 228, 218), bmUtf16, false, 2, this);
 					p->restore();
 				}
 				else

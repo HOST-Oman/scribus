@@ -18,6 +18,8 @@ for which a new license (GPL+exception) is in place.
 #include <harfbuzz/hb-ft.h>
 #include <harfbuzz/hb-icu.h>
 #include <unicode/unistr.h>
+#include "text/storytext.h"
+#include "text/textshaper.h"
 
 #include <math.h>
 #include <QDebug>
@@ -1947,7 +1949,7 @@ void ScPainter::drawSharpRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
+void ScPainter::drawText(QRectF area, QString text, bool filled, int align, PageItem *item)
 {
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
@@ -2005,10 +2007,17 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	m_stroke.getRgbF(&r, &g, &b);
 	cairo_set_source_rgba( m_cr, r, g, b, m_stroke_trans );
 
-	double tmpc = x;
-	double tmpy = y;
+
+
 	for (int a = 0; a < textList.count(); ++a)
 	{
+
+		StoryText story;
+		story.insertChars(textList[a], false);
+		TextShaper textShaper(item, story, 0, true);
+		QList<GlyphRun> glyphRun = textShaper.shape();
+
+
 	/*Bidi initlization*/
 	UBiDi* bidi = ubidi_open();
 	UErrorCode errorCode = U_ZERO_ERROR;

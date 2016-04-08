@@ -24,6 +24,7 @@ for which a new license (GPL+exception) is in place.
 #include "fpointarray.h"
 #include "vgradient.h"
 #include "mesh.h"
+#include "pageitem.h"
 
 class ScPattern;
 
@@ -101,7 +102,7 @@ public:
 	virtual void drawSharpLine(QPointF start, QPointF end);
 	virtual void drawRect(double, double, double, double);
 	virtual void drawSharpRect(double x, double y, double w, double h);
-	virtual void drawText(QRectF area, QString text, bool filled = true, int align = 0);
+	virtual void drawText(QRectF area, QString text, bool filled = true, int align = 0, PageItem *item=NULL);
 	virtual void drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth);
 	virtual void drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth);
 	virtual void colorizeAlpha(QColor color);
