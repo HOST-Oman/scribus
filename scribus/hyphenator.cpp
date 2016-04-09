@@ -66,8 +66,6 @@ Hyphenator::~Hyphenator()
 
 void Hyphenator::loadDict(const QString& name)
 {
-// 	if (!ScCore->primaryMainWindow()->Sprachen.contains(name))
-// 		return;
 	if( LanguageManager::instance()->getHyphFilename(name).isEmpty() )
 		return;
 		
@@ -109,48 +107,34 @@ void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC
 {
 	if (m_hdict == NULL)
 		return;
-	const char *word;
-	char *buffer;
-	const int BORDER = 2;
-	QByteArray te;
 
-	//uint maxC = it->itemText.length() - 1;
-	QString found = text;
-	if (found.contains(SpecialChars::SHYPHEN))
+	if (text.contains(SpecialChars::SHYPHEN))
 		return;
-	// else if (findException(found, &buffer) it->itemText.hyphenateWord(firstC, found.length(), buffer);
-	else if (signed(found.length()) >= m_minWordLen)
+	else if (text.length() >= m_minWordLen)
 	{
 		loadDict(it->itemText.charStyle(firstC).language());
-  		te = m_codec->fromUnicode( found );
-		word = te.data();
-		int wordlen = strlen(word);
-		buffer = static_cast<char*>(malloc(wordlen+BORDER+3));
+		QByteArray te = m_codec->fromUnicode(text);
+		char *buffer = static_cast<char*>(malloc(te.length() + 5));
 		if (buffer == NULL)
 			return;
-		char ** rep = NULL;
-		int * pos = NULL;
-		int * cut = NULL;
-		if (!hnj_hyphen_hyphenate2(m_hdict, word, wordlen, buffer, NULL, &rep, &pos, &cut))
+		char **rep = NULL;
+		int *pos = NULL;
+		int *cut = NULL;
+		// TODO: support non-standard hyphenation, see hnj_hyphen_hyphenate2 docs
+		if (!hnj_hyphen_hyphenate2(m_hdict, te.data(), te.length(), buffer, NULL, &rep, &pos, &cut))
 		{
-			//uint i = 0;
-		  	buffer[wordlen] = '\0';
-			it->itemText.hyphenateWord(firstC, found.length(), buffer); 
+			buffer[te.length()] = '\0';
+			it->itemText.hyphenateWord(firstC, text.length(), buffer);
 		}
 		free(buffer);
 		if (rep)
 		{
-			for (int i = 0; i < wordlen - 1; ++i)
-				if (rep[i])
-					free(rep[i]);
-			free(rep);
+			for (int i = 0; i < te.length() - 1; ++i)
+				free(rep[i]);
 		}
-		if (pos) free(pos);
-		if (cut) free(cut);
-		buffer = NULL;
-		rep = NULL;
-		pos = NULL;
-		cut = NULL;
+		free(rep);
+		free(pos);
+		free(cut);
 	}
 }
 
@@ -160,12 +144,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 		return;
 	m_doc->DoDrawing = false;
 
-	const char *word;
-	char *buffer;
-	const int BORDER = 2;
 	QString text = "";
-	QString buf;
-	QByteArray te;
 
 	int startC = 0;
 	if (it->itemText.lengthOfSelection() > 0)
@@ -179,10 +158,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 	int firstC = 0;
 	int lastC = 0;
 	int Ccount = 0;
-	QString found = "";
-	QString found2 = "";
 	rememberedWords.clear();
-	//uint maxC = it->itemText.length() - 1;
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	QRegExp wordBoundary("\\w");
 	QRegExp whiteSpace("\\s|\\W|\\d|\\n|\\r|\\t");
@@ -208,26 +184,26 @@ void Hyphenator::slotHyphenate(PageItem* it)
 		}
 		if (Ccount > m_minWordLen-1)
 		{
-			found = text.mid(firstC, Ccount).toLower();
-			found2 = text.mid(firstC, Ccount);
+			QString found = text.mid(firstC, Ccount).toLower();
+			QString found2 = text.mid(firstC, Ccount);
 			if (found.contains(SpecialChars::SHYPHEN))
 				break;
 
 			loadDict(it->itemText.charStyle(firstC).language());
 
-  			te = m_codec->fromUnicode( found );
-			word = te.data();
-			int wordlen = strlen(word);
-			buffer = static_cast<char*>(malloc(wordlen+BORDER+3));
+			QByteArray te = m_codec->fromUnicode( found );
+			char *buffer = static_cast<char*>(malloc(te.length() + 5));
 			if (buffer == NULL)
 				break;
-			char ** rep = NULL;
-			int * pos = NULL;
-			int * cut = NULL;
-			if (!hnj_hyphen_hyphenate2(m_hdict, word, wordlen, buffer, NULL, &rep, &pos, &cut))
+
+			char **rep = NULL;
+			int *pos = NULL;
+			int *cut = NULL;
+			// TODO: support non-standard hyphenation, see hnj_hyphen_hyphenate2 docs
+			if (!hnj_hyphen_hyphenate2(m_hdict, te.data(), te.length(), buffer, NULL, &rep, &pos, &cut))
 			{
 	  			int i = 0;
-  				buffer[wordlen] = '\0';
+				buffer[te.length()] = '\0';
 				bool hasHyphen = false;
 				for (i = 1; i < found.length()-1; ++i)
 				{
@@ -366,17 +342,12 @@ void Hyphenator::slotHyphenate(PageItem* it)
 			free(buffer);
 			if (rep)
 			{
-				for (int i = 0; i < wordlen - 1; ++i)
-					if (rep[i])
-						free(rep[i]);
-				free(rep);
+				for (int i = 0; i < te.length() - 1; ++i)
+					free(rep[i]);
 			}
-			if (pos) free(pos);
-			if (cut) free(cut);
-			buffer = NULL;
-			rep = NULL;
-			pos = NULL;
-			cut = NULL;
+			free(rep);
+			free(pos);
+			free(cut);
 		}
 		if (Ccount == 0)
 			Ccount++;
@@ -393,7 +364,6 @@ void Hyphenator::slotDeHyphenate(PageItem* it)
 
 	if (it->itemText.lengthOfSelection() > 0)
 	{
-//		int start = it->itemText.startOfSelection();
 		it->itemText.hyphenateWord(it->itemText.startOfSelection(), it->itemText.lengthOfSelection(), NULL);
 	}
 	else {
