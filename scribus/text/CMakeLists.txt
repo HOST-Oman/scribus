@@ -13,16 +13,15 @@ SET(SCRIBUS_TEXT_MOC_CLASSES
 )
 
 SET(SCRIBUS_TEXT_LIB_SOURCES
-	boxes.cpp
-	frect.cpp
-	fsize.cpp
-	screenpainter.cpp
-	sctext_shared.cpp
 	specialchars.cpp
 	storytext.cpp
 	textlayout.cpp
 	textlayoutpainter.cpp
-	textshaper.cpp
+	screenpainter.cpp
+	sctext_shared.cpp
+	fsize.cpp
+	frect.cpp
+	boxes.cpp
 )
 
 QT5_WRAP_CPP(SCRIBUS_TEXT_MOC_SOURCES ${SCRIBUS_TEXT_MOC_CLASSES})

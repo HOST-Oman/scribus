@@ -75,7 +75,6 @@ class GlyphRun
 	const CharStyle* m_style;
 	LayoutFlags m_flags;
 	QList<GlyphLayout> m_glyphs;
-	
 	int m_firstChar;
 	int m_lastChar;
 	PageItem* m_object;
@@ -93,11 +92,9 @@ public:
 	bool       hasFlag(LayoutFlags f) const { return (m_flags & f) == f; }
 	void       setFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags | f); }
 	void     clearFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags & ~f); }
-	void     clearGlyphs()                  { m_glyphs.clear(); }
 
 	QList<GlyphLayout>&       glyphs()       { return m_glyphs; }
 	const QList<GlyphLayout>& glyphs() const { return m_glyphs; }
-	int glyphCount()                const    { return m_glyphs.count(); }
 	int firstChar()					const	{ return m_firstChar; }
 	int lastChar()					const	{ return m_lastChar; }
 	qreal width() const;
