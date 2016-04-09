@@ -51,7 +51,7 @@ Hyphenator::Hyphenator(QWidget* parent, ScribusDoc *dok) : QObject( parent ),
 	AutoCheck(m_doc->hyphAutoCheck())
 {
 	//FIXME:av pick up language from charstyle
-	NewDict(m_doc->language());
+	loadDict(m_doc->language());
 	rememberedWords.clear();
 /* Add reading these special lists from prefs or doc here */
 	ignoredWords.clear();
@@ -64,7 +64,7 @@ Hyphenator::~Hyphenator()
 		hnj_hyphen_free(m_hdict);
 }
 
-void Hyphenator::NewDict(const QString& name)
+void Hyphenator::loadDict(const QString& name)
 {
 // 	if (!ScCore->primaryMainWindow()->Sprachen.contains(name))
 // 		return;
@@ -129,7 +129,7 @@ void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC
 	// else if (findException(found, &buffer) it->itemText.hyphenateWord(firstC, found.length(), buffer);
 	else if (signed(found.length()) >= m_minWordLen)
 	{
-		NewDict(it->itemText.charStyle(firstC).language());
+		loadDict(it->itemText.charStyle(firstC).language());
   		te = m_codec->fromUnicode( found );
 		word = te.data();
 		int wordlen = strlen(word);
@@ -221,7 +221,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 			if (found.contains(SpecialChars::SHYPHEN))
 				break;
 
-			NewDict(it->itemText.charStyle(firstC).language());
+			loadDict(it->itemText.charStyle(firstC).language());
 
   			te = m_codec->fromUnicode( found );
 			word = te.data();

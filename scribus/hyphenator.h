@@ -64,12 +64,12 @@ private:
 	bool m_automatic;
 
 	/*!
-		\brief Loads dictionary and fills parameters like \a useAble, \a codec, \a hdict.
+		\brief Loads dictionary and fills parameters like \a m_codec, \a m_hdict.
 	 \date
 	 \author Franz Schmid
-	 \param name is the name of specified language - filename.
+	 \param name is the name of specified language.
 	 */
-	void NewDict(const QString& name);
+	void loadDict(const QString& name);
 	
 public:
 	/*! Flag - obsolete? */
