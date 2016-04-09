@@ -339,7 +339,7 @@ QList<GlyphRun> TextShaper::shape()
 				hbFeatures.append(hbFeature);
 		}
 
-		hb_shape_full(hbFont, hbBuffer, hbFeatures.data(), hbFeatures.length(), NULL);
+		hb_shape(hbFont, hbBuffer, hbFeatures.data(), hbFeatures.length());
 
 		unsigned int count = hb_buffer_get_length(hbBuffer);
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);
