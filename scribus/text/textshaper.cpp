@@ -264,7 +264,10 @@ static hb_blob_t *referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
 		return NULL;
 
 	if (FT_Load_Sfnt_Table(ftFace, tag, 0, buffer, &length))
+	{
+		free(buffer);
 		return NULL;
+	}
 
 	return hb_blob_create((const char *) buffer, length, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
