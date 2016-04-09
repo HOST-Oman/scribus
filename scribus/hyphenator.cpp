@@ -75,29 +75,21 @@ void Hyphenator::loadDict(const QString& name)
 	{
 		m_language = name;
 
-		char *filename = NULL;
-		QString pfad = LanguageManager::instance()->getHyphFilename(m_language);
+		QFile file(LanguageManager::instance()->getHyphFilename(m_language));
 		
 		if (m_hdict != NULL)
 			hnj_hyphen_free(m_hdict);
 
-		QFile f(pfad);
-		if (f.open(QIODevice::ReadOnly))
+		if (file.open(QIODevice::ReadOnly))
 		{
-			QTextStream st(&f);
-			QString line;
-			line = st.readLine();
-			m_codec = QTextCodec::codecForName(line.toUtf8());
-			f.close();
+			m_codec = QTextCodec::codecForName(file.readLine());
+			m_hdict = hnj_hyphen_load(file.fileName().toLocal8Bit().data());
+			file.close();
 		}
 		else
 		{
 			m_hdict = NULL;
-			return;
 		}
-		QByteArray fn = pfad.toLocal8Bit();
-		filename = fn.data();
-		m_hdict = hnj_hyphen_load(filename);
 	}
 }
 
