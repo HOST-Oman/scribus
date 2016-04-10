@@ -13,7 +13,6 @@ for which a new license (GPL+exception) is in place.
 
 #include <cairo.h>
 #include <cairo-ft.h>
-#include "text/storytext.h"
 #include "text/textshaper.h"
 
 #include <math.h>

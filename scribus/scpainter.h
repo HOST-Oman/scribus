@@ -24,7 +24,6 @@ for which a new license (GPL+exception) is in place.
 #include "fpointarray.h"
 #include "vgradient.h"
 #include "mesh.h"
-#include "pageitem.h"
 
 class ScPattern;
 
