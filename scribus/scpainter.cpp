@@ -1944,7 +1944,7 @@ void ScPainter::drawSharpRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScPainter::drawText(PageItem *item, QRectF area, QString text, bool filled, int align)
+void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 {
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
@@ -2002,28 +2002,26 @@ void ScPainter::drawText(PageItem *item, QRectF area, QString text, bool filled,
 
 	for (int a = 0; a < textList.count(); ++a)
 	{
-//		StoryText story;
-//		story.insertChars(textList[a]);
-//		CharStyle charStyle(m_font, m_fontSize);
-//		story.setCharStyle(0, textList[a].count(), charStyle);
 		TextShaper textShaper(textList[a], m_font, m_fontSize);
 		QList<GlyphRun> glyphRuns = textShaper.shape();
 
 		QVector<cairo_glyph_t> cairoGlyphs;
+		double tmpx = x;
 		foreach (const GlyphRun &run, glyphRuns)
 		{
 			foreach (const GlyphLayout &gl, run.glyphs())
 			{
 				cairo_glyph_t glyph;
 				glyph.index = gl.glyph;
-				glyph.x = x + gl.xoffset;
-				glyph.y = y - gl.yoffset;
-				x += gl.xadvance;
+				glyph.x = tmpx + gl.xoffset*10;
+				glyph.y = y - gl.yoffset*10;
+				tmpx += gl.xadvance*10;
 				cairoGlyphs.append(glyph);
 			}
 		}
 		cairo_show_glyphs(m_cr, cairoGlyphs.data(), cairoGlyphs.count());
 		y += extentsF.height;
+
 		cairo_move_to (m_cr, x, y);
 	}
 }

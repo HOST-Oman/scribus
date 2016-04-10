@@ -27,6 +27,7 @@ TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singleP
 TextShaper::TextShaper(QString text, ScFace &scface, int fontSize)
 	: m_scface(scface)
 	, m_fontSize(fontSize)
+	, m_firstChar(0)
 {
 	for (int i =0; i < text.count(); i ++)
 	{
@@ -57,12 +58,9 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 	UErrorCode err = U_ZERO_ERROR;
 
 	UBiDiLevel parLevel = UBIDI_LTR;
-	if (!m_story.plainText().isNull())
-	{
 	ParagraphStyle style = m_story.paragraphStyle(m_firstChar);
 	if (style.direction() == ParagraphStyle::RTL)
 		parLevel = UBIDI_RTL;
-	}
 
 	ubidi_setPara(obj, text.utf16(), text.length(), parLevel, NULL, &err);
 	if (U_SUCCESS(err))
@@ -133,16 +131,8 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(QMap<int, int> &textMap, QL
 			int end = start;
 			while (end < run.start + run.len)
 			{
-				CharStyle startStyle, endStyle;
-				if (!m_story.plainText().isNull())
-				{
-					startStyle = m_story.charStyle(textMap.value(start));
-					endStyle = m_story.charStyle(textMap.value(end));
-				}
-				else
-				{
-					startStyle = endStyle = CharStyle(m_scface, m_fontSize);
-				}
+				const CharStyle &startStyle = m_story.charStyle(textMap.value(start));
+				const CharStyle &endStyle = m_story.charStyle(textMap.value(end));
 				if (!startStyle.equivForShaping(endStyle))
 					break;
 				end++;
@@ -262,10 +252,7 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		}
 #endif
 		QString str = "";
-		if (m_item->itemText.length() > 0)
-		{
-			str = m_item->ExpandToken(i);
-		}
+		str = m_item->ExpandToken(i);
 
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
@@ -326,13 +313,8 @@ QList<GlyphRun> TextShaper::shape()
 
 	QList<GlyphRun> glyphRuns;
 	foreach (TextRun textRun, textRuns) {
-		CharStyle style;
-		int effects;
-		hb_font_t *hbFont;
-		if (m_scface.ftFace() == NULL)
-		{
-		style = m_story.charStyle(m_textMap.value(textRun.start));
-		effects = style.effects() & ScStyle_UserStyles;
+		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
+		int effects = style.effects() & ScStyle_UserStyles;
 
 		ScFace scFace = style.font();
 		FT_Face ftFace = scFace.ftFace();
@@ -362,14 +344,14 @@ QList<GlyphRun> TextShaper::shape()
 
 		hb_direction_t hbDirection = (textRun.dir == UBIDI_LTR) ? HB_DIRECTION_LTR : HB_DIRECTION_RTL;
 		hb_script_t hbScript = hb_icu_script_to_script(textRun.script);
-//		std::string language = style.language().toStdString();
-//		hb_language_t hbLanguage = hb_language_from_string(language.c_str(), language.length());
+		std::string language = style.language().toStdString();
+		hb_language_t hbLanguage = hb_language_from_string(language.c_str(), language.length());
 
 		hb_buffer_t *hbBuffer = hb_buffer_create();
 		hb_buffer_add_utf16(hbBuffer, m_text.utf16(), m_text.length(), textRun.start, textRun.len);
 		hb_buffer_set_direction(hbBuffer, hbDirection);
 		hb_buffer_set_script(hbBuffer, hbScript);
-//		hb_buffer_set_language(hbBuffer, hbLanguage);
+		hb_buffer_set_language(hbBuffer, hbLanguage);
 		hb_buffer_set_cluster_level(hbBuffer, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
 
 		QStringList features = style.fontFeatures().split(",");
@@ -421,16 +403,9 @@ QList<GlyphRun> TextShaper::shape()
 			int firstChar = m_textMap.value(firstCluster);
 			int lastChar = m_textMap.value(nextCluster - 1);
 
-			QChar ch = m_text.at(firstChar);
-			LayoutFlags flags = ScLayout_None;
-			CharStyle charStyle = style;
-
-			if (!m_story.plainText().isNull())
-			{
-				ch = m_story.text(firstChar);
-			flags = m_story.flags(firstChar);
-			charStyle = m_story.charStyle(firstChar);
-			}
+			QChar ch = m_story.text(firstChar);
+			LayoutFlags flags = m_story.flags(firstChar);
+			const CharStyle& charStyle(m_story.charStyle(firstChar));
 
 			GlyphRun run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
 			if (textRun.dir == UBIDI_RTL)
