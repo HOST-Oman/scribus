@@ -30,7 +30,6 @@ for which a new license (GPL+exception) is in place.
 #include <QCursor>
 #include <QDir>
 #include <QCheckBox>
-//Added by qt3to4:
 #include <QByteArray>
 #include <cstdlib>
 #include <string>
@@ -182,6 +181,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 			++Ccount;
 			continue;
 		}
+
 		if (Ccount > m_minWordLen-1)
 		{
 			QString word = text.mid(firstC, Ccount);
