@@ -26,13 +26,11 @@ for which a new license (GPL+exception) is in place.
 #include "scconfig.h"
 
 #include <QApplication>
-#include <QRegExp>
 #include <QCursor>
-#include <QDir>
 #include <QCheckBox>
 #include <QByteArray>
-#include <cstdlib>
-#include <string>
+#include <QTextBoundaryFinder>
+
 #include "langmgr.h"
 #include "scpaths.h"
 #include "scribuscore.h"
@@ -154,37 +152,37 @@ void Hyphenator::slotHyphenate(PageItem* it)
 	else {
 		text = it->itemText.text(0, it->itemText.length());
 	}
-	int firstC = 0;
-	int lastC = 0;
-	int Ccount = 0;
+
 	rememberedWords.clear();
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
-	QRegExp wordBoundary("\\w");
-	QRegExp whiteSpace("\\s|\\W|\\d|\\n|\\r|\\t");
-	while ((firstC+Ccount < signed(text.length())) && (firstC != -1) && 
-			(lastC < signed(text.length())))
+
+	QTextBoundaryFinder splitter(QTextBoundaryFinder::Word, text);
+	splitter.toStart();
+	while (splitter.toNextBoundary() >= 0)
 	{
-		firstC = text.indexOf(wordBoundary, firstC+Ccount);
-		if (firstC < 0)
-			break;
-		if (firstC > 0 && text.at(firstC-1) == SpecialChars::SHYPHEN)
+		int firstC = 0;
+		int lastC = -1;
+		int countC = -1;
+
+		if (splitter.boundaryReasons() & QTextBoundaryFinder::StartOfItem)
 		{
-			Ccount = 1;
-			continue;
-		}
-		lastC = text.indexOf(whiteSpace, firstC);
-		if (lastC < 0)
-			lastC = signed(text.length());
-		Ccount = lastC - firstC;
-		if (lastC < signed(text.length()) && text.at(lastC) == SpecialChars::SHYPHEN)
-		{
-			++Ccount;
-			continue;
+			firstC = splitter.position();
+			while (splitter.toNextBoundary() >= 0)
+			{
+				if (splitter.boundaryReasons() & QTextBoundaryFinder::EndOfItem)
+				{
+					lastC = splitter.position();
+					break;
+				}
+			}
+			if (lastC < 0)
+				lastC = text.length();
+			countC = lastC - firstC;
 		}
 
-		if (Ccount > m_minWordLen-1)
+		if (countC > 0 && countC > m_minWordLen - 1)
 		{
-			QString word = text.mid(firstC, Ccount);
+			QString word = text.mid(firstC, countC);
 			QString wordLower = QLocale(m_language).toLower(word);
 			if (wordLower.contains(SpecialChars::SHYPHEN))
 				break;
@@ -349,8 +347,6 @@ void Hyphenator::slotHyphenate(PageItem* it)
 			free(pos);
 			free(cut);
 		}
-		if (Ccount == 0)
-			Ccount++;
 	}
 	qApp->restoreOverrideCursor();
 	m_doc->DoDrawing = true;
