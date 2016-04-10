@@ -2002,24 +2002,27 @@ void ScPainter::drawText(PageItem *item, QRectF area, QString text, bool filled,
 
 	for (int a = 0; a < textList.count(); ++a)
 	{
-		StoryText story;
-		story.insertChars(textList[a]);
-		CharStyle charStyle(m_font, m_fontSize);
-		story.setCharStyle(0, textList[a].count(), charStyle);
-		TextShaper textShaper(item, story, 0);
-		QList<GlyphRun> glyphRun = textShaper.shape();
+//		StoryText story;
+//		story.insertChars(textList[a]);
+//		CharStyle charStyle(m_font, m_fontSize);
+//		story.setCharStyle(0, textList[a].count(), charStyle);
+		TextShaper textShaper(textList[a], m_font, m_fontSize);
+		QList<GlyphRun> glyphRuns = textShaper.shape();
 
-		QString text1 = textList[a];
-		cairo_glyph_t cairo_glyphs[text1.count()];
-		for (int i=0; i < glyphRun.size(); i++)
+		QVector<cairo_glyph_t> cairoGlyphs;
+		foreach (const GlyphRun &run, glyphRuns)
 		{
-			cairo_glyphs[i].index = glyphRun[i].glyphs().first().glyph;
-			cairo_glyphs[i].x = x + (glyphRun[i].glyphs().first().xoffset/100.);
-			cairo_glyphs[i].y = y - (glyphRun[i].glyphs().first().yoffset/100.);
-			x += glyphRun[i].glyphs().first().xadvance/100.;
-			y -= glyphRun[i].glyphs().first().yadvance/100.;
+			foreach (const GlyphLayout &gl, run.glyphs())
+			{
+				cairo_glyph_t glyph;
+				glyph.index = gl.glyph;
+				glyph.x = x + gl.xoffset;
+				glyph.y = y - gl.yoffset;
+				x += gl.xadvance;
+				cairoGlyphs.append(glyph);
+			}
 		}
-		cairo_show_glyphs(m_cr, cairo_glyphs, text1.count());
+		cairo_show_glyphs(m_cr, cairoGlyphs.data(), cairoGlyphs.count());
 		y += extentsF.height;
 		cairo_move_to (m_cr, x, y);
 	}

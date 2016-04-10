@@ -14,7 +14,6 @@
 
 #include "pageitem.h"
 #include "scribusdoc.h"
-#include "storytext.h"
 #include "styles/paragraphstyle.h"
 
 
@@ -25,6 +24,26 @@ TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singleP
 	, m_singlePar(singlePar)
 { }
 
+TextShaper::TextShaper(QString text, ScFace &scface, int fontSize)
+	: m_text(text)
+	, m_scface(scface)
+	, m_fontSize(fontSize)
+{
+	for (int i =0; i < m_text.count(); i ++)
+	{
+		if (m_text.at(i) == SpecialChars::PARSEP || m_text.at(i) == SpecialChars::LINEBREAK)
+			continue;
+		QString str = "";
+		str = m_text.at(i);
+		if (str.isEmpty())
+			str = SpecialChars::ZWNBSPACE;
+
+		for (int j = 0; j < str.length(); j++)
+			m_textMap.insert(text.length() + j, i);
+
+	}
+}
+
 QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 {
 	QList<TextRun> textRuns;
@@ -32,9 +51,12 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 	UErrorCode err = U_ZERO_ERROR;
 
 	UBiDiLevel parLevel = UBIDI_LTR;
+	if (!m_story.plainText().isNull())
+	{
 	ParagraphStyle style = m_story.paragraphStyle(m_firstChar);
 	if (style.direction() == ParagraphStyle::RTL)
 		parLevel = UBIDI_RTL;
+	}
 
 	ubidi_setPara(obj, text.utf16(), text.length(), parLevel, NULL, &err);
 	if (U_SUCCESS(err))
@@ -277,8 +299,10 @@ static hb_blob_t *referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
 QList<GlyphRun> TextShaper::shape()
 {
 	// maps expanded characters to itemText tokens.
-
-	buildText(m_text, m_textMap);
+	if (m_text.isEmpty())
+	{
+		buildText(m_text, m_textMap);
+	}
 
 	QTextBoundaryFinder lineBoundery(QTextBoundaryFinder::Line, m_text);
 
@@ -288,8 +312,13 @@ QList<GlyphRun> TextShaper::shape()
 
 	QList<GlyphRun> glyphRuns;
 	foreach (TextRun textRun, textRuns) {
-		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
-		int effects = style.effects() & ScStyle_UserStyles;
+		CharStyle style;
+		int effects;
+		hb_font_t *hbFont;
+		if (m_scface.ftFace() == NULL)
+		{
+		style = m_story.charStyle(m_textMap.value(textRun.start));
+		effects = style.effects() & ScStyle_UserStyles;
 
 		ScFace scFace = style.font();
 		FT_Face ftFace = scFace.ftFace();
