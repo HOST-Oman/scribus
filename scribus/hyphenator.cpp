@@ -185,7 +185,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 		if (Ccount > m_minWordLen-1)
 		{
 			QString word = text.mid(firstC, Ccount);
-			QString wordLower = word.toLower();
+			QString wordLower = QLocale(m_language).toLower(word);
 			if (wordLower.contains(SpecialChars::SHYPHEN))
 				break;
 
