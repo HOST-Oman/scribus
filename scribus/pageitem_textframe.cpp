@@ -1453,7 +1453,6 @@ void PageItem_TextFrame::layout()
 		current.rightMargin = 0.0;
 		current.mustLineEnd = current.colRight;
 		current.restartX = 0;
-		int curStat = 0;
 
 		//why emit invalidating signals each time text is changed by appling styles?
 		//this speed up layouting in case of using notes marks and drop caps
@@ -1517,7 +1516,6 @@ void PageItem_TextFrame::layout()
 			//--<#13490
 			CharStyle charStyle = ((itemText.text(a) != SpecialChars::PARSEP) ? itemText.charStyle(a) : style.charStyle());
 
-			curStat = SpecialChars::getCJKAttr(itemText.text(a));
 			//set style for paragraph effects
 			if (a == 0 || itemText.text(a-1) == SpecialChars::PARSEP)
 			{
@@ -1691,12 +1689,12 @@ void PageItem_TextFrame::layout()
 			//TODO: cjk spacing and kerning should be done in layoutGlyphs!
 			if (i + 1 < glyphRuns.length())
 			{
-				GlyphRun nextRun = glyphRuns[i + 1];
 				// change xadvance, xoffset according to JIS X4051
-				int nextStat = SpecialChars::getCJKAttr(itemText.text(nextRun.firstChar()));
+				int curStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i].lastChar()));
+				int nextStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i + 1].firstChar()));
 				if (curStat != 0)
 				{	// current char is CJK
-					if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(nextRun.firstChar()))){
+					if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(glyphRuns[i + 1].firstChar()))){
 						switch(curStat & SpecialChars::CJK_CHAR_MASK){
 						case SpecialChars::CJK_KANJI:
 						case SpecialChars::CJK_KANA:
