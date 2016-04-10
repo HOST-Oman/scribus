@@ -47,8 +47,6 @@ Hyphenator::Hyphenator(QWidget* parent, ScribusDoc *dok) : QObject( parent ),
 	m_automatic(m_doc->hyphAutomatic()),
 	AutoCheck(m_doc->hyphAutoCheck())
 {
-	//FIXME:av pick up language from charstyle
-	loadDict(m_doc->language());
 	rememberedWords.clear();
 /* Add reading these special lists from prefs or doc here */
 	ignoredWords.clear();
@@ -61,10 +59,10 @@ Hyphenator::~Hyphenator()
 		hnj_hyphen_free(m_hdict);
 }
 
-void Hyphenator::loadDict(const QString& name)
+bool Hyphenator::loadDict(const QString& name)
 {
 	if( LanguageManager::instance()->getHyphFilename(name).isEmpty() )
-		return;
+		return false;
 		
 	if (m_language != name)
 	{
@@ -80,12 +78,16 @@ void Hyphenator::loadDict(const QString& name)
 			m_codec = QTextCodec::codecForName(file.readLine());
 			m_hdict = hnj_hyphen_load(file.fileName().toLocal8Bit().data());
 			file.close();
+			return true;
 		}
 		else
 		{
 			m_hdict = NULL;
+			return false;
 		}
 	}
+
+	return true;
 }
 
 void Hyphenator::slotNewSettings(int Wordlen, bool Autom, bool ACheck, int Num)
@@ -102,14 +104,14 @@ void Hyphenator::slotNewSettings(int Wordlen, bool Autom, bool ACheck, int Num)
 
 void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC)
 {
-	if (m_hdict == NULL)
-		return;
-
 	if (text.contains(SpecialChars::SHYPHEN))
 		return;
 	else if (text.length() >= m_minWordLen)
 	{
-		loadDict(it->itemText.charStyle(firstC).language());
+		bool ok = loadDict(it->itemText.charStyle(firstC).language());
+		if (!ok)
+			return;
+
 		QByteArray te = m_codec->fromUnicode(text);
 		char *buffer = static_cast<char*>(malloc(te.length() + 5));
 		if (buffer == NULL)
@@ -137,7 +139,7 @@ void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC
 
 void Hyphenator::slotHyphenate(PageItem* it)
 {
-	if (m_hdict == NULL || !(it->asTextFrame()) || (it->itemText.length() == 0))
+	if (!(it->asTextFrame()) || (it->itemText.length() == 0))
 		return;
 	m_doc->DoDrawing = false;
 
@@ -187,7 +189,9 @@ void Hyphenator::slotHyphenate(PageItem* it)
 			if (wordLower.contains(SpecialChars::SHYPHEN))
 				break;
 
-			loadDict(it->itemText.charStyle(firstC).language());
+			bool ok = loadDict(it->itemText.charStyle(firstC).language());
+			if (!ok)
+				continue;
 
 			QByteArray te = m_codec->fromUnicode(wordLower);
 			char *buffer = static_cast<char*>(malloc(te.length() + 5));

@@ -69,7 +69,7 @@ private:
 	 \author Franz Schmid
 	 \param name is the name of specified language.
 	 */
-	void loadDict(const QString& name);
+	bool loadDict(const QString& name);
 	
 public:
 	/*! Flag - obsolete? */
