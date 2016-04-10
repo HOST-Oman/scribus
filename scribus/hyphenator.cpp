@@ -184,14 +184,14 @@ void Hyphenator::slotHyphenate(PageItem* it)
 		}
 		if (Ccount > m_minWordLen-1)
 		{
-			QString found = text.mid(firstC, Ccount).toLower();
-			QString found2 = text.mid(firstC, Ccount);
-			if (found.contains(SpecialChars::SHYPHEN))
+			QString word = text.mid(firstC, Ccount);
+			QString wordLower = word.toLower();
+			if (wordLower.contains(SpecialChars::SHYPHEN))
 				break;
 
 			loadDict(it->itemText.charStyle(firstC).language());
 
-			QByteArray te = m_codec->fromUnicode( found );
+			QByteArray te = m_codec->fromUnicode(wordLower);
 			char *buffer = static_cast<char*>(malloc(te.length() + 5));
 			if (buffer == NULL)
 				break;
@@ -205,7 +205,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 	  			int i = 0;
 				buffer[te.length()] = '\0';
 				bool hasHyphen = false;
-				for (i = 1; i < found.length()-1; ++i)
+				for (i = 1; i < wordLower.length()-1; ++i)
 				{
 					if(buffer[i] & 1)
 					{
@@ -215,24 +215,24 @@ void Hyphenator::slotHyphenate(PageItem* it)
 				}
 				QString outs = "";
 				QString input = "";
-				outs += found2[0];
-				for (i = 1; i < found.length()-1; ++i)
+				outs += word[0];
+				for (i = 1; i < wordLower.length()-1; ++i)
 				{
-					outs += found2[i];
+					outs += word[i];
 					if(buffer[i] & 1)
 						outs += "-";
 				}
-				outs += found2.right(1);
+				outs += word.right(1);
 				input = outs;
-				if (!ignoredWords.contains(found2))
+				if (!ignoredWords.contains(word))
 				{
 					if (!hasHyphen)
-						it->itemText.hyphenateWord(startC + firstC, found.length(), NULL);
+						it->itemText.hyphenateWord(startC + firstC, wordLower.length(), NULL);
 					else if (m_automatic)
 					{
-						if (specialWords.contains(found2))
+						if (specialWords.contains(word))
 						{
-							outs = specialWords.value(found2);
+							outs = specialWords.value(word);
 							uint ii = 1;
 							for (i = 1; i < outs.length()-1; ++i)
 							{
@@ -246,13 +246,13 @@ void Hyphenator::slotHyphenate(PageItem* it)
 								}
 							}
 						}
-						it->itemText.hyphenateWord(startC + firstC, found.length(), buffer);
+						it->itemText.hyphenateWord(startC + firstC, wordLower.length(), buffer);
 					}
 					else
 					{
-						if (specialWords.contains(found2))
+						if (specialWords.contains(word))
 						{
-							outs = specialWords.value(found2);
+							outs = specialWords.value(word);
 							uint ii = 1;
 							for (i = 1; i < outs.length()-1; ++i)
 							{
@@ -281,7 +281,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 									++ii;
 								}
 							}
-							it->itemText.hyphenateWord(firstC, found.length(), buffer);
+							it->itemText.hyphenateWord(firstC, wordLower.length(), buffer);
 						}
 						else
 						{
@@ -312,15 +312,15 @@ void Hyphenator::slotHyphenate(PageItem* it)
 									rememberedWords.insert(input, outs);
 								if (dia->addToIgnoreList->isChecked())
 								{
-									if (!ignoredWords.contains(found2))
-										ignoredWords.insert(found2);
+									if (!ignoredWords.contains(word))
+										ignoredWords.insert(word);
 								}
 								if (dia->addToExceptionList->isChecked())
 								{
-									if (!specialWords.contains(found2))
-										specialWords.insert(found2, outs);
+									if (!specialWords.contains(word))
+										specialWords.insert(word, outs);
 								}
-								it->itemText.hyphenateWord(firstC, found.length(), buffer);
+								it->itemText.hyphenateWord(firstC, wordLower.length(), buffer);
 							}
 							else
 							{
