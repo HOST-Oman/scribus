@@ -2012,9 +2012,9 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 			{
 				cairo_glyph_t glyph;
 				glyph.index = gl.glyph;
-				glyph.x = tmpx + gl.xoffset*10;
-				glyph.y = y - gl.yoffset*10;
-				tmpx += gl.xadvance*10;
+				glyph.x = tmpx + gl.xoffset *10.0;
+				glyph.y = y - gl.yoffset *10.0;
+				tmpx += ceil(gl.xadvance *10.0);
 				cairoGlyphs.append(glyph);
 			}
 		}
