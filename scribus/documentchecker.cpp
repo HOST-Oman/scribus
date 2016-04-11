@@ -40,17 +40,21 @@ for which a new license (GPL+exception) is in place.
 class MissignGlyphsPainter: public TextLayoutPainter
 {
 	errorCodes& m_itemError;
+	const TextLayout& m_textLayout;
 
 public:
-	MissignGlyphsPainter(errorCodes& itemError)
+	MissignGlyphsPainter(errorCodes& itemError, const TextLayout& textLayout)
 		: m_itemError(itemError)
+		, m_textLayout(textLayout)
 	{ }
 
 	void drawGlyph(const GlyphLayout gl)
 	{
 		if (gl.glyph == 0)
-			// FIXME: we need to find the actual character position in StoryText.
-			m_itemError.insert(MissingGlyph, 0);
+		{
+			int pos = m_textLayout.pointToPosition(QPointF(x(), y()));
+			m_itemError.insert(MissingGlyph, pos + 1);
+		}
 	}
 	void drawGlyphOutline(const GlyphLayout gl, bool)
 	{
@@ -376,7 +380,7 @@ void DocumentChecker::checkItems(ScribusDoc *currDoc, struct CheckerPrefs checke
 
 				if (checkerSettings.checkGlyphs)
 				{
-					MissignGlyphsPainter p(itemError);
+					MissignGlyphsPainter p(itemError, currItem->textLayout);
 					currItem->textLayout.render(&p);
 				}
 			}
@@ -618,7 +622,7 @@ void DocumentChecker::checkItems(ScribusDoc *currDoc, struct CheckerPrefs checke
 				}
 				if (checkerSettings.checkGlyphs)
 				{
-					MissignGlyphsPainter p(itemError);
+					MissignGlyphsPainter p(itemError, currItem->textLayout);
 					currItem->textLayout.render(&p);
 				}
 			}
