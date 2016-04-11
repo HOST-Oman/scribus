@@ -186,6 +186,7 @@ void FtFace::loadGlyph(ScFace::gid_type gl) const
 	if (m_glyphWidth.contains(gl))
 		return;
 
+	bool broken = true;
 	ScFace::GlyphData GRec;
 	FT_Face face = ftFace();
 	if (FT_Load_Glyph( face, gl, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ))
@@ -217,14 +218,14 @@ void FtFace::loadGlyph(ScFace::gid_type gl) const
 			GRec.Outlines = outlines;
 			GRec.x = x;
 			GRec.y = y;
-			GRec.broken = false;
+			broken = false;
 		}
 		else {
 			m_glyphWidth[gl] = 1;
 		}
 	}
 	m_glyphOutline[gl] = GRec;
-	if (GRec.broken && status < ScFace::BROKENGLYPHS)
+	if (broken && status < ScFace::BROKENGLYPHS)
 		status = ScFace::BROKENGLYPHS;
 }
 
