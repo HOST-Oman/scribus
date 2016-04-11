@@ -13,6 +13,7 @@ for which a new license (GPL+exception) is in place.
 
 #include <cairo.h>
 #include <cairo-ft.h>
+#include "text/storytext.h"
 #include "text/textshaper.h"
 
 #include <math.h>
@@ -1965,6 +1966,7 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 										NULL);
 	cairo_font_face_t *cairo_face = cairo_ft_font_face_create_for_pattern(pattern);
 	FcPatternDestroy(pattern);
+
 	cairo_set_font_face (m_cr, cairo_face);
 	cairo_set_font_size(m_cr, m_fontSize);
 
@@ -2010,11 +2012,12 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 		{
 			foreach (const GlyphLayout &gl, run.glyphs())
 			{
+				cairo_scale(m_cr, gl.scaleH, gl.scaleV);
 				cairo_glyph_t glyph;
 				glyph.index = gl.glyph;
-				glyph.x = tmpx + gl.xoffset *10.0;
-				glyph.y = y - gl.yoffset *10.0;
-				tmpx += ceil(gl.xadvance *10.0);
+				glyph.x = tmpx + gl.xoffset * 10.0;
+				glyph.y = y - gl.yoffset * 10.0;
+				tmpx += ceil(gl.xadvance * 10.0);
 				cairoGlyphs.append(glyph);
 			}
 		}
