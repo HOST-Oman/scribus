@@ -25,9 +25,9 @@ TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singleP
 { }
 
 TextShaper::TextShaper(QString text, ScFace &scface, int fontSize)
-	: m_scface(scface)
+	: m_firstChar(0)
+	, m_scface(scface)
 	, m_fontSize(fontSize)
-	, m_firstChar(0)
 {
 	for (int i =0; i < text.count(); i ++)
 	{
