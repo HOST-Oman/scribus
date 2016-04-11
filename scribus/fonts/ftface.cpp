@@ -29,7 +29,7 @@ FT_Library FtFace::m_library = NULL;
    usable() == ! broken
    embeddable() == glyphs_checked
    
-   canRender(unicode) -> CharMap cache? -> loadChar/Glyph -> !broken
+   loadChar/Glyph -> !broken
    Glyphs:  width    status
             -1000    unknown
             -2000    broken
