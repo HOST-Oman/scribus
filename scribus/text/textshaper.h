@@ -4,8 +4,11 @@
 #include <QList>
 #include <QMap>
 #include <QString>
+<<<<<<< HEAD
 #include <fonts/scface.h>
 #include "storytext.h"
+=======
+>>>>>>> upstream/ctl
 #include <unicode/uscript.h>
 
 class GlyphRun;
@@ -16,7 +19,10 @@ class TextShaper
 {
 public:
 	TextShaper(PageItem *item, StoryText &story, int first, bool singlePar=false);
+<<<<<<< HEAD
 	TextShaper(QString text, ScFace &scface, int fontSize);
+=======
+>>>>>>> upstream/ctl
 
 	QList<GlyphRun> shape();
 
@@ -42,12 +48,19 @@ private:
 	QList<TextRun> itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs);
 
 	PageItem *m_item;
+<<<<<<< HEAD
 	StoryText m_story;
 	int m_firstChar;
 	bool m_singlePar;
 	QString m_text;
 	ScFace m_scface;
 	int m_fontSize;
+=======
+	StoryText &m_story;
+	int m_firstChar;
+	bool m_singlePar;
+	QString m_text;
+>>>>>>> upstream/ctl
 	QMap<int, int> m_textMap;
 };
 

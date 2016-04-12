@@ -95,8 +95,7 @@ public:
 		qreal bbox_width;
 		qreal bbox_ascent;
 		qreal bbox_descent;
-		bool broken;
-		GlyphData() : Outlines(), x(0), y(0), bbox_width(1), bbox_ascent(1), bbox_descent(0), broken(true) {}
+		GlyphData() : Outlines(), x(0), y(0), bbox_width(1), bbox_ascent(1), bbox_descent(0) {}
 	};
 
     
@@ -374,9 +373,6 @@ public:
 	FPoint glyphOrigin(gid_type gl, qreal sz=1.0)    const { return m_m->glyphOrigin(gl, sz); }
 
 	// char interface
-
-	/// test if the face can render this char
-	bool canRender(QChar ch)   const;
 
 	/// translate unicode to glyph index
 	gid_type char2CMap(uint ch)   const;

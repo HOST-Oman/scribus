@@ -14,6 +14,7 @@
 
 #include "pageitem.h"
 #include "scribusdoc.h"
+#include "storytext.h"
 #include "styles/paragraphstyle.h"
 
 
@@ -252,7 +253,6 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		}
 #endif
 		QString str = m_item->ExpandToken(i);
-
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
 
@@ -291,7 +291,10 @@ static hb_blob_t *referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
 		return NULL;
 
 	if (FT_Load_Sfnt_Table(ftFace, tag, 0, buffer, &length))
+	{
+		free(buffer);
 		return NULL;
+	}
 
 	return hb_blob_create((const char *) buffer, length, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
@@ -317,6 +320,8 @@ QList<GlyphRun> TextShaper::shape()
 
 		ScFace scFace = style.font();
 		FT_Face ftFace = scFace.ftFace();
+		if (ftFace == NULL)
+			continue;
 		hb_font_t *hbFont;
 
 		// TODO: move hb_font_t creation to ScFace
@@ -363,7 +368,7 @@ QList<GlyphRun> TextShaper::shape()
 				hbFeatures.append(hbFeature);
 		}
 
-		hb_shape_full(hbFont, hbBuffer, hbFeatures.data(), hbFeatures.length(), NULL);
+		hb_shape(hbFont, hbBuffer, hbFeatures.data(), hbFeatures.length());
 
 		unsigned int count = hb_buffer_get_length(hbBuffer);
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);

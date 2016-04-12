@@ -87,8 +87,8 @@ void LanguageManager::generateLangList()
 {
 	// So internally language would always be manipulated as a code and otherwise presented translated.
 	//Build table;
-	// Please keep this list sorted by language name.
 	m_langTable.clear();
+	// Please keep this list sorted by language name.
 	m_langTable.append(LangDef("af",       "af_ZA",    "Afrikaans",               QObject::tr("Afrikaans")));
 	m_langTable.append(LangDef("sq",       "",         "Albanian",                QObject::tr("Albanian")));
 	m_langTable.append(LangDef("blo",      "",         "Anii",                    QObject::tr("Anii")));

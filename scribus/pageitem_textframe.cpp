@@ -1023,7 +1023,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 		else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
 		{
 			GlyphLayout& glyph = glyphrun.glyphs().last();
-			glyph.xadvance += wide * spaceExtension;
+			glyph.xadvance += (wide * spaceExtension) / glyph.scaleH;
 		}
 		if (i != curr.line.firstRun && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 		{
@@ -1453,7 +1453,10 @@ void PageItem_TextFrame::layout()
 		current.rightMargin = 0.0;
 		current.mustLineEnd = current.colRight;
 		current.restartX = 0;
+<<<<<<< HEAD
 		int curStat = 0;
+=======
+>>>>>>> upstream/ctl
 
 		//why emit invalidating signals each time text is changed by appling styles?
 		//this speed up layouting in case of using notes marks and drop caps
@@ -1517,7 +1520,6 @@ void PageItem_TextFrame::layout()
 			//--<#13490
 			CharStyle charStyle = ((itemText.text(a) != SpecialChars::PARSEP) ? itemText.charStyle(a) : style.charStyle());
 
-			curStat = SpecialChars::getCJKAttr(itemText.text(a));
 			//set style for paragraph effects
 			if (a == 0 || itemText.text(a-1) == SpecialChars::PARSEP)
 			{
@@ -1691,12 +1693,12 @@ void PageItem_TextFrame::layout()
 			//TODO: cjk spacing and kerning should be done in layoutGlyphs!
 			if (i + 1 < glyphRuns.length())
 			{
-				GlyphRun nextRun = glyphRuns[i + 1];
 				// change xadvance, xoffset according to JIS X4051
-				int nextStat = SpecialChars::getCJKAttr(itemText.text(nextRun.firstChar()));
+				int curStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i].lastChar()));
+				int nextStat = SpecialChars::getCJKAttr(itemText.text(glyphRuns[i + 1].firstChar()));
 				if (curStat != 0)
 				{	// current char is CJK
-					if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(nextRun.firstChar()))){
+					if (nextStat == 0 && !SpecialChars::isBreakingSpace(itemText.text(glyphRuns[i + 1].firstChar()))){
 						switch(curStat & SpecialChars::CJK_CHAR_MASK){
 						case SpecialChars::CJK_KANJI:
 						case SpecialChars::CJK_KANA:
@@ -1810,12 +1812,10 @@ void PageItem_TextFrame::layout()
 					{
 						foreach (GlyphLayout gl, glyphRuns[i].glyphs()) {
 							GlyphMetrics gm = font.glyphBBox(gl.glyph, hlcsize10);
-							realDesc = qMax(realDesc, gm.descent);
+							realDesc = qMax(realDesc, gm.descent * scaleV - offset);
 							realAsce = gm.ascent;
 						}
 					}
-
-					realDesc =  realDesc * scaleV - offset;
 					desc = -font.descent(hlcsize10);
 					current.rememberShrinkStretch(itemText.text(a), wide, style);
 				}
@@ -2496,7 +2496,7 @@ void PageItem_TextFrame::layout()
 			if ((DropCmode || BulNumMode) && !outs)
 			{
 				current.xPos += style.parEffectOffset();
-				lastGlyph.xadvance += style.parEffectOffset();
+				lastGlyph.xadvance += style.parEffectOffset() / lastGlyph.scaleH;
 				if (DropCmode)
 				{
 					DropCmode = false;
@@ -2941,7 +2941,7 @@ void PageItem_TextFrame::layout()
 	MaxChars = itemText.length();
 	if ((verticalAlign > 0) && (NextBox == NULL))
 	{
-		double hAdjust = height() - textLayout.box()->naturalHeight();
+		double hAdjust = height() - textLayout.box()->naturalHeight() - m_textDistanceMargins.bottom();
 		if (hAdjust > 0)
 		{
 			if (verticalAlign == 1)

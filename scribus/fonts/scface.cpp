@@ -108,7 +108,7 @@ FPoint ScFace::ScFaceData::glyphOrigin(gid_type gl, qreal sz) const
    usable() == ! broken
    embeddable() == glyphs_checked
    
-   canRender(unicode) -> CharMap cache? -> loadChar/Glyph -> !broken
+   loadChar/Glyph -> !broken
    Glyphs:  width    status
             -1000    unknown
             -2000    broken
@@ -365,6 +365,7 @@ ScFace::gid_type ScFace::char2CMap(uint ch) const
 		return gl;
 }
 
+<<<<<<< HEAD
 
 bool ScFace::canRender(QChar ch) const 
 {
@@ -382,6 +383,8 @@ bool ScFace::canRender(QChar ch) const
 }
 
 
+=======
+>>>>>>> upstream/ctl
 bool ScFace::EmbedFont(QByteArray &str)
 {
 	if (m_m->status == ScFace::UNKNOWN) {

@@ -50,30 +50,28 @@ private:
 	ScribusDoc *m_doc;
 	/*! Reference to the hyphen dictionary structure. */
 	HyphenDict *m_hdict;
-	/*! Flag - if is the dictionary without errors etc. If is it 'false'
-		hyphen aborted. */
-	bool m_usable;
 	/*! Qt text codec which handles local characters. */
 	QTextCodec *m_codec;
+	/*! Language in use */
+	QString m_language;
 
-	/*!
-		\brief Loads dictionary and fills parameters like \a useAble, \a codec, \a hdict.
-	 \date
-	 \author Franz Schmid
-	 \param name is the name of specified language - filename.
-	 */
-	void NewDict(const QString& name);
-	
-public:
 	/*! There are languages having rule not to hyphen word shorter than
 		MinWordLen */
-	int MinWordLen;
+	int m_minWordLen;
 	/*! Maximum number of hyphenations allowed following each other */
-	int HyCount;
-	/*! Language in use */
-	QString Language;
+	int m_consecutiveLines;
 	/*! Flag - if user set auto hyphen processing.*/
-	bool Automatic;
+	bool m_automatic;
+
+	/*!
+		\brief Loads dictionary and fills parameters like \a m_codec, \a m_hdict.
+	 \date
+	 \author Franz Schmid
+	 \param name is the name of specified language.
+	 */
+	bool loadDict(const QString& name);
+	
+public:
 	/*! Flag - obsolete? */
 	bool AutoCheck;
 	QHash<QString, QString> rememberedWords;

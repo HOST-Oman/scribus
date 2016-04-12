@@ -868,13 +868,17 @@ bool Scribus12Format::loadFile(const QString & fileName, const FileFormat & /* f
 		static const QString LANGUAGE("LANGUAGE");
 		QString l(dc.attribute(LANGUAGE, "en"));
 		if (LanguageManager::instance()->langTableIndex(l)!=-1)
-			m_Doc->setHyphLanguage(l); //new style storage
+			m_Doc->setLanguage(l); //new style storage
 		else
 		{ //old style storage
 			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
 				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
+<<<<<<< HEAD
 			m_Doc->setHyphLanguage(lnew);
+=======
+			m_Doc->setLanguage(lnew);
+>>>>>>> upstream/ctl
 		}
 		m_Doc->setHyphMinimumWordLength(dc.attribute("MINWORDLEN", "3").toInt());
 		m_Doc->setHyphConsecutiveLines(dc.attribute("HYCOUNT", "2").toInt());
@@ -1030,7 +1034,7 @@ bool Scribus12Format::loadFile(const QString & fileName, const FileFormat & /* f
 					m_AvailableFonts->findFont(tmpf, m_Doc);
 					OB.IFont = tmpf;
 					OB.LayerID = obj.attribute("LAYER", "0").toInt();
-					OB.Language = obj.attribute("LANGUAGE", m_Doc->hyphLanguage());
+					OB.Language = obj.attribute("LANGUAGE", m_Doc->language());
 					tmp = "";
 					if ((obj.hasAttribute("GROUPS")) && (obj.attribute("NUMGROUP", "0").toInt() != 0))
 					{
@@ -2033,7 +2037,7 @@ bool Scribus12Format::loadPage(const QString & fileName, int pageNumber, bool Mp
 					m_AvailableFonts->findFont(tmpf, m_Doc);
 					OB.IFont = tmpf;
 					OB.LayerID = layerTrans[obj.attribute("LAYER", "0").toInt()];
-					OB.Language = obj.attribute("LANGUAGE", m_Doc->hyphLanguage());
+					OB.Language = obj.attribute("LANGUAGE", m_Doc->language());
 					tmp = "";
 					if ((obj.hasAttribute("GROUPS")) && (obj.attribute("NUMGROUP", "0").toInt() != 0))
 					{
