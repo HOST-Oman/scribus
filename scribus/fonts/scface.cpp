@@ -365,26 +365,6 @@ ScFace::gid_type ScFace::char2CMap(uint ch) const
 		return gl;
 }
 
-<<<<<<< HEAD
-
-bool ScFace::canRender(QChar ch) const 
-{
-	if (!usable())
-		return false;
-	else {
-		gid_type gl = char2CMap(ch);    //  calls load()
-		if (gl >= CONTROL_GLYPHS)   //  those are always empty
-			return true;
-		else {
-			m_m->loadGlyph(gl);
-			return ! m_m->m_glyphOutline[gl].broken; 
-		}
-	}
-}
-
-
-=======
->>>>>>> upstream/ctl
 bool ScFace::EmbedFont(QByteArray &str)
 {
 	if (m_m->status == ScFace::UNKNOWN) {

@@ -621,12 +621,7 @@ int GlyphBox::pointToPosition(QPointF coord) const
 {
 	int componentCount = lastChar() - firstChar() + 1;
 	double componentWidth = width() / componentCount;
-
-<<<<<<< HEAD
-	for(int i =0; i< componentCount; i++)
-=======
 	for (int i =0; i< componentCount; i++)
->>>>>>> upstream/ctl
 	{
 		double componentX;
 		componentX = x() + (componentWidth * i);

@@ -1453,10 +1453,6 @@ void PageItem_TextFrame::layout()
 		current.rightMargin = 0.0;
 		current.mustLineEnd = current.colRight;
 		current.restartX = 0;
-<<<<<<< HEAD
-		int curStat = 0;
-=======
->>>>>>> upstream/ctl
 
 		//why emit invalidating signals each time text is changed by appling styles?
 		//this speed up layouting in case of using notes marks and drop caps

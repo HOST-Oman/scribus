@@ -874,11 +874,7 @@ bool Scribus12Format::loadFile(const QString & fileName, const FileFormat & /* f
 			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
 				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
-<<<<<<< HEAD
-			m_Doc->setHyphLanguage(lnew);
-=======
 			m_Doc->setLanguage(lnew);
->>>>>>> upstream/ctl
 		}
 		m_Doc->setHyphMinimumWordLength(dc.attribute("MINWORDLEN", "3").toInt());
 		m_Doc->setHyphConsecutiveLines(dc.attribute("HYCOUNT", "2").toInt());

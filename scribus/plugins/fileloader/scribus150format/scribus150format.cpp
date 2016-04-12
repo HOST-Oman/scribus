@@ -2048,11 +2048,7 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, ScXmlStreamAttributes&
 			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			if (lnew.isEmpty())
 				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
-<<<<<<< HEAD
-			m_Doc->setHyphLanguage(lnew);
-=======
 			m_Doc->setLanguage(lnew);
->>>>>>> upstream/ctl
 		}
 	}
 
