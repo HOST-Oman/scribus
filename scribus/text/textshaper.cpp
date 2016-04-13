@@ -285,7 +285,7 @@ QList<GlyphCluster> TextShaper::shape()
 	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
 	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
 
-	QList<GlyphCluster> glyphRuns;
+	QList<GlyphCluster> glyphClusters;
 	foreach (TextRun textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
 		int effects = style.effects() & ScStyle_UserStyles;
@@ -346,7 +346,7 @@ QList<GlyphCluster> TextShaper::shape()
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);
 		hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(hbBuffer, NULL);
 
-		glyphRuns.reserve(glyphRuns.size() + count);
+		glyphClusters.reserve(glyphClusters.size() + count);
 		for (size_t i = 0; i < count; )
 		{
 			uint32_t firstCluster = glyphs[i].cluster;
@@ -383,14 +383,14 @@ QList<GlyphCluster> TextShaper::shape()
 			LayoutFlags flags = m_story.flags(firstChar);
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 
-			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
+			GlyphCluster glyphCluster(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphClusters.length());
 			if (textRun.dir == UBIDI_RTL)
-				run.setFlag(ScLayout_RightToLeft);
+				glyphCluster.setFlag(ScLayout_RightToLeft);
 			lineBoundery.setPosition(firstCluster);
 			if (lineBoundery.isAtBoundary())
-				run.setFlag(ScLayout_LineBoundry);
+				glyphCluster.setFlag(ScLayout_LineBoundry);
 			if (SpecialChars::isExpandingSpace(ch))
-				run.setFlag(ScLayout_ExpandingSpace);
+				glyphCluster.setFlag(ScLayout_ExpandingSpace);
 
 			while (i < count && glyphs[i].cluster == firstCluster)
 			{
@@ -408,11 +408,11 @@ QList<GlyphCluster> TextShaper::shape()
 				{
 					GlyphLayout control;
 					control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
-					run.glyphs().append(control);
+					glyphCluster.glyphs().append(control);
 				}
 
 				if (SpecialChars::isExpandingSpace(ch))
-					gl.xadvance *= run.style().wordTracking();
+					gl.xadvance *= glyphCluster.style().wordTracking();
 
 				if (m_story.hasObject(firstChar))
 					gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
@@ -448,7 +448,7 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.scaleV *= style.scaleV() / 1000.0;
 				}
 
-				if (run.hasFlag(ScLayout_SmallCaps))
+				if (glyphCluster.hasFlag(ScLayout_SmallCaps))
 				{
 					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
 					gl.scaleV *= smallcapsScale;
@@ -458,15 +458,15 @@ QList<GlyphCluster> TextShaper::shape()
 				if (gl.xadvance > 0)
 					gl.xadvance += tracking;
 
-				run.glyphs().append(gl);
+				glyphCluster.glyphs().append(gl);
 
 				i++;
 			}
-			glyphRuns.append(run);
+			glyphClusters.append(glyphCluster);
 		}
 		hb_font_destroy(hbFont);
 		hb_buffer_destroy(hbBuffer);
 	}
 
-	return glyphRuns;
+	return glyphClusters;
 }

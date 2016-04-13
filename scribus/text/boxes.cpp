@@ -494,7 +494,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 	if (hasStrokeColor)
 		p->setStrokeColor(TextLayoutColor(charStyle.strokeColor(), charStyle.strokeShade()));
 
-	foreach (const GlyphLayout gl, m_glyphRun.glyphs())
+	foreach (const GlyphLayout gl, m_glyph.glyphs())
 	{
 		p->save();
 
@@ -626,7 +626,7 @@ int GlyphBox::pointToPosition(QPointF coord) const
 	{
 		double componentX;
 		componentX = x() + (componentWidth * i);
-		if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+		if (m_glyph.hasFlag(ScLayout_RightToLeft))
 			componentX = x() + width() - (componentWidth * (i + 1));
 
 		if (coord.x() >= componentX && coord.x() <= componentX +componentWidth)
@@ -644,7 +644,7 @@ QLineF GlyphBox::positionToPoint(int pos) const
 	double componentWidth = width() / componentCount;
 
 	xPos = x() + (componentWidth * componentIndex);
-	if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+	if (m_glyph.hasFlag(ScLayout_RightToLeft))
 		xPos = x() + width() - (componentWidth * componentIndex);
 
 	return QLineF(xPos, y(), xPos, y() + height());
