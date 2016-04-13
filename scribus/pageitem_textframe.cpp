@@ -2014,7 +2014,7 @@ void PageItem_TextFrame::layout()
 						else if (style.lineSpacingMode() == ParagraphStyle::FixedLineSpacing)
 							current.yPos += (current.startOfCol ? 1 : style.lineSpacing());
 						else
-							current.yPos++;
+							current.yPos += (current.startOfCol ? 1 : style.lineSpacing());
 						lastLineY = maxYAsc;
 						if (current.startOfCol)
 						{
@@ -2092,7 +2092,7 @@ void PageItem_TextFrame::layout()
 				double diff = 0;
 				if (current.startOfCol || DropCmode)
 					diff = realAsce - (current.yPos - lastLineY);
-				else if (style.lineSpacingMode() != ParagraphStyle::FixedLineSpacing)
+				else if (style.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
 				{
 					if (HasObject)
 						diff = (currentObject->height() + currentObject->lineWidth()) * scaleV + offset - (current.yPos - lastLineY);
