@@ -12,6 +12,7 @@
 
 #include "scrptrun.h"
 
+#include "glyphrun.h"
 #include "pageitem.h"
 #include "scribusdoc.h"
 #include "storytext.h"

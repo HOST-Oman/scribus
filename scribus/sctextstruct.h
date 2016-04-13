@@ -72,44 +72,6 @@ struct SCRIBUS_API GlyphLayout {
 	{ }
 };
 
-
-class GlyphRun
-{
-	const CharStyle* m_style;
-	LayoutFlags m_flags;
-	QList<GlyphLayout> m_glyphs;
-	int m_firstChar;
-	int m_lastChar;
-	PageItem* m_object;
-	int m_visualIndex;
-
-public:
-	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i)
-		: m_style(style)
-		, m_flags(flags)
-		, m_firstChar(first)
-		, m_lastChar(last)
-		, m_object(o)
-		, m_visualIndex(i)
-	{}
-
-	const CharStyle&         style()  const { return *m_style; }
-	bool       hasFlag(LayoutFlags f) const { return (m_flags & f) == f; }
-	void       setFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags | f); }
-	void     clearFlag(LayoutFlags f)       { m_flags = static_cast<LayoutFlags>(m_flags & ~f); }
-
-	QList<GlyphLayout>&       glyphs()       { return m_glyphs; }
-	const QList<GlyphLayout>& glyphs() const { return m_glyphs; }
-	int firstChar()					const	{ return m_firstChar; }
-	int lastChar()					const	{ return m_lastChar; }
-	qreal width() const;
-	PageItem* object()				const	{ return m_object; }
-	int visualIndex()				const	{ return m_visualIndex; }
-	double ascent() const;
-	double desent() const;
-};
-
-
 class SCRIBUS_API ScText : public CharStyle
 {
 public:

@@ -10,6 +10,7 @@
 
 #include <QObject>
 
+#include "glyphrun.h"
 #include "sctextstruct.h"
 
 class StoryText;

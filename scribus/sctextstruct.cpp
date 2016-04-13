@@ -13,39 +13,6 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "scribusdoc.h"
 
-
-qreal GlyphRun::width() const
-{
-	qreal width = 0;
-	foreach (const GlyphLayout gl, m_glyphs)
-	{
-		width += gl.xadvance * gl.scaleH;
-	}
-	return width;
-}
-
-double GlyphRun::ascent() const
-{
-	const ScFace &font = m_style->font();
-	double asc = 0;
-	foreach (const GlyphLayout gl, m_glyphs) {
-		GlyphMetrics gm = font.glyphBBox(gl.glyph, m_style->fontSize() / 10.0);
-		asc = qMax(asc, gm.ascent * gl.scaleV);
-	}
-	return asc;
-}
-
-double GlyphRun::desent() const
-{
-	const ScFace &font = m_style->font();
-	double des = 0;
-	foreach (const GlyphLayout gl, m_glyphs) {
-		GlyphMetrics gm = font.glyphBBox(gl.glyph, m_style->fontSize() / 10.0);
-		des = qMax(des, gm.descent * gl.scaleV);
-	}
-	return -des;
-}
-
 ScText::~ScText() 
 {
 	if (parstyle)
