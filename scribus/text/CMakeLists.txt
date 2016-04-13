@@ -26,7 +26,7 @@ SET(SCRIBUS_TEXT_LIB_SOURCES
 	frect.cpp
 	boxes.cpp
 	scrptrun.cpp
-	glyphrun.cpp
+	glyphcluster.cpp
 )
 
 QT5_WRAP_CPP(SCRIBUS_TEXT_MOC_SOURCES ${SCRIBUS_TEXT_MOC_CLASSES})

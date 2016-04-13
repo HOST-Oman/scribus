@@ -10,7 +10,7 @@
 
 #include <QObject>
 
-#include "glyphrun.h"
+#include "glyphcluster.h"
 #include "sctextstruct.h"
 
 class StoryText;
@@ -239,7 +239,7 @@ protected:
 class GlyphBox: public Box
 {
 public:
-	GlyphBox(const GlyphRun& run)
+	GlyphBox(const GlyphCluster& run)
 		: m_glyphRun(run)
 		, m_effects(run.style().effects())
 	{
@@ -260,14 +260,14 @@ public:
 	const CharStyle& style() const { return m_glyphRun.style(); }
 
 private:
-	GlyphRun m_glyphRun;
+	GlyphCluster m_glyphRun;
 	const StyleFlag m_effects;
 };
 
 class ObjectBox: public GlyphBox
 {
 public:
-	ObjectBox(const GlyphRun& run)
+	ObjectBox(const GlyphCluster& run)
 		: GlyphBox(run)
 		, m_item(run.object())
 	{

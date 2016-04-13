@@ -392,12 +392,12 @@ static void layoutDropCap(GlyphLayout layout, double curX, double curY, double o
 */
 
 
-static bool logicalGlyphRunComp(const GlyphRun &r1, const GlyphRun &r2)
+static bool logicalGlyphRunComp(const GlyphCluster &r1, const GlyphCluster &r2)
 {
 	return r1.firstChar() < r2.firstChar();
 }
 
-static bool visualGlyphRunComp(const GlyphRun &r1, const GlyphRun &r2)
+static bool visualGlyphRunComp(const GlyphCluster &r1, const GlyphCluster &r2)
 {
 	return r1.visualIndex() < r2.visualIndex();
 }
@@ -444,7 +444,7 @@ fields which describe how the current line is placed into the frame
 */
 struct LineControl {
 	LineSpec line;
-	QList<GlyphRun>& glyphRuns;
+	QList<GlyphCluster>& glyphRuns;
 	bool     isEmpty;
 	int      hyphenCount;
 	double   colWidth;
@@ -478,7 +478,7 @@ struct LineControl {
 	ScribusDoc *doc;
 
 	/// remember frame dimensions and offsets
-	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphRun>& runs, double colwidth, double colgap)
+	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, QList<GlyphCluster>& runs, double colwidth, double colgap)
 		: glyphRuns(runs)
 		, hasDropCap(false)
 		, doc(d)
@@ -804,12 +804,12 @@ struct LineControl {
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
 
-		QList<GlyphRun> runs;
+		QList<GlyphCluster> runs;
 		for (int i = line.firstRun; i <= line.lastRun; ++i)
 			runs.append(glyphRuns.at(i));
 		std::sort(runs.begin(), runs.end(), visualGlyphRunComp);
 
-		foreach (const GlyphRun& run, runs)
+		foreach (const GlyphCluster& run, runs)
 		{
 			addBox(result, run);
 		}
@@ -817,7 +817,7 @@ struct LineControl {
 		return result;
 	}
 
-	void addBox(LineBox *lineBox, const GlyphRun& run)
+	void addBox(LineBox *lineBox, const GlyphCluster& run)
 	{
 		Box* result;
 		if (run.object())
@@ -850,7 +850,7 @@ static void fillInTabLeaders(LineControl & current)
 	// fill in tab leaders
 	for(int i = current.line.firstRun; i <= current.line.lastRun; i++)
 	{
-		GlyphRun& glyphRun = current.glyphRuns[i];
+		GlyphCluster& glyphRun = current.glyphRuns[i];
 		CharStyle charStyle(glyphRun.style());
 		if (glyphRun.hasFlag(ScLayout_TabLeaders))
 		{
@@ -936,7 +936,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 
 	for (int i = curr.line.firstRun; i <= curr.line.lastRun; ++i)
 	{
-		GlyphRun glyphrun = curr.glyphRuns[i];
+		GlyphCluster glyphrun = curr.glyphRuns[i];
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
 			glyphNatural += glyphrun.width();
@@ -1009,7 +1009,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 	// distribute whitespace on spaces and glyphs
 	for (int i = startItem; i <= curr.line.lastRun; ++i)
 	{
-		GlyphRun& glyphrun = curr.glyphRuns[i];
+		GlyphCluster& glyphrun = curr.glyphRuns[i];
 		double wide = glyphrun.width();
 		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 		{
@@ -1027,7 +1027,7 @@ static void justifyLine(const ParagraphStyle& style, LineControl& curr)
 		}
 		if (i != curr.line.firstRun && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 		{
-			GlyphRun& lastRun = curr.glyphRuns[i - 1];
+			GlyphCluster& lastRun = curr.glyphRuns[i - 1];
 			lastRun.glyphs().last().xadvance += imSpace;
 		}
 	}
@@ -1088,7 +1088,7 @@ static void indentLine(const ParagraphStyle& style, LineControl& curr, double le
 //}
 
 /// calculate how much the last char should stick out to the right
-static double opticalRightMargin(const StoryText& itemText, const QList<GlyphRun> runs, const LineSpec& line)
+static double opticalRightMargin(const StoryText& itemText, const QList<GlyphCluster> runs, const LineSpec& line)
 {
 	int b = line.lastRun;
 	while (b > line.firstRun &&
@@ -1401,7 +1401,7 @@ void PageItem_TextFrame::layout()
 		}
 
 		TextShaper textShaper(this, itemText, firstInFrame());
-		QList<GlyphRun> glyphRuns = textShaper.shape();
+		QList<GlyphCluster> glyphRuns = textShaper.shape();
 		std::sort(glyphRuns.begin(), glyphRuns.end(), logicalGlyphRunComp);
 
 		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, glyphRuns, columnWidth(), ColGap);

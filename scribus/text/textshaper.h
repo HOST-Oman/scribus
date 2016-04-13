@@ -6,7 +6,7 @@
 #include <QString>
 #include <unicode/uscript.h>
 
-class GlyphRun;
+class GlyphCluster;
 class StoryText;
 class PageItem;
 
@@ -15,7 +15,7 @@ class TextShaper
 public:
 	TextShaper(PageItem *item, StoryText &story, int first, bool singlePar=false);
 
-	QList<GlyphRun> shape();
+	QList<GlyphCluster> shape();
 
 private:
 	struct TextRun {

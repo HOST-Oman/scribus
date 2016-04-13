@@ -12,7 +12,7 @@
 
 #include "scrptrun.h"
 
-#include "glyphrun.h"
+#include "glyphcluster.h"
 #include "pageitem.h"
 #include "scribusdoc.h"
 #include "storytext.h"
@@ -273,7 +273,7 @@ static hb_blob_t *referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
 	return hb_blob_create((const char *) buffer, length, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
 
-QList<GlyphRun> TextShaper::shape()
+QList<GlyphCluster> TextShaper::shape()
 {
 	// maps expanded characters to itemText tokens.
 
@@ -285,7 +285,7 @@ QList<GlyphRun> TextShaper::shape()
 	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
 	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
 
-	QList<GlyphRun> glyphRuns;
+	QList<GlyphCluster> glyphRuns;
 	foreach (TextRun textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
 		int effects = style.effects() & ScStyle_UserStyles;
@@ -383,7 +383,7 @@ QList<GlyphRun> TextShaper::shape()
 			LayoutFlags flags = m_story.flags(firstChar);
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 
-			GlyphRun run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
+			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
 			if (textRun.dir == UBIDI_RTL)
 				run.setFlag(ScLayout_RightToLeft);
 			lineBoundery.setPosition(firstCluster);

@@ -24,7 +24,7 @@ class PageItem;
 class Mark;
 class ScribusDoc;
 
-/* Struktur fuer Pageitem Text */
+/* Strucure for Pageitem Text */
 
 
 /*

@@ -5,7 +5,7 @@
 
 #include "sctextstruct.h"
 
-class GlyphRun
+class GlyphCluster
 {
 	const CharStyle* m_style;
 	LayoutFlags m_flags;
@@ -16,7 +16,7 @@ class GlyphRun
 	int m_visualIndex;
 
 public:
-	GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i);
+	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i);
 
 	const CharStyle& style()  const;
 	bool hasFlag(LayoutFlags f) const ;

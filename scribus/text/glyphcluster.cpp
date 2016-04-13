@@ -1,6 +1,6 @@
-#include "glyphrun.h"
+#include "glyphcluster.h"
 
-GlyphRun::GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i)
+GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i)
 	: m_style(style)
 	, m_flags(flags)
 	, m_object(o)
@@ -9,7 +9,7 @@ GlyphRun::GlyphRun(const CharStyle* style, LayoutFlags flags, int first, int las
 	, m_visualIndex(i)
 {}
 
-double GlyphRun::width() const
+double GlyphCluster::width() const
 {
 	double width = 0;
 	foreach (const GlyphLayout gl, m_glyphs)
@@ -19,7 +19,7 @@ double GlyphRun::width() const
 	return width;
 }
 
-double GlyphRun::ascent() const
+double GlyphCluster::ascent() const
 {
 	const ScFace &font = m_style->font();
 	double asc = 0;
@@ -30,7 +30,7 @@ double GlyphRun::ascent() const
 	return asc;
 }
 
-double GlyphRun::desent() const
+double GlyphCluster::desent() const
 {
 	const ScFace &font = m_style->font();
 	double des = 0;
@@ -41,51 +41,51 @@ double GlyphRun::desent() const
 	return -des;
 }
 
-const CharStyle& GlyphRun::style() const
+const CharStyle& GlyphCluster::style() const
 {
 	return *m_style;
 }
 
-bool GlyphRun::hasFlag(LayoutFlags f) const
+bool GlyphCluster::hasFlag(LayoutFlags f) const
 {
 	return (m_flags & f) == f;
 }
 
-void GlyphRun::setFlag(LayoutFlags f)
+void GlyphCluster::setFlag(LayoutFlags f)
 {
 	m_flags = static_cast<LayoutFlags>(m_flags | f);
 }
 
-void GlyphRun::clearFlag(LayoutFlags f)
+void GlyphCluster::clearFlag(LayoutFlags f)
 {
 	m_flags = static_cast<LayoutFlags>(m_flags & ~f);
 }
 
-QList<GlyphLayout>& GlyphRun::glyphs()
+QList<GlyphLayout>& GlyphCluster::glyphs()
 {
 	return m_glyphs;
 }
 
-const QList<GlyphLayout>& GlyphRun::glyphs() const {
+const QList<GlyphLayout>& GlyphCluster::glyphs() const {
 	return m_glyphs;
 }
 
-PageItem* GlyphRun::object() const
+PageItem* GlyphCluster::object() const
 {
 	return m_object;
 }
 
-int GlyphRun::firstChar() const
+int GlyphCluster::firstChar() const
 {
 	return m_firstChar;
 }
 
-int GlyphRun::lastChar() const
+int GlyphCluster::lastChar() const
 {
 	return m_lastChar;
 }
 
-int GlyphRun::visualIndex() const
+int GlyphCluster::visualIndex() const
 {
 	return m_visualIndex;
 }

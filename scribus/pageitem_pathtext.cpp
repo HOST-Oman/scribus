@@ -166,11 +166,11 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	double wordExtra = 0;
 
 	TextShaper textShaper(this, itemText, firstChar, true);
-	QList<GlyphRun> glyphRuns = textShaper.shape();
+	QList<GlyphCluster> glyphRuns = textShaper.shape();
 	if (glyphRuns.isEmpty())
 		return;
 
-	foreach (const GlyphRun run, glyphRuns) {
+	foreach (const GlyphCluster run, glyphRuns) {
 		totalTextLen += run.width();
 		if (run.hasFlag(ScLayout_ExpandingSpace))
 			spaceCount++;
@@ -211,7 +211,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		double totalLenDiff = totalTextLen + m_textDistanceMargins.left() - totalCurveLen;
 		while (firstRun < glyphRuns.count())
 		{
-			const GlyphRun &run = glyphRuns.at(firstRun);
+			const GlyphCluster &run = glyphRuns.at(firstRun);
 			totalLenDiff -= run.width();
 			firstRun++;
 			if (totalLenDiff <= 0)
@@ -225,7 +225,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	PathLineBox* linebox = new PathLineBox();
 	for (int i = firstRun; i < glyphRuns.length(); i++)
 	{
-		const GlyphRun &run = glyphRuns.at(i);
+		const GlyphCluster &run = glyphRuns.at(i);
 		double dx = run.width() / 2.0;
 		CurX += dx;
 		CurY = 0;
