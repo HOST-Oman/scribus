@@ -239,16 +239,16 @@ protected:
 class GlyphBox: public Box
 {
 public:
-	GlyphBox(const GlyphCluster& glyph)
-		: m_glyph(glyph)
-		, m_effects(glyph.style().effects())
+	GlyphBox(const GlyphCluster& run)
+		: m_glyphRun(run)
+		, m_effects(run.style().effects())
 	{
 		m_type = T_Glyph;
-		m_firstChar = glyph.firstChar();
-		m_lastChar = glyph.lastChar();
-		m_width = glyph.width();
-		m_naturalAscent = glyph.ascent();
-		m_naturalDecent = glyph.desent();
+		m_firstChar = run.firstChar();
+		m_lastChar = run.lastChar();
+		m_width = run.width();
+		m_naturalAscent = run.ascent();
+		m_naturalDecent = run.desent();
 	}
 
 	int pointToPosition(QPointF coord) const;
@@ -257,19 +257,19 @@ public:
 	void render(TextLayoutPainter *p) const;
 	void render(TextLayoutPainter *p, PageItem *item) const;
 
-	const CharStyle& style() const { return m_glyph.style(); }
+	const CharStyle& style() const { return m_glyphRun.style(); }
 
 private:
-	GlyphCluster m_glyph;
+	GlyphCluster m_glyphRun;
 	const StyleFlag m_effects;
 };
 
 class ObjectBox: public GlyphBox
 {
 public:
-	ObjectBox(const GlyphCluster& glyph)
-		: GlyphBox(glyph)
-		, m_item(glyph.object())
+	ObjectBox(const GlyphCluster& run)
+		: GlyphBox(run)
+		, m_item(run.object())
 	{
 		m_type = T_Object;
 	}

@@ -166,13 +166,13 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	double wordExtra = 0;
 
 	TextShaper textShaper(this, itemText, firstChar, true);
-	QList<GlyphCluster> glyphs = textShaper.shape();
-	if (glyphs.isEmpty())
+	QList<GlyphCluster> glyphRuns = textShaper.shape();
+	if (glyphRuns.isEmpty())
 		return;
 
-	foreach (const GlyphCluster glyph, glyphs) {
-		totalTextLen += glyph.width();
-		if (glyph.hasFlag(ScLayout_ExpandingSpace))
+	foreach (const GlyphCluster run, glyphRuns) {
+		totalTextLen += run.width();
+		if (run.hasFlag(ScLayout_ExpandingSpace))
 			spaceCount++;
 	}
 
@@ -209,10 +209,10 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	if (totalTextLen + m_textDistanceMargins.left() > totalCurveLen && itemText.paragraphStyle(0).direction() == ParagraphStyle::RTL)
 	{
 		double totalLenDiff = totalTextLen + m_textDistanceMargins.left() - totalCurveLen;
-		while (firstRun < glyphs.count())
+		while (firstRun < glyphRuns.count())
 		{
-			const GlyphCluster &glyph = glyphs.at(firstRun);
-			totalLenDiff -= glyph.width();
+			const GlyphCluster &run = glyphRuns.at(firstRun);
+			totalLenDiff -= run.width();
 			firstRun++;
 			if (totalLenDiff <= 0)
 				break;
@@ -223,10 +223,10 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	QPainterPath currPath = pathList[0];
 	int currPathIndex = 0;
 	PathLineBox* linebox = new PathLineBox();
-	for (int i = firstRun; i < glyphs.length(); i++)
+	for (int i = firstRun; i < glyphRuns.length(); i++)
 	{
-		const GlyphCluster &glyph = glyphs.at(i);
-		double dx = glyph.width() / 2.0;
+		const GlyphCluster &run = glyphRuns.at(i);
+		double dx = run.width() / 2.0;
 		CurX += dx;
 		CurY = 0;
 		double currPerc = currPath.percentAtLength(CurX);
@@ -235,7 +235,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			currPathIndex++;
 			if (currPathIndex == pathList.count())
 			{
-				MaxChars = glyph.firstChar();
+				MaxChars = run.firstChar();
 				break;
 			}
 			currPath = pathList[currPathIndex];
@@ -269,7 +269,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		}
 		trafo.translate(0, BaseOffs);
 
-		const CharStyle& cStyle(glyph.style());
+		const CharStyle& cStyle(run.style());
 		double scaleV = cStyle.scaleV() / 1000.0;
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
 		double ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
@@ -277,15 +277,15 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		linebox->setAscent(ascent);
 		linebox->setDescent(descent);
 		Box* box;
-		if (glyph.object())
+		if (run.object())
 		{
-			box = new ObjectBox(glyph);
-			box->setAscent(glyph.object()->height() - glyph.object()->lineWidth());
+			box = new ObjectBox(run);
+			box->setAscent(run.object()->height() - run.object()->lineWidth());
 			box->setDescent(0);
 		}
 		else
 		{
-			box = new GlyphBox(glyph);
+			box = new GlyphBox(run);
 			box->setAscent(linebox->ascent());
 			box->setDescent(linebox->descent());
 		}
@@ -293,10 +293,10 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		box->setMatrix(trafo);
 		linebox->addBox(box);
 
-		MaxChars = glyph.lastChar() + 1;
+		MaxChars = run.lastChar() + 1;
 		CurX -= dx;
-		CurX += glyph.width() + cStyle.fontSize() * cStyle.tracking() / 10000.0 + extraOffset;
-		if (glyph.hasFlag(ScLayout_ExpandingSpace))
+		CurX += run.width() + cStyle.fontSize() * cStyle.tracking() / 10000.0 + extraOffset;
+		if (run.hasFlag(ScLayout_ExpandingSpace))
 			CurX += wordExtra;
 	}
 
