@@ -53,14 +53,14 @@ public:
 	TextLayoutPainter();
 	virtual ~TextLayoutPainter();
 
-        /// Sets the current font that will be used for all subsequent glyph
-        /// drawings.
+	/// Sets the current font that will be used for all subsequent glyph
+	/// drawings.
 	virtual void setFont(const ScFace font);
 	/// The current font.
 	virtual const ScFace& font() const;
 
-        /// Sets the current font size that will be used for all subsequent
-        /// glyph drawings.
+	/// Sets the current font size that will be used for all subsequent
+	/// glyph drawings.
 	virtual void setFontSize(double size);
 	/// The current font size.
 	virtual double fontSize() const;
@@ -80,53 +80,53 @@ public:
 	/// The current width for line strokes.
 	virtual double strokeWidth() const;
 
-        /// Moves the current x and y positions by the specified amount.
+	/// Moves the current x and y positions by the specified amount.
 	virtual void translate(double x, double y);
-        /// The current x positions.
+	/// The current x positions.
 	virtual double x() const;
-        /// The current y positions.
+	/// The current y positions.
 	virtual double y() const;
 
-        /// Sets the current horizontal and vertical scales.
+	/// Sets the current horizontal and vertical scales.
 	virtual void setScale(double h, double v);
-        /// The current horizontal scale.
+	/// The current horizontal scale.
 	virtual double scaleV() const;
-        /// The current vertical scale.
+	/// The current vertical scale.
 	virtual double scaleH() const;
 
-        /// Sets the selection state of subsequent drawing operations, used for
-        /// selecting proper foreground and background colors when drawing text
-        /// selection.
+	/// Sets the selection state of subsequent drawing operations, used for
+	/// selecting proper foreground and background colors when drawing text
+	/// selection.
 	virtual void setSelected(bool s);
-        /// The current selection sate.
+	/// The current selection sate.
 	virtual bool selected() const;
 
-        /// Sets the transformation matrix to be applied to subsequent drawing
-        /// operations.
+	/// Sets the transformation matrix to be applied to subsequent drawing
+	/// operations.
 	virtual void setMatrix(const QTransform);
-        /// The current transformation matrix.
+	/// The current transformation matrix.
 	virtual const QTransform& matrix() const;
 
-        /// Draws a regular (filled) glyph using the current font, fill color
-        /// etc. at the current x and y positions.
+	/// Draws a regular (filled) glyph using the current font, fill color
+	/// etc. at the current x and y positions.
 	virtual void drawGlyph(const GlyphLayout& gl) = 0;
-        /// Same as drawGlyphs() but draws an outlined glyph with current
-        /// stroke color, if @fill is true then the glyphs is also filled by
-        /// the current fill color.
+	/// Same as drawGlyphs() but draws an outlined glyph with current
+	/// stroke color, if @fill is true then the glyphs is also filled by
+	/// the current fill color.
 	virtual void drawGlyphOutline(const GlyphLayout& gl, bool fill) = 0;
-        /// Draws a line from @start to @end relative current x and y
-        /// positions, with current stroke color and width.
+	/// Draws a line from @start to @end relative current x and y
+	/// positions, with current stroke color and width.
 	virtual void drawLine(const QPointF start, const QPointF end) = 0;
-        /// Draws a rectangle at current x and y positions, using current stoke
-        /// color and width for its border, and filled with the current fill
-        /// color.
+	/// Draws a rectangle at current x and y positions, using current stoke
+	/// color and width for its border, and filled with the current fill
+	/// color.
 	virtual void drawRect(const QRectF rect) = 0;
-        /// Draws and embedded page item at the current x and y positions.
+	/// Draws and embedded page item at the current x and y positions.
 	virtual void drawObject(PageItem* item) = 0;
 
-        /// Save the current painter state.
+	/// Save the current painter state.
 	virtual void save();
-        /// Restore the last saved painter state.
+	/// Restore the last saved painter state.
 	virtual void restore();
 
 private:
