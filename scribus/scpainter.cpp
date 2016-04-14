@@ -1962,6 +1962,7 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	double r, g, b;
 
 	assert(!m_font.isNone());
+
 #if CAIRO_HAS_FC_FONT
 	FcPattern *pattern = FcPatternBuild(NULL,
 										FC_FILE, FcTypeString, QFile::encodeName(m_font.fontFilePath()).data(),
@@ -2004,9 +2005,11 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	m_stroke.getRgbF(&r, &g, &b);
 	cairo_set_source_rgba( m_cr, r, g, b, m_stroke_trans );
 
+	QVector<cairo_glyph_t> cairoGlyphs;
+
 	for (int a = 0; a < textList.count(); ++a)
 	{
-		CharStyle style(m_font, m_fontSize);
+		CharStyle style(m_font, m_fontSize * 10);
 		StoryText story;
 		story.insertChars(textList[a]);
 		story.setCharStyle(0, textList[a].count(), style);
@@ -2014,26 +2017,23 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 		TextShaper textShaper(story, 0);
 		QList<GlyphCluster> glyphRuns = textShaper.shape();
 
-		QVector<cairo_glyph_t> cairoGlyphs;
 		double tmpx = x;
 		foreach (const GlyphCluster &run, glyphRuns)
 		{
 			foreach (const GlyphLayout &gl, run.glyphs())
 			{
-				cairo_scale(m_cr, gl.scaleH, gl.scaleV);
 				cairo_glyph_t glyph;
 				glyph.index = gl.glyph;
-				glyph.x = tmpx + gl.xoffset * 10.0;
-				glyph.y = y - gl.yoffset * 10.0;
-				tmpx += ceil(gl.xadvance * 10.0);
+				glyph.x = tmpx + gl.xoffset;
+				glyph.y = y - gl.yoffset;
+				tmpx += gl.xadvance;
 				cairoGlyphs.append(glyph);
 			}
 		}
-		cairo_show_glyphs(m_cr, cairoGlyphs.data(), cairoGlyphs.count());
 		y += extentsF.height;
-
-		cairo_move_to (m_cr, x, y);
 	}
+
+	cairo_show_glyphs(m_cr, cairoGlyphs.data(), cairoGlyphs.count());
 #endif
 
 }
