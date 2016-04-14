@@ -12,7 +12,9 @@ for which a new license (GPL+exception) is in place.
 #include "util_math.h"
 
 #include <cairo.h>
+#if CAIRO_HAS_FC_FONT
 #include <cairo-ft.h>
+#endif
 #include "text/storytext.h"
 #include "text/textshaper.h"
 #include "text/glyphcluster.h"
@@ -2004,7 +2006,12 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 
 	for (int a = 0; a < textList.count(); ++a)
 	{
-		TextShaper textShaper(textList[a], m_font, m_fontSize);
+		CharStyle style(m_font, m_fontSize);
+		StoryText story;
+		story.insertChars(textList[a]);
+		story.setCharStyle(0, textList[a].count(), style);
+
+		TextShaper textShaper(story, 0);
 		QList<GlyphCluster> glyphRuns = textShaper.shape();
 
 		QVector<cairo_glyph_t> cairoGlyphs;

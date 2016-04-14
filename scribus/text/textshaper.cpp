@@ -26,31 +26,20 @@ TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singleP
 	, m_singlePar(singlePar)
 { }
 
-TextShaper::TextShaper(QString text, ScFace &scface, int fontSize)
-	: m_firstChar(0)
-	, m_scface(scface)
-	, m_fontSize(fontSize)
+TextShaper::TextShaper(StoryText &story, int first)
+	: m_item(NULL)
+	, m_story(story)
+	, m_firstChar(first)
 {
-	for (int i =0; i < text.count(); i ++)
+	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
-		if (text.at(i) == SpecialChars::PARSEP || text.at(i) == SpecialChars::LINEBREAK)
+		QChar ch = m_story.text(i);
+		if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 			continue;
-		QString str = "";
-		str = text.at(i);
-		if (str.isEmpty())
-			str = SpecialChars::ZWNBSPACE;
-
-		for (int j = 0; j < str.length(); j++)
-			m_textMap.insert(m_text.length() + j, i);
-
+		QString str(ch);
+		m_textMap.insert(i, i);
 		m_text.append(str);
-
 	}
-
-	m_story.insertChars(text);
-	CharStyle charStyle(m_scface, m_fontSize);
-	m_story.setCharStyle(0, text.count(), charStyle);
-
 }
 
 QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
