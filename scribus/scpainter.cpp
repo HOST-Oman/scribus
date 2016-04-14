@@ -15,6 +15,7 @@ for which a new license (GPL+exception) is in place.
 #include <cairo-ft.h>
 #include "text/storytext.h"
 #include "text/textshaper.h"
+#include "text/glyphcluster.h"
 
 #include <math.h>
 #include <QDebug>
@@ -2004,11 +2005,11 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	for (int a = 0; a < textList.count(); ++a)
 	{
 		TextShaper textShaper(textList[a], m_font, m_fontSize);
-		QList<GlyphRun> glyphRuns = textShaper.shape();
+		QList<GlyphCluster> glyphRuns = textShaper.shape();
 
 		QVector<cairo_glyph_t> cairoGlyphs;
 		double tmpx = x;
-		foreach (const GlyphRun &run, glyphRuns)
+		foreach (const GlyphCluster &run, glyphRuns)
 		{
 			foreach (const GlyphLayout &gl, run.glyphs())
 			{
