@@ -139,7 +139,7 @@ public:
 
 	~PdfPainter() {}
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout& gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 			return;
@@ -229,7 +229,7 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill)
+	void drawGlyphOutline(const GlyphLayout& gl, bool fill)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 			return;

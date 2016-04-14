@@ -57,7 +57,7 @@ public:
         /// drawings.
 	virtual void setFont(const ScFace font);
 	/// The current font.
-	virtual const ScFace font() const;
+	virtual const ScFace& font() const;
 
         /// Sets the current font size that will be used for all subsequent
         /// glyph drawings.
@@ -66,14 +66,14 @@ public:
 	virtual double fontSize() const;
 
 	/// Sets the current color for line strokes.
-	virtual void setStrokeColor(TextLayoutColor c);
+	virtual void setStrokeColor(const TextLayoutColor c);
 	/// The current color for line strokes.
-	virtual TextLayoutColor strokeColor() const;
+	virtual const TextLayoutColor& strokeColor() const;
 
 	/// Sets the current foreground color.
-	virtual void setFillColor(TextLayoutColor c);
+	virtual void setFillColor(const TextLayoutColor c);
 	/// The current foreground color.
-	virtual TextLayoutColor fillColor() const;
+	virtual const TextLayoutColor& fillColor() const;
 
 	/// Sets the current width for line strokes.
 	virtual void setStrokeWidth(double w);
@@ -103,24 +103,24 @@ public:
 
         /// Sets the transformation matrix to be applied to subsequent drawing
         /// operations.
-	virtual void setMatrix(QTransform);
+	virtual void setMatrix(const QTransform);
         /// The current transformation matrix.
-	virtual QTransform matrix();
+	virtual const QTransform& matrix() const;
 
         /// Draws a regular (filled) glyph using the current font, fill color
         /// etc. at the current x and y positions.
-	virtual void drawGlyph(const GlyphLayout gl) = 0;
+	virtual void drawGlyph(const GlyphLayout& gl) = 0;
         /// Same as drawGlyphs() but draws an outlined glyph with current
         /// stroke color, if @fill is true then the glyphs is also filled by
         /// the current fill color.
-	virtual void drawGlyphOutline(const GlyphLayout gl, bool fill) = 0;
+	virtual void drawGlyphOutline(const GlyphLayout& gl, bool fill) = 0;
         /// Draws a line from @start to @end relative current x and y
         /// positions, with current stroke color and width.
-	virtual void drawLine(QPointF start, QPointF end) = 0;
+	virtual void drawLine(const QPointF start, const QPointF end) = 0;
         /// Draws a rectangle at current x and y positions, using current stoke
         /// color and width for its border, and filled with the current fill
         /// color.
-	virtual void drawRect(QRectF rect) = 0;
+	virtual void drawRect(const QRectF rect) = 0;
         /// Draws and embedded page item at the current x and y positions.
 	virtual void drawObject(PageItem* item) = 0;
 

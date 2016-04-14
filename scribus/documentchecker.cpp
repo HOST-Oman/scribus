@@ -48,7 +48,7 @@ public:
 		, m_textLayout(textLayout)
 	{ }
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout& gl)
 	{
 		if (gl.glyph == 0)
 		{
@@ -56,7 +56,7 @@ public:
 			m_itemError.insert(MissingGlyph, pos + 1);
 		}
 	}
-	void drawGlyphOutline(const GlyphLayout gl, bool)
+	void drawGlyphOutline(const GlyphLayout& gl, bool)
 	{
 		drawGlyph(gl);
 	}

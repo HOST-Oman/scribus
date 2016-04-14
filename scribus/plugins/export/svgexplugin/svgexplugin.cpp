@@ -1157,7 +1157,7 @@ public:
 		, m_trans(trans)
 	{}
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout& gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -1175,7 +1175,7 @@ public:
 		m_elem.appendChild(glyph);
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool hasFill)
+	void drawGlyphOutline(const GlyphLayout& gl, bool hasFill)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;

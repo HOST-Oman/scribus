@@ -968,7 +968,7 @@ public:
 		m_painter->scale(h, v);
 	}
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout& gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -995,7 +995,7 @@ public:
 		m_painter->restore();
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool fill)
+	void drawGlyphOutline(const GlyphLayout& gl, bool fill)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;

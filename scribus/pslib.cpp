@@ -94,14 +94,14 @@ public:
 		m_ps(ps)
 	{}
 
-	void drawGlyph(const GlyphLayout gl);
-	void drawGlyphOutline(const GlyphLayout gl, bool fill);
+	void drawGlyph(const GlyphLayout &gl);
+	void drawGlyphOutline(const GlyphLayout& gl, bool fill);
 	void drawLine(QPointF start, QPointF end);
 	void drawRect(QRectF rect);
 	void drawObject(PageItem* item);
 };
 
-void PSPainter::drawGlyph(const GlyphLayout gl)
+void PSPainter::drawGlyph(const GlyphLayout& gl)
 {
 	if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 		return;
@@ -122,7 +122,7 @@ void PSPainter::drawGlyph(const GlyphLayout gl)
 	m_ps->PS_restore();
 }
 
-void PSPainter::drawGlyphOutline(const GlyphLayout gl, bool fill)
+void PSPainter::drawGlyphOutline(const GlyphLayout& gl, bool fill)
 {
 	if (gl.glyph >= ScFace::CONTROL_GLYPHS || gl.glyph == 0)
 		return;

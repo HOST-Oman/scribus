@@ -3022,7 +3022,7 @@ public:
 		, m_counter(0)
 	{}
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout& gl)
 	{
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		if (outline.size() < 4)
@@ -3057,7 +3057,7 @@ public:
 		m_view->undoManager->setUndoEnabled(true);
 		m_group.append(m_view->Doc->Items->takeAt(z));
 	}
-	void drawGlyphOutline(const GlyphLayout gl, bool fill)
+	void drawGlyphOutline(const GlyphLayout& gl, bool fill)
 	{
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		if (outline.size() < 4)

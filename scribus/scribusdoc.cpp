@@ -4511,7 +4511,7 @@ public:
 		: m_really(Really)
 	{}
 
-	void drawGlyph(const GlyphLayout gl)
+	void drawGlyph(const GlyphLayout& gl)
 	{
 		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			return;
@@ -4523,7 +4523,10 @@ public:
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout gl, bool) { drawGlyph(gl); }
+	void drawGlyphOutline(const GlyphLayout& gl, bool)
+	{
+		drawGlyph(gl);
+	}
 
 	// we don't need this one
 	void drawLine(QPointF, QPointF) {}

@@ -43,7 +43,7 @@ ScreenPainter::~ScreenPainter()
 	m_painter->restore();
 }
 
-void ScreenPainter::drawGlyph(const GlyphLayout gl)
+void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 {
 	bool showControls = gl.glyph == 0 || (m_item->doc()->guidesPrefs().showControls &&
 			    (gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS));
@@ -217,7 +217,7 @@ void ScreenPainter::drawGlyph(const GlyphLayout gl)
 	m_painter->restore();
 }
 
-void ScreenPainter::drawGlyphOutline(const GlyphLayout gl, bool fill)
+void ScreenPainter::drawGlyphOutline(const GlyphLayout& gl, bool fill)
 {
 	if (fill)
 		drawGlyph(gl);
