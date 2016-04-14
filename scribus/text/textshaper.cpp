@@ -26,6 +26,33 @@ TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singleP
 	, m_singlePar(singlePar)
 { }
 
+TextShaper::TextShaper(QString text, ScFace &scface, int fontSize)
+	: m_firstChar(0)
+	, m_scface(scface)
+	, m_fontSize(fontSize)
+{
+	for (int i =0; i < text.count(); i ++)
+	{
+		if (text.at(i) == SpecialChars::PARSEP || text.at(i) == SpecialChars::LINEBREAK)
+			continue;
+		QString str = "";
+		str = text.at(i);
+		if (str.isEmpty())
+			str = SpecialChars::ZWNBSPACE;
+
+		for (int j = 0; j < str.length(); j++)
+			m_textMap.insert(m_text.length() + j, i);
+
+		m_text.append(str);
+
+	}
+
+	m_story.insertChars(text);
+	CharStyle charStyle(m_scface, m_fontSize);
+	m_story.setCharStyle(0, text.count(), charStyle);
+
+}
+
 QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 {
 	QList<TextRun> textRuns;
@@ -276,8 +303,10 @@ static hb_blob_t *referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
 QList<GlyphCluster> TextShaper::shape()
 {
 	// maps expanded characters to itemText tokens.
-
-	buildText(m_text, m_textMap);
+	if (m_text.isEmpty())
+	{
+		buildText(m_text, m_textMap);
+	}
 
 	QTextBoundaryFinder lineBoundery(QTextBoundaryFinder::Line, m_text);
 
