@@ -1257,7 +1257,7 @@ void PageItem_TextFrame::adjustParagraphEndings ()
 			// push this paragraph to the next frame
 			for (int i = 0; i < pull; ++i)
 				textLayout.removeLastLine();
-			MaxChars = textLayout.endOfFrame();
+			MaxChars = incompletePositions[incompleteLines-pull];
 			incompleteLines = 0;
 			incompletePositions.clear();
 		}
@@ -1358,6 +1358,9 @@ void PageItem_TextFrame::layout()
 			next->invalid = false;
 			next = next->nextInChain();
 		}
+		// TODO layout() shouldn't delete any frame here, as it breaks any loop
+		// over the doc->Items or doc->MasterItems lists when done with indexes
+		// see Bug #12685 for an example
 		if (!isNoteFrame() && m_Doc->notesChanged() && !m_notesFramesMap.isEmpty())
 		{ //if notes are used
 			UndoManager::instance()->setUndoEnabled(false);
@@ -1793,6 +1796,13 @@ void PageItem_TextFrame::layout()
 					firstGlyph.scaleV = (realAsce / realCharHeight);
 					firstGlyph.scaleH *= firstGlyph.scaleV;
 					firstGlyph.xoffset -= 0.5; //drop caps are always to far from column left edge
+				}
+				// This is to mimic pre-boxes branches in case first character of paragraph is a space
+				// If we don't do this, paragraph offset will not apply correctly to first line
+				if ((firstGlyph.scaleH == 0.0) || (firstGlyph.scaleV == 0.0))
+				{
+					firstGlyph.scaleH = firstGlyph.scaleV = 1.0;
+					wide = 0.0;
 				}
 				firstGlyph.xadvance = wide / firstGlyph.scaleH;
 				desc = realDesc = 0;

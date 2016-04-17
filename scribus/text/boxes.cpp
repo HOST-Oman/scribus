@@ -121,7 +121,19 @@ void GroupBox::justify(const ParagraphStyle& style)
 
 int LineBox::pointToPosition(QPointF coord) const
 {
-	int position = GroupBox::pointToPosition(coord);
+	int position = -1;
+
+	QPointF rel = coord - QPointF(m_x, m_y);
+	foreach (const Box *box, boxes())
+	{
+		int result = box->pointToPosition(rel);
+		if (result >= 0)
+		{
+			position = result;
+			break;
+		}
+	}
+
 	if (position < 0)
 	{
 		if (containsPoint(coord))
