@@ -3713,6 +3713,11 @@ bool Scribus150Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, It
 		LinkID.insert(info.itemID, newItem);
 	}
 	info.nextItem = attrs.valueAsInt("NEXTITEM", -1);
+	if (isNewFormat)
+	{
+		if (info.nextItem != -1)
+			itemNext[info.itemID] = info.nextItem;
+	}
 	info.ownLink  = newItem->isTableItem ? attrs.valueAsInt("OwnLINK", 0) : 0;
 	info.groupLastItem = 0;
 	info.isGroupFlag = attrs.valueAsBool("isGroupControl", 0);
@@ -6818,17 +6823,20 @@ void Scribus150Format::updateNames2Ptr() //after document load - items pointers 
 					else
 					{
 						PageItem* master = LinkID.value(eF.itemID);
-						item->asNoteFrame()->setMaster(master);
-						master->asTextFrame()->setNoteFrame(item->asNoteFrame());
-						//FIX welding with note frame
-						PageItem::WeldingInfo wInf;
-						for (int i = 0 ; i < master->weldList.count(); i++)
+						if (master != NULL)
 						{
-							wInf = master->weldList.at(i);
-							if (wInf.weldID == eF.myID)
+							item->asNoteFrame()->setMaster(master);
+							master->asTextFrame()->setNoteFrame(item->asNoteFrame());
+						//FIX welding with note frame
+							PageItem::WeldingInfo wInf;
+							for (int i = 0 ; i < master->weldList.count(); i++)
 							{
-								master->weldList[i].weldItem = item;
-								break;
+								wInf = master->weldList.at(i);
+								if (wInf.weldID == eF.myID)
+								{
+									master->weldList[i].weldItem = item;
+									break;
+								}
 							}
 						}
 					}

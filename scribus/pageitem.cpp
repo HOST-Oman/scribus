@@ -2332,18 +2332,18 @@ void PageItem::DrawSoftShadow(ScPainter *p)
 		p->beginLayer(1.0 - m_softShadowOpacity, m_softShadowBlendMode);
 	if (!hasFill())
 	{
+		double xOffset = isEmbedded ? m_softShadowXOffset : (m_softShadowXOffset - m_xPos);
+		double yOffset = isEmbedded ? m_softShadowYOffset : (m_softShadowYOffset - m_yPos);
 		double fillTrans_Old = fillTransparency();
 		double lineTrans_Old = lineTransparency();
-		bool   shadow_Old = hasSoftShadow();
+		bool   hasSoftShadow_Old = hasSoftShadow();
 		double rotation_Old = m_rotation;
 		fillTransparencyVal = 0.0;
 		lineTransparencyVal = 0.0;
 		m_rotation = 0;
 		m_hasSoftShadow = false;
-		isEmbedded = true;
-		invalid = true;
 		p->save();
-		p->translate(m_softShadowXOffset, m_softShadowYOffset);
+		p->translate(xOffset, yOffset);
 		DrawObj(p, QRectF());
 		p->colorizeAlpha(tmp);
 		if (m_softShadowBlurRadius > 0)
@@ -2354,15 +2354,15 @@ void PageItem::DrawSoftShadow(ScPainter *p)
 			p->save();
 			FPointArray sh = PoLine.copy();
 			p->beginLayer(1.0, 18, &sh);
+			p->translate(xOffset - m_softShadowXOffset, yOffset - m_softShadowYOffset);
 			DrawObj(p, QRectF());
 			p->endLayer();
 			p->restore();
 		}
-		isEmbedded = false;
 		fillTransparencyVal = fillTrans_Old;
 		lineTransparencyVal = lineTrans_Old;
+		m_hasSoftShadow = hasSoftShadow_Old;
 		m_rotation = rotation_Old;
-		m_hasSoftShadow = shadow_Old;
 	}
 	else
 	{
