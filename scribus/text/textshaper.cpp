@@ -153,7 +153,7 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		}
 #if 1 // FIXME HOST: review this insanity
 		Mark* mark = m_story.mark(i);
-		if (m_story.hasMark(i))
+		if ((mark != NULL) && (m_story.hasMark(i)))
 		{
 			mark->OwnPage = m_item->OwnPage;
 			//itemPtr and itemName set to this frame only if mark type is different than MARK2ItemType
