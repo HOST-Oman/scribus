@@ -2694,6 +2694,8 @@ PageItem* Scribus134Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 		pstyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(attrs.valueAsInt("LINESPMode", 0)));
 	if (attrs.hasAttribute("ALIGN"))
 		pstyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt("ALIGN", 0)));
+	if (attrs.valueAsBool("REVERS"))
+		pstyle.setDirection(ParagraphStyle::RTL);
 	if (attrs.hasAttribute("IFONT"))
 		pstyle.charStyle().setFont(m_AvailableFonts->findFont(attrs.valueAsString("IFONT"), doc));
 	if (attrs.hasAttribute("ISIZE"))

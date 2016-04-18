@@ -336,6 +336,8 @@ void Scribus12Format::PasteItem(struct CopyPasteBuffer *Buffer, bool drag, bool 
 		{
 			ParagraphStyle pstyle;
 			pstyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(Buffer->textAlignment));
+			if (Buffer->Reverse)
+				pstyle.setDirection(ParagraphStyle::RTL);
 			pstyle.setLineSpacing(Buffer->LineSp);
 			pstyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(Buffer->LineSpMode));
 			if (m_Doc->AllFonts->contains(Buffer->IFont))
@@ -1610,6 +1612,7 @@ void Scribus12Format::GetItemProps(QDomElement *obj, struct CopyPasteBuffer *OB,
 	OB->UseEmbedded = obj->attribute("EMBEDDED", "1").toInt();
 	OB->Locked = static_cast<bool>(obj->attribute("LOCK", "0").toInt());
 	OB->LockRes = static_cast<bool>(obj->attribute("LOCKR", "0").toInt());
+	OB->Reverse = static_cast<bool>(obj->attribute("REVERS", "0").toInt());
 	OB->isTableItem = static_cast<bool>(obj->attribute("isTableItem", "0").toInt());
 	OB->TopLine = static_cast<bool>(obj->attribute("TopLine", "0").toInt());
 	OB->LeftLine = static_cast<bool>(obj->attribute("LeftLine", "0").toInt());

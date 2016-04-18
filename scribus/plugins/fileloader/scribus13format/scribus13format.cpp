@@ -1679,6 +1679,8 @@ PageItem* Scribus13Format::PasteItem(QDomElement *obj, ScribusDoc *doc, const QS
 		pstyle.setParent(DoVorl[align-5]);
 	else if (align >= 0)
 		pstyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(align));
+	if (static_cast<bool>(obj->attribute("REVERS", "0").toInt()))
+		pstyle.setDirection(ParagraphStyle::RTL);
 	pstyle.charStyle().setFont(m_AvailableFonts->findFont(obj->attribute("IFONT", m_Doc->itemToolPrefs().textFont), m_Doc));
 	pstyle.charStyle().setFontSize(qRound(ScCLocale::toDoubleC(obj->attribute("ISIZE"), 12.0) * 10));
 	pstyle.charStyle().setStrokeColor(obj->attribute("TXTSTROKE", CommonStrings::None));
