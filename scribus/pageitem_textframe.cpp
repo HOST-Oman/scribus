@@ -1580,7 +1580,7 @@ void PageItem_TextFrame::layout()
 			currenCluster.clearFlag(ScLayout_SoftHyphenVisible);
 
 			// No space at begin of line,
-			if ( current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a).isSpace()))
+			if (current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a).isSpace()))
 			{
 				currenCluster.setFlag(ScLayout_SuppressSpace);
 				currenCluster.glyphs()[0].xadvance = 0;
