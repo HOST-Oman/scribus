@@ -1041,8 +1041,9 @@ struct LineControl {
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
 
+		int glyphsCount = line.lastRun - line.firstRun + 1;
 		QList<GlyphCluster> runs;
-		for (int i = 0; i < breakIndex - line.firstRun; ++i)
+		for (int i = 0; i < glyphsCount; ++i)
 			runs.append(glyphRuns.at(i));
 		std::sort(runs.begin(), runs.end(), visualGlyphRunComp);
 
