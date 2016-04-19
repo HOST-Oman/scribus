@@ -1813,7 +1813,6 @@ void PageItem_TextFrame::layout()
 					current.glyphs[currentIndex].setScaleV(1.0);
 					wide = 0.0;
 				}
-				firstGlyph.xadvance = wide / firstGlyph.scaleH;
 				desc = realDesc = 0;
 			}
 			else // !DropCMode
