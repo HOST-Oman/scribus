@@ -795,6 +795,244 @@ struct LineControl {
 //	}
 //}
 
+	/// called when line length is known and line is to be justified
+	void justifyLine(const ParagraphStyle& style)
+	{
+
+		double glyphNatural = 0;
+		double spaceNatural = 0;
+		double glyphExtension;
+		double spaceExtension;
+		int spaceInsertion = 0;
+		double imSpace = -1;
+
+		for (int i = 0; i < breakIndex - line.firstRun; ++i)
+		{
+			GlyphCluster glyphrun = glyphRuns[i];
+			if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
+			{
+				glyphNatural += glyphrun.width();
+			}
+			else if ( !glyphrun.hasFlag(ScLayout_SuppressSpace) )
+			{
+				spaceNatural += glyphrun.width();
+				if (imSpace < 0.0 || imSpace > glyphrun.width())
+					imSpace = glyphrun.width();
+			}
+			if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
+			{
+				spaceInsertion += 1;
+			}
+		}
+
+		imSpace /= 2;
+
+		// decision: prio 1: stretch glyph;  prio 2: insert spaces;  prio 3: stretch spaces
+
+		if (line.width < spaceNatural + glyphNatural * style.minGlyphExtension() && spaceNatural > 0)
+		{
+			glyphExtension = style.minGlyphExtension() - 1;
+			spaceExtension = (line.width - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+			imSpace = 0;
+		}
+		else if (line.width < spaceNatural + glyphNatural * style.maxGlyphExtension() && glyphNatural > 0)
+		{
+			spaceExtension = 0;
+			glyphExtension = (line.width - spaceNatural) / glyphNatural  - 1;
+			imSpace = 0;
+		}
+		else
+		{
+			glyphExtension = style.maxGlyphExtension() - 1;
+			if (spaceInsertion) {
+				double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
+				if (imSpace > 0) {
+					if (remaining / spaceInsertion < imSpace) {
+						imSpace = remaining / spaceInsertion;
+						spaceExtension = 0;
+					} else {
+						spaceExtension = (remaining + spaceNatural) / (spaceNatural + spaceInsertion * imSpace) - 1;
+						imSpace *= spaceExtension + 1;
+					}
+				} else {
+					imSpace = remaining / spaceInsertion;
+					spaceExtension = 0;
+				}
+			} else {
+				if (spaceNatural > 0)
+					spaceExtension = (line.width - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+				else
+					spaceExtension = 0;
+			}
+		}
+
+		double glyphScale = 1 + glyphExtension;
+
+	/*
+		qDebug() << QString("justify: line = %7 natural = %1 + %2 = %3 (%4); spaces + %5%%; min=%8; glyphs + %6%%; min=%9")
+			   .arg(spaceNatural).arg(glyphNatural).arg(spaceNatural+glyphNatural).arg(line.naturalWidth)
+			   .arg(spaceExtension).arg(glyphExtension).arg(line.width)
+			   .arg(style.minWordTracking()).arg(style.minGlyphExtension());
+		*/
+
+		int startItem = 0;
+		if (glyphRuns[startItem].hasFlag(ScLayout_DropCap))
+			startItem++;
+		// distribute whitespace on spaces and glyphs
+		for (int i = startItem; i < breakIndex - line.firstRun; ++i)
+		{
+			GlyphCluster& glyphrun = glyphRuns[i];
+			double wide = glyphrun.width();
+			if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
+			{
+				for (int j = 0; j < glyphrun.glyphs().count(); ++j)
+				{
+					GlyphLayout& glyph = glyphrun.glyphs()[j];
+					glyph.xoffset *= glyphScale;
+					glyph.scaleH *= glyphScale;
+				}
+			}
+			else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
+			{
+				GlyphLayout& glyph = glyphrun.glyphs().last();
+				glyph.xadvance += (wide * spaceExtension) / glyph.scaleH;
+			}
+			if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
+			{
+				GlyphCluster& lastRun = glyphRuns[i - 1];
+				lastRun.glyphs().last().xadvance += imSpace;
+			}
+		}
+	}
+
+	/// called when linelength is known and line is not justified
+	void indentLine(const ParagraphStyle& style, double leftIndent)
+	{
+		if (line.naturalWidth > line.width)
+		{
+			justifyLine(style);
+		}
+		if (leftIndent > 0)
+		{
+			line.x += leftIndent;
+			line.width -= leftIndent;
+		}
+	}
+
+	/**
+	 Clones the tab fill char as often as necssary after all distances are known
+	 */
+	void fillInTabLeaders()
+	{
+		// fill in tab leaders
+		for (int i = 0; i < breakIndex - line.firstRun; ++i)
+		{
+			GlyphCluster& glyphRun = glyphRuns[i];
+			CharStyle charStyle(glyphRun.style());
+			if (glyphRun.hasFlag(ScLayout_TabLeaders))
+			{
+				GlyphLayout tglyph = glyphRun.glyphs().last();
+				double width = glyphRun.width();
+				double wt = charStyle.font().glyphWidth(tglyph.glyph, charStyle.fontSize() * tglyph.scaleV / 10.0);
+				int count = static_cast<int>(width / wt);
+				glyphRun.glyphs().clear();
+				for(int cx = 0; cx < count; ++cx)
+				{
+					GlyphLayout more = tglyph;
+					more.xadvance = width / count;
+					glyphRun.glyphs().append(more);
+				}
+			}
+		}
+	}
+
+
+	//defined but not used
+	///// calculate how much the first char should stick out to the left
+	//double opticalLeftMargin(const StoryText& itemText)
+	//{
+	//	int b = line.firstChar;
+	//	while (b < line.lastChar && (itemText.flags(b) & ScLayout_SuppressSpace))
+	//		   ++b;
+	//
+	//	double chs = itemText.charStyle(b).fontSize() * (itemText.charStyle(b).scaleH() / 1000.0);
+	//	QChar chr = itemText.text(b);
+	//	double leftCorr = itemText.charStyle(b).font().realCharWidth(chr, chs / 10.0);
+	//	if (QString("'´`").indexOf(chr) >= 0
+	//		|| chr == QChar(0x2018) // quote 6
+	//		|| chr == QChar(0x2019) // quote 9
+	//		|| chr == QChar(0x201a) // lower quote 9
+	//		|| chr == QChar(0x201b) // upper reversed 9 6
+	//		|| chr == QChar(0x2039) // single guillemet <
+	//		|| chr == QChar(0x203a) // single guillemet >
+	//		)
+	//		leftCorr *= -0.7;
+	//	else if (QString("\"").indexOf(chr) >= 0
+	//			 || chr == QChar(0x00ab) // guillemet <<
+	//			 || chr == QChar(0x00bb) // guillemet >>
+	//			 || chr == QChar(0x201c) // quote 66
+	//			 || chr == QChar(0x201d) // quote 99
+	//			 || chr == QChar(0x201e) // lower quote 99
+	//			 || chr == QChar(0x201f) // upper reversed 99
+	//			 )
+	//		leftCorr *= -0.5;
+	//	else {
+	//		leftCorr = itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0, chr);
+	//		leftCorr -= itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0);
+	////				double leftCorr2 = itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0, chr);
+	////				leftCorr2 -= itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0);
+	////				leftCorr = qMin(leftCorr, leftCorr2);
+	//	}
+	//	return leftCorr;
+	//}
+
+	/// calculate how much the last char should stick out to the right
+	double opticalRightMargin(const StoryText& itemText, const QList<GlyphCluster> runs)
+	{
+		int b = line.lastRun;
+		while (b > line.firstRun &&
+			   (SpecialChars::isBreakingSpace(itemText.text(runs[b].lastChar())) ||
+				SpecialChars::isBreak(itemText.text(runs[b].lastChar())))
+			   )
+			--b;
+		if (b >= line.firstRun)
+		{
+			const CharStyle& chStyle(runs[b].style());
+			double chs = chStyle.fontSize() * (chStyle.scaleH() / 1000.0);
+			QChar chr = runs[b].hasFlag(ScLayout_SoftHyphenVisible) ?
+				QChar('-') : itemText.text(runs[b].lastChar());
+			double rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
+			if (QString("-,.`´'~").indexOf(chr) >= 0
+				|| chr == QChar(0x2018)
+				|| chr == QChar(0x2019)
+				|| chr == QChar(0x201a)
+				|| chr == QChar(0x201b)
+				|| chr == QChar(0x2039)
+				|| chr == QChar(0x203a)
+				|| chr == QChar(0x2032) // PRIME
+				)
+				rightCorr *= 0.7;
+			else if (QString(";:\"").indexOf(chr) >= 0
+					 || chr == QChar(0x00ab)
+					 || chr == QChar(0x00bb)
+					 || chr == QChar(0x201c)
+					 || chr == QChar(0x201d)
+					 || chr == QChar(0x201e)
+					 || chr == QChar(0x201f)
+					 || chr == QChar(0x2013) // EN DASH
+					 || chr == QChar(0x2033) // double prime
+					 )
+				rightCorr *= 0.5;
+			else {
+				// FIXME HOST: is the kerning with "." a realy reliable way to check this?
+	//			rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
+	//			rightCorr -= chStyle.font().charWidth(chr, chs / 10.0, QChar('.'));
+			}
+			return rightCorr;
+		}
+		return 0.0;
+	}
+
 	LineBox* createLineBox()
 	{
 		LineBox* result = new LineBox();
@@ -840,34 +1078,6 @@ private:
 	MarginStruct insets;
 	double lineCorr;
 };
-
-/**
- Clones the tab fill char as often as necssary after all distances are known
- */
-static void fillInTabLeaders(LineControl & current)
-{
-	// fill in tab leaders
-	for (int i = 0; i < current.breakIndex - current.line.firstRun; ++i)
-	{
-		GlyphCluster& glyphRun = current.glyphRuns[i];
-		CharStyle charStyle(glyphRun.style());
-		if (glyphRun.hasFlag(ScLayout_TabLeaders))
-		{
-			GlyphLayout tglyph = glyphRun.glyphs().last();
-			double width = glyphRun.width();
-			double wt = charStyle.font().glyphWidth(tglyph.glyph, charStyle.fontSize() * tglyph.scaleV / 10.0);
-			int count = static_cast<int>(width / wt);
-			glyphRun.glyphs().clear();
-			for(int cx = 0; cx < count; ++cx)
-			{
-				GlyphLayout more = tglyph;
-				more.xadvance = width / count;
-				glyphRun.glyphs().append(more);
-			}
-		}
-	}
-}
-
 
 static bool checkCJK(QChar ch) {
 	unsigned int code = ch.unicode();
@@ -920,217 +1130,6 @@ static bool implicitBreak(QChar f, QChar s) {
 		return allowedCJKBreakAfter(f) && allowedCJKBreakBefore(s);
 	} else
 		return false;
-}
-
-/// called when line length is known and line is to be justified
-static void justifyLine(const ParagraphStyle& style, LineControl& curr)
-{
-
-	double glyphNatural = 0;
-	double spaceNatural = 0;
-	double glyphExtension;
-	double spaceExtension;
-	int spaceInsertion = 0;
-	double imSpace = -1;
-
-	for (int i = 0; i < curr.breakIndex - curr.line.firstRun; ++i)
-	{
-		GlyphCluster glyphrun = curr.glyphRuns[i];
-		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
-		{
-			glyphNatural += glyphrun.width();
-		}
-		else if ( !glyphrun.hasFlag(ScLayout_SuppressSpace) )
-		{
-			spaceNatural += glyphrun.width();
-			if (imSpace < 0.0 || imSpace > glyphrun.width())
-				imSpace = glyphrun.width();
-		}
-		if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
-		{
-			spaceInsertion += 1;
-		}
-	}
-
-	imSpace /= 2;
-
-	// decision: prio 1: stretch glyph;  prio 2: insert spaces;  prio 3: stretch spaces
-
-	if (curr.line.width < spaceNatural + glyphNatural * style.minGlyphExtension() && spaceNatural > 0)
-	{
-		glyphExtension = style.minGlyphExtension() - 1;
-		spaceExtension = (curr.line.width - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
-		imSpace = 0;
-	}
-	else if (curr.line.width < spaceNatural + glyphNatural * style.maxGlyphExtension() && glyphNatural > 0)
-	{
-		spaceExtension = 0;
-		glyphExtension = (curr.line.width - spaceNatural) / glyphNatural  - 1;
-		imSpace = 0;
-	}
-	else
-	{
-		glyphExtension = style.maxGlyphExtension() - 1;
-		if (spaceInsertion) {
-			double remaining = curr.line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
-			if (imSpace > 0) {
-				if (remaining / spaceInsertion < imSpace) {
-					imSpace = remaining / spaceInsertion;
-					spaceExtension = 0;
-				} else {
-					spaceExtension = (remaining + spaceNatural) / (spaceNatural + spaceInsertion * imSpace) - 1;
-					imSpace *= spaceExtension + 1;
-				}
-			} else {
-				imSpace = remaining / spaceInsertion;
-				spaceExtension = 0;
-			}
-		} else {
-			if (spaceNatural > 0)
-				spaceExtension = (curr.line.width - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
-			else
-				spaceExtension = 0;
-		}
-	}
-
-	double glyphScale = 1 + glyphExtension;
-
-/*
-	qDebug() << QString("justify: line = %7 natural = %1 + %2 = %3 (%4); spaces + %5%%; min=%8; glyphs + %6%%; min=%9")
-		   .arg(spaceNatural).arg(glyphNatural).arg(spaceNatural+glyphNatural).arg(line.naturalWidth)
-		   .arg(spaceExtension).arg(glyphExtension).arg(line.width)
-		   .arg(style.minWordTracking()).arg(style.minGlyphExtension());
-	*/
-
-	int startItem = 0;
-	if (curr.glyphRuns[startItem].hasFlag(ScLayout_DropCap))
-		startItem++;
-	// distribute whitespace on spaces and glyphs
-	for (int i = startItem; i < curr.breakIndex - curr.line.firstRun; ++i)
-	{
-		GlyphCluster& glyphrun = curr.glyphRuns[i];
-		double wide = glyphrun.width();
-		if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
-		{
-			for (int j = 0; j < glyphrun.glyphs().count(); ++j)
-			{
-				GlyphLayout& glyph = glyphrun.glyphs()[j];
-				glyph.xoffset *= glyphScale;
-				glyph.scaleH *= glyphScale;
-			}
-		}
-		else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
-		{
-			GlyphLayout& glyph = glyphrun.glyphs().last();
-			glyph.xadvance += (wide * spaceExtension) / glyph.scaleH;
-		}
-		if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
-		{
-			GlyphCluster& lastRun = curr.glyphRuns[i - 1];
-			lastRun.glyphs().last().xadvance += imSpace;
-		}
-	}
-}
-
-
-/// called when linelength is known and line is not justified
-static void indentLine(const ParagraphStyle& style, LineControl& curr, double leftIndent)
-{
-	if (curr.line.naturalWidth > curr.line.width)
-	{
-		justifyLine(style, curr);
-	}
-	if (leftIndent > 0)
-	{
-		curr.line.x += leftIndent;
-		curr.line.width -= leftIndent;
-	}
-}
-
-//defined but not used
-///// calculate how much the first char should stick out to the left
-//static double opticalLeftMargin(const StoryText& itemText, const LineSpec& line)
-//{
-//	int b = line.firstChar;
-//	while (b < line.lastChar && (itemText.flags(b) & ScLayout_SuppressSpace))
-//		   ++b;
-//
-//	double chs = itemText.charStyle(b).fontSize() * (itemText.charStyle(b).scaleH() / 1000.0);
-//	QChar chr = itemText.text(b);
-//	double leftCorr = itemText.charStyle(b).font().realCharWidth(chr, chs / 10.0);
-//	if (QString("'´`").indexOf(chr) >= 0
-//		|| chr == QChar(0x2018) // quote 6
-//		|| chr == QChar(0x2019) // quote 9
-//		|| chr == QChar(0x201a) // lower quote 9
-//		|| chr == QChar(0x201b) // upper reversed 9 6
-//		|| chr == QChar(0x2039) // single guillemet <
-//		|| chr == QChar(0x203a) // single guillemet >
-//		)
-//		leftCorr *= -0.7;
-//	else if (QString("\"").indexOf(chr) >= 0
-//			 || chr == QChar(0x00ab) // guillemet <<
-//			 || chr == QChar(0x00bb) // guillemet >>
-//			 || chr == QChar(0x201c) // quote 66
-//			 || chr == QChar(0x201d) // quote 99
-//			 || chr == QChar(0x201e) // lower quote 99
-//			 || chr == QChar(0x201f) // upper reversed 99
-//			 )
-//		leftCorr *= -0.5;
-//	else {
-//		leftCorr = itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0, chr);
-//		leftCorr -= itemText.charStyle(b).font().charWidth(QChar(' '), chs / 10.0);
-////				double leftCorr2 = itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0, chr);
-////				leftCorr2 -= itemText.charStyle(a).font().charWidth(QChar('K'), chs / 10.0);
-////				leftCorr = qMin(leftCorr, leftCorr2);
-//	}
-//	return leftCorr;
-//}
-
-/// calculate how much the last char should stick out to the right
-static double opticalRightMargin(const StoryText& itemText, const QList<GlyphCluster> runs, const LineSpec& line)
-{
-	int b = line.lastRun;
-	while (b > line.firstRun &&
-		   (SpecialChars::isBreakingSpace(itemText.text(runs[b].lastChar())) ||
-			SpecialChars::isBreak(itemText.text(runs[b].lastChar())))
-		   )
-		--b;
-	if (b >= line.firstRun)
-	{
-		const CharStyle& chStyle(runs[b].style());
-		double chs = chStyle.fontSize() * (chStyle.scaleH() / 1000.0);
-		QChar chr = runs[b].hasFlag(ScLayout_SoftHyphenVisible) ?
-			QChar('-') : itemText.text(runs[b].lastChar());
-		double rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
-		if (QString("-,.`´'~").indexOf(chr) >= 0
-			|| chr == QChar(0x2018)
-			|| chr == QChar(0x2019)
-			|| chr == QChar(0x201a)
-			|| chr == QChar(0x201b)
-			|| chr == QChar(0x2039)
-			|| chr == QChar(0x203a)
-			|| chr == QChar(0x2032) // PRIME
-			)
-			rightCorr *= 0.7;
-		else if (QString(";:\"").indexOf(chr) >= 0
-				 || chr == QChar(0x00ab)
-				 || chr == QChar(0x00bb)
-				 || chr == QChar(0x201c)
-				 || chr == QChar(0x201d)
-				 || chr == QChar(0x201e)
-				 || chr == QChar(0x201f)
-				 || chr == QChar(0x2013) // EN DASH
-				 || chr == QChar(0x2033) // double prime
-				 )
-			rightCorr *= 0.5;
-		else {
-			// FIXME HOST: is the kerning with "." a realy reliable way to check this?
-//			rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
-//			rightCorr -= chStyle.font().charWidth(chr, chs / 10.0, QChar('.'));
-		}
-		return rightCorr;
-	}
-	return 0.0;
 }
 
 static double findRealOverflowEnd(const QRegion& shape, QRect pt, double maxX)
@@ -2551,7 +2550,7 @@ void PageItem_TextFrame::layout()
 //					if (style.alignment() != 0)
 					{
 						if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-							current.line.width += opticalRightMargin(itemText, glyphRuns, current.line);
+							current.line.width += current.opticalRightMargin(itemText, glyphRuns);
 
 						OFs = 0;
 						if (style.alignment() == ParagraphStyle::Rightaligned)
@@ -2574,17 +2573,17 @@ void PageItem_TextFrame::layout()
 								&&  (current.line.lastRun - 1 >= 0)
 								&&  !itemText.text(glyphRuns[current.line.lastRun - 1].lastChar()).isSpace()))
 						{
-							justifyLine(style, current);
+							current.justifyLine(style);
 						}
 						else
 						{
 							if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-								current.line.naturalWidth += opticalRightMargin(itemText, glyphRuns, current.line);
+								current.line.naturalWidth += current.opticalRightMargin(itemText, glyphRuns);
 							double optiWidth = current.colRight - style.rightMargin() - style.lineSpacing()/2.0 - current.line.x;
 							if (current.line.naturalWidth > optiWidth)
 								current.line.width = qMax(current.line.width - current.maxShrink, optiWidth);
 							// simple offset
-							indentLine(style, current, OFs);
+							current.indentLine(style, OFs);
 						}
 						current.xPos = current.colRight;
 					}
@@ -2648,7 +2647,7 @@ void PageItem_TextFrame::layout()
 
 						// Justification
 						if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-							current.line.width += opticalRightMargin(itemText, glyphRuns, current.line);
+							current.line.width += current.opticalRightMargin(itemText, glyphRuns);
 						// #12565: Right alignment of hyphens
 						// The additional character width has already been taken into account
 						// above via the line break position, so it's not necessary to increase
@@ -2670,12 +2669,12 @@ void PageItem_TextFrame::layout()
 							OFs = current.line.width - current.line.naturalWidth;
 
 						if ((style.alignment() == ParagraphStyle::Justified) || (style.alignment() == ParagraphStyle::Extended))
-							justifyLine(style, current);
+							current.justifyLine(style);
 						else
 						{
 							if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-								current.line.naturalWidth += opticalRightMargin(itemText, glyphRuns, current.line);
-							indentLine(style, current, OFs);
+								current.line.naturalWidth += current.opticalRightMargin(itemText, glyphRuns);
+							current.indentLine(style, OFs);
 						}
 						current.xPos = current.line.x + current.line.width;
 					}
@@ -2725,7 +2724,7 @@ void PageItem_TextFrame::layout()
 							current.line.y -= DropCapDrop;
 							glyphRuns[current.line.firstRun].glyphs().first().yoffset += DropCapDrop;
 						}
-						fillInTabLeaders(current);
+						current.fillInTabLeaders();
 						//if right margin is set we temporally save line, not append it
 						textLayout.appendLine(current.createLineBox());
 						setMaxY(maxYDesc);
@@ -2899,7 +2898,7 @@ void PageItem_TextFrame::layout()
 			current.finishLine(EndX);
 
 			if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-				current.line.width += opticalRightMargin(itemText, glyphRuns, current.line);
+				current.line.width += current.opticalRightMargin(itemText, glyphRuns);
 
 			OFs = 0;
 			if (style.alignment() == ParagraphStyle::Rightaligned)
@@ -2921,13 +2920,13 @@ void PageItem_TextFrame::layout()
 						 itemText.text(a) == SpecialChars::COLBREAK)
 					&&  !itemText.text(a).isSpace()))
 			{
-				justifyLine(style, current);
+				current.justifyLine(style);
 			}
 			else
 			{
 				if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-					current.line.naturalWidth += opticalRightMargin(itemText, glyphRuns, current.line);
-				indentLine(style, current, OFs);
+					current.line.naturalWidth += current.opticalRightMargin(itemText, glyphRuns);
+				current.indentLine(style, OFs);
 			}
 //			if (glyphRuns[current.line.firstRun].style().effects() & ScLayout_DropCap)
 			if (glyphRuns[current.line.firstRun].hasFlag(ScLayout_DropCap))
@@ -2936,7 +2935,7 @@ void PageItem_TextFrame::layout()
 				current.line.y -= DropCapDrop;
 				glyphRuns[current.line.firstRun].glyphs().first().yoffset += DropCapDrop;
 			}
-			fillInTabLeaders(current);
+			current.fillInTabLeaders();
 			current.startOfCol = false;
 			goNextColumn = false;
 
