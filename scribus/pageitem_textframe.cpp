@@ -1602,7 +1602,7 @@ void PageItem_TextFrame::layout()
 				if ( current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a).isSpace()))
 				{
 					current.glyphRuns[currentIndex].setFlag(ScLayout_SuppressSpace);
-					current.glyphRuns[currentIndex].glyphs()[0].xadvance = 0;
+					current.glyphRuns[currentIndex].glyphs().first().xadvance = 0;
 					continue;
 				}
 				else
