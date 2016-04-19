@@ -603,6 +603,7 @@ struct LineControl {
 	{
 		breakIndex = last;
 		breakXPos  = line.x;
+
 		for (int i = 0; i < breakIndex - line.firstRun; i++)
 			breakXPos += glyphRuns.at(i).width();
 		// #8194, #8717 : update line ascent and descent with sensible values
@@ -806,7 +807,9 @@ struct LineControl {
 		int spaceInsertion = 0;
 		double imSpace = -1;
 
-		for (int i = 0; i < breakIndex - line.firstRun; ++i)
+		int glyphsCount = line.lastRun - line.firstRun + 1;
+
+		for (int i = 0; i < glyphsCount; ++i)
 		{
 			GlyphCluster glyphrun = glyphRuns[i];
 			if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
@@ -879,7 +882,7 @@ struct LineControl {
 		if (glyphRuns[startItem].hasFlag(ScLayout_DropCap))
 			startItem++;
 		// distribute whitespace on spaces and glyphs
-		for (int i = startItem; i < breakIndex - line.firstRun; ++i)
+		for (int i = startItem; i < glyphsCount; ++i)
 		{
 			GlyphCluster& glyphrun = glyphRuns[i];
 			double wide = glyphrun.width();
@@ -925,7 +928,7 @@ struct LineControl {
 	void fillInTabLeaders()
 	{
 		// fill in tab leaders
-		for (int i = 0; i < breakIndex - line.firstRun; ++i)
+		for (int i = 0; i < glyphRuns.count(); ++i)
 		{
 			GlyphCluster& glyphRun = glyphRuns[i];
 			CharStyle charStyle(glyphRun.style());
