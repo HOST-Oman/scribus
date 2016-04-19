@@ -888,11 +888,11 @@ struct LineControl {
 			double wide = glyphrun.width();
 			if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 			{
+				glyphrun.setScaleH(glyphrun.scaleH() * glyphScale);
 				for (int j = 0; j < glyphrun.glyphs().count(); ++j)
 				{
 					GlyphLayout& glyph = glyphrun.glyphs()[j];
 					glyph.xoffset *= glyphScale;
-					glyph.scaleH *= glyphScale;
 				}
 			}
 			else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
@@ -943,7 +943,7 @@ struct LineControl {
 				{
 					GlyphLayout more = tglyph;
 					more.xadvance = width / count;
-					glyphRun.glyphs().append(more);
+					glyphRun.append(more);
 				}
 			}
 		}
@@ -2207,7 +2207,7 @@ void PageItem_TextFrame::layout()
 							tglyph.yoffset  = firstGlyph.yoffset;
 							tglyph.scaleV   = tglyph.scaleH = chs / charStyle.fontSize();
 							tglyph.xadvance = 0;
-							current.glyphRuns[currentIndex].glyphs().append(tglyph);
+							current.glyphRuns[currentIndex].append(tglyph);
 						}
 					}
 					current.xPos -= (legacy ? 1.0 : 0.0);
@@ -2627,7 +2627,7 @@ void PageItem_TextFrame::layout()
 							hyphen.glyph = font.char2CMap(QChar('-'));
 							hyphen.xadvance = font.glyphBBox(hyphen.glyph, itemText.charStyle(a).fontSize() / 10.0).width;
 							hyphWidth = hyphen.xadvance * scaleH;
-							current.glyphRuns[currentIndex].glyphs().append(hyphen);
+							current.glyphRuns[currentIndex].append(hyphen);
 						}
 						else
 						{
