@@ -1820,35 +1820,23 @@ void PageItem_TextFrame::layout()
 			{
 				// find ascent / descent
 				if (HasObject)
+				{
 					desc = realDesc = 0;
-				else
-				{
-					if (itemText.text(a) != SpecialChars::OBJECT)
-					{
-						foreach (GlyphLayout gl, current.glyphRuns[currentIndex].glyphs()) {
-							GlyphMetrics gm = font.glyphBBox(gl.glyph, hlcsize10);
-							realDesc = qMax(realDesc, gm.descent * scaleV - offset);
-							realAsce = gm.ascent;
-						}
-					}
-					desc = -font.descent(hlcsize10);
-					current.rememberShrinkStretch(itemText.text(a), wide, style);
-				}
-				if (HasObject)
-				{
 					asce = currentObject->height() + currentObject->lineWidth();
 					realAsce = asce * scaleV + offset;
 				}
 				else
 				{
+					desc = -font.descent(hlcsize10);
 					asce = font.ascent(hlcsize10);
+
 					if (HasMark && !BulNumMode)
 						realAsce = asce * scaleV + offset;
 					else
-					{
-						foreach (GlyphLayout gl, current.glyphRuns[currentIndex].glyphs())
-							realAsce = qMax(realAsce, font.glyphBBox(gl.glyph, hlcsize10).ascent * scaleV + offset);
-					}
+						realAsce = current.glyphRuns[currentIndex].ascent() + offset;
+					realDesc = current.glyphRuns[currentIndex].desent() - offset;
+
+					current.rememberShrinkStretch(itemText.text(a), wide, style);
 				}
 			}
 //			if (BulNumMode)
