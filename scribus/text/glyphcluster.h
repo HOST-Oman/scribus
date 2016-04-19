@@ -16,6 +16,7 @@ class GlyphCluster
 	int m_visualIndex;
 	double m_scaleH;
 	double m_scaleV;
+	double m_extraWidth;
 
 public:
 	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i);
@@ -36,6 +37,8 @@ public:
 	int visualIndex() const;
 
 	double width() const;
+	void setExtraWidth(double);
+
 	double ascent() const;
 	double desent() const;
 

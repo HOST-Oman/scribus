@@ -9,6 +9,7 @@ GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first,
 	, m_visualIndex(i)
 	, m_scaleH(1.0)
 	, m_scaleV(1.0)
+	, m_extraWidth(0.0)
 {}
 
 void GlyphCluster::append(GlyphLayout& gl)
@@ -25,7 +26,13 @@ double GlyphCluster::width() const
 	{
 		width += gl.xadvance * m_scaleH;
 	}
-	return width;
+	return width + m_extraWidth;
+}
+
+
+void GlyphCluster::setExtraWidth(double w)
+{
+	m_extraWidth = w;
 }
 
 double GlyphCluster::ascent() const

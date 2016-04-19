@@ -897,13 +897,12 @@ struct LineControl {
 			}
 			else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
 			{
-				GlyphLayout& glyph = glyphrun.glyphs().last();
-				glyph.xadvance += (wide * spaceExtension) / glyph.scaleH;
+				glyphrun.setExtraWidth(wide * spaceExtension);
 			}
 			if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 			{
 				GlyphCluster& lastRun = glyphs[i - 1];
-				lastRun.glyphs().last().xadvance += imSpace;
+				lastRun.setExtraWidth(imSpace);
 			}
 		}
 	}
@@ -1695,7 +1694,6 @@ void PageItem_TextFrame::layout()
 //			glyphs->yadvance = 0;
 
 			GlyphLayout& firstGlyph = current.glyphs[currentIndex].glyphs().first();
-			GlyphLayout& lastGlyph = current.glyphs[currentIndex].glyphs().last();
 
 			// find out width, ascent and descent of char
 			double wide = current.glyphs[currentIndex].width();
@@ -2141,7 +2139,7 @@ void PageItem_TextFrame::layout()
 						}
 					}
 					current.xPos -= (legacy ? 1.0 : 0.0);
-					firstGlyph.xadvance = (current.xPos + wide - tabs.xPos) / firstGlyph.scaleH;
+					current.glyphs[currentIndex].setExtraWidth(current.xPos - tabs.xPos);
 					tabs.tabGlyph = &firstGlyph;
 				}
 			}
@@ -2431,7 +2429,7 @@ void PageItem_TextFrame::layout()
 			if ((DropCmode || BulNumMode) && !outs)
 			{
 				current.xPos += style.parEffectOffset();
-				lastGlyph.xadvance += style.parEffectOffset() / lastGlyph.scaleH;
+				current.glyphs[currentIndex].setExtraWidth(style.parEffectOffset());
 				if (DropCmode)
 				{
 					DropCmode = false;
