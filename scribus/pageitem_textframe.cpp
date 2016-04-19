@@ -1574,7 +1574,7 @@ void PageItem_TextFrame::layout()
 				}
 			}
 
-			const ScFace font = charStyle.font();
+			const ScFace& font = charStyle.font();
 
 			currenCluster.clearFlag(ScLayout_DropCap);
 			currenCluster.clearFlag(ScLayout_SoftHyphenVisible);
