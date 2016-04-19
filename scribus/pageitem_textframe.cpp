@@ -1465,12 +1465,17 @@ void PageItem_TextFrame::layout()
 		double autoLeftIndent = 0.0;
 		for (int i = 0; i < glyphRuns.length(); ++i)
 		{
-			GlyphCluster run = glyphRuns[i];
-			if (run.glyphs().isEmpty())
+			int currentIndex = i - current.line.firstRun;
+			GlyphCluster newRun = glyphRuns[i];
+			if (currentIndex >= current.glyphRuns.count())
+				current.glyphRuns.append(newRun);
+			else
+				current.glyphRuns[currentIndex] = newRun;
+
+			GlyphCluster& currenCluster = current.glyphRuns[currentIndex];
+			if (currenCluster.glyphs().isEmpty())
 				continue;
 
-			current.glyphRuns.append(run);
-			GlyphCluster& currenCluster = current.glyphRuns.last();
 
 			int a = currenCluster.firstChar();
 			bool HasObject = itemText.hasObject(a);
