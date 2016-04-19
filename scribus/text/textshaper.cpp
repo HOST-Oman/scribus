@@ -410,6 +410,9 @@ QList<GlyphCluster> TextShaper::shape()
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
 
+			run.setScaleH(charStyle.scaleH() / 1000.0);
+			run.setScaleV(charStyle.scaleV() / 1000.0);
+
 			while (i < count && glyphs[i].cluster == firstCluster)
 			{
 				GlyphLayout gl;
@@ -440,37 +443,30 @@ QList<GlyphCluster> TextShaper::shape()
 					tracking = style.fontSize() * style.tracking() / 10000.0;
 				gl.xoffset += tracking;
 
-				gl.scaleH = charStyle.scaleH() / 1000.0;
-				gl.scaleV = charStyle.scaleV() / 1000.0;
-
-
-				if (effects != ScStyle_Default)
+				if ((effects & ScStyle_Superscript) || (effects & ScStyle_Subscript))
 				{
+					double scale;
 					double asce = style.font().ascent(style.fontSize() / 10.0);
 					if (effects & ScStyle_Superscript)
 					{
 						gl.yoffset -= asce * m_item->doc()->typographicPrefs().valueSuperScript / 100.0;
-						gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+						scale = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
 					}
-					else if (effects & ScStyle_Subscript)
+					else // effects & ScStyle_Subscript
 					{
 						gl.yoffset += asce * m_item->doc()->typographicPrefs().valueSubScript / 100.0;
-						gl.scaleV = gl.scaleH = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
-					}
-					else
-					{
-						gl.scaleV = gl.scaleH = 1.0;
+						scale = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
 					}
 
-					gl.scaleH *= style.scaleH() / 1000.0;
-					gl.scaleV *= style.scaleV() / 1000.0;
+					run.setScaleH(run.scaleH() * scale);
+					run.setScaleV(run.scaleV() * scale);
 				}
 
 				if (run.hasFlag(ScLayout_SmallCaps))
 				{
 					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
-					gl.scaleV *= smallcapsScale;
-					gl.scaleH *= smallcapsScale;
+					run.setScaleH(run.scaleH() * smallcapsScale);
+					run.setScaleV(run.scaleV() * smallcapsScale);
 				}
 
 				if (gl.xadvance > 0)

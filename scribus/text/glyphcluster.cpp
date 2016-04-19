@@ -7,14 +7,23 @@ GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first,
 	, m_firstChar(first)
 	, m_lastChar(last)
 	, m_visualIndex(i)
+	, m_scaleH(1.0)
+	, m_scaleV(1.0)
 {}
+
+void GlyphCluster::append(GlyphLayout& gl)
+{
+	gl.scaleH = m_scaleH;
+	gl.scaleV = m_scaleV;
+	m_glyphs.append(gl);
+}
 
 double GlyphCluster::width() const
 {
 	double width = 0;
 	foreach (const GlyphLayout gl, m_glyphs)
 	{
-		width += gl.xadvance * gl.scaleH;
+		width += gl.xadvance * m_scaleH;
 	}
 	return width;
 }
@@ -25,7 +34,7 @@ double GlyphCluster::ascent() const
 	double asc = 0;
 	foreach (const GlyphLayout gl, m_glyphs) {
 		GlyphMetrics gm = font.glyphBBox(gl.glyph, m_style->fontSize() / 10.0);
-		asc = qMax(asc, gm.ascent * gl.scaleV);
+		asc = qMax(asc, gm.ascent * m_scaleV);
 	}
 	return asc;
 }
@@ -36,7 +45,7 @@ double GlyphCluster::desent() const
 	double des = 0;
 	foreach (const GlyphLayout gl, m_glyphs) {
 		GlyphMetrics gm = font.glyphBBox(gl.glyph, m_style->fontSize() / 10.0);
-		des = qMax(des, gm.descent * gl.scaleV);
+		des = qMax(des, gm.descent * m_scaleV);
 	}
 	return -des;
 }
@@ -88,4 +97,34 @@ int GlyphCluster::lastChar() const
 int GlyphCluster::visualIndex() const
 {
 	return m_visualIndex;
+}
+
+double GlyphCluster::scaleH() const
+{
+	return m_scaleH;
+}
+
+double GlyphCluster::scaleV() const
+{
+	return m_scaleV;
+}
+
+void GlyphCluster::setScaleH(double s)
+{
+	m_scaleH = s;
+	for (int i = 0; i < m_glyphs.count(); i++)
+	{
+		GlyphLayout& gl = m_glyphs[i];
+		gl.scaleH = m_scaleH;
+	}
+}
+
+void GlyphCluster::setScaleV(double s)
+{
+	m_scaleV = s;
+	for (int i = 0; i < m_glyphs.count(); i++)
+	{
+		GlyphLayout& gl = m_glyphs[i];
+		gl.scaleV = m_scaleV;
+	}
 }

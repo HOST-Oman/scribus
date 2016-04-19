@@ -1779,9 +1779,9 @@ void PageItem_TextFrame::layout()
 						itemHeight = font.height(style.charStyle().fontSize() / 10.0);
 					asce = currentObject->height() + currentObject->lineWidth();
 					realAsce = calculateLineSpacing (style, this) * DropLines;
-					firstGlyph.scaleH /= firstGlyph.scaleV;
-					firstGlyph.scaleV = (realAsce / itemHeight);
-					firstGlyph.scaleH *= firstGlyph.scaleV;
+					current.glyphRuns[currentIndex].setScaleH(current.glyphRuns[currentIndex].scaleH() / current.glyphRuns[currentIndex].scaleV());
+					current.glyphRuns[currentIndex].setScaleV(realAsce / itemHeight);
+					current.glyphRuns[currentIndex].setScaleH(current.glyphRuns[currentIndex].scaleH() * current.glyphRuns[currentIndex].scaleV());
 				}
 				else
 				{
@@ -1800,17 +1800,17 @@ void PageItem_TextFrame::layout()
 					if (realCharHeight == 0)
 						realCharHeight = font.height(style.charStyle().fontSize() / 10.0);
 					asce = font.ascent(hlcsize10);
-					// qDebug() QString("dropcaps pre: chsd=%1 realCharHeight = %2 chstr=%3").arg(chsd).arg(asce).arg(chstr2[0]);
-					firstGlyph.scaleH /= firstGlyph.scaleV;
-					firstGlyph.scaleV = (realAsce / realCharHeight);
-					firstGlyph.scaleH *= firstGlyph.scaleV;
+					current.glyphRuns[currentIndex].setScaleH(current.glyphRuns[currentIndex].scaleH() / current.glyphRuns[currentIndex].scaleV());
+					current.glyphRuns[currentIndex].setScaleV(realAsce / realCharHeight);
+					current.glyphRuns[currentIndex].setScaleH(current.glyphRuns[currentIndex].scaleH() * current.glyphRuns[currentIndex].scaleV());
 					firstGlyph.xoffset -= 0.5; //drop caps are always to far from column left edge
 				}
 				// This is to mimic pre-boxes branches in case first character of paragraph is a space
 				// If we don't do this, paragraph offset will not apply correctly to first line
-				if ((firstGlyph.scaleH == 0.0) || (firstGlyph.scaleV == 0.0))
+				if ((current.glyphRuns[currentIndex].scaleH() == 0.0) || (current.glyphRuns[currentIndex].scaleV() == 0.0))
 				{
-					firstGlyph.scaleH = firstGlyph.scaleV = 1.0;
+					current.glyphRuns[currentIndex].setScaleH(1.0);
+					current.glyphRuns[currentIndex].setScaleV(1.0);
 					wide = 0.0;
 				}
 				firstGlyph.xadvance = wide / firstGlyph.scaleH;
