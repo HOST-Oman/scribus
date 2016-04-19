@@ -1579,15 +1579,32 @@ void PageItem_TextFrame::layout()
 			current.glyphRuns[currentIndex].clearFlag(ScLayout_SoftHyphenVisible);
 
 			// No space at begin of line,
-			if (current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a).isSpace()))
+			if (legacy)
 			{
-				current.glyphRuns[currentIndex].setFlag(ScLayout_SuppressSpace);
-				current.glyphRuns[currentIndex].glyphs()[0].xadvance = 0;
-				continue;
+				// unless at begin of par (eeks)
+				if ( (current.isEmpty) && (SpecialChars::isBreakingSpace(itemText.text(a)))
+					 && (a > 0 && ! SpecialChars::isBreak(itemText.text(a-1)))
+					 && ! (a > 0 && SpecialChars::isBreakingSpace(itemText.text(a-1))
+						   && (!glyphRuns[i - 1].hasFlag(ScLayout_SuppressSpace))))
+				{
+					current.glyphRuns[currentIndex].setFlag(ScLayout_SuppressSpace);
+					current.glyphRuns[currentIndex].glyphs().first().xadvance = 0;
+					continue;
+				}
+				else
+					current.glyphRuns[currentIndex].clearFlag(ScLayout_SuppressSpace);
 			}
-			else
-				current.glyphRuns[currentIndex].clearFlag(ScLayout_SuppressSpace);
-
+			else // from 134 on use NBSPACE for this effect
+			{
+				if ( current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a).isSpace()))
+				{
+					current.glyphRuns[currentIndex].setFlag(ScLayout_SuppressSpace);
+					current.glyphRuns[currentIndex].glyphs()[0].xadvance = 0;
+					continue;
+				}
+				else
+					current.glyphRuns[currentIndex].clearFlag(ScLayout_SuppressSpace);
+			}
 			if (current.isEmpty)
 			{
 				if (style.rightMargin() == 0)
