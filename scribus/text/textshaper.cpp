@@ -109,6 +109,32 @@ QList<TextShaper::TextRun> TextShaper::itemizeScripts(QString &text, QList<TextR
 	return newRuns;
 }
 
+QList<TextShaper::FontFeatureRun> TextShaper::itemizeFontFeatures(TextRun &run)
+{
+	QList<FontFeatureRun> newRuns;
+	QList<FontFeatureRun> subfeature;
+	int start = run.start;
+
+	while (start < run.start + run.len)
+	{
+		int end = start;
+		QStringList startFeatures;
+		while (end < run.start + run.len)
+		{
+			startFeatures = m_story.charStyle(m_textMap.value(start)).fontFeatures().split(",");
+			QStringList endFeatures = m_story.charStyle(m_textMap.value(end)).fontFeatures().split(",");
+			if (startFeatures != endFeatures)
+				break;
+			end++;
+		}
+		subfeature.append(FontFeatureRun(start, end - start, startFeatures));
+		start = end;
+		startFeatures.clear();
+	}
+	newRuns.append(subfeature);
+	return newRuns;
+}
+
 QList<TextShaper::TextRun> TextShaper::itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs)
 {
 	QList<TextRun> newRuns;
@@ -348,14 +374,22 @@ QList<GlyphCluster> TextShaper::shape()
 		hb_buffer_set_language(hbBuffer, hbLanguage);
 		hb_buffer_set_cluster_level(hbBuffer, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
 
-		QStringList features = style.fontFeatures().split(",");
 		QVector<hb_feature_t> hbFeatures;
-		hbFeatures.reserve(features.length());
-		foreach (QString feature, features) {
-			hb_feature_t hbFeature;
-			hb_bool_t ok = hb_feature_from_string(feature.toStdString().c_str(), feature.toStdString().length(), &hbFeature);
-			if (ok)
+		QList<FontFeatureRun> fontFeaturesRun = itemizeFontFeatures(textRun);
+		for (int x = 0; x < fontFeaturesRun.length(); x++)
+		{
+			QStringList features = fontFeaturesRun[x].features;
+			hbFeatures.reserve(features.length());
+			foreach (QString feature, features) {
+				hb_feature_t hbFeature;
+				hb_bool_t ok = hb_feature_from_string(feature.toStdString().c_str(), feature.toStdString().length(), &hbFeature);
+				if (ok)
+				{
+					hbFeature.start = fontFeaturesRun[x].start;
+					hbFeature.end = fontFeaturesRun[x].len + fontFeaturesRun[x].start;
+				}
 				hbFeatures.append(hbFeature);
+			}
 		}
 
 		hb_shape(hbFont, hbBuffer, hbFeatures.data(), hbFeatures.length());
@@ -484,6 +518,7 @@ QList<GlyphCluster> TextShaper::shape()
 		}
 		hb_font_destroy(hbFont);
 		hb_buffer_destroy(hbBuffer);
+
 	}
 
 	return glyphRuns;
