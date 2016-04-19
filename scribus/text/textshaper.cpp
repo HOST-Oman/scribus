@@ -476,6 +476,79 @@ QList<GlyphCluster> TextShaper::shape()
 
 				i++;
 			}
+
+			// Apply CJK spacing according to JIS X4051
+			if (lastChar + 1 < m_story.length())
+			{
+				GlyphLayout& glyph = run.glyphs().last();
+
+				double halfEM = run.style().fontSize() / 10 / 2;
+				double quarterEM = run.style().fontSize() / 10 / 4;
+
+				int currStat = SpecialChars::getCJKAttr(m_story.text(lastChar));
+				int nextStat = SpecialChars::getCJKAttr(m_story.text(lastChar + 1));
+				if (currStat != 0)
+				{	// current char is CJK
+					if (nextStat == 0 && !SpecialChars::isBreakingSpace(m_story.text(lastChar + 1))) {
+						switch(currStat & SpecialChars::CJK_CHAR_MASK) {
+						case SpecialChars::CJK_KANJI:
+						case SpecialChars::CJK_KANA:
+						case SpecialChars::CJK_NOTOP:
+							glyph.xadvance += quarterEM;
+						}
+					} else {	// next char is CJK, too
+						switch(currStat & SpecialChars::CJK_CHAR_MASK) {
+						case SpecialChars::CJK_FENCE_END:
+							switch(nextStat & SpecialChars::CJK_CHAR_MASK) {
+							case SpecialChars::CJK_FENCE_BEGIN:
+							case SpecialChars::CJK_FENCE_END:
+							case SpecialChars::CJK_COMMA:
+							case SpecialChars::CJK_PERIOD:
+							case SpecialChars::CJK_MIDPOINT:
+								glyph.xadvance -= halfEM;
+							}
+							break;
+						case SpecialChars::CJK_COMMA:
+						case SpecialChars::CJK_PERIOD:
+							switch(nextStat & SpecialChars::CJK_CHAR_MASK) {
+							case SpecialChars::CJK_FENCE_BEGIN:
+							case SpecialChars::CJK_FENCE_END:
+								glyph.xadvance -= halfEM;;
+							}
+							break;
+						case SpecialChars::CJK_MIDPOINT:
+							switch(nextStat & SpecialChars::CJK_CHAR_MASK) {
+							case SpecialChars::CJK_FENCE_BEGIN:
+								glyph.xadvance -= halfEM;
+							}
+							break;
+						case SpecialChars::CJK_FENCE_BEGIN:
+							int prevStat = 0;
+							if (0) { // FIXME: (i == current.line.firstRun) // first char of the line
+								prevStat = SpecialChars::CJK_FENCE_BEGIN;
+							} else if (lastChar != 0) {
+								prevStat = SpecialChars::getCJKAttr(m_story.text(lastChar - 1)) & SpecialChars::CJK_CHAR_MASK;
+							}
+							if (prevStat == SpecialChars::CJK_FENCE_BEGIN) {
+								glyph.xadvance -= halfEM;
+								glyph.xoffset -= halfEM;
+							}
+							break;
+						}
+					}
+				} else {	// current char is not CJK
+					if (nextStat != 0 && !SpecialChars::isBreakingSpace(m_story.text(lastChar))) {
+						switch(nextStat & SpecialChars::CJK_CHAR_MASK) {
+						case SpecialChars::CJK_KANJI:
+						case SpecialChars::CJK_KANA:
+						case SpecialChars::CJK_NOTOP:
+							// use the size of the current char instead of the next one
+							glyph.xadvance += quarterEM;
+						}
+					}
+				}
+			}
+
 			glyphRuns.append(run);
 		}
 		hb_font_destroy(hbFont);
