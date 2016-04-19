@@ -68,7 +68,7 @@ struct SCRIBUS_API GlyphLayout {
 	uint glyph;
 	
 	GlyphLayout() : xadvance(0.0f), yadvance(0.0f), xoffset(0.0f), yoffset(0.0f),
-		scaleV(1.0), scaleH(1.0), glyph(0) //, more(NULL)
+		scaleV(1.0), scaleH(1.0), glyph(0)
 	{ }
 };
 
