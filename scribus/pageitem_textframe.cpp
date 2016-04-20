@@ -1666,7 +1666,6 @@ void PageItem_TextFrame::layout()
 				chsd = (10 * ((DropCapDrop + fontAscent) / realCharHeight));
 				chs  = (10 * ((DropCapDrop + fontAscent) / realCharAscent));
 				current.glyphs[currentIndex].setFlag(ScLayout_DropCap);
-//				currentRun.glyphs().first().yoffset += DropCapDrop;
 				if (HasObject)
 				{
 					chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
@@ -2637,12 +2636,11 @@ void PageItem_TextFrame::layout()
 				{
 					if (current.addLine && current.breakIndex >= 0)
 					{
-//						if (glyphRuns[current.line.firstRun].style().effects() & ScLayout_DropCap)
-						if (glyphRuns[current.line.firstRun].hasFlag(ScLayout_DropCap))
+						if (current.glyphs[0].hasFlag(ScLayout_DropCap))
 						{
 							// put line back to top
 							current.line.y -= DropCapDrop;
-							glyphRuns[current.line.firstRun].glyphs().first().yoffset += DropCapDrop;
+							current.glyphs[0].glyphs().first().yoffset += DropCapDrop;
 						}
 						current.fillInTabLeaders();
 						//if right margin is set we temporally save line, not append it
@@ -2848,12 +2846,11 @@ void PageItem_TextFrame::layout()
 					current.line.naturalWidth += current.opticalRightMargin(itemText, glyphRuns);
 				current.indentLine(style, OFs);
 			}
-//			if (glyphRuns[current.line.firstRun].style().effects() & ScLayout_DropCap)
-			if (glyphRuns[current.line.firstRun].hasFlag(ScLayout_DropCap))
+			if (current.glyphs[0].hasFlag(ScLayout_DropCap))
 			{
 				// put line back to top
 				current.line.y -= DropCapDrop;
-				glyphRuns[current.line.firstRun].glyphs().first().yoffset += DropCapDrop;
+				current.glyphs[0].glyphs().first().yoffset += DropCapDrop;
 			}
 			current.fillInTabLeaders();
 			current.startOfCol = false;
