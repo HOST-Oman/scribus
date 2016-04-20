@@ -34,8 +34,20 @@ private:
 		UScriptCode script;
 	};
 
+	struct FontFeatureRun {
+		FontFeatureRun(int s, int l, QStringList f)
+			: start(s), len(l), features(f)
+		{
+		}
+
+		int start;
+		int len;
+		QStringList features;
+	};
+
 	void buildText(QString &text, QMap<int, int> &textMap);
 	QList<TextRun> itemizeBiDi(QString &text);
+	QList<FontFeatureRun> itemizeFontFeatures(TextRun &runs);
 	QList<TextRun> itemizeScripts(QString &text, QList<TextRun> &runs);
 	QList<TextRun> itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs);
 
