@@ -420,10 +420,13 @@ QList<GlyphCluster> TextShaper::shape()
 				// indirect way to call ScFace::emulateGlyph() as it is private.
 				if (gl.glyph == 0)
 					gl.glyph = style.font().char2CMap(ch);
-				gl.xoffset = positions[i].x_offset / 10.0;
-				gl.yoffset = -positions[i].y_offset / 10.0;
-				gl.xadvance = positions[i].x_advance / 10.0;
-				gl.yadvance = positions[i].y_advance / 10.0;
+				if (gl.glyph < ScFace::CONTROL_GLYPHS)
+				{
+					gl.xoffset = positions[i].x_offset / 10.0;
+					gl.yoffset = -positions[i].y_offset / 10.0;
+					gl.xadvance = positions[i].x_advance / 10.0;
+					gl.yadvance = positions[i].y_advance / 10.0;
+				}
 
 				if (m_story.hasMark(firstChar))
 				{
