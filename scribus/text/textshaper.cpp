@@ -506,6 +506,12 @@ QList<GlyphCluster> TextShaper::shape()
 					run.setScaleV(run.scaleV() * smallcapsScale);
 				}
 
+				if (run.scaleH() == 0.0)
+				{
+					gl.xadvance = 0.0;
+					run.setScaleH(1.0);
+				}
+
 				if (gl.xadvance > 0)
 					gl.xadvance += tracking;
 
