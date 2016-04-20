@@ -1590,7 +1590,6 @@ void PageItem_TextFrame::layout()
 						   && (!glyphRuns[i - 1].hasFlag(ScLayout_SuppressSpace))))
 				{
 					current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
-					current.glyphs[currentIndex].glyphs().first().xadvance = 0;
 					continue;
 				}
 				else
@@ -1601,7 +1600,6 @@ void PageItem_TextFrame::layout()
 				if ( current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a).isSpace()))
 				{
 					current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
-					current.glyphs[currentIndex].glyphs().first().xadvance = 0;
 					continue;
 				}
 				else
@@ -2534,7 +2532,6 @@ void PageItem_TextFrame::layout()
 
 						if (itemText.text(a) == ' ') {
 							current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
-							current.glyphs[currentIndex].glyphs()[0].xadvance = 0;
 						}
 
 						current.updateHeightMetrics();

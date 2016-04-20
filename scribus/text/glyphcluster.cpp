@@ -70,6 +70,15 @@ bool GlyphCluster::hasFlag(LayoutFlags f) const
 void GlyphCluster::setFlag(LayoutFlags f)
 {
 	m_flags = static_cast<LayoutFlags>(m_flags | f);
+	if (f == ScLayout_SuppressSpace)
+	{
+		for (int i = 0; i < m_glyphs.count(); i++)
+		{
+			GlyphLayout& gl = m_glyphs[i];
+			gl.xadvance = 0;
+		}
+		m_extraWidth = 0;
+	}
 }
 
 void GlyphCluster::clearFlag(LayoutFlags f)
