@@ -269,9 +269,6 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		}
 		trafo.translate(0, BaseOffs);
 
-		GlyphRun run(&itemRenderText.charStyle(a), itemRenderText.flags(a), a, a, itemRenderText.object(a));
-		run.glyphs().append(glyphs);
-
 		const CharStyle& cStyle(run.style());
 		double scaleV = cStyle.scaleV() / 1000.0;
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);

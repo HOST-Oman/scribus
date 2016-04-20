@@ -259,7 +259,7 @@ public:
 
 	const CharStyle& style() const { return m_glyphRun.style(); }
 
-private:
+protected:
 	GlyphCluster m_glyphRun;
 	const StyleFlag m_effects;
 };
