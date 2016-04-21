@@ -320,6 +320,27 @@ void ScreenPainter::drawObject(PageItem* embedded)
 	m_painter->restore();
 }
 
+void ScreenPainter::clip(QRectF rect)
+{
+	m_painter->newPath();
+	m_painter->moveTo(rect.x() + x(), y());
+	m_painter->lineTo(rect.x() + x() + rect.width(), y());
+	m_painter->lineTo(rect.x() + x() + rect.width(), y() - rect.height());
+	m_painter->lineTo(rect.x() + x() , y() - rect.height());
+	m_painter->closePath();
+	m_painter->setClipPath();
+}
+
+void ScreenPainter::saveState()
+{
+	m_painter->save();
+}
+
+void ScreenPainter::restoreState()
+{
+	m_painter->restore();
+}
+
 void ScreenPainter::setupState(bool rect)
 {
 	m_painter->setLineWidth(strokeWidth());

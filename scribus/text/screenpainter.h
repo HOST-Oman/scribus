@@ -26,6 +26,9 @@ public:
 	void drawLine(QPointF start, QPointF end);
 	void drawRect(QRectF rect);
 	void drawObject(PageItem* embedded);
+	void clip(QRectF rect);
+	void saveState();
+	void restoreState();
 
 private:
 	void setupState(bool rect);

@@ -30,6 +30,7 @@ class Box;
 class GroupBox;
 class LineBox;
 class TextLayoutPainter;
+class ScreenPainter;
 
 /**
 	This class manages the physical layout of a textframe, ie. its line 
@@ -48,7 +49,7 @@ public:
 	PageItem*  frame() { return m_frame; }
 	const StoryText* story() const { return m_story; }
 	void setStory(StoryText* story);
-	void render(TextLayoutPainter *p, PageItem *item);
+	void render(ScreenPainter *p, PageItem *item);
 	void render(TextLayoutPainter *p);
 	void renderBackground(TextLayoutPainter *p);
 	int startOfLine(int pos) const;

@@ -17,6 +17,7 @@
 #include "sccolorengine.h"
 #include "colorblind.h"
 #include "textlayoutpainter.h"
+#include "screenpainter.h"
 
 int GroupBox::pointToPosition(QPointF coord) const
 {
@@ -59,7 +60,7 @@ void GroupBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
-void GroupBox::render(TextLayoutPainter *p, PageItem *item) const
+void GroupBox::render(ScreenPainter *p, PageItem *item) const
 {
 	p->save();
 	p->translate(x(), y());
@@ -171,17 +172,40 @@ void LineBox::render(TextLayoutPainter *p) const
 	p->translate(-x(), -y() - ascent());
 }
 
-void LineBox::render(TextLayoutPainter *p, PageItem *item) const
+void LineBox::render(ScreenPainter *p, PageItem *item) const
 {
 	p->translate(x(), y());
 
 	drawBackGround(p);
 
 	QRectF selection;
+
 	foreach (const Box *box, boxes())
 	{
-		if (item->itemText.selected(box->firstChar()) || item->itemText.selected(box->lastChar()))
-			selection |= QRectF(box->x(), 0, box->width(), height());
+		int  firstSelected;
+		int componentCount = box->lastChar() - box->firstChar() + 1;
+		double componentWidth = box->width() / componentCount;
+		int countSelected = 0;
+		bool selected = false;
+		for (int i = 0; i< componentCount; i++)
+		{
+			if (item->itemText.selected(box->firstChar() + i))
+			{
+				firstSelected = box->firstChar() + i;
+				countSelected++;
+				selected = true;
+				break;
+			}
+		}
+		if (selected)
+		{
+			while ((countSelected < componentCount) && item->itemText.selected(firstSelected + countSelected) && ((firstSelected + countSelected) <= box->lastChar()))
+				countSelected++;
+			if(dynamic_cast<const GlyphBox*>(box)->glyphRun().hasFlag(ScLayout_RightToLeft))
+				selection |= QRectF(box->positionToPoint(firstSelected).x1() - componentWidth * countSelected, 0, componentWidth * countSelected, height());
+			else
+				selection |= QRectF(box->positionToPoint(firstSelected).x1(), 0, componentWidth * countSelected, height());
+		}
 	}
 
 	if (!selection.isEmpty())
@@ -452,21 +476,56 @@ void PathLineBox::drawBackGround(TextLayoutPainter *p) const
 }
 
 
-void GlyphBox::render(TextLayoutPainter *p, PageItem *item) const
+void GlyphBox::render(ScreenPainter *p, PageItem *item) const
 {
-
 	bool s = p->selected();
+	int countSelected = 0;
+	int componentCount = lastChar() - firstChar() + 1;
+	double componentWidth = (width() / componentCount);
+	bool selected = false;
+	int firstSelected;
 
-	bool selected = item->itemText.selected(firstChar()) || item->itemText.selected(lastChar());
+	for (int i = 0; i< componentCount; i++)
+	{
+		if (item->itemText.selected(firstChar() + i))
+		{
+			firstSelected = firstChar() + i;
+			countSelected++;
+			selected = true;
+			break;
+		}
+	}
 
 	if (((selected && item->isSelected()) || ((item->nextInChain() != 0 || item->prevInChain() != 0) && selected)) &&
 		(item->doc()->appMode == modeEdit || item->doc()->appMode == modeEditTable))
 	{
-		p->setSelected(true);
+		while ((countSelected < componentCount) && item->itemText.selected(firstSelected + countSelected) && ((firstSelected + countSelected) <= lastChar()))
+			countSelected++;
+
+		if (countSelected == componentCount)
+		{
+			p->setSelected(true);
+			render(p);
+		}
+		else
+		{
+			render(p);
+			p->saveState();
+			p->setSelected(true);
+			double x = positionToPoint(firstSelected).x1();
+			double witdh = componentWidth * countSelected;
+			if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+				p->clip(QRectF(x - witdh, y(), witdh, height()));
+			else
+				p->clip(QRectF(x, y(), witdh, height()));
+			render(p);
+			p->restoreState();
+		}
 	}
-
-	render(p);
-
+	else
+	{
+		render(p);
+	}
 	p->setSelected(s);
 }
 
@@ -667,7 +726,6 @@ void ObjectBox::render(TextLayoutPainter *p) const
 
 	m_item->setXPos(m_item->gXpos);
 	m_item->setYPos((m_item->gHeight * (charStyle.scaleV() / 1000.0)) + m_item->gYpos);
-
 	if (charStyle.baselineOffset() != 0)
 	{
 		p->translate(0, -m_item->gHeight * (charStyle.baselineOffset() / 1000.0));
@@ -681,7 +739,7 @@ void ObjectBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
-void ObjectBox::render(TextLayoutPainter *p, PageItem *item) const
+void ObjectBox::render(ScreenPainter *p, PageItem *item) const
 {
 	render(p);
 }
