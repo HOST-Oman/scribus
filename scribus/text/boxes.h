@@ -15,7 +15,7 @@
 
 class StoryText;
 class TextLayoutPainter;
-
+class ScreenPainter;
 
 /**
  Class Box has a similar role as TeX's boxes.
@@ -123,7 +123,7 @@ public:
 	virtual void render(TextLayoutPainter *p) const = 0;
 
 	/// Same as render() but handles text selection, for rendering on screen.
-	virtual void render(TextLayoutPainter *p, PageItem *item) const = 0;
+	virtual void render(ScreenPainter *p, PageItem *item) const = 0;
 
 	/// Get natural ascent and decent.
 	virtual double naturalAsc() const { return m_naturalAscent; }
@@ -167,7 +167,7 @@ public:
 	QLineF positionToPoint(int pos) const;
 
 	void render(TextLayoutPainter *p) const;
-	void render(TextLayoutPainter *p, PageItem *item) const;
+	void render(ScreenPainter *p, PageItem *item) const;
 
 	double naturalWidth() const { return m_naturalWidth; }
 	double naturalHeight() const { return m_naturalHeight; }
@@ -208,7 +208,7 @@ public:
 	bool containsPoint(QPointF coord) const;
 
 	void render(TextLayoutPainter *p) const;
-	void render(TextLayoutPainter *p, PageItem *item) const;
+	void render(ScreenPainter *p, PageItem *item) const;
 
 	double naturalWidth() const { return m_naturalWidth; }
 	double naturalHeight() const { return height(); }
@@ -255,7 +255,8 @@ public:
 	QLineF positionToPoint(int pos) const;
 
 	void render(TextLayoutPainter *p) const;
-	void render(TextLayoutPainter *p, PageItem *item) const;
+	void render(ScreenPainter *p, PageItem *item) const;
+	GlyphCluster glyphRun() const { return m_glyphRun; }
 
 	const CharStyle& style() const { return m_glyphRun.style(); }
 
@@ -275,7 +276,7 @@ public:
 	}
 
 	void render(TextLayoutPainter *p) const;
-	void render(TextLayoutPainter*, PageItem *item) const;
+	void render(ScreenPainter*, PageItem *item) const;
 
 private:
 	PageItem* m_item;

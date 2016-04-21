@@ -24,6 +24,7 @@
 #include "storytext.h"
 #include "textlayout.h"
 #include "textlayoutpainter.h"
+#include "screenpainter.h"
 #include "boxes.h"
 
 
@@ -109,7 +110,7 @@ void TextLayout::removeLastLine ()
 		column->removeBox(lineCount - 1);
 }
 
-void TextLayout::render(TextLayoutPainter *p, PageItem *item)
+void TextLayout::render(ScreenPainter *p, PageItem *item)
 {
 	p->save();
 	m_box->render(p, item);
