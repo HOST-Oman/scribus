@@ -96,7 +96,6 @@ void* ScFace::ScFaceData::hbFont()
 		}
 		else
 		{
-//			FT_Set_Char_Size(ftFace, style.fontSize(), 0, 72, 0);
 			m_hbFont = hb_ft_font_create_referenced(ftFace());
 		}
 	}

@@ -1,6 +1,7 @@
 #include "textshaper.h"
 
 #include <hb.h>
+#include <hb-ft.h>
 #include <hb-icu.h>
 #include <unicode/ubidi.h>
 #include <QTextBoundaryFinder>
@@ -313,6 +314,9 @@ QList<GlyphCluster> TextShaper::shape()
 			continue;
 
 		hb_font_set_scale(hbFont, style.fontSize(), style.fontSize());
+		FT_Face ftFace = hb_ft_font_get_face(hbFont);
+		if (ftFace)
+			FT_Set_Char_Size(ftFace, style.fontSize(), 0, 72, 0);
 
 		hb_direction_t hbDirection = (textRun.dir == UBIDI_LTR) ? HB_DIRECTION_LTR : HB_DIRECTION_RTL;
 		hb_script_t hbScript = hb_icu_script_to_script(textRun.script);
