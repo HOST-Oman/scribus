@@ -133,7 +133,7 @@ public:
 		gid_type maxGlyph;
 
 		ScFaceData();
-		virtual ~ScFaceData() { };
+		virtual ~ScFaceData();
 	protected:
 
 		friend class ScFace;
@@ -143,6 +143,7 @@ public:
 		mutable QHash<gid_type, qreal>     m_glyphWidth;
 		mutable QHash<gid_type, GlyphData> m_glyphOutline;
 		//mutable QHash<gid_type, uint>      m_cMap;
+		void* m_hbFont;
 
 		// fill caches & members
 
@@ -187,6 +188,7 @@ public:
 		virtual bool EmbedFont(QByteArray &/*str*/)       const { return false; }
 		virtual void RawData(QByteArray & /*bb*/)      const {}
 		virtual FT_Face ftFace() const { return 0; }
+		virtual void* hbFont();
 
 		virtual bool isCIDKeyed() const { return isCIDFont; }
 		virtual bool hasNames() const { return hasGlyphNames; }
@@ -275,8 +277,8 @@ public:
 	/// if the fontfile contains more than one face, the index, else -1
 	int faceIndex()    const { return m_m->faceIndex; }
 
-	/// the FreeType face of this font
-	FT_Face ftFace() const { return m_m->ftFace(); }
+	/// a HarfBuzz font for this font
+	void* hbFont() const { return m_m->hbFont(); }
 
 	/// path name of the document this face is local to
 	QString localForDocument()  const { return m_m->forDocument; }

@@ -5,6 +5,14 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 
+#include <QDebug>
+#include <hb.h>
+#include <hb-ft.h>
+#include <hb-ot.h>
+
+#include <ft2build.h>
+#include FT_TRUETYPE_TABLES_H
+
 #include "scribusapi.h"
 #include "fonts/scface.h"
 #include "text/storytext.h"
@@ -28,9 +36,74 @@ ScFace::ScFaceData::ScFaceData() :
 	isFixedPitch(false),
 	hasGlyphNames(false),
 	maxGlyph(0),
-	m_cachedStatus(ScFace::UNKNOWN)
+	m_cachedStatus(ScFace::UNKNOWN),
+	m_hbFont(NULL)
 {
 }
+
+ScFace::ScFaceData::~ScFaceData()
+{
+	if (m_hbFont)
+	{
+		hb_font_destroy(reinterpret_cast<hb_font_t*>(m_hbFont));
+		m_hbFont = NULL;
+	}
+}
+
+
+static hb_blob_t* referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
+{
+	FT_Face ftFace = reinterpret_cast<FT_Face>(userData);
+	FT_Byte *buffer;
+	FT_ULong length = 0;
+
+	if (FT_Load_Sfnt_Table(ftFace, tag, 0, NULL, &length))
+		return NULL;
+
+	buffer = reinterpret_cast<FT_Byte*>(malloc(length));
+	if (buffer == NULL)
+		return NULL;
+
+	if (FT_Load_Sfnt_Table(ftFace, tag, 0, buffer, &length))
+	{
+		free(buffer);
+		return NULL;
+	}
+
+	return hb_blob_create((const char *) buffer, length, HB_MEMORY_MODE_WRITABLE, buffer, free);
+}
+
+void* ScFace::ScFaceData::hbFont()
+{
+	if (!m_hbFont)
+	{
+		if (!ftFace())
+			return NULL;
+
+		if (formatCode == ScFace::SFNT || formatCode == ScFace::TTCF || formatCode == ScFace::TYPE42)
+		{
+			// use HarfBuzz internal font functions for formats it supports,
+			// gives us more consistent glyph metrics.
+			FT_Reference_Face(ftFace());
+			hb_face_t *hbFace = hb_face_create_for_tables(referenceTable, ftFace(), (hb_destroy_func_t) FT_Done_Face);
+			hb_face_set_index(hbFace, ftFace()->face_index);
+			hb_face_set_upem(hbFace, ftFace()->units_per_EM);
+
+			m_hbFont = hb_font_create(hbFace);
+			hb_ot_font_set_funcs(reinterpret_cast<hb_font_t*>(m_hbFont));
+
+			hb_face_destroy(hbFace);
+		}
+		else
+		{
+//			FT_Set_Char_Size(ftFace, style.fontSize(), 0, 72, 0);
+			m_hbFont = hb_ft_font_create_referenced(ftFace());
+		}
+	}
+
+	return m_hbFont;
+}
+
 
 bool ScFace::ScFaceData::glyphNames(FaceEncoding& /*gList*/) const
 { 
