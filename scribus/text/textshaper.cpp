@@ -312,7 +312,7 @@ static hb_blob_t *referenceTable(hb_face_t*, hb_tag_t tag, void *userData)
 		return NULL;
 	}
 
-	return hb_blob_create((const char *) buffer, length, HB_MEMORY_MODE_WRITABLE, NULL, NULL);
+	return hb_blob_create((const char *) buffer, length, HB_MEMORY_MODE_WRITABLE, buffer, free);
 }
 
 QList<GlyphCluster> TextShaper::shape()
