@@ -1678,8 +1678,6 @@ void PageItem_TextFrame::layout()
 			}
 //			glyphs->yadvance = 0;
 
-			GlyphLayout& firstGlyph = current.glyphs[currentIndex].glyphs().first();
-
 			if (i == current.line.firstRun && current.glyphs[currentIndex].hasFlag(ScLayout_CJKFence))
 			{
 				current.glyphs[currentIndex].setExtraWidth(-charStyle.fontSize() / 10 / 2);
@@ -2124,7 +2122,6 @@ void PageItem_TextFrame::layout()
 							current.glyphs[currentIndex].setFlag(ScLayout_TabLeaders);
 							GlyphLayout tglyph;
 							tglyph.glyph	= font.char2CMap(tabs.fillChar);
-							tglyph.yoffset  = firstGlyph.yoffset;
 							tglyph.scaleV   = tglyph.scaleH = chs / charStyle.fontSize();
 							tglyph.xadvance = 0;
 							current.glyphs[currentIndex].append(tglyph);
@@ -2132,6 +2129,7 @@ void PageItem_TextFrame::layout()
 					}
 					current.xPos -= (legacy ? 1.0 : 0.0);
 					current.glyphs[currentIndex].setExtraWidth(current.xPos - tabs.xPos);
+					GlyphLayout& firstGlyph = current.glyphs[currentIndex].glyphs().first();
 					tabs.tabGlyph = &firstGlyph;
 				}
 			}
