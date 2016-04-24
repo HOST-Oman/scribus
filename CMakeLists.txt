@@ -1026,10 +1026,10 @@ INSTALL(FILES
 
 
 #Install the appdata file
-#INSTALL(FILES
-#scribus.appdata.xml
-#DESTINATION ${APPDATADIR}
-#)
+INSTALL(FILES
+scribus.appdata.xml
+DESTINATION ${APPDATADIR}
+)
 
 
 #If building an Apple bundle, install these specific files
