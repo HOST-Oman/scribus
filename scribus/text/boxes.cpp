@@ -559,8 +559,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 
 		// Do underlining first so you can get typographically correct
 		// underlines when drawing a white outline
-		bool isUnderlined = ((m_effects & ScStyle_Underline) || m_glyphRun.hasFlag(ScLayout_Underlined));
-		if (isUnderlined && hasStrokeColor)
+		if (m_glyphRun.hasFlag(ScLayout_Underlined) && hasStrokeColor)
 		{
 			double st, lw;
 			if ((charStyle.underlineOffset() != -1) || (charStyle.underlineWidth() != -1))

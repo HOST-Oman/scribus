@@ -270,15 +270,6 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		trafo.translate(0, BaseOffs);
 
 		const CharStyle& cStyle(run.style());
-		const StyleFlag& effects = cStyle.effects();
-		if (effects & ScStyle_UnderlineWords)
-		{
-			if (itemRenderText.text(a).isSpace())
-				run.clearFlag(ScLayout_Underlined);
-			else
-				run.setFlag(ScLayout_Underlined);
-		}
-
 		double scaleV = cStyle.scaleV() / 1000.0;
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
 		double ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;

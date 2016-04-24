@@ -306,7 +306,6 @@ QList<GlyphCluster> TextShaper::shape()
 	QList<GlyphCluster> glyphRuns;
 	foreach (TextRun textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
-		int effects = style.effects() & ScStyle_UserStyles;
 
 		const ScFace &scFace = style.font();
 		hb_font_t *hbFont = reinterpret_cast<hb_font_t*>(scFace.hbFont());
@@ -390,6 +389,7 @@ QList<GlyphCluster> TextShaper::shape()
 			QChar ch = m_story.text(firstChar);
 			LayoutFlags flags = m_story.flags(firstChar);
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
+			const StyleFlag& effects = charStyle.effects();
 
 			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
 			if (textRun.dir == UBIDI_RTL)
@@ -399,6 +399,11 @@ QList<GlyphCluster> TextShaper::shape()
 				run.setFlag(ScLayout_LineBoundry);
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
+
+			if (effects & ScStyle_Underline)
+				run.setFlag(ScLayout_Underlined);
+			if (effects & ScStyle_UnderlineWords && !ch.isSpace())
+				run.setFlag(ScLayout_Underlined);
 
 			run.setScaleH(charStyle.scaleH() / 1000.0);
 			run.setScaleV(charStyle.scaleV() / 1000.0);

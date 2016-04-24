@@ -1482,15 +1482,6 @@ void PageItem_TextFrame::layout()
 			PageItem* currentObject = itemText.object(a);
 			bool HasMark = itemText.hasMark(a);
 
-			const StyleFlag& effects = itemText.charStyle(a).effects();
-			if (effects & ScStyle_UnderlineWords)
-			{
-				if (itemText.text(a).isSpace())
-					glyphRuns[i].clearFlag(ScLayout_Underlined);
-				else
-					glyphRuns[i].setFlag(ScLayout_Underlined);
-			}
-
 			if (HasMark)
 			{
 				Mark* mark = itemText.mark(a);
