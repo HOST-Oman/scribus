@@ -1673,6 +1673,14 @@ void PageItem_TextFrame::layout()
 			else
 				current.glyphs[currentIndex].clearFlag(ScLayout_StartOfLine);
 
+			if (!current.glyphs[currentIndex].hasFlag(ScLayout_StartOfLine))
+			{
+				double tracking = charStyle.fontSize() * charStyle.tracking() / 10000.0;
+				current.glyphs[currentIndex].addToXOffset(tracking);
+				if (current.glyphs[currentIndex].width() != 0)
+					current.glyphs[currentIndex].setExtraWidth(tracking);
+			}
+
 //			glyphs->yadvance = 0;
 
 			if (i == current.line.firstRun && current.glyphs[currentIndex].hasFlag(ScLayout_CJKFence))

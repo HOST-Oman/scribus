@@ -444,11 +444,6 @@ QList<GlyphCluster> TextShaper::shape()
 				if (m_story.hasObject(firstChar))
 					gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
 
-				double tracking = 0;
-				if (!(flags & ScLayout_StartOfLine))
-					tracking = style.fontSize() * style.tracking() / 10000.0;
-				gl.xoffset += tracking;
-
 				if ((effects & ScStyle_Superscript) || (effects & ScStyle_Subscript))
 				{
 					double scale;
@@ -480,9 +475,6 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.xadvance = 0.0;
 					run.setScaleH(1.0);
 				}
-
-				if (gl.xadvance > 0)
-					gl.xadvance += tracking;
 
 				run.append(gl);
 				lastGlyph = &gl;
