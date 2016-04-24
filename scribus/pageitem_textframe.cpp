@@ -604,7 +604,7 @@ struct LineControl {
 		breakIndex = last;
 		breakXPos  = line.x;
 
-		for (int i = 0; i < breakIndex - line.firstRun; i++)
+		for (int i = 0; i <= breakIndex - line.firstRun; i++)
 			breakXPos += glyphs.at(i).width();
 		// #8194, #8717 : update line ascent and descent with sensible values
 		// so that endOfLine() returns correct result
