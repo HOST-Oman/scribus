@@ -38,7 +38,7 @@ TextShaper::TextShaper(StoryText &story, int first)
 	}
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
+QList<TextShaper::TextRun> TextShaper::itemizeBiDi(const QString &text)
 {
 	QList<TextRun> textRuns;
 	UBiDi *obj = ubidi_open();
@@ -69,7 +69,7 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi(QString &text)
 	return textRuns;
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeScripts(QString &text, QList<TextRun> &runs)
+QList<TextShaper::TextRun> TextShaper::itemizeScripts(const QString &text, const QList<TextRun> &runs)
 {
 	QList<TextRun> newRuns;
 	ScriptRun scriptrun(text.utf16(), text.length());
@@ -105,10 +105,10 @@ QList<TextShaper::TextRun> TextShaper::itemizeScripts(QString &text, QList<TextR
 	return newRuns;
 }
 
-QList<TextShaper::FontFeatureRun> TextShaper::itemizeFontFeatures(TextRun &run)
+QList<TextShaper::FeaturesRun> TextShaper::itemizeFeatures(const TextRun &run)
 {
-	QList<FontFeatureRun> newRuns;
-	QList<FontFeatureRun> subfeature;
+	QList<FeaturesRun> newRuns;
+	QList<FeaturesRun> subfeature;
 	int start = run.start;
 
 	while (start < run.start + run.len)
@@ -123,7 +123,7 @@ QList<TextShaper::FontFeatureRun> TextShaper::itemizeFontFeatures(TextRun &run)
 				break;
 			end++;
 		}
-		subfeature.append(FontFeatureRun(start, end - start, startFeatures));
+		subfeature.append(FeaturesRun(start, end - start, startFeatures));
 		start = end;
 		startFeatures.clear();
 	}
@@ -131,7 +131,7 @@ QList<TextShaper::FontFeatureRun> TextShaper::itemizeFontFeatures(TextRun &run)
 	return newRuns;
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs)
+QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QMap<int, int> &textMap, const QList<TextRun> &runs)
 {
 	QList<TextRun> newRuns;
 
@@ -304,7 +304,7 @@ QList<GlyphCluster> TextShaper::shape()
 	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
 
 	QList<GlyphCluster> glyphRuns;
-	foreach (TextRun textRun, textRuns) {
+	foreach (const TextRun& textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
 
 		const ScFace &scFace = style.font();
@@ -330,18 +330,18 @@ QList<GlyphCluster> TextShaper::shape()
 		hb_buffer_set_cluster_level(hbBuffer, HB_BUFFER_CLUSTER_LEVEL_MONOTONE_CHARACTERS);
 
 		QVector<hb_feature_t> hbFeatures;
-		QList<FontFeatureRun> fontFeaturesRun = itemizeFontFeatures(textRun);
-		for (int x = 0; x < fontFeaturesRun.length(); x++)
+		QList<FeaturesRun> featuresRuns = itemizeFeatures(textRun);
+		foreach (const FeaturesRun& featuresRun, featuresRuns)
 		{
-			QStringList features = fontFeaturesRun[x].features;
+			const QStringList& features = featuresRun.features;
 			hbFeatures.reserve(features.length());
-			foreach (QString feature, features) {
+			foreach (const QString& feature, features) {
 				hb_feature_t hbFeature;
 				hb_bool_t ok = hb_feature_from_string(feature.toStdString().c_str(), feature.toStdString().length(), &hbFeature);
 				if (ok)
 				{
-					hbFeature.start = fontFeaturesRun[x].start;
-					hbFeature.end = fontFeaturesRun[x].len + fontFeaturesRun[x].start;
+					hbFeature.start = featuresRun.start;
+					hbFeature.end = featuresRun.len + featuresRun.start;
 					hbFeatures.append(hbFeature);
 				}
 			}

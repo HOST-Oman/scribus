@@ -34,8 +34,8 @@ private:
 		UScriptCode script;
 	};
 
-	struct FontFeatureRun {
-		FontFeatureRun(int s, int l, QStringList f)
+	struct FeaturesRun {
+		FeaturesRun(int s, int l, QStringList f)
 			: start(s), len(l), features(f)
 		{
 		}
@@ -46,10 +46,10 @@ private:
 	};
 
 	void buildText(QString &text, QMap<int, int> &textMap);
-	QList<TextRun> itemizeBiDi(QString &text);
-	QList<FontFeatureRun> itemizeFontFeatures(TextRun &runs);
-	QList<TextRun> itemizeScripts(QString &text, QList<TextRun> &runs);
-	QList<TextRun> itemizeStyles(QMap<int, int> &textMap, QList<TextRun> &runs);
+	QList<TextRun> itemizeBiDi(const QString &text);
+	QList<FeaturesRun> itemizeFeatures(const TextRun &runs);
+	QList<TextRun> itemizeScripts(const QString &text, const QList<TextRun> &runs);
+	QList<TextRun> itemizeStyles(const QMap<int, int> &textMap, const QList<TextRun> &runs);
 
 	PageItem *m_item;
 	StoryText &m_story;
