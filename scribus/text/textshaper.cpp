@@ -411,7 +411,7 @@ QList<GlyphCluster> TextShaper::shape()
 			run.setScaleH(charStyle.scaleH() / 1000.0);
 			run.setScaleV(charStyle.scaleV() / 1000.0);
 
-			GlyphLayout* lastGlyph;
+			GlyphLayout* lastGlyph = NULL;
 			while (i < count && glyphs[i].cluster == firstCluster)
 			{
 				GlyphLayout gl;
