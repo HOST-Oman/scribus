@@ -1717,7 +1717,7 @@ void PageItem_TextFrame::layout()
 					current.glyphs[currentIndex].setScaleH(current.glyphs[currentIndex].scaleH() / current.glyphs[currentIndex].scaleV());
 					current.glyphs[currentIndex].setScaleV(realAsce / itemHeight);
 					current.glyphs[currentIndex].setScaleH(current.glyphs[currentIndex].scaleH() * current.glyphs[currentIndex].scaleV());
-					wide *= firstGlyph.scaleH;
+					wide *= current.glyphs[currentIndex].scaleH();
 				}
 				else
 				{
