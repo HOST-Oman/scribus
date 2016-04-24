@@ -380,6 +380,8 @@ public:
 	gid_type char2CMap(uint ch)   const;
 	gid_type char2CMap(QChar ch) const { return char2CMap(ch.unicode()); }
 
+	gid_type emulateGlyph(uint u) const;
+
 	/// deprecated, see glyphBBox()
 	qreal realCharWidth(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch),sz).width; }
 
@@ -403,7 +405,6 @@ private:
 
 	void initFaceData();
 	void checkAllGlyphs();
-	gid_type emulateGlyph(uint u) const;
 };
 
 #endif

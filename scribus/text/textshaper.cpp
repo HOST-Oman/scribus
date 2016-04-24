@@ -417,8 +417,13 @@ QList<GlyphCluster> TextShaper::shape()
 				GlyphLayout gl;
 				gl.glyph = glyphs[i].codepoint;
 				// indirect way to call ScFace::emulateGlyph() as it is private.
-				if (gl.glyph == 0)
-					gl.glyph = scFace.char2CMap(ch);
+				if (gl.glyph == 0 ||
+				    (ch == SpecialChars::LINEBREAK || ch == SpecialChars::PARSEP ||
+				     ch == SpecialChars::FRAMEBREAK || ch == SpecialChars::COLBREAK))
+				{
+					gl.glyph = scFace.emulateGlyph(ch.unicode());
+				}
+
 				if (gl.glyph < ScFace::CONTROL_GLYPHS)
 				{
 					gl.xoffset = positions[i].x_offset / 10.0;
