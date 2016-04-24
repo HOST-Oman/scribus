@@ -392,11 +392,14 @@ QList<GlyphCluster> TextShaper::shape()
 			const StyleFlag& effects = charStyle.effects();
 
 			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
+
 			if (textRun.dir == UBIDI_RTL)
 				run.setFlag(ScLayout_RightToLeft);
+
 			lineBoundery.setPosition(firstCluster);
 			if (lineBoundery.isAtBoundary())
 				run.setFlag(ScLayout_LineBoundry);
+
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
 
