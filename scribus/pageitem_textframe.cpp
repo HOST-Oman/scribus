@@ -1752,7 +1752,7 @@ void PageItem_TextFrame::layout()
 						realAsce = asce * scaleV + offset;
 					else
 						realAsce = current.glyphs[currentIndex].ascent() + offset;
-					realDesc = -current.glyphs[currentIndex].desent() - offset;
+					realDesc = current.glyphs[currentIndex].desent() - offset;
 
 					current.rememberShrinkStretch(itemText.text(a), wide, style);
 				}
