@@ -408,6 +408,7 @@ QList<GlyphCluster> TextShaper::shape()
 			run.setScaleH(charStyle.scaleH() / 1000.0);
 			run.setScaleV(charStyle.scaleV() / 1000.0);
 
+			GlyphLayout* lastGlyph;
 			while (i < count && glyphs[i].cluster == firstCluster)
 			{
 				GlyphLayout gl;
@@ -477,15 +478,13 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.xadvance += tracking;
 
 				run.append(gl);
-
+				lastGlyph = &gl;
 				i++;
 			}
 
 			// Apply CJK spacing according to JIS X4051
-			if (lastChar + 1 < m_story.length())
+			if (lastGlyph && lastChar + 1 < m_story.length())
 			{
-				GlyphLayout& glyph = run.glyphs().last();
-
 				double halfEM = run.style().fontSize() / 10 / 2;
 				double quarterEM = run.style().fontSize() / 10 / 4;
 
@@ -498,7 +497,7 @@ QList<GlyphCluster> TextShaper::shape()
 						case SpecialChars::CJK_KANJI:
 						case SpecialChars::CJK_KANA:
 						case SpecialChars::CJK_NOTOP:
-							glyph.xadvance += quarterEM;
+							lastGlyph->xadvance += quarterEM;
 						}
 					} else {	// next char is CJK, too
 						switch(currStat & SpecialChars::CJK_CHAR_MASK) {
@@ -509,7 +508,7 @@ QList<GlyphCluster> TextShaper::shape()
 							case SpecialChars::CJK_COMMA:
 							case SpecialChars::CJK_PERIOD:
 							case SpecialChars::CJK_MIDPOINT:
-								glyph.xadvance -= halfEM;
+								lastGlyph->xadvance -= halfEM;
 							}
 							break;
 						case SpecialChars::CJK_COMMA:
@@ -517,21 +516,21 @@ QList<GlyphCluster> TextShaper::shape()
 							switch(nextStat & SpecialChars::CJK_CHAR_MASK) {
 							case SpecialChars::CJK_FENCE_BEGIN:
 							case SpecialChars::CJK_FENCE_END:
-								glyph.xadvance -= halfEM;;
+								lastGlyph->xadvance -= halfEM;;
 							}
 							break;
 						case SpecialChars::CJK_MIDPOINT:
 							switch(nextStat & SpecialChars::CJK_CHAR_MASK) {
 							case SpecialChars::CJK_FENCE_BEGIN:
-								glyph.xadvance -= halfEM;
+								lastGlyph->xadvance -= halfEM;
 							}
 							break;
 						case SpecialChars::CJK_FENCE_BEGIN:
 							int prevStat = SpecialChars::getCJKAttr(m_story.text(lastChar - 1));
 							if ((prevStat & SpecialChars::CJK_CHAR_MASK) == SpecialChars::CJK_FENCE_BEGIN)
 							{
-								glyph.xadvance -= halfEM;
-								glyph.xoffset -= halfEM;
+								lastGlyph->xadvance -= halfEM;
+								lastGlyph->xoffset -= halfEM;
 							}
 							else
 							{
@@ -547,7 +546,7 @@ QList<GlyphCluster> TextShaper::shape()
 						case SpecialChars::CJK_KANA:
 						case SpecialChars::CJK_NOTOP:
 							// use the size of the current char instead of the next one
-							glyph.xadvance += quarterEM;
+							lastGlyph->xadvance += quarterEM;
 						}
 					}
 				}
