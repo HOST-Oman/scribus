@@ -445,7 +445,7 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
 
 				double tracking = 0;
-				if (flags & ScLayout_StartOfLine)
+				if (!(flags & ScLayout_StartOfLine))
 					tracking = style.fontSize() * style.tracking() / 10000.0;
 				gl.xoffset += tracking;
 
