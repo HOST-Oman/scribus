@@ -1669,13 +1669,10 @@ void PageItem_TextFrame::layout()
 			}
 			// set StartOfLine
 			if (current.isEmpty)
-			{
 				current.glyphs[currentIndex].setFlag(ScLayout_StartOfLine);
-			}
 			else
-			{
 				current.glyphs[currentIndex].clearFlag(ScLayout_StartOfLine);
-			}
+
 //			glyphs->yadvance = 0;
 
 			if (i == current.line.firstRun && current.glyphs[currentIndex].hasFlag(ScLayout_CJKFence))
