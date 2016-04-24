@@ -1694,7 +1694,7 @@ void PageItem_TextFrame::layout()
 			if (i == current.line.firstRun && current.glyphs[currentIndex].hasFlag(ScLayout_CJKFence))
 			{
 				current.glyphs[currentIndex].setExtraWidth(-charStyle.fontSize() / 10 / 2);
-				current.glyphs[currentIndex].setXOffset(current.glyphs[currentIndex].xoffset() - charStyle.fontSize() / 10 / 2);
+				current.glyphs[currentIndex].addToXOffset(-charStyle.fontSize() / 10 / 2);
 			}
 			// find out width, ascent and descent of char
 			double wide = current.glyphs[currentIndex].width();
@@ -1735,7 +1735,7 @@ void PageItem_TextFrame::layout()
 					current.glyphs[currentIndex].setScaleH(current.glyphs[currentIndex].scaleH() / current.glyphs[currentIndex].scaleV());
 					current.glyphs[currentIndex].setScaleV(realAsce / realCharHeight);
 					current.glyphs[currentIndex].setScaleH(current.glyphs[currentIndex].scaleH() * current.glyphs[currentIndex].scaleV());
-					current.glyphs[currentIndex].setXOffset(current.glyphs[currentIndex].xoffset() - 0.5); //drop caps are always to far from column left edge
+					current.glyphs[currentIndex].addToXOffset(-0.5); //drop caps are always to far from column left edge
 				}
 				// This is to mimic pre-boxes branches in case first character of paragraph is a space
 				// If we don't do this, paragraph offset will not apply correctly to first line
@@ -2153,8 +2153,7 @@ void PageItem_TextFrame::layout()
 				double yoffset = 0.0;
 				foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
 					yoffset = qMax(yoffset, font.glyphBBox(gl.glyph, chsd / 10.0).descent);
-				yoffset = current.glyphs[currentIndex].yoffset() - yoffset;
-				current.glyphs[currentIndex].setYOffset(yoffset);
+				current.glyphs[currentIndex].addToYOffset(-yoffset);
 			}
 			// remember x pos
 			double breakPos = current.xPos;
@@ -2647,7 +2646,7 @@ void PageItem_TextFrame::layout()
 						{
 							// put line back to top
 							current.line.y -= DropCapDrop;
-							current.glyphs[0].setYOffset(current.glyphs[0].yoffset() + DropCapDrop);
+							current.glyphs[0].addToYOffset(DropCapDrop);
 						}
 						current.fillInTabLeaders();
 						//if right margin is set we temporally save line, not append it
@@ -2857,7 +2856,7 @@ void PageItem_TextFrame::layout()
 			{
 				// put line back to top
 				current.line.y -= DropCapDrop;
-				current.glyphs[0].setYOffset(current.glyphs[0].yoffset() + DropCapDrop);
+				current.glyphs[0].addToYOffset(DropCapDrop);
 			}
 			current.fillInTabLeaders();
 			current.startOfCol = false;

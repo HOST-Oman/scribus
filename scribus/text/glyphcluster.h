@@ -45,6 +45,8 @@ public:
 	double yoffset() const;
 	void setXOffset(double);
 	void setYOffset(double);
+	void addToXOffset(double);
+	void addToYOffset(double);
 
 	double ascent() const;
 	double desent() const;

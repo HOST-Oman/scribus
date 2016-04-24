@@ -57,6 +57,16 @@ void GlyphCluster::setYOffset(double o)
 	m_yoffset = o;
 }
 
+void GlyphCluster::addToXOffset(double o)
+{
+	m_xoffset += o;
+}
+
+void GlyphCluster::addToYOffset(double o)
+{
+	m_yoffset += o;
+}
+
 double GlyphCluster::ascent() const
 {
 	const ScFace &font = m_style->font();
