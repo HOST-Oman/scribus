@@ -427,7 +427,7 @@ QList<GlyphCluster> TextShaper::shape()
 				{
 					GlyphLayout control;
 					control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
-					run.glyphs().append(control);
+					run.append(control);
 				}
 
 				if (SpecialChars::isExpandingSpace(ch))
@@ -476,7 +476,7 @@ QList<GlyphCluster> TextShaper::shape()
 				if (gl.xadvance > 0)
 					gl.xadvance += tracking;
 
-				run.glyphs().append(gl);
+				run.append(gl);
 
 				i++;
 			}
