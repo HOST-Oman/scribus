@@ -342,8 +342,8 @@ QList<GlyphCluster> TextShaper::shape()
 				{
 					hbFeature.start = fontFeaturesRun[x].start;
 					hbFeature.end = fontFeaturesRun[x].len + fontFeaturesRun[x].start;
+					hbFeatures.append(hbFeature);
 				}
-				hbFeatures.append(hbFeature);
 			}
 		}
 
