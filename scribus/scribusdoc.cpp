@@ -6325,6 +6325,7 @@ PageItem* ScribusDoc::convertItemTo(PageItem *currItem, PageItem::ItemType newTy
 				newItem->setLineColor(CommonStrings::None);
 				newItem->SetRectFrame();
 				newItem->setRedrawBounding();
+				newItem->setTextToFrameDistLeft(0);
 			}
 			break;
 		//We don't allow this right now

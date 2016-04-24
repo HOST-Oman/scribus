@@ -314,7 +314,10 @@ void CanvasMode_EditTable::drawControls(QPainter* p)
 
 void CanvasMode_EditTable::updateCanvas(bool forceRedraw)
 {
-	m_canvas->setForcedRedraw(forceRedraw);
+	// Do not let update timer cancel forced redraw otherwise
+	// we get refresh issues  when typing or selecting text
+	if (!m_canvas->isForcedRedraw())
+		m_canvas->setForcedRedraw(forceRedraw);
 	m_canvas->update(m_canvas->canvasToLocal(m_table->getBoundingRect()));
 }
 
@@ -328,8 +331,8 @@ void CanvasMode_EditTable::handleMouseDrag(QMouseEvent* event)
 	{
 		// Select text in active cell text frame.
 		activeFrame->itemText.deselectAll();
-		m_view->slotSetCurs(event->globalPos().x(), event->globalPos().y());
 		activeFrame->HasSel = false;
+		m_view->slotSetCurs(event->globalPos().x(), event->globalPos().y());
 
 		const int selectionStart = qMin(activeFrame->itemText.cursorPosition(), m_lastCursorPos);
 		const int selectionLength = qAbs(activeFrame->itemText.cursorPosition() - m_lastCursorPos);

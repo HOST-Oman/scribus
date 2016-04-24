@@ -188,7 +188,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			CurX -= m_textDistanceMargins.left();
 		}
 		if (itemText.paragraphStyle(0).alignment() == ParagraphStyle::Centered)
-			CurX = (totalCurveLen - totalTextLen) / 2.0;
+			CurX = ((totalCurveLen - totalTextLen) / 2.0) + m_textDistanceMargins.left();
 		if (itemText.paragraphStyle(0).alignment() == ParagraphStyle::Justified)
 		{
 			if (spaceCount != 0)
@@ -270,6 +270,15 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		trafo.translate(0, BaseOffs);
 
 		const CharStyle& cStyle(run.style());
+		const StyleFlag& effects = cStyle.effects();
+		if (effects & ScStyle_UnderlineWords)
+		{
+			if (itemRenderText.text(a).isSpace())
+				run.clearFlag(ScLayout_Underlined);
+			else
+				run.setFlag(ScLayout_Underlined);
+		}
+
 		double scaleV = cStyle.scaleV() / 1000.0;
 		double offset = (cStyle.fontSize() / 10) * (cStyle.baselineOffset() / 1000.0);
 		double ascent = cStyle.font().ascent(cStyle.fontSize()/10.00) * scaleV + offset;
