@@ -17,6 +17,8 @@ class GlyphCluster
 	double m_scaleH;
 	double m_scaleV;
 	double m_extraWidth;
+	double m_xoffset;
+	double m_yoffset;
 
 public:
 	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i);
@@ -38,6 +40,11 @@ public:
 
 	double width() const;
 	void setExtraWidth(double);
+
+	double xoffset() const;
+	double yoffset() const;
+	void setXOffset(double);
+	void setYOffset(double);
 
 	double ascent() const;
 	double desent() const;

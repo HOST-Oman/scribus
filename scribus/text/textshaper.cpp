@@ -566,15 +566,15 @@ QList<GlyphCluster> TextShaper::shape()
 							}
 							break;
 						case SpecialChars::CJK_FENCE_BEGIN:
-							int prevStat = 0;
-							if (0) { // FIXME: (i == current.line.firstRun) // first char of the line
-								prevStat = SpecialChars::CJK_FENCE_BEGIN;
-							} else if (lastChar != 0) {
-								prevStat = SpecialChars::getCJKAttr(m_story.text(lastChar - 1)) & SpecialChars::CJK_CHAR_MASK;
-							}
-							if (prevStat == SpecialChars::CJK_FENCE_BEGIN) {
+							int prevStat = SpecialChars::getCJKAttr(m_story.text(lastChar - 1));
+							if ((prevStat & SpecialChars::CJK_CHAR_MASK) == SpecialChars::CJK_FENCE_BEGIN)
+							{
 								glyph.xadvance -= halfEM;
 								glyph.xoffset -= halfEM;
+							}
+							else
+							{
+								run.setFlag(ScLayout_CJKFence);
 							}
 							break;
 						}

@@ -1695,6 +1695,11 @@ void PageItem_TextFrame::layout()
 
 			GlyphLayout& firstGlyph = current.glyphs[currentIndex].glyphs().first();
 
+			if (i == current.line.firstRun && current.glyphs[currentIndex].hasFlag(ScLayout_CJKFence))
+			{
+				current.glyphs[currentIndex].setExtraWidth(-charStyle.fontSize() / 10 / 2);
+				current.glyphs[currentIndex].setXOffset(current.glyphs[currentIndex].xoffset() - charStyle.fontSize() / 10 / 2);
+			}
 			// find out width, ascent and descent of char
 			double wide = current.glyphs[currentIndex].width();
 

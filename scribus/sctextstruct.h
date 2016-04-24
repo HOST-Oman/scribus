@@ -51,7 +51,8 @@ enum LayoutFlags {
 	ScLayout_StartOfLine		= 1<<14,	//set for start of line
 	ScLayout_LineBoundry		= 1<<15,	// line break is allowed before here
 	ScLayout_RightToLeft		= 1<<16,	// right-to-left glyph run
-	ScLayout_SmallCaps		= 1<<17		// small caps
+	ScLayout_SmallCaps		= 1<<17,	// small caps
+	ScLayout_CJKFence		= 1<<18		// a CJK fence glyph that needs spacing adjustment at start of line
 };
 
 
