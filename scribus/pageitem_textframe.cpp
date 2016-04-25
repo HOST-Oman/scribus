@@ -2178,6 +2178,11 @@ void PageItem_TextFrame::layout()
 			// remember possible break
 			if (i + 1 < glyphRuns.count() && glyphRuns[i + 1].hasFlag(ScLayout_LineBoundry))
 			{
+				if (current.glyphs.length() > 1
+					&& (current.glyphs[currentIndex - 1].lastChar() != SpecialChars::CJK_NOBREAK_AFTER)
+					&& (current.glyphs[currentIndex].firstChar() != SpecialChars::CJK_NOBREAK_BEFORE))
+					current.rememberBreak(i - 1, breakPos, style.rightMargin());
+
 				if (!current.glyphs[currentIndex].hasFlag(ScLayout_LineBoundry))
 					current.rememberBreak(i, breakPos, style.rightMargin());
 			}
