@@ -45,6 +45,8 @@ void PropertyWidget_OpenTypeFontFeatures::languageChange()
 		NormalCaRadio->setChecked(true);
 		NormalRadio->setChecked(true);
 		DefaultStyleRadio->setChecked(true);
+		DefaultWidthRadio->setChecked(true);
+		DefaultFractionsRadio->setChecked(true);
 		ContextualCheck->setChecked(true);
 		DiscretinoryCheck->setChecked(false);
 		HistoricalCheck->setChecked(false);
@@ -64,6 +66,26 @@ void PropertyWidget_OpenTypeFontFeatures::languageChange()
 		StackedRadio->setChecked(false);
 		OrdinalCheck->setChecked(false);
 		SlashedZeroCheck->setChecked(false);
+		StyleSet01->setChecked(false);
+		StyleSet02->setChecked(false);
+		StyleSet03->setChecked(false);
+		StyleSet04->setChecked(false);
+		StyleSet05->setChecked(false);
+		StyleSet06->setChecked(false);
+		StyleSet07->setChecked(false);
+		StyleSet08->setChecked(false);
+		StyleSet09->setChecked(false);
+		StyleSet10->setChecked(false);
+		StyleSet11->setChecked(false);
+		StyleSet12->setChecked(false);
+		StyleSet13->setChecked(false);
+		StyleSet14->setChecked(false);
+		StyleSet15->setChecked(false);
+		StyleSet16->setChecked(false);
+		StyleSet17->setChecked(false);
+		StyleSet18->setChecked(false);
+		StyleSet19->setChecked(false);
+		StyleSet20->setChecked(false);
 		groupBox->setToolTip(tr("Capitals"));
 		groupBox_2->setToolTip(tr("Numbers"));
 		groupBox_3->setToolTip(tr("Ligatures"));
@@ -119,6 +141,46 @@ void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
 			OrdinalCheck->setChecked(true);
 		else if (fontFeatures[i] == "+zero")
 			SlashedZeroCheck->setChecked(true);
+		else if (fontFeatures[i] == "+ss01")
+			StyleSet01->setChecked(true);
+		else if (fontFeatures[i] == "+ss02")
+			StyleSet02->setChecked(true);
+		else if (fontFeatures[i] == "+ss03")
+			StyleSet03->setChecked(true);
+		else if (fontFeatures[i] == "+ss04")
+			StyleSet04->setChecked(true);
+		else if (fontFeatures[i] == "+ss05")
+			StyleSet05->setChecked(true);
+		else if (fontFeatures[i] == "+ss06")
+			StyleSet06->setChecked(true);
+		else if (fontFeatures[i] == "+ss07")
+			StyleSet07->setChecked(true);
+		else if (fontFeatures[i] == "+ss08")
+			StyleSet08->setChecked(true);
+		else if (fontFeatures[i] == "+ss09")
+			StyleSet09->setChecked(true);
+		else if (fontFeatures[i] == "+ss10")
+			StyleSet10->setChecked(true);
+		else if (fontFeatures[i] == "+ss11")
+			StyleSet11->setChecked(true);
+		else if (fontFeatures[i] == "+ss12")
+			StyleSet12->setChecked(true);
+		else if (fontFeatures[i] == "+ss13")
+			StyleSet13->setChecked(true);
+		else if (fontFeatures[i] == "+ss14")
+			StyleSet14->setChecked(true);
+		else if (fontFeatures[i] == "+ss15")
+			StyleSet15->setChecked(true);
+		else if (fontFeatures[i] == "+ss16")
+			StyleSet16->setChecked(true);
+		else if (fontFeatures[i] == "+ss17")
+			StyleSet17->setChecked(true);
+		else if (fontFeatures[i] == "+ss18")
+			StyleSet18->setChecked(true);
+		else if (fontFeatures[i] == "+ss19")
+			StyleSet19->setChecked(true);
+		else if (fontFeatures[i] == "+ss20")
+			StyleSet20->setChecked(true);
 	}
 }
 
@@ -176,6 +238,48 @@ void PropertyWidget_OpenTypeFontFeatures::handlefontfeatures()
 		font_feature << "+ordn";
 	if (SlashedZeroCheck->isChecked())
 		font_feature << "+zero";
+
+	// Stylistic sets
+	if (StyleSet01->isChecked())
+		font_feature << "+ss01";
+	if (StyleSet02->isChecked())
+		font_feature << "+ss02";
+	if (StyleSet03->isChecked())
+		font_feature << "+ss03";
+	if (StyleSet04->isChecked())
+		font_feature << "+ss04";
+	if (StyleSet05->isChecked())
+		font_feature << "+ss05";
+	if (StyleSet06->isChecked())
+		font_feature << "+ss06";
+	if (StyleSet07->isChecked())
+		font_feature << "+ss07";
+	if (StyleSet08->isChecked())
+		font_feature << "+ss08";
+	if (StyleSet09->isChecked())
+		font_feature << "+ss09";
+	if (StyleSet10->isChecked())
+		font_feature << "+ss10";
+	if (StyleSet11->isChecked())
+		font_feature << "+ss11";
+	if (StyleSet12->isChecked())
+		font_feature << "+ss12";
+	if (StyleSet13->isChecked())
+		font_feature << "+ss13";
+	if (StyleSet14->isChecked())
+		font_feature << "+ss14";
+	if (StyleSet15->isChecked())
+		font_feature << "+ss15";
+	if (StyleSet16->isChecked())
+		font_feature << "+ss16";
+	if (StyleSet17->isChecked())
+		font_feature << "+ss17";
+	if (StyleSet18->isChecked())
+		font_feature << "+ss18";
+	if (StyleSet19->isChecked())
+		font_feature << "+ss19";
+	if (StyleSet20->isChecked())
+		font_feature << "+ss20";
 
 	Selection tempSelection(this, false);
 	tempSelection.addItem(m_item, true);
@@ -262,7 +366,26 @@ void PropertyWidget_OpenTypeFontFeatures::connectSignals()
 	connect(StackedRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(OrdinalCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(SlashedZeroCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
-
+	connect(StyleSet01, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet02, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet03, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet04, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet05, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet06, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet07, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet08, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet09, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet10, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet11, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet12, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet13, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet14, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet15, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet16, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet17, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet18, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet19, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(StyleSet20, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 }
 
 void PropertyWidget_OpenTypeFontFeatures::disconnectSignals()
@@ -292,6 +415,26 @@ void PropertyWidget_OpenTypeFontFeatures::disconnectSignals()
 	disconnect(StackedRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(OrdinalCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(SlashedZeroCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet01, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet02, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet03, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet04, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet05, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet06, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet07, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet08, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet09, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet10, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet11, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet12, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet13, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet14, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet15, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet16, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet17, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet18, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet19, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(StyleSet20, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 }
 
 void PropertyWidget_OpenTypeFontFeatures::configureWidgets(void)
