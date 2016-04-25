@@ -231,7 +231,7 @@ void StoryText::moveCursorWordLeft()
 		boundaryFinder.setPosition(cursorPosition() + 1);
 		for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
 			boundaryFinder.setPosition(boundaryFinder.position() + 1);
-		if (text(boundaryFinder.position()).isSpace())
+		if (boundaryFinder.position() < length() && text(boundaryFinder.position()).isSpace())
 			pos += 1;
 	}
 	else
@@ -291,7 +291,7 @@ void StoryText::moveCursorWordRight()
 		boundaryFinder.setPosition(cursorPosition() + 1);
 		for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
 			boundaryFinder.setPosition(boundaryFinder.position() + 1);
-		if (text(boundaryFinder.position()).isSpace())
+		if (boundaryFinder.position() < length() && text(boundaryFinder.position()).isSpace())
 			pos += 1;
 	}
 	setCursorPosition(pos, true);
