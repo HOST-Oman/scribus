@@ -168,9 +168,9 @@ void PropertyWidget_OpenTypeFontFeatures::handlefontfeatures()
 	if (TabularRadio->isChecked())
 		font_feature << "+tnum";
 	if (DiagonalRadio->isChecked())
-		font_feature << "+afrc";
+		font_feature << "+frac";
 	if (StackedRadio->isChecked())
-		font_feature <<"+frac";
+		font_feature <<"+afrc";
 
 	if (OrdinalCheck->isChecked())
 		font_feature << "+ordn";
