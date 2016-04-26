@@ -179,32 +179,29 @@ void LineBox::render(ScreenPainter *p, PageItem *item) const
 	drawBackGround(p);
 
 	QRectF selection;
-
 	foreach (const Box *box, boxes())
 	{
-		int  firstSelected;
-		int componentCount = box->lastChar() - box->firstChar() + 1;
-		double componentWidth = box->width() / componentCount;
-		int countSelected = 0;
-		bool selected = false;
-		for (int i = 0; i< componentCount; i++)
+		int selectionFirst = -1;
+		int selectionLast = -1;
+		for (int i = box->firstChar(); i <= box->lastChar(); i++)
 		{
-			if (item->itemText.selected(box->firstChar() + i))
+			if (item->itemText.selected(i))
 			{
-				firstSelected = box->firstChar() + i;
-				countSelected++;
-				selected = true;
-				break;
+				if (selectionFirst < 0)
+					selectionFirst = i;
+				selectionLast = i;
 			}
 		}
-		if (selected)
+
+		if (selectionFirst >= 0)
 		{
-			while ((countSelected < componentCount) && item->itemText.selected(firstSelected + countSelected) && ((firstSelected + countSelected) <= box->lastChar()))
-				countSelected++;
-			if(dynamic_cast<const GlyphBox*>(box)->glyphRun().hasFlag(ScLayout_RightToLeft))
-				selection |= QRectF(box->positionToPoint(firstSelected).x1() - componentWidth * countSelected, 0, componentWidth * countSelected, height());
+			qreal firstX = box->positionToPoint(selectionFirst).x1();
+			qreal lastX = box->positionToPoint(selectionLast + 1).x1();
+			const GlyphBox* glyphBox = dynamic_cast<const GlyphBox*>(box);
+			if (glyphBox && glyphBox->glyphRun().hasFlag(ScLayout_RightToLeft))
+				selection |= QRectF(lastX, 0, firstX - lastX, height());
 			else
-				selection |= QRectF(box->positionToPoint(firstSelected).x1(), 0, componentWidth * countSelected, height());
+				selection |= QRectF(firstX, 0, lastX - firstX, height());
 		}
 	}
 
@@ -223,9 +220,7 @@ void LineBox::render(ScreenPainter *p, PageItem *item) const
 
 	p->translate(0, ascent());
 	foreach (const Box *box, boxes())
-	{
 		box->render(p, item);
-	}
 
 	p->translate(-x(), -y() - ascent());
 }
@@ -479,30 +474,23 @@ void PathLineBox::drawBackGround(TextLayoutPainter *p) const
 void GlyphBox::render(ScreenPainter *p, PageItem *item) const
 {
 	bool s = p->selected();
-	int countSelected = 0;
-	int componentCount = lastChar() - firstChar() + 1;
-	double componentWidth = (width() / componentCount);
-	bool selected = false;
-	int firstSelected;
 
-	for (int i = 0; i< componentCount; i++)
+	int selectionFirst = -1;
+	int selectionLast = -1;
+	for (int i = firstChar(); i <= lastChar(); i++)
 	{
-		if (item->itemText.selected(firstChar() + i))
+		if (item->itemText.selected(i))
 		{
-			firstSelected = firstChar() + i;
-			countSelected++;
-			selected = true;
-			break;
+			if (selectionFirst < 0)
+				selectionFirst = i;
+			selectionLast = i;
 		}
 	}
 
-	if (((selected && item->isSelected()) || ((item->nextInChain() != 0 || item->prevInChain() != 0) && selected)) &&
+	if (((selectionFirst >= 0 && item->isSelected()) || ((item->nextInChain() != 0 || item->prevInChain() != 0) && selectionFirst >= 0)) &&
 		(item->doc()->appMode == modeEdit || item->doc()->appMode == modeEditTable))
 	{
-		while ((countSelected < componentCount) && item->itemText.selected(firstSelected + countSelected) && ((firstSelected + countSelected) <= lastChar()))
-			countSelected++;
-
-		if (countSelected == componentCount)
+		if (selectionFirst == firstChar() && selectionLast == lastChar())
 		{
 			p->setSelected(true);
 			render(p);
@@ -512,12 +500,12 @@ void GlyphBox::render(ScreenPainter *p, PageItem *item) const
 			render(p);
 			p->saveState();
 			p->setSelected(true);
-			double x = positionToPoint(firstSelected).x1();
-			double witdh = componentWidth * countSelected;
+			qreal firstX = positionToPoint(selectionFirst).x1();
+			qreal lastX = positionToPoint(selectionLast + 1).x1();
 			if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
-				p->clip(QRectF(x - witdh, y(), witdh, height()));
+				p->clip(QRectF(lastX, y(), firstX - lastX, height()));
 			else
-				p->clip(QRectF(x, y(), witdh, height()));
+				p->clip(QRectF(firstX, y(), lastX - firstX, height()));
 			render(p);
 			p->restoreState();
 		}
