@@ -29,6 +29,7 @@ pageitem.cpp  -  description
 #include <QString>
 #include <QList>
 #include <cassert>
+#include "unicode/brkiter.h"
 
 #include "marks.h"
 //#include "text/paragraphlayout.h"
@@ -277,6 +278,7 @@ private:
 private:
 	ScribusDoc * m_doc; 
 	int m_selFirst, m_selLast;
+	static BreakIterator* m_WordBreakIterator;
 //	int m_firstFrameItem, m_lastFrameItem;
 //	QList<LineSpec> m_lines;
 //	bool m_validLayout;
