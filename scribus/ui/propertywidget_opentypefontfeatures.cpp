@@ -86,10 +86,6 @@ void PropertyWidget_OpenTypeFontFeatures::languageChange()
 	StyleSet18->setChecked(false);
 	StyleSet19->setChecked(false);
 	StyleSet20->setChecked(false);
-	groupBox->setToolTip(tr("Capitals"));
-	groupBox_2->setToolTip(tr("Numbers"));
-	groupBox_3->setToolTip(tr("Ligatures"));
-	groupBox_4->setToolTip(tr("Position"));
 }
 
 void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
