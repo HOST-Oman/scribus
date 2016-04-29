@@ -9681,11 +9681,11 @@ void PDFLibCore::PDF_Bookmark(PageItem *currItem, double ypos)
 	BookMinUse = true;
 }
 
-bool PDFLibCore::PDF_EmbeddedPDF(PageItem* c, const QString& fn, double sx, double sy, double x, double y, bool fromAN, const QString& Profil, bool Embedded, int Intent, ShIm& imgInfo, QByteArray* output)
+bool PDFLibCore::PDF_EmbeddedPDF(PageItem* c, const QString& fn, double sx, double sy, double x, double y, bool fromAN, ShIm& imgInfo, bool &fatalError)
 {
 	if (!Options.embedPDF)
 		return false;
-
+	fatalError = false;
 	
 #ifdef HAVE_PODOFO
 	// Try to catch potential pdf parsing exceptions early
@@ -9985,9 +9985,9 @@ bool PDFLibCore::PDF_EmbeddedPDF(PageItem* c, const QString& fn, double sx, doub
 	}
 	catch(PoDoFo::PdfError& e)
 	{
+		fatalError = true;
 		qDebug() << "PoDoFo error!";
 		e.PrintErrorMsg();
-		assert (false);
 		return false;
 	}
 #endif
@@ -10162,6 +10162,8 @@ bool PDFLibCore::PDF_Image(PageItem* c, const QString& fn, double sx, double sy,
 		 || (ImInfo2.Page != c->pixm.imgInfo.actualPageNumber))
 	{
 		bool imageLoaded = false;
+		bool fatalError  = false;
+		QString pdfFile = fn;
 		if ((extensionIndicatesPDF(ext) || ((extensionIndicatesEPSorPS(ext)) && (c->pixm.imgInfo.type != ImageType7))) && c->effectsInUse.count() == 0)
 		{
 			if (extensionIndicatesEPSorPS(ext))
@@ -10180,17 +10182,25 @@ bool PDFLibCore::PDF_Image(PageItem* c, const QString& fn, double sx, double sy,
 					opts.append( "-sProcessColorModel=/DeviceCMYK" ); */
 				if (convertPS2PDF(fn, tmpFile, opts) == 0)
 				{
-					imageLoaded = PDF_EmbeddedPDF(c, tmpFile, sx, sy, x, y, fromAN, Profil, Embedded, Intent, ImInfo, output);
+					imageLoaded = PDF_EmbeddedPDF(c, tmpFile, sx, sy, x, y, fromAN, ImInfo, fatalError);
 					QFile::remove(tmpFile);
 				}
+				pdfFile = tmpFile;
 			}
 			else
-				imageLoaded = PDF_EmbeddedPDF(c, fn, sx, sy, x, y, fromAN, Profil, Embedded, Intent, ImInfo, output);
+				imageLoaded = PDF_EmbeddedPDF(c, fn, sx, sy, x, y, fromAN, ImInfo, fatalError);
 			isEmbeddedPDF = true;
 			ImInfo.Page = c->pixm.imgInfo.actualPageNumber;
 		}
 		if (!imageLoaded && extensionIndicatesPDF(ext) && c->effectsInUse.count() == 0 && Options.embedPDF)
+		{
+			if (fatalError)
+			{
+				PDF_Error( tr("Failed to embed the PDF file : %1").arg(pdfFile) );
+				return false;
+			}
 			qDebug() << "Failed to embed the PDF file";
+		}
 		// no embedded PDF:
 		if (!imageLoaded)
 		{
