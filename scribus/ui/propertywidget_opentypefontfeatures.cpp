@@ -129,9 +129,9 @@ void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
 			ProporionalRadio->setChecked(true);
 		else if (fontFeatures[i] == "+tnum")
 			TabularRadio->setChecked(true);
-		else if (fontFeatures[i] == "+afrc")
-			DiagonalRadio->setChecked(true);
 		else if (fontFeatures[i] == "+frac")
+			DiagonalRadio->setChecked(true);
+		else if (fontFeatures[i] == "+afrc")
 			StackedRadio->setChecked(true);
 		else if (fontFeatures[i] == "+ordn")
 			OrdinalCheck->setChecked(true);
