@@ -549,7 +549,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 
 	setupLineSpacingSpinbox(newCurrent.lineSpacingMode(), newCurrent.lineSpacing());
 	lineSpacingModeCombo->setCurrentIndex(newCurrent.lineSpacingMode());
-	if (newCurrent.direction() == newCurrent.RTL)
+	if (newCurrent.direction() == ParagraphStyle::RTL)
 		textAlignment->TextB->setIcon(IconManager::instance()->loadIcon("16/format-justify-fill-block-right.png"));
 	else
 		textAlignment->TextB->setIcon(IconManager::instance()->loadIcon("16/format-justify-fill-block.png"));
