@@ -1774,7 +1774,7 @@ BreakIterator* StoryText::getWordIterator()
 {
 	UErrorCode status = U_ZERO_ERROR;
 	if (m_wordIterator == NULL)
-		m_wordIterator = BreakIterator::createWordInstance(NULL, status);
+		m_wordIterator = BreakIterator::createWordInstance(Locale(), status);
 
 	if (U_FAILURE(status))
 	{
