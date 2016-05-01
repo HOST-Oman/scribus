@@ -259,6 +259,11 @@ private:
 	void drawControlsFreehandLine(QPainter* pp);
 	void getClipPathForPages(FPointArray* PoLine);
 	void calculateFrameLinkPoints(PageItem* pi1, PageItem* pi2, FPoint& start, FPoint& end);
+
+	// create a potentially hidpi pixmap
+	QPixmap createPixmap(double w, double h);
+	// draw a potentially hidpi pixmap
+	void drawPixmap(QPainter &painter, double x, double y, const QPixmap &pixmap, double sx, double sy, double sw, double sh);
 		
 private:
 	ScribusDoc* m_doc;
