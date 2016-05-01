@@ -775,13 +775,7 @@ void SMParagraphStyle::slotDirection()
 			m_selection[i]->resetDirection();
 	else
 		for (int i = 0; i < m_selection.count(); ++i)
-		{
 			m_selection[i]->setDirection(style);
-			if (style == 0)
-				m_selection[i]->setAlignment(static_cast<ParagraphStyle::AlignmentType>(0));
-			else
-				m_selection[i]->setAlignment(static_cast<ParagraphStyle::AlignmentType>(2));
-		}
 
 	if (!m_selectionIsDirty)
 	{
