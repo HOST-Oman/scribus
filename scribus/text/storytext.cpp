@@ -97,7 +97,7 @@ StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.
 	invalidateLayout();
 }
 
-BreakIterator* StoryText::m_WordBreakIterator = NULL;
+BreakIterator* StoryText::m_wordIterator = NULL;
 
 StoryText::~StoryText()
 {
@@ -1673,17 +1673,13 @@ bool StoryText::selected(int pos) const
 int StoryText::selectWord(int pos)
 {
 	//Double click in a frame to select a word
-	UErrorCode status = U_ZERO_ERROR;
-	if (m_WordBreakIterator == NULL)
-		m_WordBreakIterator = BreakIterator::createWordInstance(NULL, status);
-	if (U_FAILURE(status))
-	{
-		delete m_WordBreakIterator;
-		return 0;
-	}
-	m_WordBreakIterator->setText(plainText().utf16());
-	int32_t start = m_WordBreakIterator->preceding(pos + 1);
-	int32_t end = m_WordBreakIterator->next();
+	BreakIterator* it = getWordIterator();
+	if (!it)
+		return pos;
+
+	it->setText(plainText().utf16());
+	int32_t start = it->preceding(pos + 1);
+	int32_t end = it->next();
 	int wordLentgh = end - start;
 	select(start, wordLentgh);
 	return start;
@@ -1772,6 +1768,21 @@ void StoryText::fixSurrogateSelection()
 		m_selFirst -= 1;
 	if (isHighSurrogate(m_selLast) && isLowSurrogate(m_selLast + 1))
 		m_selLast += 1;
+}
+
+BreakIterator* StoryText::getWordIterator()
+{
+	UErrorCode status = U_ZERO_ERROR;
+	if (m_wordIterator == NULL)
+		m_wordIterator = BreakIterator::createWordInstance(NULL, status);
+
+	if (U_FAILURE(status))
+	{
+		delete m_wordIterator;
+		m_wordIterator = NULL;
+	}
+
+	return m_wordIterator;
 }
 
 void StoryText::selectAll()

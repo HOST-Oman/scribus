@@ -278,7 +278,8 @@ private:
 private:
 	ScribusDoc * m_doc; 
 	int m_selFirst, m_selLast;
-	static BreakIterator* m_WordBreakIterator;
+	static BreakIterator* m_wordIterator;
+	BreakIterator* getWordIterator();
 //	int m_firstFrameItem, m_lastFrameItem;
 //	QList<LineSpec> m_lines;
 //	bool m_validLayout;
