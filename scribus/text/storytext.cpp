@@ -97,6 +97,8 @@ StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.
 	invalidateLayout();
 }
 
+BreakIterator* StoryText::m_WordBreakIterator = NULL;
+
 StoryText::~StoryText()
 {
 /* Code below is not needed imho, as all connections will be disconnected automatically
@@ -1671,25 +1673,20 @@ bool StoryText::selected(int pos) const
 int StoryText::selectWord(int pos)
 {
 	//Double click in a frame to select a word
-
-	int a = pos;
-	while(a > 0)
+	UErrorCode status = U_ZERO_ERROR;
+	if (m_WordBreakIterator == NULL)
+		m_WordBreakIterator = BreakIterator::createWordInstance(NULL, status);
+	if (U_FAILURE(status))
 	{
-		if (text(a-1).isLetterOrNumber())
-			--a;
-		else
-			break;
+		delete m_WordBreakIterator;
+		return 0;
 	}
-	int b = pos;
-	while(b < length())
-	{
-		if (text(b).isLetterOrNumber())
-			++b;
-		else
-			break;
-	}
-	select(a, b - a);
-	return a;
+	m_WordBreakIterator->setText(plainText().utf16());
+	int32_t start = m_WordBreakIterator->preceding(pos + 1);
+	int32_t end = m_WordBreakIterator->next();
+	int wordLentgh = end - start;
+	select(start, wordLentgh);
+	return start;
 }
 
 
