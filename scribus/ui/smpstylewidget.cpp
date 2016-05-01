@@ -394,8 +394,8 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 		spaceBelow->setParentValue(parent->gapAfter());
 
 
-		alignment->setStyle(pstyle->alignment(), pstyle->isInhAlignment());
-		alignment->setParentItem(parent->alignment());
+		alignment->setStyle(pstyle->alignment(), direction->getStyle(), pstyle->isInhAlignment());
+		alignment->setParentItem(parent->alignment(), direction->getStyle());
 
 		bool hasParentTabs = pstyle->isInhTabValues();
 		QList<ParagraphStyle::TabRecord> tabs;
@@ -542,7 +542,7 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 		numRestartOtherBox->setChecked(pstyle->numOther());
 		numRestartHigherBox->setChecked(pstyle->numHigher());
 
-		alignment->setStyle(pstyle->alignment());
+		alignment->setStyle(pstyle->alignment(), direction->getStyle());
 		tabList->setTabs(pstyle->tabValues(), unitIndex);
 		tabList->setLeftIndentValue(pstyle->leftMargin() * unitRatio);
 		tabList->setFirstLineValue(pstyle->firstIndent() * unitRatio);
@@ -876,7 +876,7 @@ void SMPStyleWidget::showAlignment(QList<ParagraphStyle*> &pstyles)
 			return;
 		}
 	}
-	alignment->setStyle(a);
+	alignment->setStyle(a, direction->getStyle());
 }
 
 void SMPStyleWidget::showDirection(QList<ParagraphStyle*> &pstyles)

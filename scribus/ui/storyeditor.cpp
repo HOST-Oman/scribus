@@ -1427,7 +1427,7 @@ void SToolBAlign::languageChange()
 void SToolBAlign::SetAlign(int s)
 {
 	disconnect(GroupAlign, SIGNAL(State(int)), this, SIGNAL(newAlign(int )));
-	GroupAlign->setStyle(s);
+	GroupAlign->setStyle(s, GroupDirection->getStyle());
 	connect(GroupAlign, SIGNAL(State(int)), this, SIGNAL(newAlign(int )));
 }
 
