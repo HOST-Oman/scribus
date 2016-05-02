@@ -2527,9 +2527,17 @@ void PageItem_TextFrame::layout()
 				{
 					if (current.breakIndex >= 0)
 					{
+						// go back to last break position
 						i = current.breakIndex;
 						currentIndex = i - current.line.firstRun;
 						a = current.glyphs[currentIndex].firstChar();
+						style = itemText.paragraphStyle(a);
+						const_cast<ScFace&>(font) = itemText.charStyle(a).font();
+						if (style.lineSpacingMode() == ParagraphStyle::AutomaticLineSpacing)
+							style.setLineSpacing(font.height(hlcsize10) * autoLS);
+						else if (style.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
+							style.setLineSpacing(m_Doc->guidesPrefs().valueBaselineGrid);
+						charStyle = itemText.charStyle(a);
 					}
 					assert( i >= 0 );
 					assert( i < glyphRuns.length() );
@@ -2537,13 +2545,6 @@ void PageItem_TextFrame::layout()
 					current.isEmpty = (i - current.line.firstRun + 1) == 0;
 					if (current.addLine)
 					{
-						// go back to last break position
-						style = itemText.paragraphStyle(a);
-						if (style.lineSpacingMode() == ParagraphStyle::AutomaticLineSpacing)
-							style.setLineSpacing(font.height(hlcsize10) * autoLS);
-						else if (style.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
-							style.setLineSpacing(m_Doc->guidesPrefs().valueBaselineGrid);
-
 						if (itemText.text(a) == ' ') {
 							current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
 						}
@@ -2564,7 +2565,7 @@ void PageItem_TextFrame::layout()
 							current.glyphs[currentIndex].setFlag(ScLayout_SoftHyphenVisible);
 							GlyphLayout hyphen;
 							hyphen.glyph = font.char2CMap(QChar('-'));
-							hyphen.xadvance = font.glyphBBox(hyphen.glyph, itemText.charStyle(a).fontSize() / 10.0).width;
+							hyphen.xadvance = font.glyphBBox(hyphen.glyph, charStyle.fontSize() / 10.0).width;
 							hyphWidth = hyphen.xadvance * scaleH;
 							current.glyphs[currentIndex].append(hyphen);
 						}
