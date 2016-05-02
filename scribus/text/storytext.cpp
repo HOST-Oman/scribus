@@ -225,26 +225,27 @@ void StoryText::moveCursorLeft(bool isGrapheme)
 
 void StoryText::moveCursorWordLeft()
 {
-	QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Word , plainText());
-	int pos;
+	BreakIterator* it = getWordIterator();
+	if (!it)
+		return;
 
+	int pos = cursorPosition();
+	it->setText(plainText().utf16());
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
-		boundaryFinder.setPosition(cursorPosition() + 1);
-		for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
-			boundaryFinder.setPosition(boundaryFinder.position() + 1);
-		if (boundaryFinder.position() < length() && text(boundaryFinder.position()).isSpace())
+		pos = it->following(pos);
+		if (pos < length() && text(pos).isSpace())
 			pos += 1;
 	}
 	else
 	{
-		setCursorPosition(-1, true);
-		boundaryFinder.setPosition(cursorPosition() - 1);
-		for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
-			boundaryFinder.setPosition(boundaryFinder.position() - 1);
+		pos = cursorPosition();
+		if (pos > 0 && text(pos - 1).isSpace())
+			pos -= 1;
+		pos = it->preceding(pos);
 	}
 
-	setCursorPosition(pos, true);
+	setCursorPosition(pos);
 }
 
 void StoryText::moveCursorRight(bool isGrapheme)
@@ -278,25 +279,27 @@ void StoryText::moveCursorRight(bool isGrapheme)
 
 void StoryText::moveCursorWordRight()
 {
-	QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Word , plainText());
-	int pos;
+	BreakIterator* it = getWordIterator();
+	if (!it)
+		return;
 
+	int pos = cursorPosition();
+	it->setText(plainText().utf16());
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
-		setCursorPosition(-1, true);
-		boundaryFinder.setPosition(cursorPosition() - 1);
-		for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
-			boundaryFinder.setPosition(boundaryFinder.position() - 1);
+		pos = cursorPosition();
+		if (pos > 0 && text(pos - 1).isSpace())
+			pos -= 1;
+		pos = it->preceding(pos);
 	}
 	else
 	{
-		boundaryFinder.setPosition(cursorPosition() + 1);
-		for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
-			boundaryFinder.setPosition(boundaryFinder.position() + 1);
-		if (boundaryFinder.position() < length() && text(boundaryFinder.position()).isSpace())
+		pos = it->following(pos);
+		if (pos < length() && text(pos).isSpace())
 			pos += 1;
 	}
-	setCursorPosition(pos, true);
+
+	setCursorPosition(pos);
 }
 
 void StoryText::clear()
