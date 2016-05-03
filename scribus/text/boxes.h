@@ -97,9 +97,9 @@ public:
 	bool containsPos(int pos) const { return firstChar() <= pos && pos <= lastChar(); }
 
 	/// Returns the character index at coorddinate.
-	virtual int pointToPosition(QPointF coord) const = 0;
+	virtual int pointToPosition(QPointF coord, const StoryText &story) const = 0;
 	/// Returns the position of cursor before the character at index pos.
-	virtual QLineF positionToPoint(int pos) const { return QLineF(); }
+	virtual QLineF positionToPoint(int, const StoryText&) const { return QLineF(); }
 
 	/// The first character within the box.
 	int firstChar() const { return m_firstChar == INT_MAX ? 0 : m_firstChar; }
@@ -163,8 +163,8 @@ public:
 		m_naturalWidth = m_naturalHeight = 0;
 	}
 
-	int pointToPosition(QPointF coord) const;
-	QLineF positionToPoint(int pos) const;
+	int pointToPosition(QPointF coord, const StoryText &story) const;
+	QLineF positionToPoint(int pos, const StoryText& story) const;
 
 	void render(TextLayoutPainter *p) const;
 	void render(ScreenPainter *p, PageItem *item) const;
@@ -202,8 +202,8 @@ public:
 		m_type = T_Line;
 	}
 
-	int pointToPosition(QPointF coord) const;
-	QLineF positionToPoint(int pos) const;
+	int pointToPosition(QPointF coord, const StoryText &story) const;
+	QLineF positionToPoint(int pos, const StoryText& story) const;
 
 	bool containsPoint(QPointF coord) const;
 
@@ -220,6 +220,7 @@ public:
 
 protected:
 	virtual void drawBackGround(TextLayoutPainter *p) const;
+	virtual void drawSelection(ScreenPainter *p, PageItem *item) const;
 	virtual void update();
 };
 
@@ -251,8 +252,8 @@ public:
 		m_naturalDecent = run.desent();
 	}
 
-	int pointToPosition(QPointF coord) const;
-	QLineF positionToPoint(int pos) const;
+	int pointToPosition(QPointF coord, const StoryText &story) const;
+	QLineF positionToPoint(int pos, const StoryText& story) const;
 
 	void render(TextLayoutPainter *p) const;
 	void render(ScreenPainter *p, PageItem *item) const;

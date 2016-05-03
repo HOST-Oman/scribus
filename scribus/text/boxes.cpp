@@ -19,14 +19,14 @@
 #include "textlayoutpainter.h"
 #include "screenpainter.h"
 
-int GroupBox::pointToPosition(QPointF coord) const
+int GroupBox::pointToPosition(QPointF coord, const StoryText &story) const
 {
 	QPointF rel = coord - QPointF(m_x, m_y);
 	foreach (const Box *box, boxes())
 	{
 		if (box->containsPoint(rel))
 		{
-			int result = box->pointToPosition(rel);
+			int result = box->pointToPosition(rel, story);
 			if (result >= 0)
 				return result;
 		}
@@ -34,14 +34,14 @@ int GroupBox::pointToPosition(QPointF coord) const
 	return -1;
 }
 
-QLineF GroupBox::positionToPoint(int pos) const
+QLineF GroupBox::positionToPoint(int pos, const StoryText& story) const
 {
 	QLineF result;
 	foreach (const Box *box, boxes())
 	{
 		if (box->containsPos(pos))
 		{
-			result = box->positionToPoint(pos);
+			result = box->positionToPoint(pos, story);
 		}
 	}
 	if (!result.isNull())
@@ -120,9 +120,9 @@ void GroupBox::justify(const ParagraphStyle& style)
 }
 #endif
 
-int LineBox::pointToPosition(QPointF coord) const
+int LineBox::pointToPosition(QPointF coord, const StoryText &story) const
 {
-	int position = GroupBox::pointToPosition(coord);
+	int position = GroupBox::pointToPosition(coord, story);
 	if (position < 0)
 	{
 		if (containsPoint(coord))
@@ -137,14 +137,14 @@ int LineBox::pointToPosition(QPointF coord) const
 	return position;
 }
 
-QLineF LineBox::positionToPoint(int pos) const
+QLineF LineBox::positionToPoint(int pos, const StoryText& story) const
 {
 	QLineF result;
 	foreach (const Box *box, boxes())
 	{
 		if (box->containsPos(pos))
 		{
-			double xPos = x() + box->positionToPoint(pos).x1();
+			double xPos = x() + box->positionToPoint(pos, story).x1();
 			result = QLineF(xPos, y(), xPos, y() + height());
 			break;
 		}
@@ -177,36 +177,36 @@ void LineBox::render(ScreenPainter *p, PageItem *item) const
 	p->translate(x(), y());
 
 	drawBackGround(p);
+	drawSelection(p, item);
 
-	QRectF selection;
+	p->translate(0, ascent());
 	foreach (const Box *box, boxes())
-	{
-		int selectionFirst = -1;
-		int selectionLast = -1;
-		for (int i = box->firstChar(); i <= box->lastChar(); i++)
-		{
-			if (item->itemText.selected(i))
-			{
-				if (selectionFirst < 0)
-					selectionFirst = i;
-				selectionLast = i;
-			}
-		}
+		box->render(p, item);
 
-		if (selectionFirst >= 0)
+	p->translate(-x(), -y() - ascent());
+}
+
+void LineBox::drawSelection(ScreenPainter *p, PageItem *item) const
+{
+	int selectionFirst = -1;
+	int selectionLast = -1;
+	for (int i = firstChar(); i <= lastChar(); i++)
+	{
+		if (item->itemText.selected(i))
 		{
-			qreal firstX = box->positionToPoint(selectionFirst).x1();
-			qreal lastX = box->positionToPoint(selectionLast + 1).x1();
-			const GlyphBox* glyphBox = dynamic_cast<const GlyphBox*>(box);
-			if (glyphBox && glyphBox->glyphRun().hasFlag(ScLayout_RightToLeft))
-				selection |= QRectF(lastX, 0, firstX - lastX, height());
-			else
-				selection |= QRectF(firstX, 0, lastX - firstX, height());
+			if (selectionFirst < 0)
+				selectionFirst = i;
+			selectionLast = i;
 		}
 	}
 
-	if (!selection.isEmpty())
+	if (selectionFirst >= 0 && selectionLast >= 0)
 	{
+		selectionLast = qMin(selectionLast + 1, lastChar());
+		qreal firstX = positionToPoint(selectionFirst, item->itemText).x1();
+		qreal lastX = positionToPoint(selectionLast, item->itemText).x1();
+		QRectF selection(firstX, 0, lastX - firstX, height());
+
 		bool s = p->selected();
 		bool sw = p->strokeWidth();
 
@@ -217,12 +217,6 @@ void LineBox::render(ScreenPainter *p, PageItem *item) const
 		p->setSelected(s);
 		p->setStrokeWidth(sw);
 	}
-
-	p->translate(0, ascent());
-	foreach (const Box *box, boxes())
-		box->render(p, item);
-
-	p->translate(-x(), -y() - ascent());
 }
 
 void LineBox::drawBackGround(TextLayoutPainter *p) const
@@ -501,8 +495,8 @@ void GlyphBox::render(ScreenPainter *p, PageItem *item) const
 			render(p);
 			p->saveState();
 			p->setSelected(true);
-			qreal firstX = positionToPoint(selectionFirst).x1();
-			qreal lastX = positionToPoint(selectionLast + 1).x1();
+			qreal firstX = positionToPoint(selectionFirst, item->itemText).x1();
+			qreal lastX = positionToPoint(selectionLast + 1, item->itemText).x1();
 			if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
 				p->clip(QRectF(lastX, y(), firstX - lastX, height()));
 			else
@@ -665,35 +659,68 @@ void GlyphBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
-int GlyphBox::pointToPosition(QPointF coord) const
+int GlyphBox::pointToPosition(QPointF coord,  const StoryText& story) const
 {
-	int componentCount = lastChar() - firstChar() + 1;
-	double componentWidth = width() / componentCount;
-
-	for (int i =0; i< componentCount; i++)
+	if (firstChar() != lastChar())
 	{
-		double componentX;
-		componentX = x() + (componentWidth * i);
-		if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
-			componentX = x() + width() - (componentWidth * (i + 1));
+		int count = 0;
+		BreakIterator *it = StoryText::getGraphemeIterator();
+		QString text = story.text(firstChar(), lastChar() - firstChar() + 1);
+		it->setText(text.utf16());
+		while (it->next() != BreakIterator::DONE)
+			count++;
 
-		if (coord.x() >= componentX && coord.x() <= componentX +componentWidth)
-			return firstChar() + i;
+		double componentWidth = width() / count;
+		for (int i = 0; i < count; i++)
+		{
+			double componentX;
+			componentX = x() + (componentWidth * i);
+			if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+				componentX = x() + width() - (componentWidth * (i + 1));
+
+			if (coord.x() >= componentX && coord.x() <= componentX +componentWidth)
+				return firstChar() + i;
+		}
+	}
+	else
+	{
+		if (coord.x() >= x() && coord.x() <= x() + width())
+			return firstChar();
 	}
 
 	return -1;
 }
 
-QLineF GlyphBox::positionToPoint(int pos) const
+QLineF GlyphBox::positionToPoint(int pos, const StoryText& story) const
 {
 	double xPos;
-	int componentCount = lastChar() - firstChar() + 1;
-	int componentIndex = pos - firstChar();
-	double componentWidth = width() / componentCount;
 
-	xPos = x() + (componentWidth * componentIndex);
-	if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
-		xPos = x() + width() - (componentWidth * componentIndex);
+	if (firstChar() != lastChar())
+	{
+		int count = 0;
+		int index = 0;
+		BreakIterator *it = StoryText::getGraphemeIterator();
+		QString text = story.text(firstChar(), lastChar() - firstChar() + 1);
+		it->setText(text.utf16());
+		while (it->next() != BreakIterator::DONE)
+		{
+			count++;
+			if (pos - firstChar() == it->current())
+				index = count;
+		}
+
+		double componentWidth = width() / count;
+
+		xPos = x() + (componentWidth * index);
+		if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+			xPos = x() + width() - (componentWidth * index);
+	}
+	else
+	{
+		xPos = x();
+		if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+			xPos = x() + width();
+	}
 
 	return QLineF(xPos, y(), xPos, y() + height());
 }

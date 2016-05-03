@@ -199,7 +199,7 @@ int TextLayout::prevLine(int pos) const
 			if (i == 0)
 				return startOfLine(pos);
 			// find current xpos
-			qreal xpos = ls->positionToPoint(pos).x1();
+			qreal xpos = ls->positionToPoint(pos, *m_story).x1();
 			if (pos != m_lastMagicPos || xpos > m_magicX)
 				m_magicX = xpos;
 
@@ -207,7 +207,7 @@ int TextLayout::prevLine(int pos) const
 			// find new cpos
 			for (int j = ls2->firstChar(); j <= ls2->lastChar(); ++j)
 			{
-				xpos = ls2->positionToPoint(j).x1();
+				xpos = ls2->positionToPoint(j, *m_story).x1();
 				if ((isRTL && xpos <= m_magicX) || (!isRTL && xpos >= m_magicX))
 				{
 					m_lastMagicPos = j;
@@ -233,7 +233,7 @@ int TextLayout::nextLine(int pos) const
 			if (i+1 == lines())
 				return endOfLine(pos);
 			// find current xpos
-			qreal xpos = ls->positionToPoint(pos).x1();
+			qreal xpos = ls->positionToPoint(pos, *m_story).x1();
 
 			if (pos != m_lastMagicPos || xpos > m_magicX)
 				m_magicX = xpos;
@@ -242,7 +242,7 @@ int TextLayout::nextLine(int pos) const
 			// find new cpos
 			for (int j = ls2->firstChar(); j <= ls2->lastChar(); ++j)
 			{
-				xpos = ls2->positionToPoint(j).x1();
+				xpos = ls2->positionToPoint(j, *m_story).x1();
 				if ((isRTL && xpos <= m_magicX) || (!isRTL && xpos >= m_magicX))
 				{
 					m_lastMagicPos = j;
@@ -269,7 +269,7 @@ int TextLayout::endOfFrame() const
 
 int TextLayout::pointToPosition(QPointF coord) const
 {
-	int position = m_box->pointToPosition(coord);
+	int position = m_box->pointToPosition(coord, *m_story);
 	if (position == m_box->lastChar())
 		position += 1;
 	return position;
@@ -281,7 +281,7 @@ QLineF TextLayout::positionToPoint(int pos) const
 	QLineF result;
 	bool isRTL = (m_story->paragraphStyle().direction() == 1);
 
-	result = m_box->positionToPoint(pos);
+	result = m_box->positionToPoint(pos, *m_story);
 	if (result.isNull())
 	{
 		qreal x, y1, y2;
