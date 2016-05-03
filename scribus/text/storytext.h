@@ -274,12 +274,15 @@ private:
 	
 //	LineSpec line(uint i) const { return m_lines[i]; }
 	
-
 private:
 	ScribusDoc * m_doc; 
 	int m_selFirst, m_selLast;
+	static BreakIterator* m_graphemeIterator;
 	static BreakIterator* m_wordIterator;
-	BreakIterator* getWordIterator();
+	static BreakIterator* m_sentenceIterator;
+	static BreakIterator* getGraphemeIterator();
+	static BreakIterator* getWordIterator();
+	static BreakIterator* getSentenceIterator();
 //	int m_firstFrameItem, m_lastFrameItem;
 //	QList<LineSpec> m_lines;
 //	bool m_validLayout;

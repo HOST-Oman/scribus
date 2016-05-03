@@ -24,7 +24,6 @@ pageitem.cpp  -  description
 //#include <QDebug>
 //FIXME: this include must go to sctextstruct.h !
 #include <QList>
-#include <QTextBoundaryFinder>
 #include <cassert>  //added to make Fedora-5 happy
 #include "fpoint.h"
 #include "notesstyles.h"
@@ -97,7 +96,9 @@ StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.
 	invalidateLayout();
 }
 
+BreakIterator* StoryText::m_graphemeIterator = NULL;
 BreakIterator* StoryText::m_wordIterator = NULL;
+BreakIterator* StoryText::m_sentenceIterator = NULL;
 
 StoryText::~StoryText()
 {
@@ -198,21 +199,18 @@ void StoryText::moveCursorLeft(bool isGrapheme)
 {
 	if (isGrapheme)
 	{
-		int pos;
-		QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Grapheme, plainText());
+		BreakIterator* it = getGraphemeIterator();
+		if (!it)
+			return;
+
+		it->setText(plainText().utf16());
+		int pos = cursorPosition();
 		if (paragraphStyle().direction() == ParagraphStyle::RTL)
-		{
-			boundaryFinder.setPosition(cursorPosition() + 1);
-			for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
-				boundaryFinder.setPosition(boundaryFinder.position() + 1);
-		}
+			pos = it->following(pos);
 		else
-		{
-			boundaryFinder.setPosition(cursorPosition() - 1);
-			for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
-				boundaryFinder.setPosition(boundaryFinder.position() - 1);
-		}
-		setCursorPosition(pos, true);
+			pos = it->preceding(pos);
+
+		setCursorPosition(pos);
 	}
 	else
 	{
@@ -228,9 +226,8 @@ void StoryText::moveCursorWordLeft()
 	BreakIterator* it = getWordIterator();
 	if (!it)
 		return;
-
-	int pos = cursorPosition();
 	it->setText(plainText().utf16());
+	int pos = cursorPosition();
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
 		pos = it->following(pos);
@@ -252,21 +249,18 @@ void StoryText::moveCursorRight(bool isGrapheme)
 {
 	if (isGrapheme)
 	{
-		int pos;
-		QTextBoundaryFinder boundaryFinder(QTextBoundaryFinder::Grapheme, plainText());
+		BreakIterator* it = getGraphemeIterator();
+		if (!it)
+			return;
+
+		it->setText(plainText().utf16());
+		int pos = cursorPosition();
 		if (paragraphStyle().direction() == ParagraphStyle::RTL)
-		{
-			boundaryFinder.setPosition(cursorPosition() - 1);
-			for (pos = -1; !boundaryFinder.isAtBoundary(); pos--)
-				boundaryFinder.setPosition(boundaryFinder.position() - 1);
-		}
+			pos = it->preceding(pos);
 		else
-		{
-			boundaryFinder.setPosition(cursorPosition() + 1);
-			for (pos = 1; !boundaryFinder.isAtBoundary(); pos++)
-				boundaryFinder.setPosition(boundaryFinder.position() + 1);
-		}
-		setCursorPosition(pos, true);
+			pos = it->following(pos);
+
+		setCursorPosition(pos);
 	}
 	else
 	{
@@ -283,8 +277,8 @@ void StoryText::moveCursorWordRight()
 	if (!it)
 		return;
 
-	int pos = cursorPosition();
 	it->setText(plainText().utf16());
+	int pos = cursorPosition();
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
 		pos = cursorPosition();
@@ -1516,61 +1510,58 @@ int StoryText::firstWord()
 
 int StoryText::nextWord(int pos)
 {
-	int len = length();
-	//move to text
-	pos = qMin(len, pos+1);
-	//while not at the end, and while we don't find a word boundary, move to the next character
-	while (pos < len  && wordBoundaries.indexOf(text(pos)) < 0)
-		++pos;
-	//while not at the end, and while we find a word boundary, move to the next character
-	while (pos < len  && wordBoundaries.indexOf(text(pos)) >= 0)
-		++pos;
-	//if we didn't get to the end, return current position, otherwise return the end.
-	if (pos < len)
+	BreakIterator* it = getWordIterator();
+	if (!it)
 		return pos;
-	else
-		return len;
+
+	it->setText(plainText().utf16());
+	pos = it->following(pos);
+	pos = it->next();
+	return pos;
 }
 
 int StoryText::prevWord(int pos)
 {
-	pos = qMax(0, pos-1);
-	while (pos > 0 && wordBoundaries.indexOf(text(pos)) < 0)
-		--pos;
-	return wordBoundaries.indexOf(text(pos)) < 0 ? pos + 1 : pos;
+	BreakIterator* it = getWordIterator();
+	if (!it)
+		return pos;
+
+	it->setText(plainText().utf16());
+	pos = it->preceding(pos);
+	return pos;
 }
 
 int StoryText::endOfWord(int pos) const
 {
-	int len = length();
-	while (pos < len)
-	{
-		if (text(pos).isLetter())
-			++pos;
-		else
-			break;
-	}
+	BreakIterator* it = getWordIterator();
+	if (!it)
+		return pos;
+
+	it->setText(plainText().utf16());
+	pos = it->following(pos);
 	return pos;
 }
 
 int StoryText::endOfSentence(int pos) const
 {
-	int len = length();
-	pos = qMin(len, pos+1);
-	//while not on a sentence boundary, keep moving forward
-	while (pos < len && sentenceBoundaries.indexOf(text(pos)) < 0)
-		++pos;
-	//return the sentence boundary too
-	return pos < len ? pos + 1 : pos;
+	BreakIterator* it = getSentenceIterator();
+	if (!it)
+		return pos;
+
+	it->setText(plainText().utf16());
+	int end = it->following(pos);
+	return end;
 }
 
 int StoryText::nextSentence(int pos)
 {
-	int len = length();
-	pos = endOfSentence(pos);
-	//while on a sentence boundary, keep moving forward
-	while (pos < len && sentenceBoundaries.indexOf(text(pos)) >= 0)
-		++pos;
+	BreakIterator* it = getSentenceIterator();
+	if (!it)
+		return pos;
+
+	it->setText(plainText().utf16());
+	pos = it->following(pos);
+	pos = it->next();
 	return pos;
 }
 
@@ -1579,9 +1570,12 @@ int StoryText::prevSentence(int pos)
 	//we cannot go before the first position so just return it.
 	if (pos == 0)
 		return 0;
-	//while not on a sentence boundary, keep moving backward
-	while (pos > 0 && sentenceBoundaries.indexOf(text(pos-1)) < 0)
-		--pos;
+	BreakIterator* it = getSentenceIterator();
+	if (!it)
+		return pos;
+
+	it->setText(plainText().utf16());
+	pos = it->preceding(pos);
 	return pos;
 }
 int StoryText::nextParagraph(int pos)
@@ -1679,10 +1673,9 @@ int StoryText::selectWord(int pos)
 	BreakIterator* it = getWordIterator();
 	if (!it)
 		return pos;
-
 	it->setText(plainText().utf16());
-	int32_t start = it->preceding(pos + 1);
-	int32_t end = it->next();
+	int start = it->preceding(pos + 1);
+	int end = it->next();
 	int wordLentgh = end - start;
 	select(start, wordLentgh);
 	return start;
@@ -1773,6 +1766,21 @@ void StoryText::fixSurrogateSelection()
 		m_selLast += 1;
 }
 
+BreakIterator* StoryText::getGraphemeIterator()
+{
+	UErrorCode status = U_ZERO_ERROR;
+	if (m_graphemeIterator == NULL)
+		m_graphemeIterator = BreakIterator::createCharacterInstance(Locale(), status);
+
+	if (U_FAILURE(status))
+	{
+		delete m_graphemeIterator;
+		m_graphemeIterator = NULL;
+	}
+
+	return m_graphemeIterator;
+}
+
 BreakIterator* StoryText::getWordIterator()
 {
 	UErrorCode status = U_ZERO_ERROR;
@@ -1784,8 +1792,22 @@ BreakIterator* StoryText::getWordIterator()
 		delete m_wordIterator;
 		m_wordIterator = NULL;
 	}
-
 	return m_wordIterator;
+}
+
+BreakIterator* StoryText::getSentenceIterator()
+{
+	UErrorCode status = U_ZERO_ERROR;
+	if (m_sentenceIterator == NULL)
+		m_sentenceIterator = BreakIterator::createSentenceInstance(Locale(), status);
+
+	if (U_FAILURE(status))
+	{
+		delete m_sentenceIterator;
+		m_sentenceIterator = NULL;
+	}
+
+	return m_sentenceIterator;
 }
 
 void StoryText::selectAll()
