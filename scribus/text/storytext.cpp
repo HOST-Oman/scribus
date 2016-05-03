@@ -96,10 +96,6 @@ StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.
 	invalidateLayout();
 }
 
-BreakIterator* StoryText::m_graphemeIterator = NULL;
-BreakIterator* StoryText::m_wordIterator = NULL;
-BreakIterator* StoryText::m_sentenceIterator = NULL;
-
 StoryText::~StoryText()
 {
 /* Code below is not needed imho, as all connections will be disconnected automatically
@@ -1766,6 +1762,8 @@ void StoryText::fixSurrogateSelection()
 		m_selLast += 1;
 }
 
+BreakIterator* StoryText::m_graphemeIterator = NULL;
+
 BreakIterator* StoryText::getGraphemeIterator()
 {
 	UErrorCode status = U_ZERO_ERROR;
@@ -1781,6 +1779,8 @@ BreakIterator* StoryText::getGraphemeIterator()
 	return m_graphemeIterator;
 }
 
+BreakIterator* StoryText::m_wordIterator = NULL;
+
 BreakIterator* StoryText::getWordIterator()
 {
 	UErrorCode status = U_ZERO_ERROR;
@@ -1794,6 +1794,8 @@ BreakIterator* StoryText::getWordIterator()
 	}
 	return m_wordIterator;
 }
+
+BreakIterator* StoryText::m_sentenceIterator = NULL;
 
 BreakIterator* StoryText::getSentenceIterator()
 {
