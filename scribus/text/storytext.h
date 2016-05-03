@@ -149,8 +149,6 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
  	QString text(int pos, uint len) const;
  	//Get sentence at any position within it
 	QString sentence(int pos, int &posn);
-	// Get word at specific position
-	QString wordAt(int pos) const;
 
 	bool hasObject(int pos) const;
  	PageItem* object(int pos) const;
