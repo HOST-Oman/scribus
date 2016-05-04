@@ -426,6 +426,11 @@ QList<GlyphCluster> TextShaper::shape()
 			if (effects & ScStyle_UnderlineWords && !ch.isSpace())
 				run.setFlag(ScLayout_Underlined);
 
+			if (firstChar != 0 &&
+			    SpecialChars::isCJK(m_story.text(firstChar).unicode()) &&
+			    SpecialChars::isCJK(m_story.text(firstChar - 1).unicode()))
+				run.setFlag(ScLayout_ImplicitSpace);
+
 			run.setScaleH(charStyle.scaleH() / 1000.0);
 			run.setScaleV(charStyle.scaleV() / 1000.0);
 

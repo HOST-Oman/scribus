@@ -179,3 +179,31 @@ int SpecialChars::getCJKAttr(QChar c)
 	}
 	return attr;
 }
+
+bool SpecialChars::isCJK(uint ch)
+{
+	if (	(0x2E80 < ch && ch < 0x2EFF)   ||  // CJK Radicals Supplement
+		(0x3000 < ch && ch < 0x303F)   ||  // CJK Symbols and Punctuation
+		(0x3040 < ch && ch <= 0x30FF)  ||  // Hiragana, Katakana
+		(0x31C0 < ch && ch < 0x31EF)   ||  // CJK Strokes
+		(0x3200 < ch && ch < 0x32FF)   ||  // Enclosed CJK Letters and Months
+		(0x3300 < ch && ch < 0x33FF)   ||  // CJK Compatibility
+		(0x3400 < ch && ch < 0x4DBF)   ||  // CJK Unified Ideographs Extension A
+		(0x4E00 < ch && ch < 0x9FFF)   ||  // CJK Unified Ideographs
+		(0xF900 < ch && ch < 0xFAFF)   ||  // CJK Compatibility Ideographs
+		(0xFE30 < ch && ch < 0xFE4F)   ||  // CJK Compatibility Forms
+		(0x20000 < ch && ch < 0x2A6DF) ||  // CJK Unified Ideographs Extension B
+		(0x2A700 < ch && ch < 0x2B73F) ||  // CJK Unified Ideographs Extension C
+		(0x2B740 < ch && ch < 0x2B81F) ||  // CJK Unified Ideographs Extension D
+		(0x2F800 < ch && ch < 0x2FA1F) ||  // CJK Compatibility Ideographs Supplement
+		(0xFF01 < ch && ch < 0xFF0F)   ||
+		(0xFF1A < ch && ch < 0xFF20)   ||
+		(0xFF58 < ch && ch < 0xFFDC)   ||
+		(ch == 0x3000) ||
+		(ch == 0x3002) ||
+		(ch == 0x201C) ||
+		(ch == 0x201D))
+		return true;
+	else
+		return false;
+}

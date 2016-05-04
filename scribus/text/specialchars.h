@@ -75,6 +75,8 @@ public:
 			CJK_NOBREAK_AFTER = 0x0200,
 		};
 		static int getCJKAttr(QChar c);
+
+	static bool isCJK(uint ch);
 };
 
 #endif
