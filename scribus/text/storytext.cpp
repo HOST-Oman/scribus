@@ -206,7 +206,8 @@ void StoryText::moveCursorLeft(bool isGrapheme)
 		else
 			pos = it->preceding(pos);
 
-		setCursorPosition(pos);
+		if (pos != BreakIterator::DONE)
+			setCursorPosition(pos);
 	}
 	else
 	{
@@ -238,7 +239,8 @@ void StoryText::moveCursorWordLeft()
 		pos = it->preceding(pos);
 	}
 
-	setCursorPosition(pos);
+	if (pos != BreakIterator::DONE)
+		setCursorPosition(pos);
 }
 
 void StoryText::moveCursorRight(bool isGrapheme)
@@ -256,7 +258,8 @@ void StoryText::moveCursorRight(bool isGrapheme)
 		else
 			pos = it->following(pos);
 
-		setCursorPosition(pos);
+		if (pos != BreakIterator::DONE)
+			setCursorPosition(pos);
 	}
 	else
 	{
@@ -289,7 +292,8 @@ void StoryText::moveCursorWordRight()
 			pos += 1;
 	}
 
-	setCursorPosition(pos);
+	if (pos != BreakIterator::DONE)
+		setCursorPosition(pos);
 }
 
 void StoryText::clear()
