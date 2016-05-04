@@ -196,23 +196,36 @@ void LineBox::drawSelection(ScreenPainter *p, PageItem *item) const
 		{
 			if (selectionFirst < 0)
 				selectionFirst = i;
-			selectionLast = i;
+			selectionLast = i + 1;
 		}
 	}
 
 	if (selectionFirst >= 0 && selectionLast >= 0)
 	{
-		selectionLast = qMin(selectionLast + 1, lastChar());
-		qreal firstX = positionToPoint(selectionFirst, item->itemText).x1();
-		qreal lastX = positionToPoint(selectionLast, item->itemText).x1();
-		QRectF selection(firstX, 0, lastX - firstX, height());
+		qreal firstX, lastX;
+		firstX = positionToPoint(selectionFirst, item->itemText).x1() - x();
+		if (selectionLast > lastChar())
+		{
+			ParagraphStyle style = item->itemText.paragraphStyle(lastChar());
+			if (style.direction() == ParagraphStyle::RTL)
+				lastX = boxes().first()->positionToPoint(selectionLast, item->itemText).x1();
+			else
+				lastX = boxes().last()->positionToPoint(selectionLast, item->itemText).x1();
+		}
+		else
+		{
+			lastX = positionToPoint(selectionLast, item->itemText).x1() - x();
+		}
+
+		qreal selectionX = qMin(firstX, lastX);
+		qreal selectionW = qAbs(lastX - firstX);
 
 		bool s = p->selected();
-		bool sw = p->strokeWidth();
+		double sw = p->strokeWidth();
 
 		p->setSelected(true);
 		p->setStrokeWidth(0);
-		p->drawRect(selection);
+		p->drawRect(QRectF(selectionX, 0, selectionW, height()));
 
 		p->setSelected(s);
 		p->setStrokeWidth(sw);
