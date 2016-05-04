@@ -1769,6 +1769,23 @@ BreakIterator* StoryText::getSentenceIterator()
 	return m_sentenceIterator;
 }
 
+BreakIterator* StoryText::m_lineIterator = NULL;
+
+BreakIterator* StoryText::getLineIterator()
+{
+	UErrorCode status = U_ZERO_ERROR;
+	if (m_lineIterator == NULL)
+		m_lineIterator = BreakIterator::createLineInstance(Locale(), status);
+
+	if (U_FAILURE(status))
+	{
+		delete m_lineIterator;
+		m_lineIterator = NULL;
+	}
+
+	return m_lineIterator;
+}
+
 void StoryText::selectAll()
 {
 /*	StoryText* that = const_cast<StoryText *>(this);
