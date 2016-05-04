@@ -239,6 +239,7 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	static BreakIterator* getGraphemeIterator();
 	static BreakIterator* getWordIterator();
 	static BreakIterator* getSentenceIterator();
+	static BreakIterator* getLineIterator();
 
 // layout helpers
 
@@ -282,6 +283,7 @@ private:
 	static BreakIterator* m_graphemeIterator;
 	static BreakIterator* m_wordIterator;
 	static BreakIterator* m_sentenceIterator;
+	static BreakIterator* m_lineIterator;
 //	int m_firstFrameItem, m_lastFrameItem;
 //	QList<LineSpec> m_lines;
 //	bool m_validLayout;
