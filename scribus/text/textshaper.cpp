@@ -267,6 +267,8 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
 
+		// FIXME: Hack to allow soft hyphen inside ligatures, should
+		// be removed once we properly handle hyphenating ligatures.
 		if (str.at(0) == SpecialChars::SHYPHEN)
 		{
 			str = QString(SpecialChars::ZWNJ);
