@@ -4089,29 +4089,14 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 				}
 			}
 		}
-		if ((itemText.cursorPosition() > 0) && (itemText.cursorPosition() >= lastInFrame())) // I do not see how its possible, may be dead code - pm
+
+		while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 		{
-			itemText.setCursorPosition( lastInFrame() );
-//			if (itemText.flags(CPos-1) & ScLayout_SuppressSpace)
-//			{
-//				--CPos;
-				while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
-				{
-					itemText.moveCursorLeft(true);
-					if (itemText.cursorPosition() == 0)
-						break;
-				}
-//			}
+			itemText.moveCursorLeft(true);
+			if (itemText.cursorPosition() == 0)
+				break;
 		}
-		else
-		{
-			while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
-			{
-				itemText.moveCursorLeft(true);
-				if (itemText.cursorPosition() == 0)
-					break;
-			}
-		}
+
 //		if ( itemText.lengthOfSelection() > 0 )
 //			view->RefreshItem(this);
 		m_Doc->scMW()->setTBvals(this);
