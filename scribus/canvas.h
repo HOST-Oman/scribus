@@ -155,6 +155,7 @@ public:
 	QPoint canvasToLocal(QPointF p) const;
 	QPoint canvasToGlobal(QPointF p) const;
 	QRect canvasToLocal(QRectF p) const;
+	QRectF canvasToLocalF(QRectF p) const;
 	QRect canvasToGlobal(QRectF p) const;
 	FPoint localToCanvas(QPoint p) const;
 //	FPoint localToCanvas(QPointF p) const;
@@ -257,8 +258,14 @@ private:
 	void drawControlsMeasurementLine(QPainter* pp);
 	void drawControlsDrawLine(QPainter* pp);
 	void drawControlsFreehandLine(QPainter* pp);
+	void getLinkedFrames(PageItem* currItem);
 	void getClipPathForPages(FPointArray* PoLine);
 	void calculateFrameLinkPoints(PageItem* pi1, PageItem* pi2, FPoint& start, FPoint& end);
+
+	// create a potentially hidpi pixmap
+	QPixmap createPixmap(double w, double h);
+	// draw a potentially hidpi pixmap
+	void drawPixmap(QPainter &painter, double x, double y, const QPixmap &pixmap, double sx, double sy, double sw, double sh);
 		
 private:
 	ScribusDoc* m_doc;

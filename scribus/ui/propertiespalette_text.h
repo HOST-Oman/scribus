@@ -111,7 +111,7 @@ public slots:
 
 private slots:
 	void handleAlignment(int a);
-	void handleDirection(int a);
+	void handleDirection(int d);
 	void handleFirstLinePolicy(int);
 	void handleFontSize();
 	void handleLineSpacing();

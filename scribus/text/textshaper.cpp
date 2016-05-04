@@ -4,7 +4,6 @@
 #include <hb-ft.h>
 #include <hb-icu.h>
 #include <unicode/ubidi.h>
-#include <QTextBoundaryFinder>
 
 #include "scrptrun.h"
 
@@ -301,11 +300,21 @@ QList<GlyphCluster> TextShaper::shape()
 		buildText(m_text, m_textMap);
 	}
 
-	QTextBoundaryFinder lineBoundery(QTextBoundaryFinder::Line, m_text);
 
 	QList<TextRun> bidiRuns = itemizeBiDi(m_text);
 	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
 	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
+
+	BreakIterator* lineBoundery = StoryText::getLineIterator();
+	lineBoundery->setText(m_text.utf16());
+	int pos = lineBoundery->first();
+
+	QVector<int> lineBreaks;
+	while (pos != BreakIterator::DONE)
+	{
+		lineBreaks.append(pos);
+		pos = lineBoundery->next();
+	}
 
 	QList<GlyphCluster> glyphRuns;
 	foreach (const TextRun& textRun, textRuns) {
@@ -404,8 +413,7 @@ QList<GlyphCluster> TextShaper::shape()
 			if (textRun.dir == UBIDI_RTL)
 				run.setFlag(ScLayout_RightToLeft);
 
-			lineBoundery.setPosition(firstCluster);
-			if (lineBoundery.isAtBoundary())
+			if (lineBreaks.contains(firstCluster))
 				run.setFlag(ScLayout_LineBoundry);
 
 			if (SpecialChars::isExpandingSpace(ch))

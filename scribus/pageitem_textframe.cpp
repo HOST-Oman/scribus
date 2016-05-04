@@ -1533,7 +1533,8 @@ void PageItem_TextFrame::layout()
 				//par effect is cleared but is set dcCharStyleName = clear drop cap char style
 				{
 					const QString& curParent(style.hasParent() ? style.parent() : style.name());
-					charStyle.eraseCharStyle(m_Doc->charStyle(style.peCharStyleName()));
+					if (m_Doc->charStyles().contains(style.peCharStyleName()))
+						charStyle.eraseCharStyle(m_Doc->charStyle(style.peCharStyleName()));
 					charStyle.setParent(m_Doc->paragraphStyle(curParent).charStyle().name());
 					itemText.setCharStyle(a, 1,charStyle);
 				}
@@ -2527,9 +2528,17 @@ void PageItem_TextFrame::layout()
 				{
 					if (current.breakIndex >= 0)
 					{
+						// go back to last break position
 						i = current.breakIndex;
 						currentIndex = i - current.line.firstRun;
 						a = current.glyphs[currentIndex].firstChar();
+						style = itemText.paragraphStyle(a);
+						const_cast<ScFace&>(font) = itemText.charStyle(a).font();
+						if (style.lineSpacingMode() == ParagraphStyle::AutomaticLineSpacing)
+							style.setLineSpacing(font.height(hlcsize10) * autoLS);
+						else if (style.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
+							style.setLineSpacing(m_Doc->guidesPrefs().valueBaselineGrid);
+						charStyle = itemText.charStyle(a);
 					}
 					assert( i >= 0 );
 					assert( i < glyphRuns.length() );
@@ -2537,13 +2546,6 @@ void PageItem_TextFrame::layout()
 					current.isEmpty = (i - current.line.firstRun + 1) == 0;
 					if (current.addLine)
 					{
-						// go back to last break position
-						style = itemText.paragraphStyle(a);
-						if (style.lineSpacingMode() == ParagraphStyle::AutomaticLineSpacing)
-							style.setLineSpacing(font.height(hlcsize10) * autoLS);
-						else if (style.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing)
-							style.setLineSpacing(m_Doc->guidesPrefs().valueBaselineGrid);
-
 						if (itemText.text(a) == ' ') {
 							current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
 						}
@@ -2564,7 +2566,7 @@ void PageItem_TextFrame::layout()
 							current.glyphs[currentIndex].setFlag(ScLayout_SoftHyphenVisible);
 							GlyphLayout hyphen;
 							hyphen.glyph = font.char2CMap(QChar('-'));
-							hyphen.xadvance = font.glyphBBox(hyphen.glyph, itemText.charStyle(a).fontSize() / 10.0).width;
+							hyphen.xadvance = font.glyphBBox(hyphen.glyph, charStyle.fontSize() / 10.0).width;
 							hyphWidth = hyphen.xadvance * scaleH;
 							current.glyphs[currentIndex].append(hyphen);
 						}
@@ -4087,29 +4089,14 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 				}
 			}
 		}
-		if ((itemText.cursorPosition() > 0) && (itemText.cursorPosition() >= lastInFrame())) // I do not see how its possible, may be dead code - pm
+
+		while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 		{
-			itemText.setCursorPosition( lastInFrame() );
-//			if (itemText.flags(CPos-1) & ScLayout_SuppressSpace)
-//			{
-//				--CPos;
-				while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
-				{
-					itemText.moveCursorLeft(true);
-					if (itemText.cursorPosition() == 0)
-						break;
-				}
-//			}
+			itemText.moveCursorLeft(true);
+			if (itemText.cursorPosition() == 0)
+				break;
 		}
-		else
-		{
-			while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
-			{
-				itemText.moveCursorLeft(true);
-				if (itemText.cursorPosition() == 0)
-					break;
-			}
-		}
+
 //		if ( itemText.lengthOfSelection() > 0 )
 //			view->RefreshItem(this);
 		m_Doc->scMW()->setTBvals(this);

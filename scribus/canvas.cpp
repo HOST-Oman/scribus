@@ -204,6 +204,14 @@ QRect Canvas::canvasToLocal(QRectF p) const
 				  qRound(p.height() * m_viewMode.scale));
 }
 
+QRectF Canvas::canvasToLocalF(QRectF p) const
+{
+	return 	QRectF((p.x() - m_doc->minCanvasCoordinate.x()) * m_viewMode.scale,
+				  (p.y() - m_doc->minCanvasCoordinate.y()) * m_viewMode.scale,
+				  p.width() * m_viewMode.scale,
+				  p.height() * m_viewMode.scale);
+}
+
 
 QPoint Canvas::canvasToGlobal(FPoint p) const
 {
@@ -663,7 +671,7 @@ bool Canvas::adjustBuffer()
 	{
 //		qDebug() << "adjust buffer: invalid buffer, viewport" << viewport;
 		m_bufferRect = viewport;
-		m_buffer = QPixmap(m_bufferRect.width(), m_bufferRect.height());
+		m_buffer = createPixmap(m_bufferRect.width(), m_bufferRect.height());
 		fillBuffer(&m_buffer, m_bufferRect.topLeft(), m_bufferRect);
 		ret = true;
 #if DRAW_DEBUG_LINES
@@ -691,8 +699,7 @@ bool Canvas::adjustBuffer()
 		{
 //			qDebug() << "adjust buffer: fresh buffer" << m_bufferRect << "-->" << newRect;
 			m_bufferRect = newRect;
-// 			m_buffer = QImage(m_bufferRect.width(), m_bufferRect.height(), QImage::Format_ARGB32);
-			m_buffer = QPixmap(m_bufferRect.width(), m_bufferRect.height());
+			m_buffer = createPixmap(m_bufferRect.width(), m_bufferRect.height());
 			fillBuffer(&m_buffer, m_bufferRect.topLeft(), m_bufferRect);
 			ret = true;
 #if DRAW_DEBUG_LINES
@@ -706,8 +713,7 @@ bool Canvas::adjustBuffer()
 		else
 		{
 			// copy buffer:
-// 			QImage newBuffer(newRect.width(), newRect.height(), QImage::Format_ARGB32);
-			QPixmap newBuffer(newRect.width(), newRect.height());
+			QPixmap newBuffer = createPixmap(newRect.width(), newRect.height());
 			QPainter p(&newBuffer);
 			int xpos = m_bufferRect.x() - newRect.x();
 			int ypos = m_bufferRect.y() - newRect.y();
@@ -735,8 +741,8 @@ bool Canvas::adjustBuffer()
 			{
 				height = newRect.height() - ypos;
 			}
-// 			p.drawImage(xpos, ypos, m_buffer, x, y,  width + 1, height + 1); // FIXME: == params drawPixmap?
-			p.drawPixmap(xpos, ypos, m_buffer, x, y,  width + 1, height + 1);
+
+			drawPixmap(p, xpos, ypos, m_buffer, x, y, width + 1, height + 1);
 #if DRAW_DEBUG_LINES
 			p.setPen(Qt::blue);
 			p.drawLine(xpos, ypos+height/2, xpos+width/2, ypos);
@@ -818,11 +824,7 @@ void Canvas::paintEvent ( QPaintEvent * p )
 #endif
 	// fill buffer if necessary
 	bool bufferFilled = adjustBuffer();
-	// It is ugly, but until we figure out why drawing directly on the 
-	// widget is so slow, it saves us a Cray! - pm
-	QPixmap tmpImg(p->rect().size());
-	QPainter qp(&tmpImg);
-	qp.translate(-p->rect().x(), -p->rect().y());
+	QPainter qp(this);
 	switch (m_renderMode)
 	{
 		case RENDER_NORMAL:
@@ -850,8 +852,7 @@ void Canvas::paintEvent ( QPaintEvent * p )
 			int hV = p->rect().height();
 			if (hV > 0 && wV > 0)
 			{
-// 				qp.drawImage(p->rect().x(), p->rect().y(), m_buffer, xV, yV,  wV, hV);
-				qp.drawPixmap(p->rect().x(), p->rect().y(), m_buffer, xV, yV,  wV, hV);
+				drawPixmap(qp, p->rect().x(), p->rect().y(), m_buffer, xV, yV,  wV, hV);
 #if DRAW_DEBUG_LINES
 //				qDebug() << "normal rendering" << xV << yV << wV << hV << "at" << p->rect().x() << p->rect().y();
 				qp.setPen(Qt::blue);
@@ -904,9 +905,7 @@ void Canvas::paintEvent ( QPaintEvent * p )
 #endif
 				if (hV > 0 && wV > 0)
 				{
-// 					qp.drawImage(p->rect().x(), p->rect().y(), m_buffer, xV, yV,  wV, hV);
-					
-					qp.drawPixmap(p->rect().x(), p->rect().y(), m_buffer, xV, yV,  wV, hV);
+					drawPixmap(qp, p->rect().x(), p->rect().y(), m_buffer, xV, yV,  wV, hV);
 	#if DRAW_DEBUG_LINES
 //					qDebug() << "buffered rendering" << xV << yV << wV << hV << "at" << p->rect().x() << p->rect().y();
 					qp.setPen(Qt::green);
@@ -948,8 +947,6 @@ void Canvas::paintEvent ( QPaintEvent * p )
 	// does mode specific rendering, currently selection in legacymode and nodes in nodeedit
 	m_view->m_canvasMode->drawControls(&qp);
 	m_view->m_canvasMode->drawSnapLine(&qp);
-	QPainter tp(this);
-	tp.drawPixmap(p->rect(), tmpImg, tmpImg.rect());
 #ifdef SHOW_ME_WHAT_YOU_GET_IN_D_CANVA
 	t6 = t.elapsed();
 	qDebug()<<dmode<<t1<<t2<<t3<<t4<<t5<<t6<<"-" <<t1+t2+t3+t4+t5+t6;
@@ -969,7 +966,8 @@ void Canvas::drawContents(QPainter *psx, int clipx, int clipy, int clipw, int cl
 // 	qDebug() << "Canvas::drawContents" << clipx << clipy << clipw << cliph<<m_viewMode.forceRedraw<<m_viewMode.operItemSelecting;
 	uint docPagesCount=m_doc->Pages->count();
 	ScPainter *painter=0;
-	QImage img = QImage(clipw, cliph, QImage::Format_ARGB32_Premultiplied);
+	QImage img = QImage(clipw * devicePixelRatio(), cliph * devicePixelRatio(), QImage::Format_ARGB32_Premultiplied);
+	img.setDevicePixelRatio(devicePixelRatio());
 	painter = new ScPainter(&img, img.width(), img.height(), 1.0, 0);
 	painter->clear(palette().color(QPalette::Window));
 	painter->newPath();
@@ -1529,8 +1527,8 @@ void Canvas::DrawPageItems(ScPainter *painter, ScLayer& layer, QRect clip, bool 
 				currItem->DrawObj(painter, cullingArea);
 				currItem->DrawObj_Decoration(painter);
 			}
-//			currItem->Redrawn = true;
-			if ((currItem->asTextFrame()) && ((currItem->nextInChain() != 0) || (currItem->prevInChain() != 0)))
+			getLinkedFrames(currItem);
+/*			if ((currItem->asTextFrame()) && ((currItem->nextInChain() != 0) || (currItem->prevInChain() != 0)))
 			{
 				PageItem *nextItem = currItem;
 				while (nextItem != 0)
@@ -1542,7 +1540,7 @@ void Canvas::DrawPageItems(ScPainter *painter, ScLayer& layer, QRect clip, bool 
 				}
 				if (!m_viewMode.linkedFramesToShow.contains(nextItem))
 					m_viewMode.linkedFramesToShow.append(nextItem);
-			}
+			}*/
 			/* FIXME:av -
 			what to fix exactly? - pm
 			*/
@@ -1692,6 +1690,32 @@ void Canvas::drawBackgroundPageOutlines(ScPainter* painter, int clipx, int clipy
 				painter->drawRect(x, y, w, h);
 			painter->setAntialiasing(true);
 		}
+	}
+}
+
+void Canvas::getLinkedFrames(PageItem* currItem)
+{
+	if (currItem->isGroup())
+	{
+		for (int em = 0; em < currItem->groupItemList.count(); ++em)
+		{
+			PageItem* embedded = currItem->groupItemList.at(em);
+			getLinkedFrames(embedded);
+		}
+
+	}
+	else if ((currItem->asTextFrame()) && ((currItem->nextInChain() != 0) || (currItem->prevInChain() != 0)))
+	{
+		PageItem *nextItem = currItem;
+		while (nextItem != 0)
+		{
+			if (nextItem->prevInChain() != 0)
+				nextItem = nextItem->prevInChain();
+			else
+				break;
+		}
+		if (!m_viewMode.linkedFramesToShow.contains(nextItem))
+			m_viewMode.linkedFramesToShow.append(nextItem);
 	}
 }
 
@@ -2289,10 +2313,26 @@ void Canvas::calculateFrameLinkPoints(PageItem *pi1, PageItem *pi2, FPoint & sta
 	//Calculate the link points of the frames
 	double x11 = pi1->xPos();
 	double y11 = pi1->yPos();
-	double x12 = x11+pi1->width();
-	double y12 = y11+pi1->height();
-	double x1mid = x11+(x12-x11)/2;
-	double y1mid = y11+(y12-y11)/2;
+	double x12 = x11 + pi1->width();
+	double y12 = y11 + pi1->height();
+	if (pi1->isGroupChild())
+	{
+		QTransform itemTrans = pi1->getTransform();
+		QPointF itPos = itemTrans.map(QPointF(0, 0));
+		x11 = itPos.x();
+		y11 = itPos.y();
+		double grScXi = 1.0;
+		double grScYi = 1.0;
+		getScaleFromMatrix(itemTrans, grScXi, grScYi);
+		if (itemTrans.m11() < 0)
+			x11 -= pi1->width() * grScXi;
+		if (itemTrans.m22() < 0)
+			y11 -= pi1->height() * grScYi;
+		x12 = x11 + pi1->width() * grScXi;
+		y12 = y11 + pi1->height() * grScYi;
+	}
+	double x1mid = x11 + (x12 - x11) / 2.0;
+	double y1mid = y11 + (y12 - y11) / 2.0;
 					
 	if (pi1->rotation()!=0.000)
 	{
@@ -2312,10 +2352,27 @@ void Canvas::calculateFrameLinkPoints(PageItem *pi1, PageItem *pi2, FPoint & sta
 	a1 = a2 = b1 = b2 = 0;
 	double x21 = pi2->xPos();
 	double y21 = pi2->yPos();
-	double x22 = x21+pi2->width();
-	double y22 = y21+pi2->height();
-	double x2mid = x21 + pi2->width()/2;
-	double y2mid = y21 + pi2->height()/2;
+	double x22 = x21 + pi2->width();
+	double y22 = y21 + pi2->height();
+	if (pi2->isGroupChild())
+	{
+		QTransform itemTrans = pi2->getTransform();
+		QPointF itPos = itemTrans.map(QPointF(0, 0));
+		x21 = itPos.x();
+		y21 = itPos.y();
+		double grScXi = 1.0;
+		double grScYi = 1.0;
+		getScaleFromMatrix(itemTrans, grScXi, grScYi);
+		if (itemTrans.m11() < 0)
+			x21 -= pi2->width() * grScXi;
+		if (itemTrans.m22() < 0)
+			y11 -= pi2->height() * grScYi;
+		x22 = x21 + pi2->width() * grScXi;
+		y22 = y21 + pi2->height() * grScYi;
+	}
+
+	double x2mid = x21 + (x22 - x21) / 2.0;
+	double y2mid = y21 + (y22 - y21) / 2.0;
 					
 	if (pi2->rotation()!=0.000)
 	{
@@ -2350,6 +2407,22 @@ void Canvas::calculateFrameLinkPoints(PageItem *pi1, PageItem *pi2, FPoint & sta
 	start.transform(pi1->xPos(), pi1->yPos(), pi1->rotation(), 1, 1, false);
 	end.setXY(a2-pi2->xPos(), b2-pi2->yPos());
 	end.transform(pi2->xPos(), pi2->yPos(), pi2->rotation(), 1, 1, false);
+}
+
+QPixmap Canvas::createPixmap(double w, double h)
+{
+	QPixmap p(w * devicePixelRatio(), h * devicePixelRatio());
+	p.setDevicePixelRatio(devicePixelRatio());
+	return p;
+}
+
+void Canvas::drawPixmap(QPainter& painter, double x, double y, const QPixmap& pixmap, double sx, double sy, double sw, double sh)
+{
+	sx *= devicePixelRatio();
+	sy *= devicePixelRatio();
+	sw *= devicePixelRatio();
+	sh *= devicePixelRatio();
+	painter.drawPixmap(x, y, pixmap, sx, sy, sw, sh);
 }
 
 void Canvas::displayXYHUD(QPoint m)

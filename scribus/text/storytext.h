@@ -29,6 +29,7 @@ pageitem.cpp  -  description
 #include <QString>
 #include <QList>
 #include <cassert>
+#include "unicode/brkiter.h"
 
 #include "marks.h"
 //#include "text/paragraphlayout.h"
@@ -148,8 +149,6 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
  	QString text(int pos, uint len) const;
  	//Get sentence at any position within it
 	QString sentence(int pos, int &posn);
-	// Get word at specific position
-	QString wordAt(int pos) const;
 
 	bool hasObject(int pos) const;
  	PageItem* object(int pos) const;
@@ -236,6 +235,11 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	int endOfSelection() const;
 	int lengthOfSelection() const;
 
+	// break iterators
+	static BreakIterator* getGraphemeIterator();
+	static BreakIterator* getWordIterator();
+	static BreakIterator* getSentenceIterator();
+	static BreakIterator* getLineIterator();
 
 // layout helpers
 
@@ -273,10 +277,13 @@ private:
 	
 //	LineSpec line(uint i) const { return m_lines[i]; }
 	
-
 private:
 	ScribusDoc * m_doc; 
 	int m_selFirst, m_selLast;
+	static BreakIterator* m_graphemeIterator;
+	static BreakIterator* m_wordIterator;
+	static BreakIterator* m_sentenceIterator;
+	static BreakIterator* m_lineIterator;
 //	int m_firstFrameItem, m_lastFrameItem;
 //	QList<LineSpec> m_lines;
 //	bool m_validLayout;

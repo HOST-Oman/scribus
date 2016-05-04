@@ -549,7 +549,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 
 	setupLineSpacingSpinbox(newCurrent.lineSpacingMode(), newCurrent.lineSpacing());
 	lineSpacingModeCombo->setCurrentIndex(newCurrent.lineSpacingMode());
-	textAlignment->setStyle(newCurrent.alignment());
+	textAlignment->setStyle(newCurrent.alignment(), newCurrent.direction());
 	textDirection->setStyle(newCurrent.direction());
 
 	m_haveItem = tmp;
@@ -581,7 +581,7 @@ void PropertiesPalette_Text::showAlignment(int e)
 	bool tmp = m_haveItem;
 	m_haveItem = false;
 	textAlignment->setEnabled(true);
-	textAlignment->setStyle(e);
+	textAlignment->setStyle(e, textDirection->getStyle());
 	m_haveItem = tmp;
 }
 
@@ -643,24 +643,23 @@ void PropertiesPalette_Text::handleAlignment(int a)
 		pathTextWidgets->handleSelectionChanged();
 }
 
-void PropertiesPalette_Text::handleDirection(int a)
+void PropertiesPalette_Text::handleDirection(int d)
 {
 	if (!m_haveDoc || !m_haveItem || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	Selection tempSelection(this, false);
 	tempSelection.addItem(m_item, true);
-	m_doc->itemSelection_SetDirection(a, &tempSelection);
-	//set alignment to RTL if direction is RTL
-	if (a == 0 && textAlignment->selectedId() == 2)
+	m_doc->itemSelection_SetDirection(d, &tempSelection);
+	// If current text alignment is left or right, change it to match direction
+	if (d == ParagraphStyle::RTL && textAlignment->selectedId() == ParagraphStyle::Leftaligned)
 	{
-		m_doc->itemSelection_SetAlignment(0, &tempSelection);
-		textAlignment->setTypeStyle(0);
+		m_doc->itemSelection_SetAlignment(ParagraphStyle::Rightaligned, &tempSelection);
+		textAlignment->setTypeStyle(ParagraphStyle::Rightaligned);
 	}
-	//set alignment to LTR if direction is LTR
-	if (a == 1 && textAlignment->selectedId() == 0)
+	else if (d == ParagraphStyle::LTR && textAlignment->selectedId() == ParagraphStyle::Rightaligned)
 	{
-		m_doc->itemSelection_SetAlignment(2, &tempSelection);
-		textAlignment->setTypeStyle(2);
+		m_doc->itemSelection_SetAlignment(ParagraphStyle::Leftaligned, &tempSelection);
+		textAlignment->setTypeStyle(ParagraphStyle::Leftaligned);
 	}
 }
 
