@@ -267,6 +267,10 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		if (str.isEmpty())
 			str = SpecialChars::ZWNBSPACE;
 
+		if (str.at(0) == SpecialChars::SHYPHEN)
+		{
+			str = QString(SpecialChars::ZWNJ);
+		}
 		const CharStyle &style = m_story.charStyle(i);
 		int effects = style.effects() & ScStyle_UserStyles;
 		if ((effects & ScStyle_AllCaps) || (effects & ScStyle_SmallCaps))
@@ -402,6 +406,10 @@ QList<GlyphCluster> TextShaper::shape()
 
 			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
 
+			run.clearFlag(ScLayout_HyphenationPossible);
+			if (m_story.hasFlag(lastChar, ScLayout_HyphenationPossible))
+				run.setFlag(ScLayout_HyphenationPossible);
+			
 			if (textRun.dir == UBIDI_RTL)
 				run.setFlag(ScLayout_RightToLeft);
 
