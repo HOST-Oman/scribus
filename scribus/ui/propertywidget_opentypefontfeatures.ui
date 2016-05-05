@@ -97,7 +97,7 @@
       <string>Normal capitals</string>
      </property>
      <property name="text">
-      <string>Defualt Capitals</string>
+      <string>Default Capitals</string>
      </property>
      <property name="checked">
       <bool>true</bool>
@@ -126,7 +126,7 @@
       <string>Small capitals from capitals (c2sc)</string>
      </property>
      <property name="text">
-      <string>Small Capitals From Capitals</string>
+      <string>Small Capitals from Capitals</string>
      </property>
      <attribute name="buttonGroup">
       <string notr="true">CapitalsGroup</string>
@@ -152,7 +152,7 @@
       <string>Petite capitals from capitals (c2pc)</string>
      </property>
      <property name="text">
-      <string>Petite Capitals From Capitals</string>
+      <string>Petite Capitals from Capitals</string>
      </property>
      <attribute name="buttonGroup">
       <string notr="true">CapitalsGroup</string>
@@ -270,7 +270,7 @@
     </widget>
    </item>
    <item>
-    <widget class="QRadioButton" name="ProporionalRadio">
+    <widget class="QRadioButton" name="ProportionalRadio">
      <property name="enabled">
       <bool>true</bool>
      </property>
@@ -278,7 +278,7 @@
       <string>Proportional Figures (pnum)</string>
      </property>
      <property name="text">
-      <string>Proporional</string>
+      <string>Proportional</string>
      </property>
      <attribute name="buttonGroup">
       <string notr="true">NumeralWidthGroup</string>
@@ -372,7 +372,7 @@
       <string>Normal position</string>
      </property>
      <property name="text">
-      <string>Defualt Position</string>
+      <string>Default Position</string>
      </property>
      <property name="checked">
       <bool>true</bool>

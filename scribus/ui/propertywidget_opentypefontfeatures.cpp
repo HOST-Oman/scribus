@@ -60,7 +60,7 @@ void PropertyWidget_OpenTypeFontFeatures::languageChange()
 	TiltingRadio->setChecked(false);
 	LininRadio->setChecked(false);
 	OldStyleRadio->setChecked(false);
-	ProporionalRadio->setChecked(false);
+	ProportionalRadio->setChecked(false);
 	TabularRadio->setChecked(false);
 	DiagonalRadio->setChecked(false);
 	StackedRadio->setChecked(false);
@@ -126,7 +126,7 @@ void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
 		else if (fontFeatures[i] == "+onum")
 			OldStyleRadio->setChecked(true);
 		else if (fontFeatures[i] == "+pnum")
-			ProporionalRadio->setChecked(true);
+			ProportionalRadio->setChecked(true);
 		else if (fontFeatures[i] == "+tnum")
 			TabularRadio->setChecked(true);
 		else if (fontFeatures[i] == "+frac")
@@ -221,7 +221,7 @@ void PropertyWidget_OpenTypeFontFeatures::handlefontfeatures()
 		font_feature << "+lnum";
 	if (OldStyleRadio->isChecked())
 		font_feature << "+onum";
-	if (ProporionalRadio->isChecked())
+	if (ProportionalRadio->isChecked())
 		font_feature << "+pnum";
 	if (TabularRadio->isChecked())
 		font_feature << "+tnum";
@@ -355,7 +355,7 @@ void PropertyWidget_OpenTypeFontFeatures::connectSignals()
 	connect(LininRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(OldStyleRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(DefaultWidthRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
-	connect(ProporionalRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	connect(ProportionalRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(TabularRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(DefaultFractionsRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(DiagonalRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
@@ -404,7 +404,7 @@ void PropertyWidget_OpenTypeFontFeatures::disconnectSignals()
 	disconnect(LininRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(OldStyleRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(DefaultWidthRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
-	disconnect(ProporionalRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
+	disconnect(ProportionalRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(TabularRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(DefaultFractionsRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(DiagonalRadio, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
