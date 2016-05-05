@@ -1607,10 +1607,6 @@ void PageItem_TextFrame::layout()
 			{
 //				DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
 
-				// FIXME : we should ensure that fonts are loaded before calls to layout()
-				// ScFace::realCharHeight()/Ascent() ensure font is loaded thanks to an indirect call to char2CMap()
-				// ScFace::ascent() can be called safely afterwards
-
 				//text height, width, ascent and descent should be calculated for whole text provided by ScText in current position
 				//and that may be more than one char (variable text for example)
 				double realCharHeight = 0.0, realCharAscent = 0.0;
