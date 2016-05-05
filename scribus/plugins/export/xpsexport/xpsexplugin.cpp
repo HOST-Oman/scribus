@@ -837,9 +837,10 @@ public:
 		glyph.setAttribute("OriginX", m_xps->FToStr(x() * m_xps->conversionFactor));
 		glyph.setAttribute("OriginY", m_xps->FToStr(y() * m_xps->conversionFactor));
 		glyph.setAttribute("Indices", QString("%1,%2").arg(gl.glyph).arg((gl.xadvance * m_xps->conversionFactor) / size * 100));
+		// FIXME: this does not work for complex scripts
 		for (int a = 32; a < 65536; a++)
 		{
-			if (gl.glyph == font().char2CMap(QChar(a)))
+			if (gl.glyph == font().char2CMap(a))
 			{
 				glyph.setAttribute("UnicodeString", QChar(a));
 				break;

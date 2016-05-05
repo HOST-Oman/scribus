@@ -2016,9 +2016,9 @@ PdfFont PDFLibCore::PDF_EncodeSimpleFont(const QByteArray& fontName, ScFace& fac
 	PdfId fontWidthsForm = writer.newObject();
 	writer.startObj(fontWidthsForm);
 	PutDoc("[ 0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 0 0 0  0 0 ");
-	for (int ww = 32; ww < 256; ++ww)
+	for (uint ww = 32; ww < 256; ++ww)
 	{
-		uint glyph = face.char2CMap(QChar(ww));
+		uint glyph = face.char2CMap(ww);
 		if (gl.contains(glyph))
 			PutDoc(Pdf::toPdf(static_cast<int>(face.glyphWidth(glyph)* 1000))+" ");
 		else

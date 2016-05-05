@@ -46,7 +46,7 @@ ScreenPainter::~ScreenPainter()
 void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 {
 	bool showControls = gl.glyph == 0 || (m_item->doc()->guidesPrefs().showControls &&
-			    (gl.glyph == font().char2CMap(QChar(' ')) || gl.glyph >= ScFace::CONTROL_GLYPHS));
+			    (gl.glyph == font().char2CMap(' ') || gl.glyph >= ScFace::CONTROL_GLYPHS));
 #if CAIRO_HAS_FC_FONT
 	if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0 && !showControls)
 	{

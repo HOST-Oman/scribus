@@ -2111,7 +2111,7 @@ void PageItem_TextFrame::layout()
 						{
 							current.glyphs[currentIndex].setFlag(ScLayout_TabLeaders);
 							GlyphLayout tglyph;
-							tglyph.glyph	= font.char2CMap(tabs.fillChar);
+							tglyph.glyph	= font.char2CMap(tabs.fillChar.unicode());
 							tglyph.scaleV   = tglyph.scaleH = chs / charStyle.fontSize();
 							tglyph.xadvance = 0;
 							current.glyphs[currentIndex].append(tglyph);
