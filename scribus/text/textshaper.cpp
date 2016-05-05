@@ -302,21 +302,16 @@ QList<GlyphCluster> TextShaper::shape()
 		buildText(m_text, m_textMap);
 	}
 
-
 	QList<TextRun> bidiRuns = itemizeBiDi(m_text);
 	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
 	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
 
-	BreakIterator* lineBoundery = StoryText::getLineIterator();
-	lineBoundery->setText(m_text.utf16());
-	int pos = lineBoundery->first();
+	BreakIterator* bi = StoryText::getLineIterator();
+	bi->setText(m_text.utf16());
 
-	QVector<int> lineBreaks;
-	while (pos != BreakIterator::DONE)
-	{
+	QVector<int32_t> lineBreaks;
+	for (int32_t pos = bi->first(); pos != BreakIterator::DONE; pos = bi->next())
 		lineBreaks.append(pos);
-		pos = lineBoundery->next();
-	}
 
 	QList<GlyphCluster> glyphRuns;
 	foreach (const TextRun& textRun, textRuns) {
