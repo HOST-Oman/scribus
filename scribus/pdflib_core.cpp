@@ -2307,33 +2307,6 @@ void PDFLibCore::PDF_Begin_WriteUsedFonts(SCFonts &AllFonts, const QMap<QString,
 		QByteArray fontName = QByteArray("Fo") + Pdf::toPdf(a);
 		
 		QMap<uint, FPointArray> usedGlyphs = it.value();
-		
-		// Check for control glyphs
-		QList<uint> glyphIDs = usedGlyphs.keys();
-		for (int i = 0; i < glyphIDs.count(); ++i)
-		{
-			uint glyph = glyphIDs.at(i);
-			if (glyph < ScFace::CONTROL_GLYPHS)
-				continue;
-			FPointArray glyphPath = usedGlyphs[glyph];
-
-			uint realGlyph = 0;
-			if (glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBSPACE.unicode()) ||
-				glyph == (ScFace::CONTROL_GLYPHS + 32))
-			{
-				realGlyph = face.char2CMap(QChar(' '));
-			}
-			else if (glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBHYPHEN.unicode()))
-			{
-				realGlyph = face.hyphenGlyph();
-			}
-
-			usedGlyphs.remove(glyph);
-			if (realGlyph <= 0 || realGlyph >= ScFace::CONTROL_GLYPHS)
-				continue;
-			usedGlyphs.insert(glyph, glyphPath);
-		}
-
 		if (usedGlyphs.count() <= 0)
 			continue;
 		
