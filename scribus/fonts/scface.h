@@ -385,15 +385,6 @@ public:
 	/// deprecated, see glyphBBox()
 	qreal realCharWidth(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch),sz).width; }
 
-	/// deprecated, see glyphBBox()
-	qreal realCharHeight(QChar ch, qreal sz=1.0) const { GlyphMetrics gm=glyphBBox(char2CMap(ch),sz); return gm.ascent + gm.descent; }
-
-	/// deprecated, see glyphBBox()
-	qreal realCharAscent(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch),sz).ascent; }
-
-	/// deprecated, see glyphBBox()
-	qreal realCharDescent(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch),sz).descent; }
-
 private:
 
 	friend class SCFonts;
