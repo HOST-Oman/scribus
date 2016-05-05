@@ -153,7 +153,7 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 		}
 		else if (gid == SpecialChars::NBHYPHEN.unicode())
 		{
-			outline = font().glyphOutline(font().char2CMap(QChar('-')), fontSize());
+			outline = font().glyphOutline(font().hyphenGlyph(), fontSize());
 			chma4.translate(0, -fontSize() * gl.scaleV);
 		}
 		else if (gid == SpecialChars::SHYPHEN.unicode())

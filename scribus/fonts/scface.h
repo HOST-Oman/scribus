@@ -385,6 +385,8 @@ public:
 	/// deprecated, see glyphBBox()
 	qreal realCharWidth(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch),sz).width; }
 
+	gid_type hyphenGlyph() const;
+
 private:
 
 	friend class SCFonts;

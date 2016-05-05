@@ -414,9 +414,18 @@ ScFace::gid_type ScFace::emulateGlyph(uint u) const
 	else if (ch == SpecialChars::NBSPACE)
 		return  m_m->char2CMap(' ');
 	else if(ch == SpecialChars::NBHYPHEN)
-		return  m_m->char2CMap('-');
+		return hyphenGlyph();
 	else
 		return 0;
+}
+
+ScFace::gid_type ScFace::hyphenGlyph() const
+{
+	// Try the typographic hyphen first, then the hyphen-minus
+	gid_type hyphen = m_m->char2CMap(0x2010);
+	if (hyphen == 0)
+		hyphen = m_m->char2CMap('-');
+	return hyphen;
 }
 
 

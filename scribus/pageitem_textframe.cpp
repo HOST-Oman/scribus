@@ -2174,7 +2174,7 @@ void PageItem_TextFrame::layout()
 			double hyphWidth = 0.0;
 			bool inOverflow = false;
 			if (current.glyphs[currentIndex].hasFlag(ScLayout_HyphenationPossible) || itemText.text(a) == SpecialChars::SHYPHEN)
-				hyphWidth = font.realCharWidth('-', hlcsize10) * (charStyle.scaleH() / 1000.0);
+				hyphWidth = font.glyphBBox(font.hyphenGlyph(), hlcsize10).width * (charStyle.scaleH() / 1000.0);
 			if ((current.isEndOfLine(style.rightMargin() + hyphWidth)) || current.isEndOfCol(realDesc) || SpecialChars::isBreak(itemText.text(a), Cols > 1) || (current.xPos - current.maxShrink + hyphWidth) >= current.mustLineEnd)
 			{
 				//end of row reached - right column, end of column, break char or line must end
@@ -2537,7 +2537,7 @@ void PageItem_TextFrame::layout()
 								current.hyphenCount++;
 							current.glyphs[currentIndex].setFlag(ScLayout_SoftHyphenVisible);
 							GlyphLayout hyphen;
-							hyphen.glyph = font.char2CMap(QChar('-'));
+							hyphen.glyph = font.hyphenGlyph();
 							hyphen.xadvance = font.glyphBBox(hyphen.glyph, charStyle.fontSize() / 10.0).width;
 							hyphWidth = hyphen.xadvance * scaleH;
 							current.glyphs[currentIndex].append(hyphen);

@@ -2325,7 +2325,7 @@ void PDFLibCore::PDF_Begin_WriteUsedFonts(SCFonts &AllFonts, const QMap<QString,
 			}
 			else if (glyph == (ScFace::CONTROL_GLYPHS + SpecialChars::NBHYPHEN.unicode()))
 			{
-				realGlyph = face.char2CMap(QChar('-'));
+				realGlyph = face.hyphenGlyph();
 			}
 
 			usedGlyphs.remove(glyph);
