@@ -47,11 +47,11 @@ private:
 		QStringList features;
 	};
 
-	void buildText(QString &text, QMap<int, int> &textMap);
-	QList<TextRun> itemizeBiDi(const QString &text);
+	void buildText();
+	QList<TextRun> itemizeBiDi();
 	QList<FeaturesRun> itemizeFeatures(const TextRun &runs);
-	QList<TextRun> itemizeScripts(const QString &text, const QList<TextRun> &runs);
-	QList<TextRun> itemizeStyles(const QMap<int, int> &textMap, const QList<TextRun> &runs);
+	QList<TextRun> itemizeScripts(const QList<TextRun> &runs);
+	QList<TextRun> itemizeStyles(const QList<TextRun> &runs);
 
 	PageItem *m_item;
 	StoryText &m_story;

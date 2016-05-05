@@ -37,7 +37,7 @@ TextShaper::TextShaper(StoryText &story, int first)
 	}
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeBiDi(const QString &text)
+QList<TextShaper::TextRun> TextShaper::itemizeBiDi()
 {
 	QList<TextRun> textRuns;
 	UBiDi *obj = ubidi_open();
@@ -48,7 +48,7 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi(const QString &text)
 	if (style.direction() == ParagraphStyle::RTL)
 		parLevel = UBIDI_RTL;
 
-	ubidi_setPara(obj, text.utf16(), text.length(), parLevel, NULL, &err);
+	ubidi_setPara(obj, m_text.utf16(), m_text.length(), parLevel, NULL, &err);
 	if (U_SUCCESS(err))
 	{
 		int32_t count = ubidi_countRuns(obj, &err);
@@ -68,10 +68,10 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi(const QString &text)
 	return textRuns;
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeScripts(const QString &text, const QList<TextRun> &runs)
+QList<TextShaper::TextRun> TextShaper::itemizeScripts(const QList<TextRun> &runs)
 {
 	QList<TextRun> newRuns;
-	ScriptRun scriptrun(text.utf16(), text.length());
+	ScriptRun scriptrun(m_text.utf16(), m_text.length());
 
 	foreach (TextRun run, runs)
 	{
@@ -130,7 +130,7 @@ QList<TextShaper::FeaturesRun> TextShaper::itemizeFeatures(const TextRun &run)
 	return newRuns;
 }
 
-QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QMap<int, int> &textMap, const QList<TextRun> &runs)
+QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 {
 	QList<TextRun> newRuns;
 
@@ -143,8 +143,8 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QMap<int, int> &textM
 			int end = start;
 			while (end < run.start + run.len)
 			{
-				const CharStyle &startStyle = m_story.charStyle(textMap.value(start));
-				const CharStyle &endStyle = m_story.charStyle(textMap.value(end));
+				const CharStyle &startStyle = m_story.charStyle(m_textMap.value(start));
+				const CharStyle &endStyle = m_story.charStyle(m_textMap.value(end));
 				if (!startStyle.equivForShaping(endStyle))
 					break;
 				end++;
@@ -162,7 +162,7 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QMap<int, int> &textM
 	return newRuns;
 }
 
-void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
+void TextShaper::buildText()
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
@@ -288,9 +288,9 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 		}
 
 		for (int j = 0; j < str.length(); j++)
-			textMap.insert(text.length() + j, i);
+			m_textMap.insert(m_text.length() + j, i);
 
-		text.append(str);
+		m_text.append(str);
 	}
 }
 
@@ -298,13 +298,11 @@ QList<GlyphCluster> TextShaper::shape()
 {
 	// maps expanded characters to itemText tokens.
 	if (m_text.isEmpty())
-	{
-		buildText(m_text, m_textMap);
-	}
+		buildText();
 
-	QList<TextRun> bidiRuns = itemizeBiDi(m_text);
-	QList<TextRun> scriptRuns = itemizeScripts(m_text, bidiRuns);
-	QList<TextRun> textRuns = itemizeStyles(m_textMap, scriptRuns);
+	QList<TextRun> bidiRuns = itemizeBiDi();
+	QList<TextRun> scriptRuns = itemizeScripts(bidiRuns);
+	QList<TextRun> textRuns = itemizeStyles(scriptRuns);
 
 	BreakIterator* bi = StoryText::getLineIterator();
 	bi->setText(m_text.utf16());
