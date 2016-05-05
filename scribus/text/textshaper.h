@@ -49,9 +49,10 @@ private:
 
 	void buildText();
 	QList<TextRun> itemizeBiDi();
-	QList<FeaturesRun> itemizeFeatures(const TextRun &runs);
 	QList<TextRun> itemizeScripts(const QList<TextRun> &runs);
 	QList<TextRun> itemizeStyles(const QList<TextRun> &runs);
+
+	QList<FeaturesRun> itemizeFeatures(const TextRun &run);
 
 	PageItem *m_item;
 	StoryText &m_story;
