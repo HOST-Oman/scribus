@@ -270,8 +270,6 @@ int TextLayout::endOfFrame() const
 int TextLayout::pointToPosition(QPointF coord) const
 {
 	int position = m_box->pointToPosition(coord, *m_story);
-	if (position == m_box->lastChar())
-		position += 1;
 	return position;
 }
 
