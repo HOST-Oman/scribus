@@ -8995,7 +8995,7 @@ double PageItem::visualHeight() const
 	return isLine() ? extraSpace : m_height + extraSpace;
 }
 
-double PageItem::visualLineWidth()
+double PageItem::visualLineWidth() const
 {
 	double extraSpace = 0.0;
 	if (NamedLStyle.isEmpty())
