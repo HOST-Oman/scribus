@@ -21,13 +21,14 @@ QStringList getFormatListTr()
 {
 	QStringList list;
 	list << QObject::tr("1, 2, 3, ...")
-	     << QObject::tr("١, ٢, ٣, ...")
+	     // U+202D...U+202C to force the string to be displayed LTR
+	     << QObject::trUtf8("\u202d١, ٢, ٣, ...\u202c")
 	     << QObject::tr("i, ii, iii, ...")
 	     << QObject::tr("I, II, III, ...")
 	     << QObject::tr("a, b, c, ...")
 	     << QObject::tr("A, B, C, ...")
-	     << QObject::tr("أ, ب , ت, ...")
-	     << QObject::tr("أ, ب, ج, ...")
+	     << QObject::trUtf8("\u202dأ, ب, ت, ...\u202c")
+	     << QObject::trUtf8("\u202dأ, ب, ج, ...\u202c")
 	     << QObject::tr("*")
 	     << QObject::tr("CJK");
 	return list;
