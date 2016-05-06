@@ -60,7 +60,7 @@ QStringList getFormatListTr()
 	     << QObject::tr("I, II, III, ...")
 	     << QObject::tr("a, b, c, ...")
 	     << QObject::tr("A, B, C, ...")
-	     << QObject::tr("ا, ب , ت , ...")
+	     << QObject::tr("أ, ب , ت, ...")
 	     << QObject::tr("أ, ب, ج, ...")
 	     << QObject::tr("*")
 	     << QObject::tr("CJK");
