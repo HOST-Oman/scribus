@@ -4037,10 +4037,8 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
-			int pos = itemText.cursorPosition();
 			itemText.moveCursorLeft(true);
-			if ( pos > 0 )
-				ExpandSel(-1, oldPos);
+			ExpandSel(-1, oldPos);
 		}
 		else
 		{
@@ -4078,10 +4076,8 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
-			int pos = itemText.cursorPosition();
 			itemText.moveCursorRight(true);
-			if ( pos < itemText.length() )
-				ExpandSel(1, oldPos);
+			ExpandSel(1, oldPos);
 		}
 		else
 		{

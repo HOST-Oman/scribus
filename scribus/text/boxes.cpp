@@ -127,10 +127,21 @@ int LineBox::pointToPosition(QPointF coord, const StoryText &story) const
 	{
 		if (containsPoint(coord))
 		{
-			if (coord.x() < x())
-				position = boxes().first()->firstChar();
+			const ParagraphStyle& style = story.paragraphStyle(firstChar());
+			if (style.direction() == ParagraphStyle::RTL)
+			{
+				if (coord.x() < x())
+					position = lastChar() + 1;
+				else
+					position = firstChar();
+			}
 			else
-				position = boxes().last()->lastChar();
+			{
+				if (coord.x() < x())
+					position = firstChar();
+				else
+					position = lastChar() + 1;
+			}
 		}
 	}
 
@@ -208,9 +219,9 @@ void LineBox::drawSelection(ScreenPainter *p, PageItem *item) const
 		{
 			ParagraphStyle style = item->itemText.paragraphStyle(lastChar());
 			if (style.direction() == ParagraphStyle::RTL)
-				lastX = boxes().first()->positionToPoint(selectionLast, item->itemText).x1();
+				lastX = boxes().first()->x();
 			else
-				lastX = boxes().last()->positionToPoint(selectionLast, item->itemText).x1();
+				lastX = boxes().last()->x() + boxes().last()->width();
 		}
 		else
 		{
