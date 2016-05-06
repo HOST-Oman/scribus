@@ -54,7 +54,16 @@ QStringList getFormatList()
 QStringList getFormatListTr()
 {
 	QStringList list;
-	list << QObject::tr("1, 2, 3, ...") << QObject::tr("١, ٢, ٣, ...") << QObject::tr("i, ii, iii, ...") << QObject::tr("I, II, III, ...") << QObject::tr("a, b, c, ...") << QObject::tr("A, B, C, ...") << QObject::tr("ا, ب , ت , ...")<<QObject::tr("أ, ب, ج, ...")  << QObject::tr("*") << QObject::tr("CJK");
+	list << QObject::tr("1, 2, 3, ...")
+	     << QObject::tr("١, ٢, ٣, ...")
+	     << QObject::tr("i, ii, iii, ...")
+	     << QObject::tr("I, II, III, ...")
+	     << QObject::tr("a, b, c, ...")
+	     << QObject::tr("A, B, C, ...")
+	     << QObject::tr("ا, ب , ت , ...")
+	     << QObject::tr("أ, ب, ج, ...")
+	     << QObject::tr("*")
+	     << QObject::tr("CJK");
 	return list;
 }
 
