@@ -889,16 +889,16 @@ struct LineControl {
 			if (!glyphrun.hasFlag(ScLayout_ExpandingSpace))
 			{
 				glyphrun.setScaleH(glyphrun.scaleH() * glyphScale);
-				glyphrun.setXOffset(glyphrun.xoffset() * glyphScale);
+				glyphrun.xoffset *= glyphScale;
 			}
 			else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
 			{
-				glyphrun.addToExtraWidth(wide * spaceExtension);
+				glyphrun.extraWidth += (wide * spaceExtension);
 			}
 			if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 			{
 				GlyphCluster& lastRun = glyphs[i - 1];
-				lastRun.addToExtraWidth(imSpace);
+				lastRun.extraWidth += imSpace;
 			}
 		}
 	}
@@ -1060,7 +1060,7 @@ struct LineControl {
 		{
 			result = new ObjectBox(run);
 			if (run.hasFlag(ScLayout_DropCap))
-				result->setAscent((run.object()->height() - run.object()->lineWidth()) * run.scaleV() - run.yoffset());
+				result->setAscent((run.object()->height() - run.object()->lineWidth()) * run.scaleV() - run.yoffset);
 			else
 				result->setAscent(run.object()->height() - run.object()->lineWidth());
 			result->setDescent(0);
@@ -1645,17 +1645,17 @@ void PageItem_TextFrame::layout()
 			if (!current.glyphs[currentIndex].hasFlag(ScLayout_StartOfLine))
 			{
 				double tracking = charStyle.fontSize() * charStyle.tracking() / 10000.0;
-				current.glyphs[currentIndex].addToXOffset(tracking);
+				current.glyphs[currentIndex].xoffset += tracking;
 				if (current.glyphs[currentIndex].width() != 0)
-					current.glyphs[currentIndex].addToExtraWidth(tracking);
+					current.glyphs[currentIndex].extraWidth += tracking;
 			}
 
 //			glyphs->yadvance = 0;
 
 			if (i == current.line.firstRun && current.glyphs[currentIndex].hasFlag(ScLayout_CJKFence))
 			{
-				current.glyphs[currentIndex].addToExtraWidth(-charStyle.fontSize() / 10 / 2);
-				current.glyphs[currentIndex].addToXOffset(-charStyle.fontSize() / 10 / 2);
+				current.glyphs[currentIndex].extraWidth -= (charStyle.fontSize() / 10 / 2);
+				current.glyphs[currentIndex].xoffset -= (charStyle.fontSize() / 10 / 2);
 			}
 			// find out width, ascent and descent of char
 			double wide = current.glyphs[currentIndex].width();
@@ -1696,7 +1696,7 @@ void PageItem_TextFrame::layout()
 					current.glyphs[currentIndex].setScaleH(current.glyphs[currentIndex].scaleH() / current.glyphs[currentIndex].scaleV());
 					current.glyphs[currentIndex].setScaleV(realAsce / realCharHeight);
 					current.glyphs[currentIndex].setScaleH(current.glyphs[currentIndex].scaleH() * current.glyphs[currentIndex].scaleV());
-					current.glyphs[currentIndex].addToXOffset(-0.5); //drop caps are always to far from column left edge
+					current.glyphs[currentIndex].xoffset -= 0.5; //drop caps are always to far from column left edge
 				}
 				// This is to mimic pre-boxes branches in case first character of paragraph is a space
 				// If we don't do this, paragraph offset will not apply correctly to first line
@@ -2114,7 +2114,7 @@ void PageItem_TextFrame::layout()
 						}
 					}
 					current.xPos -= (legacy ? 1.0 : 0.0);
-					current.glyphs[currentIndex].addToExtraWidth(current.xPos - tabs.xPos);
+					current.glyphs[currentIndex].extraWidth += (current.xPos - tabs.xPos);
 					GlyphLayout& firstGlyph = current.glyphs[currentIndex].glyphs().first();
 					tabs.tabGlyph = &firstGlyph;
 				}
@@ -2126,7 +2126,7 @@ void PageItem_TextFrame::layout()
 				double yoffset = 0.0;
 				foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
 					yoffset = qMax(yoffset, font.glyphBBox(gl.glyph, chsd / 10.0).descent);
-				current.glyphs[currentIndex].addToYOffset(-yoffset);
+				current.glyphs[currentIndex].yoffset -= yoffset;
 			}
 			// remember x pos
 			double breakPos = current.xPos;
@@ -2410,7 +2410,7 @@ void PageItem_TextFrame::layout()
 			if ((DropCmode || BulNumMode) && !outs)
 			{
 				current.xPos += style.parEffectOffset();
-				current.glyphs[currentIndex].addToExtraWidth(style.parEffectOffset());
+				current.glyphs[currentIndex].extraWidth += style.parEffectOffset();
 				if (DropCmode)
 				{
 					DropCmode = false;
@@ -2625,7 +2625,7 @@ void PageItem_TextFrame::layout()
 						{
 							// put line back to top
 							current.line.y -= DropCapDrop;
-							current.glyphs[0].addToYOffset(DropCapDrop);
+							current.glyphs[0].yoffset += DropCapDrop;
 						}
 						current.fillInTabLeaders();
 						//if right margin is set we temporally save line, not append it
@@ -2835,7 +2835,7 @@ void PageItem_TextFrame::layout()
 			{
 				// put line back to top
 				current.line.y -= DropCapDrop;
-				current.glyphs[0].addToYOffset(DropCapDrop);
+				current.glyphs[0].yoffset += DropCapDrop;
 			}
 			current.fillInTabLeaders();
 			current.startOfCol = false;

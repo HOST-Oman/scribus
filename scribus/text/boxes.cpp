@@ -540,7 +540,7 @@ void GlyphBox::render(TextLayoutPainter *p) const
 	p->setFont(font);
 	p->setFontSize(fontSize);
 
-	p->translate(x() + m_glyphRun.xoffset(), y() + m_glyphRun.yoffset());
+	p->translate(x() + m_glyphRun.xoffset, y() + m_glyphRun.yoffset);
 
 	p->setMatrix(m_matrix);
 

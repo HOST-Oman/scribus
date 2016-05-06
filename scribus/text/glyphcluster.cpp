@@ -9,9 +9,9 @@ GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first,
 	, m_visualIndex(i)
 	, m_scaleH(1.0)
 	, m_scaleV(1.0)
-	, m_extraWidth(0.0)
-	, m_xoffset(0.0)
-	, m_yoffset(0.0)
+	, extraWidth(0.0)
+	, xoffset(0.0)
+	, yoffset(0.0)
 {}
 
 void GlyphCluster::append(GlyphLayout& gl)
@@ -28,43 +28,7 @@ double GlyphCluster::width() const
 	{
 		width += gl.xadvance * m_scaleH;
 	}
-	return width + m_extraWidth;
-}
-
-
-void GlyphCluster::addToExtraWidth(double w)
-{
-	m_extraWidth += w;
-}
-
-double GlyphCluster::xoffset() const
-{
-	return m_xoffset;
-}
-
-double GlyphCluster::yoffset() const
-{
-	return m_yoffset;
-}
-
-void GlyphCluster::setXOffset(double o)
-{
-	m_xoffset = o;
-}
-
-void GlyphCluster::setYOffset(double o)
-{
-	m_yoffset = o;
-}
-
-void GlyphCluster::addToXOffset(double o)
-{
-	m_xoffset += o;
-}
-
-void GlyphCluster::addToYOffset(double o)
-{
-	m_yoffset += o;
+	return width + extraWidth;
 }
 
 double GlyphCluster::ascent() const
@@ -109,7 +73,7 @@ void GlyphCluster::setFlag(LayoutFlags f)
 			GlyphLayout& gl = m_glyphs[i];
 			gl.xadvance = 0;
 		}
-		m_extraWidth = 0;
+		extraWidth = 0;
 	}
 }
 
