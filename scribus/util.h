@@ -124,10 +124,10 @@ QString SCRIBUS_API getFileNameByPage(ScribusDoc* currDoc, uint pageNo, QString 
 //asterix is QString used in numeration when number is presented as few chars, like *, **, *** etc
 //default is '*' but can be used any string
 const QString SCRIBUS_API getStringFromSequence(NumFormat type, uint position, QString asterix="*");
-const QString SCRIBUS_API arabicToRoman(uint i);
-const QString SCRIBUS_API arabicToCJK(uint i);
+const QString SCRIBUS_API numberToRoman(uint i);
+const QString SCRIBUS_API numberToCJK(uint i);
 QChar SCRIBUS_API cjkDigit(uint i);
-const QString SCRIBUS_API numberToLetterSequence(uint i);
+const QString SCRIBUS_API numberToLetterSequence(const QString& letters, uint num);
 void SCRIBUS_API parsePagesString(QString pages, std::vector<int>* pageNs, int sourcePageCount);
 
 QString SCRIBUS_API readLinefromDataStream(QDataStream &s);
