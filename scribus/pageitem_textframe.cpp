@@ -3880,7 +3880,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		itemText.setCursorPosition(pos);
 		if ( buttonModifiers & Qt::ShiftModifier )
-			ExpandSel(-1, oldPos);
+			ExpandSel(oldPos);
 //		if ( this->itemText.lengthOfSelection() > 0 )
 //			view->RefreshItem(this);
 		m_Doc->scMW()->setTBvals(this);
@@ -3900,7 +3900,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			itemText.setCursorPosition( textLayout.endOfFrame() );
 		}
 		if ( buttonModifiers & Qt::ShiftModifier )
-			ExpandSel(1, oldPos);
+			ExpandSel(oldPos);
 //		if ( this->itemText.lengthOfSelection() > 0 )
 //			view->RefreshItem(this);
 		m_Doc->scMW()->setTBvals(this);
@@ -3912,7 +3912,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			len = itemText.length();
 			itemText.setCursorPosition(itemText.nextParagraph(itemText.cursorPosition()));
 			if ( buttonModifiers & Qt::ShiftModifier )
-				ExpandSel(1, oldPos);
+				ExpandSel(oldPos);
 		}
 		else
 		{
@@ -3923,7 +3923,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 				{
 					if ( buttonModifiers & Qt::AltModifier )
 						itemText.setCursorPosition (lastInFrame()+1);
-					ExpandSel(1, oldPos);
+					ExpandSel(oldPos);
 				}
 				else
 					if ((textLayout.lines() > 0) && (oldPos >= textLayout.line(textLayout.lines()-1)->firstChar()) && (itemText.cursorPosition() >= lastInFrame()) && (NextBox != 0))
@@ -3961,7 +3961,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			len = itemText.length();
 			itemText.setCursorPosition( itemText.prevParagraph(itemText.cursorPosition()) );
 			if ( buttonModifiers & Qt::ShiftModifier )
-				ExpandSel(-1, oldPos);
+				ExpandSel(oldPos);
 		}
 		else
 		{
@@ -3974,7 +3974,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 				{
 					if ( buttonModifiers & Qt::AltModifier )
 						itemText.setCursorPosition( firstInFrame() );
-					ExpandSel(-1, oldPos);
+					ExpandSel(oldPos);
 				}
 				else
 					if ((textLayout.lines() > 0) && (oldPos <= textLayout.line(0)->lastChar()) && (itemText.cursorPosition()  == firstInFrame()) && (BackBox != 0))
@@ -4011,7 +4011,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		else
 			itemText.setCursorPosition( textLayout.startOfFrame() );
 		if ( buttonModifiers & Qt::ShiftModifier )
-			ExpandSel(-1, oldPos);
+			ExpandSel(oldPos);
 		m_Doc->scMW()->setTBvals(this);
 		break;
 	case Qt::Key_PageDown:
@@ -4025,7 +4025,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		else
 			itemText.setCursorPosition( textLayout.endOfFrame() );
 		if ( buttonModifiers & Qt::ShiftModifier )
-			ExpandSel(1, oldPos);
+			ExpandSel(oldPos);
 		m_Doc->scMW()->setTBvals(this);
 		break;
 	case Qt::Key_Left:
@@ -4033,12 +4033,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		{
 			itemText.moveCursorWordLeft();
 			if ( buttonModifiers & Qt::ShiftModifier )
-				ExpandSel(-1, oldPos);
+				ExpandSel(oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			itemText.moveCursorLeft(true);
-			ExpandSel(-1, oldPos);
+			ExpandSel(oldPos);
 		}
 		else
 		{
@@ -4072,12 +4072,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		{
 			itemText.moveCursorWordRight();
 			if ( buttonModifiers & Qt::ShiftModifier )
-				ExpandSel(1, oldPos);
+				ExpandSel(oldPos);
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
 			itemText.moveCursorRight(true);
-			ExpandSel(1, oldPos);
+			ExpandSel(oldPos);
 		}
 		else
 		{
@@ -4575,7 +4575,7 @@ bool PageItem_TextFrame::checkKeyIsShortcut(QKeyEvent *k)
 //  if value is +/-1 work on slection
 //  if value is +/-2 refresh if text under cursor is selected -- not used
 
-void PageItem_TextFrame::ExpandSel(int dir, int oldPos)
+void PageItem_TextFrame::ExpandSel(int oldPos)
 {
 	int start = itemText.startOfSelection();
 	// itemText.endOfSelection can return -1 in some case, which results in a crash

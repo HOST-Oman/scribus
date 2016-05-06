@@ -670,7 +670,7 @@ void CanvasMode_Edit::mousePressEvent(QMouseEvent *m)
 							else
 								currItem->itemText.setCursorPosition(currItem->itemText.startOfParagraph());
 						}
-						currItem->asTextFrame()->ExpandSel(dir, oldP);
+						currItem->asTextFrame()->ExpandSel(oldP);
 						oldCp = oldP;
 					}
 				}

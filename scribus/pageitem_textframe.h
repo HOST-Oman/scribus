@@ -64,7 +64,7 @@ public:
 	*/
 	virtual void handleModeEditKey(QKeyEvent *k, bool& keyRepeat);
 	void deleteSelectedTextFromFrame();
-	void ExpandSel(int dir, int oldPos);
+	void ExpandSel(int oldPos);
 	void deselectAll();
 	
 	//for speed up updates when changed was only one frame from chain
