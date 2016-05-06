@@ -39,7 +39,7 @@ public:
 	int visualIndex() const;
 
 	double width() const;
-	void setExtraWidth(double);
+	void addToExtraWidth(double);
 
 	double xoffset() const;
 	double yoffset() const;

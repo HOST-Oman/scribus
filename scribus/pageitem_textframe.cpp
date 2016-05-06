@@ -893,12 +893,12 @@ struct LineControl {
 			}
 			else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
 			{
-				glyphrun.setExtraWidth(wide * spaceExtension);
+				glyphrun.addToExtraWidth(wide * spaceExtension);
 			}
 			if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 			{
 				GlyphCluster& lastRun = glyphs[i - 1];
-				lastRun.setExtraWidth(imSpace);
+				lastRun.addToExtraWidth(imSpace);
 			}
 		}
 	}
@@ -1647,14 +1647,14 @@ void PageItem_TextFrame::layout()
 				double tracking = charStyle.fontSize() * charStyle.tracking() / 10000.0;
 				current.glyphs[currentIndex].addToXOffset(tracking);
 				if (current.glyphs[currentIndex].width() != 0)
-					current.glyphs[currentIndex].setExtraWidth(tracking);
+					current.glyphs[currentIndex].addToExtraWidth(tracking);
 			}
 
 //			glyphs->yadvance = 0;
 
 			if (i == current.line.firstRun && current.glyphs[currentIndex].hasFlag(ScLayout_CJKFence))
 			{
-				current.glyphs[currentIndex].setExtraWidth(-charStyle.fontSize() / 10 / 2);
+				current.glyphs[currentIndex].addToExtraWidth(-charStyle.fontSize() / 10 / 2);
 				current.glyphs[currentIndex].addToXOffset(-charStyle.fontSize() / 10 / 2);
 			}
 			// find out width, ascent and descent of char
@@ -2114,7 +2114,7 @@ void PageItem_TextFrame::layout()
 						}
 					}
 					current.xPos -= (legacy ? 1.0 : 0.0);
-					current.glyphs[currentIndex].setExtraWidth(current.xPos - tabs.xPos);
+					current.glyphs[currentIndex].addToExtraWidth(current.xPos - tabs.xPos);
 					GlyphLayout& firstGlyph = current.glyphs[currentIndex].glyphs().first();
 					tabs.tabGlyph = &firstGlyph;
 				}
@@ -2410,7 +2410,7 @@ void PageItem_TextFrame::layout()
 			if ((DropCmode || BulNumMode) && !outs)
 			{
 				current.xPos += style.parEffectOffset();
-				current.glyphs[currentIndex].setExtraWidth(style.parEffectOffset());
+				current.glyphs[currentIndex].addToExtraWidth(style.parEffectOffset());
 				if (DropCmode)
 				{
 					DropCmode = false;

@@ -32,9 +32,9 @@ double GlyphCluster::width() const
 }
 
 
-void GlyphCluster::setExtraWidth(double w)
+void GlyphCluster::addToExtraWidth(double w)
 {
-	m_extraWidth = w;
+	m_extraWidth += w;
 }
 
 double GlyphCluster::xoffset() const
