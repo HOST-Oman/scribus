@@ -17,40 +17,6 @@ QString getAsterixStringFromNum(int num, QString asterix, QChar leadingChar, int
 	return str;
 }
 
-QString getFormatName(int format)
-{
-	QString name;
-	if (format == Type_1_2_3)
-		name = "1_2_3";
-	else if (format == Type_1_2_3_ar)
-		name = "1_2_3_ar";
-	else if (format == Type_i_ii_iii)
-		name = "i_ii_iii";
-	else if (format == Type_I_II_III)
-		name = "I_II_III";
-	else if (format == Type_a_b_c)
-		name = "a_b_c";
-	else if (format == Type_A_B_C)
-		name = "A_B_C";
-	else if (format == Type_Alphabet_ar)
-		name = "Alphabet_ar";
-	else if (format == Type_Abjad_ar)
-		name = "Abjad_ar";
-	else if (format == Type_asterix)
-		name = "*";
-	else if (format == Type_CJK)
-		name = "CJK";
-	Q_ASSERT(!name.isEmpty());
-	return name;
-}
-
-QStringList getFormatList()
-{
-	QStringList list;
-	list << "1_2_3" << "i_ii_iii" << "I_II_III" << "a_b_c" << "A_B_C" << "*" << "CJK";
-	return list;
-}
-
 QStringList getFormatListTr()
 {
 	QStringList list;
