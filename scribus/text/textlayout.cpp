@@ -189,7 +189,7 @@ int TextLayout::endOfLine(int pos) const
 
 int TextLayout::prevLine(int pos) const
 {
-	bool isRTL = (m_story->paragraphStyle().direction() == 1);
+	bool isRTL = (m_story->paragraphStyle().direction() == ParagraphStyle::RTL);
 	for (uint i=0; i < lines(); ++i)
 	{
 		// find line for pos
@@ -223,7 +223,7 @@ int TextLayout::prevLine(int pos) const
 
 int TextLayout::nextLine(int pos) const
 {
-	bool isRTL = (m_story->paragraphStyle().direction() == 1);
+	bool isRTL = (m_story->paragraphStyle().direction() == ParagraphStyle::RTL);
 	for (uint i=0; i < lines(); ++i)
 	{
 		// find line for pos
@@ -277,7 +277,7 @@ int TextLayout::pointToPosition(QPointF coord) const
 QLineF TextLayout::positionToPoint(int pos) const
 {
 	QLineF result;
-	bool isRTL = (m_story->paragraphStyle().direction() == 1);
+	bool isRTL = (m_story->paragraphStyle().direction() == ParagraphStyle::RTL);
 
 	result = m_box->positionToPoint(pos, *m_story);
 	if (result.isNull())
