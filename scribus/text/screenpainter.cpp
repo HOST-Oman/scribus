@@ -123,7 +123,7 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 		else if (gid == SpecialChars::TAB.unicode())
 		{
 			outline = m_item->doc()->symTab.copy();
-			chma4.translate(gl.xadvance - fontSize() * gl.scaleH * 0.7, -fontSize() * gl.scaleV * 0.5);
+			chma4.translate(0, -fontSize() * gl.scaleV * 0.5);
 		}
 		else if (gid == SpecialChars::COLBREAK.unicode())
 		{
