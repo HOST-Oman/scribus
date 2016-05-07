@@ -937,7 +937,9 @@ struct LineControl {
 				for(int cx = 0; cx < count; ++cx)
 				{
 					GlyphLayout more = tglyph;
-					more.xadvance = width / count;
+					more.xadvance = 0;
+					if (cx != 0)
+						more.xoffset = (width / count) * cx;
 					glyphRun.append(more);
 				}
 			}
