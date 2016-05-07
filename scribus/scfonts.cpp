@@ -24,7 +24,9 @@ for which a new license (GPL+exception) is in place.
 #include <QGlobalStatic>
 #include <QMap>
 #include <QRegExp>
+#include <QRawFont>
 #include <QString>
+#include <QTextCodec>
 
 
 #include <cstdlib>
@@ -54,10 +56,10 @@ for which a new license (GPL+exception) is in place.
 #include FT_FREETYPE_H
 #include FT_OUTLINE_H
 #include FT_GLYPH_H
-
+#include FT_SFNT_NAMES_H
+#include FT_TRUETYPE_IDS_H
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
-
 
 #include "scpaths.h"
 #include "util_debug.h"
@@ -304,6 +306,128 @@ void getSFontType(FT_Face face, ScFace::FontType & type)
 	}
 } 
 
+// sort name records so the preferred ones come first
+static bool nameComp(const FT_SfntName a, const FT_SfntName b)
+{
+	// sort preferred family first
+	if (a.name_id != b.name_id)
+	{
+		if      (a.name_id == TT_NAME_ID_PREFERRED_FAMILY)
+			return true;
+		else if (b.name_id == TT_NAME_ID_PREFERRED_FAMILY)
+			return false;
+	}
+
+	// sort Unicode platforms first
+	if (a.platform_id != b.platform_id)
+	{
+		if      (a.platform_id == TT_PLATFORM_APPLE_UNICODE)
+			return true;
+		else if (b.platform_id == TT_PLATFORM_APPLE_UNICODE)
+			return false;
+		else if (a.platform_id == TT_PLATFORM_MICROSOFT)
+			return true;
+		else if (b.platform_id == TT_PLATFORM_MICROSOFT)
+			return false;
+	}
+
+	// sort Unicode encodings first
+	if (a.encoding_id != b.encoding_id)
+	{
+		if (a.platform_id == TT_PLATFORM_MICROSOFT)
+		{
+			if      (a.encoding_id == TT_MS_ID_UCS_4)
+				return true;
+			else if (b.encoding_id == TT_MS_ID_UCS_4)
+				return false;
+			else if (a.encoding_id == TT_MS_ID_UNICODE_CS)
+				return true;
+			else if (b.encoding_id == TT_MS_ID_UNICODE_CS)
+				return false;
+		}
+	}
+
+	// the rest is all the same for us
+	return false;
+}
+
+static QString decodeNameRecord(FT_SfntName name)
+{
+	QString string;
+	QByteArray encoding;
+	if (name.platform_id == TT_PLATFORM_APPLE_UNICODE)
+	{
+		encoding = "UTF-16BE";
+	}
+	else if (name.platform_id == TT_PLATFORM_MICROSOFT)
+	{
+		switch (name.encoding_id) {
+		case TT_MS_ID_SYMBOL_CS:
+		case TT_MS_ID_UNICODE_CS:
+		case TT_MS_ID_UCS_4:
+			encoding = "UTF-16BE";
+			break;
+		case TT_MS_ID_SJIS:
+			encoding = "Shift-JIS";
+		case TT_MS_ID_GB2312:
+			encoding = "GB18030-0";
+		case TT_MS_ID_BIG_5:
+			encoding = "Big5";
+		default:
+			break;
+		}
+	}
+
+	if (!encoding.isEmpty())
+	{
+		QTextCodec* codec = QTextCodec::codecForName(encoding);
+		QByteArray bytes((const char*) name.string, name.string_len);
+		string = codec->toUnicode(bytes);
+	}
+
+	return string;
+}
+
+static QString getFamilyName(const FT_Face face)
+{
+	QString familyName(face->family_name);
+
+	QVector<FT_SfntName> names;
+
+	for (FT_UInt i = 0; i < FT_Get_Sfnt_Name_Count(face); i++)
+	{
+		FT_SfntName name;
+		if (!FT_Get_Sfnt_Name(face, i, &name))
+		{
+			switch (name.name_id) {
+			case TT_NAME_ID_FONT_FAMILY:
+			case TT_NAME_ID_PREFERRED_FAMILY:
+				if (name.platform_id != TT_PLATFORM_MACINTOSH)
+					names.append(name);
+				break;
+			default:
+				break;
+			}
+		}
+	}
+
+	if (!names.isEmpty())
+	{
+		std::sort(names.begin(), names.end(), nameComp);
+		foreach (const FT_SfntName name, names)
+		{
+			QString string = decodeNameRecord(name);
+			if (!string.isEmpty())
+			{
+				familyName = string;
+				break;
+			}
+		}
+	}
+
+	return familyName;
+}
+
 ScFace SCFonts::LoadScalableFont(const QString &filename)
 {
 	ScFace t;
@@ -361,7 +485,7 @@ ScFace SCFonts::LoadScalableFont(const QString &filename)
 	}
 
 	int faceIndex=0;
-	QString fam(face->family_name);
+	QString fam(getFamilyName(face));;
 	QString sty(face->style_name);
 	if (sty == "Regular")
 	{
@@ -553,7 +677,7 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 	int faceIndex = 0;
 	while (!error)
 	{
-		QString fam(face->family_name);
+		QString fam(getFamilyName(face));
 		QString sty(face->style_name);
 		if (sty == "Regular")
 		{
