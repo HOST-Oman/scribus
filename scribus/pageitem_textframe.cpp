@@ -987,22 +987,26 @@ struct LineControl {
 	//}
 
 	/// calculate how much the last char should stick out to the right
-	double opticalRightMargin(const StoryText& itemText, const QList<GlyphCluster> runs)
+	double opticalRightMargin(const StoryText& itemText)
 	{
-		int b = line.lastRun;
-		while (b > line.firstRun &&
-			   (SpecialChars::isBreakingSpace(itemText.text(runs[b].lastChar())) ||
-				SpecialChars::isBreak(itemText.text(runs[b].lastChar())))
+		int b = line.lastRun - line.firstRun;
+		while (b > 0 &&
+			   (SpecialChars::isBreakingSpace(itemText.text(glyphs[b].lastChar())) ||
+				SpecialChars::isBreak(itemText.text(glyphs[b].lastChar())))
 			   )
 			--b;
-		if (b >= line.firstRun)
+		if (b >= 0)
 		{
-			const CharStyle& chStyle(runs[b].style());
-			double chs = chStyle.fontSize() * (chStyle.scaleH() / 1000.0);
-			QChar chr = runs[b].hasFlag(ScLayout_SoftHyphenVisible) ?
-				QChar('-') : itemText.text(runs[b].lastChar());
-			double rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
-			if (QString("-,.`´'~").indexOf(chr) >= 0
+			const CharStyle& style = glyphs[b].style();
+			const ScFace& font = style.font();
+			double chs = style.fontSize() * (style.scaleH() / 1000.0);
+			QChar chr = itemText.text(glyphs[b].lastChar());
+			ScFace::gid_type gid = glyphs[b].hasFlag(ScLayout_SoftHyphenVisible) ?
+				font.hyphenGlyph() : font.char2CMap(chr.unicode());
+			double rightCorr = font.glyphBBox(gid, chs / 10.0).width;
+			if (glyphs[b].hasFlag(ScLayout_SoftHyphenVisible)
+				|| QString("-,.`´'~").indexOf(chr) >= 0
+				|| chr == QChar(0x2010)
 				|| chr == QChar(0x2018)
 				|| chr == QChar(0x2019)
 				|| chr == QChar(0x201a)
@@ -2460,7 +2464,7 @@ void PageItem_TextFrame::layout()
 //					if (style.alignment() != 0)
 					{
 						if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-							current.line.width += current.opticalRightMargin(itemText, glyphRuns);
+							current.line.width += current.opticalRightMargin(itemText);
 
 						OFs = 0;
 						if (style.alignment() == ParagraphStyle::Rightaligned)
@@ -2488,7 +2492,7 @@ void PageItem_TextFrame::layout()
 						else
 						{
 							if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-								current.line.naturalWidth += current.opticalRightMargin(itemText, glyphRuns);
+								current.line.naturalWidth += current.opticalRightMargin(itemText);
 							double optiWidth = current.colRight - style.rightMargin() - style.lineSpacing()/2.0 - current.line.x;
 							if (current.line.naturalWidth > optiWidth)
 								current.line.width = qMax(current.line.width - current.maxShrink, optiWidth);
@@ -2557,7 +2561,7 @@ void PageItem_TextFrame::layout()
 
 						// Justification
 						if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-							current.line.width += current.opticalRightMargin(itemText, glyphRuns);
+							current.line.width += current.opticalRightMargin(itemText);
 						// #12565: Right alignment of hyphens
 						// The additional character width has already been taken into account
 						// above via the line break position, so it's not necessary to increase
@@ -2583,7 +2587,7 @@ void PageItem_TextFrame::layout()
 						else
 						{
 							if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-								current.line.naturalWidth += current.opticalRightMargin(itemText, glyphRuns);
+								current.line.naturalWidth += current.opticalRightMargin(itemText);
 							current.indentLine(style, OFs);
 						}
 						current.xPos = current.line.x + current.line.width;
@@ -2807,7 +2811,7 @@ void PageItem_TextFrame::layout()
 			current.finishLine(EndX);
 
 			if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-				current.line.width += current.opticalRightMargin(itemText, glyphRuns);
+				current.line.width += current.opticalRightMargin(itemText);
 
 			OFs = 0;
 			if (style.alignment() == ParagraphStyle::Rightaligned)
@@ -2834,7 +2838,7 @@ void PageItem_TextFrame::layout()
 			else
 			{
 				if (opticalMargins & ParagraphStyle::OM_RightHangingPunct)
-					current.line.naturalWidth += current.opticalRightMargin(itemText, glyphRuns);
+					current.line.naturalWidth += current.opticalRightMargin(itemText);
 				current.indentLine(style, OFs);
 			}
 			if (current.glyphs[0].hasFlag(ScLayout_DropCap))
