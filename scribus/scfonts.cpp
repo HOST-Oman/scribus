@@ -347,6 +347,18 @@ static bool nameComp(const FT_SfntName a, const FT_SfntName b)
 		}
 	}
 
+	// sort English names first
+	if (a.language_id != b.language_id)
+	{
+		if (a.platform_id == TT_PLATFORM_MICROSOFT)
+		{
+			if      (a.language_id == TT_MS_LANGID_ENGLISH_UNITED_STATES)
+				return true;
+			else if (b.language_id == TT_MS_LANGID_ENGLISH_UNITED_STATES)
+				return false;
+		}
+	}
+
 	// the rest is all the same for us
 	return false;
 }
