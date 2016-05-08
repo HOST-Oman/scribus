@@ -22,6 +22,7 @@ for which a new license (GPL+exception) is in place.
 #include <QFileInfo>
 #include <QFont>
 #include <QGlobalStatic>
+#include <QHash>
 #include <QMap>
 #include <QRegExp>
 #include <QRawFont>
@@ -564,6 +565,19 @@ ScFace SCFonts::LoadScalableFont(const QString &filename)
 	return t;
 }
 
+static QString getFtError(int code)
+{
+#undef FTERRORS_H_
+#define FT_ERRORDEF(e, v, s) ftErrors[e] = s;
+	static QHash<int, QString> ftErrors;
+#include FT_ERRORS_H
+#undef FT_ERRORDEF
+
+	if (ftErrors.contains(code))
+		return ftErrors.value(code);
+	return QString::null;
+}
+
 // Load a single font into the library from the passed filename. Returns true on error.
 bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString DocName)
 {
@@ -591,14 +605,16 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 		firstRun = true;
 		ScCore->setSplashStatus( QObject::tr("Creating Font Cache") );
 	}
-	bool error = FT_New_Face( library, QFile::encodeName(filename), 0, &face );
+	FT_Error error = FT_New_Face( library, QFile::encodeName(filename), 0, &face );
 	if (error || (face == NULL)) 
 	{
 		if (face != NULL)
 			FT_Done_Face(face);
 		checkedFonts.insert(filename, foCache);
 		if (showFontInformation)
-			sDebug(QObject::tr("Font %1 is broken, discarding it").arg(filename));
+			sDebug(QObject::tr("Font %1 is broken, discarding it. Error message: \"%2\"")
+					   .arg(filename)
+					   .arg(getFtError(error)));
 		return true;
 	}
 	getFontFormat(face, format, type);
@@ -624,7 +640,11 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 			if (error)
 			{
 				if (showFontInformation)
-					sDebug(QObject::tr("Font %1 has broken glyph %2 (charcode %3)").arg(filename).arg(gindex).arg(charcode));
+					sDebug(QObject::tr("Font %1 has broken glyph %2 (charcode U+%3). Error message: \"%4\"")
+							   .arg(filename)
+							   .arg(gindex)
+							   .arg(charcode, 4, 16, QChar('0'))
+							   .arg(getFtError(error)));
 				FT_Done_Face(face);
 				checkedFonts.insert(filename, foCache);
 				return true;
@@ -661,7 +681,11 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 				if (error)
 				{
 					if (showFontInformation)
-						sDebug(QObject::tr("Font %1 has broken glyph %2 (charcode %3)").arg(filename).arg(gindex).arg(charcode));
+						sDebug(QObject::tr("Font %1 has broken glyph %2 (charcode U+%3). Error message: \"%4\"")
+								   .arg(filename)
+								   .arg(gindex)
+								   .arg(charcode, 4, 16, QChar('0'))
+								   .arg(getFtError(error)));
 					FT_Done_Face(face);
 					checkedFonts.insert(filename, foCache);
 					return true;
