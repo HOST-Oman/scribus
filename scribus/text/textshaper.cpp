@@ -304,12 +304,15 @@ QList<GlyphCluster> TextShaper::shape()
 	QList<TextRun> scriptRuns = itemizeScripts(bidiRuns);
 	QList<TextRun> textRuns = itemizeStyles(scriptRuns);
 
-	BreakIterator* bi = StoryText::getLineIterator();
-	bi->setText(m_text.utf16());
-
 	QVector<int32_t> lineBreaks;
-	for (int32_t pos = bi->first(); pos != BreakIterator::DONE; pos = bi->next())
-		lineBreaks.append(pos);
+	BreakIterator* lineIt = StoryText::getLineIterator();
+	// FIXME-HOST: add some fallback code if the iterator failed
+	if (lineIt)
+	{
+		lineIt->setText(m_text.utf16());
+		for (int32_t pos = lineIt->first(); pos != BreakIterator::DONE; pos = lineIt->next())
+			lineBreaks.append(pos);
+	}
 
 	QList<GlyphCluster> glyphRuns;
 	foreach (const TextRun& textRun, textRuns) {
