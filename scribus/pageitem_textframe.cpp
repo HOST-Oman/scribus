@@ -1024,9 +1024,13 @@ struct LineControl {
 					 )
 				rightCorr *= 0.5;
 			else {
+#if 0
 				// FIXME HOST: is the kerning with "." a realy reliable way to check this?
-	//			rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
-	//			rightCorr -= chStyle.font().charWidth(chr, chs / 10.0, QChar('.'));
+				rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
+				rightCorr -= chStyle.font().charWidth(chr, chs / 10.0, QChar('.'));
+#else
+				rightCorr = 0;
+#endif
 			}
 			return rightCorr;
 		}
