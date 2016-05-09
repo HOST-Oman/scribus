@@ -29,7 +29,6 @@ for which a new license (GPL+exception) is in place.
 #include <QCursor>
 #include <QCheckBox>
 #include <QByteArray>
-#include <QTextBoundaryFinder>
 
 #include "langmgr.h"
 #include "scpaths.h"
@@ -158,29 +157,15 @@ void Hyphenator::slotHyphenate(PageItem* it)
 	rememberedWords.clear();
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 
-	QTextBoundaryFinder splitter(QTextBoundaryFinder::Word, text);
-	splitter.toStart();
-	while (splitter.toNextBoundary() >= 0)
+	BreakIterator* bi = StoryText::getWordIterator();
+	bi->setText(text.utf16());
+	int pos = bi->first();
+	while (pos != BreakIterator::DONE)
 	{
-		int firstC = 0;
-		int lastC = -1;
-		int countC = -1;
-
-		if (splitter.boundaryReasons() & QTextBoundaryFinder::StartOfItem)
-		{
-			firstC = splitter.position();
-			while (splitter.toNextBoundary() >= 0)
-			{
-				if (splitter.boundaryReasons() & QTextBoundaryFinder::EndOfItem)
-				{
-					lastC = splitter.position();
-					break;
-				}
-			}
-			if (lastC < 0)
-				lastC = text.length();
-			countC = lastC - firstC;
-		}
+		int firstC = pos;
+		pos = bi->next();
+		int lastC = pos;
+		int countC = lastC - firstC;
 
 		if (countC > 0 && countC > m_minWordLen - 1)
 		{
