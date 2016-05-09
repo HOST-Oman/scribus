@@ -162,7 +162,7 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 	return newRuns;
 }
 
-void TextShaper::buildText()
+void TextShaper::buildText(QVector<int>& smallCaps)
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
@@ -275,6 +275,7 @@ void TextShaper::buildText()
 		}
 		const CharStyle &style = m_story.charStyle(i);
 		int effects = style.effects() & ScStyle_UserStyles;
+		bool hasSmallCap = false;
 		if ((effects & ScStyle_AllCaps) || (effects & ScStyle_SmallCaps))
 		{
 			QLocale locale(style.language());
@@ -282,13 +283,17 @@ void TextShaper::buildText()
 			if (upper != str)
 			{
 				if (effects & ScStyle_SmallCaps)
-					m_story.setFlag(i, ScLayout_SmallCaps);
+					hasSmallCap = true;
 				str = upper;
 			}
 		}
 
 		for (int j = 0; j < str.length(); j++)
+		{
 			m_textMap.insert(m_text.length() + j, i);
+			if (hasSmallCap)
+				smallCaps.append(m_text.length() + j);
+		}
 
 		m_text.append(str);
 	}
@@ -297,8 +302,9 @@ void TextShaper::buildText()
 QList<GlyphCluster> TextShaper::shape()
 {
 	// maps expanded characters to itemText tokens.
+	QVector<int> smallCaps;
 	if (m_text.isEmpty())
-		buildText();
+		buildText(smallCaps);
 
 	QList<TextRun> bidiRuns = itemizeBiDi();
 	QList<TextRun> scriptRuns = itemizeScripts(bidiRuns);
@@ -517,7 +523,7 @@ QList<GlyphCluster> TextShaper::shape()
 					run.setScaleV(run.scaleV() * scale);
 				}
 
-				if (run.hasFlag(ScLayout_SmallCaps))
+				if (smallCaps.contains(firstCluster))
 				{
 					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
 					run.setScaleH(run.scaleH() * smallcapsScale);

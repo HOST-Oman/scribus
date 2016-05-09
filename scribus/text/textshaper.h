@@ -47,7 +47,7 @@ private:
 		QStringList features;
 	};
 
-	void buildText();
+	void buildText(QVector<int>& smallCaps);
 	QList<TextRun> itemizeBiDi();
 	QList<TextRun> itemizeScripts(const QList<TextRun> &runs);
 	QList<TextRun> itemizeStyles(const QList<TextRun> &runs);
