@@ -975,7 +975,7 @@ LayoutFlags StoryText::flags(int pos) const
     assert(pos < length());
 
     StoryText* that = const_cast<StoryText *>(this);
-	return  static_cast<LayoutFlags>((*that->d->at(pos)).effects().value);
+	return  static_cast<LayoutFlags>((*that->d->at(pos)).effects().value & ScStyle_NonUserStyles);
 }
 
 bool StoryText::hasFlag(int pos, LayoutFlags flags) const
