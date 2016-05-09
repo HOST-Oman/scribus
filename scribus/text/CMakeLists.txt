@@ -20,6 +20,7 @@ SET(SCRIBUS_TEXT_LIB_SOURCES
 	textlayout.cpp
 	textlayoutpainter.cpp
 	textshaper.cpp
+	textcontext.cpp
 	screenpainter.cpp
 	sctext_shared.cpp
 	fsize.cpp

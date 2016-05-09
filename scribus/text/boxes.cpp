@@ -18,6 +18,8 @@
 #include "colorblind.h"
 #include "textlayoutpainter.h"
 #include "screenpainter.h"
+#include "itextcontext.h"
+#include "itextsource.h"
 
 int GroupBox::pointToPosition(QPointF coord, const StoryText &story) const
 {
@@ -60,13 +62,13 @@ void GroupBox::render(TextLayoutPainter *p) const
 	p->restore();
 }
 
-void GroupBox::render(ScreenPainter *p, PageItem *item) const
+void GroupBox::render(ScreenPainter *p, ITextContext *ctx) const
 {
 	p->save();
 	p->translate(x(), y());
 	foreach (const Box *box, boxes())
 	{
-		box->render(p, item);
+		box->render(p, ctx);
 	}
 	p->restore();
 }
@@ -172,22 +174,23 @@ void LineBox::render(TextLayoutPainter *p) const
 	p->translate(-x(), -y() - ascent());
 }
 
-void LineBox::render(ScreenPainter *p, PageItem *item) const
+void LineBox::render(ScreenPainter *p, ITextContext *ctx) const
 {
 	p->translate(x(), y());
 
 	drawBackGround(p);
-	drawSelection(p, item);
+	drawSelection(p, ctx);
 
 	p->translate(0, ascent());
 	foreach (const Box *box, boxes())
-		box->render(p, item);
+		box->render(p, ctx);
 
 	p->translate(-x(), -y() - ascent());
 }
 
-void LineBox::drawSelection(ScreenPainter *p, PageItem *item) const
+void LineBox::drawSelection(ScreenPainter *p, ITextContext *ctx) const
 {
+	const PageItem* item = ctx->getFrame();
 	int selectionFirst = -1;
 	int selectionLast = -1;
 	for (int i = firstChar(); i <= lastChar(); i++)
@@ -478,8 +481,9 @@ void PathLineBox::drawBackGround(TextLayoutPainter *p) const
 }
 
 
-void GlyphBox::render(ScreenPainter *p, PageItem *item) const
+void GlyphBox::render(ScreenPainter *p, ITextContext *ctx) const
 {
+	const PageItem* item = ctx->getFrame();
 	bool s = p->selected();
 
 	int selectionFirst = -1;
@@ -741,8 +745,8 @@ QLineF GlyphBox::positionToPoint(int pos, const StoryText& story) const
 void ObjectBox::render(TextLayoutPainter *p) const
 {
 	p->save();
-	double oldX = m_item->xPos();
-	double oldY = m_item->yPos();
+	double oldX = m_object->xPos();
+	double oldY = m_object->yPos();
 
 	const CharStyle& charStyle = style();
 
@@ -753,22 +757,22 @@ void ObjectBox::render(TextLayoutPainter *p) const
 		p->setScale(charStyle.scaleH() / 1000.0, charStyle.scaleV() / 1000.0);
 	p->setMatrix(m_matrix);
 
-	m_item->setXPos(m_item->gXpos);
-	m_item->setYPos((m_item->gHeight * (charStyle.scaleV() / 1000.0)) + m_item->gYpos);
+	m_object->setXPos(m_object->gXpos);
+	m_object->setYPos((m_object->gHeight * (charStyle.scaleV() / 1000.0)) + m_object->gYpos);
 	if (charStyle.baselineOffset() != 0)
 	{
-		p->translate(0, -m_item->gHeight * (charStyle.baselineOffset() / 1000.0));
-		m_item->setYPos(m_item->yPos() - m_item->gHeight * (charStyle.baselineOffset() / 1000.0));
+		p->translate(0, -m_object->gHeight * (charStyle.baselineOffset() / 1000.0));
+		m_object->setYPos(m_object->yPos() - m_object->gHeight * (charStyle.baselineOffset() / 1000.0));
 	}
 
-	p->drawObject(m_item);
+	p->drawObject(m_object);
 
-	m_item->setXPos(oldX);
-	m_item->setYPos(oldY);
+	m_object->setXPos(oldX);
+	m_object->setYPos(oldY);
 	p->restore();
 }
 
-void ObjectBox::render(ScreenPainter *p, PageItem *item) const
+void ObjectBox::render(ScreenPainter *p, ITextContext *ctx) const
 {
 	render(p);
 }

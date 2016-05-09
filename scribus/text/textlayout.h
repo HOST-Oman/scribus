@@ -31,7 +31,7 @@ class GroupBox;
 class LineBox;
 class TextLayoutPainter;
 class ScreenPainter;
-
+class ITextContext;
 /**
 	This class manages the physical layout of a textframe, ie. its line 
 	structure and the lines' glyph layouts. It will use some of the layouters above to create a Box.
@@ -40,16 +40,16 @@ class ScreenPainter;
 class SCRIBUS_API TextLayout
 {
 public:
-	TextLayout(StoryText* text, PageItem* frame);
+	TextLayout(StoryText* text, ITextContext* frame);
 	~TextLayout();
 
 	bool overflows() const;
 	
 	StoryText* story() { return m_story; }
-	PageItem*  frame() { return m_frame; }
+	ITextContext*  frame() { return m_frame; }
 	const StoryText* story() const { return m_story; }
 	void setStory(StoryText* story);
-	void render(ScreenPainter *p, PageItem *item);
+	void render(ScreenPainter *p, ITextContext *item);
 	void render(TextLayoutPainter *p);
 	void renderBackground(TextLayoutPainter *p);
 	int startOfLine(int pos) const;
@@ -78,7 +78,7 @@ protected:
 	friend class FrameControl;
 	
 	StoryText* m_story;
-    PageItem* m_frame;
+    ITextContext* m_frame;
 	GroupBox* m_box;
 	
 	bool m_validLayout;

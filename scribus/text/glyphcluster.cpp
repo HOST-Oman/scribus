@@ -1,6 +1,6 @@
 #include "glyphcluster.h"
 
-GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i)
+GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, const InlineFrame& o, int i)
 	: m_style(style)
 	, m_flags(flags)
 	, m_object(o)
@@ -127,7 +127,7 @@ const QList<GlyphLayout>& GlyphCluster::glyphs() const {
 	return m_glyphs;
 }
 
-PageItem* GlyphCluster::object() const
+const InlineFrame& GlyphCluster::object() const
 {
 	return m_object;
 }

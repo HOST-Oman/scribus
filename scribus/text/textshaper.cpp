@@ -14,15 +14,15 @@
 #include "styles/paragraphstyle.h"
 
 
-TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singlePar)
-	: m_item(item)
+TextShaper::TextShaper(ITextContext* context, ITextSource &story, int first, bool singlePar)
+	: m_context(context)
 	, m_story(story)
 	, m_firstChar(first)
 	, m_singlePar(singlePar)
 { }
 
-TextShaper::TextShaper(StoryText &story, int first)
-	: m_item(NULL)
+TextShaper::TextShaper(ITextSource &story, int first)
+	: m_context(NULL)
 	, m_story(story)
 	, m_firstChar(first)
 {
@@ -166,13 +166,16 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
+		QString str = m_story.text(i,1);
+		
 		if (m_singlePar)
 		{
-			QChar ch = m_story.text(i);
+			QChar ch = str[0];
 			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 				continue;
 		}
-#if 1 // FIXME HOST: review this insanity
+		
+#if 0 // FIXME HOST: review this insanity
 		Mark* mark = m_story.mark(i);
 		if ((mark != NULL) && (m_story.hasMark(i)))
 		{
@@ -263,14 +266,16 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 			continue;
 		}
 #endif
-		QString str = m_item->ExpandToken(i);
-		if (str.isEmpty())
-			str = SpecialChars::ZWNBSPACE;
-
-		if (str.at(0) == SpecialChars::SHYPHEN)
+		
+		if (m_story.hasExpansionPoint(i))
 		{
-			str = QString(SpecialChars::ZWNJ);
+			str = m_context->expand(m_story.expansionPoint(i));
+			if (str.isEmpty())
+				str = SpecialChars::ZWNBSPACE;
 		}
+		
+		str.replace(SpecialChars::SHYPHEN, SpecialChars::ZWNJ);
+
 		const CharStyle &style = m_story.charStyle(i);
 		int effects = style.effects() & ScStyle_UserStyles;
 		if ((effects & ScStyle_AllCaps) || (effects & ScStyle_SmallCaps))
@@ -280,7 +285,7 @@ void TextShaper::buildText(QString &text, QMap<int, int> &textMap)
 			if (upper != str)
 			{
 				if (effects & ScStyle_SmallCaps)
-					m_story.setFlag(i, ScLayout_SmallCaps);
+					m_story.setFlag(i, ScLayout_SmallCaps); // this should be done by textsource...
 				str = upper;
 			}
 		}
@@ -447,18 +452,20 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.yadvance = positions[i].y_advance / 10.0;
 				}
 
+#if 0
 				if (m_story.hasMark(firstChar))
 				{
 					GlyphLayout control;
 					control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
 					run.append(control);
 				}
-
+#endif
+				
 				if (SpecialChars::isExpandingSpace(ch))
 					gl.xadvance *= run.style().wordTracking();
 
 				if (m_story.hasObject(firstChar))
-					gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
+					gl.xadvance = m_context->getWidth(m_story.object(firstChar));
 
 				if ((effects & ScStyle_Superscript) || (effects & ScStyle_Subscript))
 				{
@@ -466,13 +473,13 @@ QList<GlyphCluster> TextShaper::shape()
 					double asce = style.font().ascent(style.fontSize() / 10.0);
 					if (effects & ScStyle_Superscript)
 					{
-						gl.yoffset -= asce * m_item->doc()->typographicPrefs().valueSuperScript / 100.0;
-						scale = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+						gl.yoffset -= asce * m_context->typographicPrefs().valueSuperScript / 100.0;
+						scale = qMax(m_context->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
 					}
 					else // effects & ScStyle_Subscript
 					{
-						gl.yoffset += asce * m_item->doc()->typographicPrefs().valueSubScript / 100.0;
-						scale = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
+						gl.yoffset += asce * m_context->typographicPrefs().valueSubScript / 100.0;
+						scale = qMax(m_context->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
 					}
 
 					run.setScaleH(run.scaleH() * scale);
@@ -481,7 +488,7 @@ QList<GlyphCluster> TextShaper::shape()
 
 				if (run.hasFlag(ScLayout_SmallCaps))
 				{
-					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
+					double smallcapsScale = m_context->typographicPrefs().valueSmallCaps / 100.0;
 					run.setScaleH(run.scaleH() * smallcapsScale);
 					run.setScaleV(run.scaleV() * smallcapsScale);
 				}

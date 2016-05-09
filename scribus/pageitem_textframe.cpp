@@ -476,11 +476,12 @@ struct LineControl {
 	double   maxShrink;
 	double   maxStretch;
 	ScribusDoc *doc;
+	ITextContext* context;
 
 	/// remember frame dimensions and offsets
-	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, double colwidth, double colgap)
+	LineControl(double w, double h, const MarginStruct& extra, double lCorr, ScribusDoc* d, ITextContext* ctx, double colwidth, double colgap)
 		: hasDropCap(false)
-		, doc(d)
+		, doc(d), context(ctx)
 	{
 		insets = extra;
 		lineCorr = lCorr;
@@ -1056,13 +1057,13 @@ struct LineControl {
 	void addBox(LineBox *lineBox, const GlyphCluster& run)
 	{
 		Box* result;
-		if (run.object())
+		if (run.object().getPageItem(doc))
 		{
-			result = new ObjectBox(run);
+			result = new ObjectBox(run, context);
 			if (run.hasFlag(ScLayout_DropCap))
-				result->setAscent((run.object()->height() - run.object()->lineWidth()) * run.scaleV() - run.yoffset());
+				result->setAscent(context->getHeight(run.object()) * run.scaleV() - run.yoffset());
 			else
-				result->setAscent(run.object()->height() - run.object()->lineWidth());
+				result->setAscent(context->getHeight(run.object()));
 			result->setDescent(0);
 		}
 		else
@@ -1403,17 +1404,18 @@ void PageItem_TextFrame::layout()
 			m_availableRegion = matrix.map(m_availableRegion);
 		}
 
+		ITextContext* context = this;
 		TextShaper textShaper(this, itemText, firstInFrame());
 		QList<GlyphCluster> glyphRuns = textShaper.shape();
 		std::sort(glyphRuns.begin(), glyphRuns.end(), logicalGlyphRunComp);
 
-		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, columnWidth(), ColGap);
+		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, context,columnWidth(), ColGap);
 		current.nextColumn(textLayout);
 
 		lastLineY = m_textDistanceMargins.top();
 
 		//automatic line spacing factor (calculated once)
-		double autoLS = static_cast<double>(m_Doc->typographicPrefs().autoLineSpacing) / 100.0;
+		double autoLS = static_cast<double>(context->typographicPrefs().autoLineSpacing) / 100.0;
 
 		// find start of first line
 		if (firstInFrame() < itLen)
@@ -1479,7 +1481,7 @@ void PageItem_TextFrame::layout()
 
 			int a = current.glyphs[currentIndex].firstChar();
 			bool HasObject = itemText.hasObject(a);
-			PageItem* currentObject = itemText.object(a);
+			PageItem* currentObject = itemText.object(a).getPageItem(m_Doc);
 			bool HasMark = itemText.hasMark(a);
 
 			if (HasMark)
@@ -1491,7 +1493,7 @@ void PageItem_TextFrame::layout()
 			}
 
 			BulNumMode = false;
-			if (a==0 || itemText.text(a-1) == SpecialChars::PARSEP)
+			if (itemText.isBlockStart(a))
 			{
 				autoLeftIndent = 0.0;
 				style = itemText.paragraphStyle(a);
@@ -1516,7 +1518,7 @@ void PageItem_TextFrame::layout()
 			CharStyle charStyle = ((itemText.text(a) != SpecialChars::PARSEP) ? itemText.charStyle(a) : style.charStyle());
 
 			//set style for paragraph effects
-			if (a == 0 || itemText.text(a-1) == SpecialChars::PARSEP)
+			if (itemText.isBlockStart(a))
 			{
 				if (style.hasDropCap() || style.hasBullet() || style.hasNum())
 				{
@@ -1550,9 +1552,9 @@ void PageItem_TextFrame::layout()
 			// find out about par gap and dropcap
 			if (a == firstInFrame())
 			{
-				if (a == 0 || itemText.text(a-1) == SpecialChars::PARSEP)
+				if (itemText.isBlockStart(a))
 				{
-					if (itemText.text(a) != SpecialChars::PARSEP)
+					if (!itemText.isBlockStart(a+1))
 					{
 						DropCmode = style.hasDropCap();
 						if (DropCmode)
@@ -1612,12 +1614,12 @@ void PageItem_TextFrame::layout()
 				if (current.startOfCol && !current.afterOverflow && current.recalculateY)
 					current.yPos = qMax(current.yPos, m_textDistanceMargins.top());
 				// more about par gap and dropcaps
-				if ((a > firstInFrame() && itemText.text(a-1) == SpecialChars::PARSEP) || (a == 0 && BackBox == 0 && current.startOfCol))
+				if ((a > firstInFrame() && itemText.isBlockStart(a)) || (a == 0 && BackBox == 0 && current.startOfCol))
 				{
 					if (!current.afterOverflow && current.recalculateY && !current.startOfCol)
 						current.yPos += style.gapBefore();
 					DropCapDrop = 0;
-					if (itemText.text(a) != SpecialChars::PARSEP)
+					if (!itemText.isBlockStart(a+1))
 						DropCmode = style.hasDropCap();
 					else
 						DropCmode = false;
@@ -1787,7 +1789,7 @@ void PageItem_TextFrame::layout()
 					{
 						lastLineY = qMax(lastLineY, m_textDistanceMargins.top() + lineCorr);
 						//fix for proper rendering first empty line (only with PARSEP)
-						if (itemText.text(a) == SpecialChars::PARSEP)
+						if (itemText.isBlockStart(a+1))
 							current.yPos += style.lineSpacing();
 						if (style.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing || FlopBaseline)
 						{
@@ -1838,7 +1840,7 @@ void PageItem_TextFrame::layout()
 				if (current.addLeftIndent && (maxDX == 0 || DropCmode || BulNumMode))
 				{
 					current.leftIndent = style.leftMargin() + autoLeftIndent;
-					if (a==0 || (a > 0 && (itemText.text(a-1) == SpecialChars::PARSEP)))
+					if (itemText.isBlockStart(a))
 					{
 						current.leftIndent += style.firstIndent();
 						if (BulNumMode || DropCmode)
@@ -1932,7 +1934,7 @@ void PageItem_TextFrame::layout()
 							Xpos = current.xPos = realEnd = findRealOverflowEnd(m_availableRegion, pt, current.colRight);
 							Xend = current.xPos + (addIndent2overflow ? current.leftIndent : 0);
 							//for first paragraph`s line - if first line offset should be added
-							if ( addFirstIndent2overflow && (a==0 || (a > 0 && (itemText.text(a-1) == SpecialChars::PARSEP))))
+							if ( addFirstIndent2overflow && itemText.isBlockStart(a))
 								Xend += style.firstIndent();
 						}
 						else
@@ -2472,7 +2474,7 @@ void PageItem_TextFrame::layout()
 					assert(current.addLine);
 					//current.startOfCol = false;
 					//addLeftIndent = true;
-					if (itemText.text(a) == SpecialChars::PARSEP)
+					if (itemText.isBlockStart(a+1))
 					{
 						maxDX = 0;
 						if (current.hasDropCap)
@@ -2622,7 +2624,7 @@ void PageItem_TextFrame::layout()
 				// #11250: in case of a forced line break, we must not stop
 				// the drop cap layout process. This break case such as
 				// layout of poetry.
-				if (itemText.text(a) == SpecialChars::PARSEP && current.hasDropCap)
+				if (itemText.isBlockStart(a+1) && current.hasDropCap)
 				{
 					current.hasDropCap = false;
 					if (current.yPos < maxDY)
@@ -2714,7 +2716,7 @@ void PageItem_TextFrame::layout()
 				}
 				if ( SpecialChars::isBreak(itemText.text(a)) )
 				{
-					if (itemText.text(a) == SpecialChars::PARSEP)
+					if (itemText.isBlockStart(a+1))
 						current.yPos += style.gapAfter();
 					current.hyphenCount = 0;
 				}

@@ -17,7 +17,6 @@
 
 #include <cassert>
 #include "../styles/charstyle.h"
-#include "pageitem.h"
 #include "prefsstructs.h"
 #include "../styles/paragraphstyle.h"
 #include "specialchars.h"
@@ -26,11 +25,11 @@
 #include "textlayoutpainter.h"
 #include "screenpainter.h"
 #include "boxes.h"
+#include "itextcontext.h"
 
 
 
-
-TextLayout::TextLayout(StoryText* text, PageItem* frame)
+TextLayout::TextLayout(StoryText* text, ITextContext* frame)
 {
 	m_story = text;
 	m_frame = frame;
@@ -110,10 +109,10 @@ void TextLayout::removeLastLine ()
 		column->removeBox(lineCount - 1);
 }
 
-void TextLayout::render(ScreenPainter *p, PageItem *item)
+void TextLayout::render(ScreenPainter *p, ITextContext *ctx)
 {
 	p->save();
-	m_box->render(p, item);
+	m_box->render(p, ctx);
 	p->restore();
 }
 

@@ -826,11 +826,12 @@ QString StoryText::plainText() const
 
 	return result;
 }
-
+#if 0
 QChar StoryText::text() const
 {
 	return text(d->cursorPosition);
 }
+#endif
 
 QChar StoryText::text(int pos) const
 {
@@ -859,6 +860,43 @@ QString StoryText::text(int pos, uint len) const
 
 	return result;
 }
+
+
+bool StoryText::isBlockStart(int pos) const 
+{
+                return pos  == 0 || text(pos-1) == SpecialChars::PARSEP; 
+}
+
+
+InlineFrame StoryText::object(int pos) const
+{
+	  if (pos < 0)
+                pos += length();
+
+        assert(pos >= 0);
+        assert(pos < length());
+
+        StoryText* that = const_cast<StoryText *>(this);
+        return InlineFrame(that->d->at(pos)->embedded);
+}
+
+
+bool StoryText::hasExpansionPoint(int pos) const
+{
+	return text(pos) == SpecialChars::PAGENUMBER || text(pos) == SpecialChars::PAGECOUNT;
+}
+
+
+ExpansionPoint StoryText::expansionPoint(int pos) const
+{
+	if (text(pos) == SpecialChars::PAGENUMBER)
+		return ExpansionPoint(ExpansionPoint::PageNumber);
+	else if( text(pos) == SpecialChars::PAGECOUNT)
+		return ExpansionPoint(ExpansionPoint::PageCount);
+	else
+		return ExpansionPoint(ExpansionPoint::Invalid);
+}
+
 
 QString StoryText::sentence(int pos, int &posn)
 {
@@ -904,7 +942,8 @@ bool StoryText::hasObject(int pos) const
 	return false;
 }
 
-PageItem* StoryText::object(int pos) const
+
+PageItem* StoryText::getItem(int pos) const
 {
 	if (pos < 0)
 		pos += length();
@@ -915,6 +954,7 @@ PageItem* StoryText::object(int pos) const
 	StoryText* that = const_cast<StoryText *>(this);
 	return that->d->at(pos)->getItem(m_doc);
 }
+
 
 bool StoryText::hasMark(int pos, Mark* mrk) const
 {
@@ -1298,7 +1338,7 @@ void StoryText::getNamedResources(ResourceCollection& lists) const
 		if (text(i) == SpecialChars::PARSEP)
 			paragraphStyle(i).getNamedResources(lists);
 		else if (hasObject(i))
-			object(i)->getNamedResources(lists);
+			getItem(i)->getNamedResources(lists);
 		else
 			charStyle(i).getNamedResources(lists);
 	}
@@ -1978,7 +2018,7 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 		}
 		else if (this->hasObject(i))
 		{
-			object(i)->saxx(handler);
+			getItem(i)->saxx(handler);
 		}
 		else if (hasMark(i))
 		{
