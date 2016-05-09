@@ -320,6 +320,8 @@ static bool nameComp(const FT_SfntName a, const FT_SfntName b)
 	}
 
 	// sort Unicode platforms first
+	// preferring MS platform as it is more likely to
+	// not have bogus entries, being the more tested one.
 	if (a.platform_id != b.platform_id)
 	{
 		if      (a.platform_id == TT_PLATFORM_MICROSOFT)
