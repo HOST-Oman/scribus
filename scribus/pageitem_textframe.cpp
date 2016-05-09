@@ -816,7 +816,7 @@ struct LineControl {
 			{
 				glyphNatural += glyphrun.width();
 			}
-			else if ( !glyphrun.hasFlag(ScLayout_SuppressSpace) )
+			else if (!glyphrun.hasFlag(ScLayout_SuppressSpace))
 			{
 				spaceNatural += glyphrun.width();
 				if (imSpace < 0.0 || imSpace > glyphrun.width())
