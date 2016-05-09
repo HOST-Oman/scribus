@@ -314,6 +314,40 @@ QList<GlyphCluster> TextShaper::shape()
 			lineBreaks.append(pos);
 	}
 
+	QVector<int32_t> implicitSpaces;
+
+	// Insert implicit spaces in justification between characters
+	// in scripts that do not use spaces to seperate words
+	foreach (const TextRun& run, scriptRuns) {
+		switch (run.script) {
+		case USCRIPT_KHMER:
+		case USCRIPT_LAO:
+		case USCRIPT_THAI:
+		{
+			BreakIterator* charIt = StoryText::getGraphemeIterator();
+			if (charIt)
+			{
+				const QString text = m_text.mid(run.start, run.len);
+				charIt->setText(text.utf16());
+				int32_t pos = charIt->first();
+				while (pos != BreakIterator::DONE && pos < text.length())
+				{
+					UErrorCode status = U_ZERO_ERROR;
+					UScriptCode sc = uscript_getScript(text.at(pos).unicode(), &status);
+					// do not insert implicit space before punctuation
+					// or other non-script specific characters
+					if (sc != USCRIPT_COMMON)
+						implicitSpaces.append(run.start + pos);
+					pos = charIt->next();
+				}
+			}
+			break;
+		}
+		default:
+			break;
+		}
+	}
+
 	QList<GlyphCluster> glyphRuns;
 	foreach (const TextRun& textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
@@ -416,6 +450,8 @@ QList<GlyphCluster> TextShaper::shape()
 
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
+			else if (implicitSpaces.contains(firstCluster))
+				run.setFlag(ScLayout_ImplicitSpace);
 
 			if (effects & ScStyle_Underline)
 				run.setFlag(ScLayout_Underlined);
