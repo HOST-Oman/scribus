@@ -76,6 +76,7 @@ int mainApp(int argc, char **argv)
 	int appRetVal=app.init();
 	if (appRetVal==EXIT_FAILURE)
 		return(EXIT_FAILURE);
+       qDebug() << "Device Pixel Ratio: " << app.devicePixelRatio();
 	if (app.useGUI)
 		return app.exec();
 	return EXIT_SUCCESS;	

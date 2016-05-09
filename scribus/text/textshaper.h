@@ -7,6 +7,8 @@
 #include <QStringList>
 
 #include <unicode/uscript.h>
+#include "itextsource.h"
+#include "itextcontext.h"
 
 class GlyphCluster;
 class StoryText;
@@ -15,8 +17,8 @@ class PageItem;
 class TextShaper
 {
 public:
-	TextShaper(PageItem *item, StoryText &story, int first, bool singlePar=false);
-	TextShaper(StoryText &story, int first);
+	TextShaper(ITextContext* context, ITextSource& story, int first, bool singlePar=false);
+	TextShaper(ITextSource &story, int first);
 
 	QList<GlyphCluster> shape();
 
@@ -54,8 +56,8 @@ private:
 
 	QList<FeaturesRun> itemizeFeatures(const TextRun &run);
 
-	PageItem *m_item;
-	StoryText &m_story;
+	ITextContext* m_context;
+	ITextSource& m_story;
 	int m_firstChar;
 	bool m_singlePar;
 	QString m_text;

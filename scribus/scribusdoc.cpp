@@ -16290,7 +16290,7 @@ void ScribusDoc::checkItemForFrames(PageItem *it, int fIndex)
 	{
 		if (it->itemText.hasObject(e))
 		{
-			if (it->itemText.object(e)->inlineCharID == fIndex)
+			if (it->itemText.object(e).getInlineCharID() == fIndex)
 				deleteList.prepend(e);
 		}
 	}
