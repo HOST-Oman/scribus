@@ -322,13 +322,13 @@ static bool nameComp(const FT_SfntName a, const FT_SfntName b)
 	// sort Unicode platforms first
 	if (a.platform_id != b.platform_id)
 	{
-		if      (a.platform_id == TT_PLATFORM_APPLE_UNICODE)
-			return true;
-		else if (b.platform_id == TT_PLATFORM_APPLE_UNICODE)
-			return false;
-		else if (a.platform_id == TT_PLATFORM_MICROSOFT)
+		if      (a.platform_id == TT_PLATFORM_MICROSOFT)
 			return true;
 		else if (b.platform_id == TT_PLATFORM_MICROSOFT)
+			return false;
+		else if (a.platform_id == TT_PLATFORM_APPLE_UNICODE)
+			return true;
+		else if (b.platform_id == TT_PLATFORM_APPLE_UNICODE)
 			return false;
 	}
 
