@@ -507,7 +507,7 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.xadvance *= run.style().wordTracking();
 
 				if (m_story.hasObject(firstChar))
-					gl.xadvance = m_story.object(firstChar)->width() + m_story.object(firstChar)->lineWidth();
+					gl.xadvance = m_story.object(firstChar)->getVisualBoundingRect().width();
 
 				if ((effects & ScStyle_Superscript) || (effects & ScStyle_Subscript))
 				{

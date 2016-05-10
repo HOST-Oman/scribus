@@ -1069,10 +1069,11 @@ struct LineControl {
 		if (run.object())
 		{
 			result = new ObjectBox(run);
+			QRectF bBox = run.object()->getVisualBoundingRect();
 			if (run.hasFlag(ScLayout_DropCap))
-				result->setAscent((run.object()->height() - run.object()->lineWidth()) * run.scaleV() - run.yoffset);
+				result->setAscent(bBox.height() * run.scaleV() - run.yoffset);
 			else
-				result->setAscent(run.object()->height() - run.object()->lineWidth());
+				result->setAscent(bBox.height());
 			result->setDescent(0);
 		}
 		else
@@ -1462,6 +1463,9 @@ void PageItem_TextFrame::layout()
 			int a = current.glyphs[currentIndex].firstChar();
 			bool HasObject = itemText.hasObject(a);
 			PageItem* currentObject = itemText.object(a);
+			QRectF currentObjectBox = QRectF();
+			if (HasObject)
+				currentObjectBox = currentObject->getVisualBoundingRect();
 			bool HasMark = itemText.hasMark(a);
 
 			if (HasMark)
@@ -1635,14 +1639,17 @@ void PageItem_TextFrame::layout()
 				current.glyphs[currentIndex].setFlag(ScLayout_DropCap);
 				if (HasObject)
 				{
-					chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
-					chsd = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
+				//	chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
+				//	chsd = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
+					chs = currentObjectBox.height() * 10;
+					chsd = currentObjectBox.height() * 10;
 				}
 			}
 			else // ! dropCapMode
 			{
 				if (HasObject)
-					chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
+					chs = currentObjectBox.height() * 10;
+				//	chs = qRound((currentObject->height() + currentObject->lineWidth()) * 10);
 				else
 					chs = charStyle.fontSize();
 			}
@@ -1675,11 +1682,16 @@ void PageItem_TextFrame::layout()
 				// drop caps are wider...
 				if (HasObject)
 				{
-					double itemHeight = currentObject->height() + currentObject->lineWidth();
+				//	double itemHeight = currentObject->height() + currentObject->lineWidth();
+				//	if (itemHeight == 0)
+				//		itemHeight = font.height(style.charStyle().fontSize() / 10.0);
+				//	asce = currentObject->height() + currentObject->lineWidth();
+				//	wide = currentObject->width() + currentObject->lineWidth();
+					double itemHeight = currentObjectBox.height();
 					if (itemHeight == 0)
 						itemHeight = font.height(style.charStyle().fontSize() / 10.0);
-					asce = currentObject->height() + currentObject->lineWidth();
-					wide = currentObject->width() + currentObject->lineWidth();
+					asce = currentObjectBox.height();
+					wide = currentObjectBox.width();
 					realAsce = calculateLineSpacing (style, this) * DropLines;
 					current.glyphs[currentIndex].setScaleH(current.glyphs[currentIndex].scaleH() / current.glyphs[currentIndex].scaleV());
 					current.glyphs[currentIndex].setScaleV(realAsce / itemHeight);
@@ -1727,7 +1739,8 @@ void PageItem_TextFrame::layout()
 				{
 					if (itemText.text(a) != SpecialChars::OBJECT)
 					{
-						foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs()) {
+						foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
+						{
 							GlyphMetrics gm = font.glyphBBox(gl.glyph, hlcsize10);
 							realDesc = qMax(realDesc, gm.descent * scaleV - offset);
 							realAsce = gm.ascent;
@@ -1738,8 +1751,10 @@ void PageItem_TextFrame::layout()
 				}
 				if (HasObject)
 				{
-					asce = currentObject->height() + currentObject->lineWidth();
+				//	asce = currentObject->height() + currentObject->lineWidth();
+					asce = currentObjectBox.height();
 					realAsce = asce * scaleV + offset;
+					wide = currentObjectBox.width() * scaleH;
 				}
 				else
 				{
@@ -1859,7 +1874,7 @@ void PageItem_TextFrame::layout()
 			maxYAsc = qMax(maxYAsc, 0.0);
 			maxYDesc = current.yPos + realDesc;
 
-			if (true||style.lineSpacingMode() == ParagraphStyle::AutomaticLineSpacing)
+			if (style.lineSpacingMode() == ParagraphStyle::AutomaticLineSpacing)
 			{
 				regionMinY = static_cast<int>(floor(maxYAsc));
 				regionMaxY = static_cast<int>(floor(maxYDesc));
@@ -2016,14 +2031,16 @@ void PageItem_TextFrame::layout()
 				else if (style.lineSpacingMode() != ParagraphStyle::FixedLineSpacing)
 				{
 					if (HasObject)
-						diff = (currentObject->height() + currentObject->lineWidth()) * scaleV + offset - (current.yPos - lastLineY);
+					//	diff = (currentObject->height() + currentObject->lineWidth()) * scaleV + offset - (current.yPos - lastLineY);
+						diff = (currentObjectBox.height() * scaleV + offset) - (current.yPos - lastLineY);
 					else
-						diff = font.capHeight(hlcsize10) * scaleV + offset - (current.yPos - lastLineY);
+						diff = font.capHeight(hlcsize10) * scaleV + offset - (current.yPos - lastLineY) - desc;
 				}
 				else
 				{
 					if (HasObject)
-						diff = (currentObject->height() + currentObject->lineWidth()) * scaleV + offset - (current.yPos - lastLineY);
+					//	diff = (currentObject->height() + currentObject->lineWidth()) * scaleV + offset - (current.yPos - lastLineY);
+						diff = currentObjectBox.height() * scaleV + offset - (current.yPos - lastLineY);
 				}
 				if (diff >= 1 || (!DropCmode && diff > 0))
 				{
@@ -2646,6 +2663,10 @@ void PageItem_TextFrame::layout()
 						currentIndex = i - current.line.firstRun;
 						a = current.glyphs[currentIndex].firstChar();
 						current.rowDesc = qMax(current.rowDesc,current.yPos + current.line.descent);
+					//	if (glyphRuns[current.line.firstRun].hasFlag(ScLayout_DropCap))
+					//		current.rowDesc = qMax(current.rowDesc,current.yPos + current.line.descent);
+					//	else
+							current.rowDesc = qMax(current.rowDesc,current.yPos - current.line.descent);
 						if (!current.lastInRowLine)
 						{
 							current.restartX = current.xPos;
