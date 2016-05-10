@@ -1034,6 +1034,10 @@ void ActionManager::initUnicodeActions(QMap<QString, QPointer<ScrAction> > *acti
 {
 	QString name;
 	//typography
+	name="unicodeZWNJ";
+	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, SpecialChars::ZWNJ.unicode()));
+	name="unicodeZWJ";
+	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, SpecialChars::ZWJ.unicode()));
 	name="unicodeSoftHyphen";
 	actionMap->insert(name, new ScrAction(defaultKey(name), actionParent, SpecialChars::SHYPHEN.unicode()));
 	name="unicodeNonBreakingHyphen";
@@ -1130,6 +1134,7 @@ void ActionManager::initUnicodeActions(QMap<QString, QPointer<ScrAction> > *acti
 
 	//Spaces and special characters
 
+	*actionNamesList << "unicodeZWNJ" << "unicodeZWJ";
 	*actionNamesList << "unicodeSoftHyphen" << "unicodeNonBreakingHyphen" << "unicodeNonBreakingSpace" << "unicodePageNumber" << "unicodePageCount";
 	*actionNamesList << "unicodeSpaceEN" << "unicodeSpaceEM" << "unicodeSpaceThin" << "unicodeSpaceThick" << "unicodeSpaceMid" << "unicodeSpaceHair";
 	//Breaks
@@ -1788,6 +1793,8 @@ void ActionManager::languageChange()
 void ActionManager::languageChangeUnicodeActions(QMap<QString, QPointer<ScrAction> > *actionMap)
 {
 	//typography
+	(*actionMap)["unicodeZWNJ"]->setText( tr("Zero Width Non-Joiner"));
+	(*actionMap)["unicodeZWJ"]->setText( tr("Zero Width Joiner"));
 	(*actionMap)["unicodeSoftHyphen"]->setText( tr("Soft &Hyphen"));
 	(*actionMap)["unicodeNonBreakingHyphen"]->setText( tr("Non Breaking Dash"));
 	(*actionMap)["unicodeNonBreakingSpace"]->setText( tr("Non Breaking &Space"));
@@ -2158,6 +2165,8 @@ void ActionManager::createDefaultMenus()
 		<< "itemUpdateMarks";
 
 	itmenu->second
+		<< "unicodeZWNJ"
+		<< "unicodeZWJ"
 		<< "unicodeSoftHyphen"
 		<< "unicodeNonBreakingHyphen"
 		<< "unicodeNonBreakingSpace"
@@ -2394,6 +2403,8 @@ void ActionManager::createDefaultNonMenuActions()
 
 	//Unicode
 	++itnmenua;
+	itnmenua->second << "unicodeZWNJ";
+	itnmenua->second << "unicodeZWJ";
 	itnmenua->second << "unicodeSoftHyphen";
 	itnmenua->second << "unicodeNonBreakingHyphen";
 	itnmenua->second << "unicodeNonBreakingSpace";
@@ -2439,6 +2450,9 @@ void ActionManager::createDefaultNonMenuActions()
 	itnmenua->second << "unicodeSpaceThick";
 	itnmenua->second << "unicodeSpaceMid";
 	itnmenua->second << "unicodeSpaceHair";
+
+	itnmenua->second << "unicodeZWNJ";
+	itnmenua->second << "unicodeZWJ";
 
 	itnmenua->second << "unicodeSoftHyphen";
 	itnmenua->second << "unicodeNonBreakingHyphen";

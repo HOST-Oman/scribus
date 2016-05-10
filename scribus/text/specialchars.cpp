@@ -37,6 +37,7 @@ QChar SpecialChars::OLD_NBSPACE  = QChar(29);
 QChar SpecialChars::ZWNBSPACE    = QChar(0x2060);
 QChar SpecialChars::ZWSPACE      = QChar(0x200B);
 QChar SpecialChars::ZWNJ         = QChar(0x200C);
+QChar SpecialChars::ZWJ          = QChar(0x200D);
 QChar SpecialChars::PAGENUMBER   = QChar(30);
 QChar SpecialChars::PAGECOUNT    = QChar(23);
 QChar SpecialChars::BLANK        = QChar(32);      // SPACE is some macro on my machine - av

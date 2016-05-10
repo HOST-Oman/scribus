@@ -958,6 +958,8 @@ void ScribusMainWindow::initMenuBar()
 	scrMenuMgr->addMenuItemString("unicodePageCount", "InsertChar");
 	scrMenuMgr->addMenuItemString("unicodeSoftHyphen", "InsertChar");
 	scrMenuMgr->addMenuItemString("unicodeNonBreakingHyphen", "InsertChar");
+	scrMenuMgr->addMenuItemString("unicodeZWJ", "InsertChar");
+	scrMenuMgr->addMenuItemString("unicodeZWNJ", "InsertChar");
 	scrMenuMgr->addMenuItemString("SEPARATOR", "InsertChar");
 	scrMenuMgr->addMenuItemString("unicodeCopyRight", "InsertChar");
 	scrMenuMgr->addMenuItemString("unicodeRegdTM", "InsertChar");

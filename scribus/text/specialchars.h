@@ -45,6 +45,7 @@ public:
 	static QChar ZWNBSPACE;
 	static QChar ZWSPACE;
 	static QChar ZWNJ;			// break ligatures
+	static QChar ZWJ;
 	static QChar PAGENUMBER;
 	static QChar PAGECOUNT;
 	static QChar BLANK;
