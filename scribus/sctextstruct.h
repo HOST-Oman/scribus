@@ -87,17 +87,21 @@ public:
 		Anchor,  // usually invisible	
 		PageRef,
 		Lookup, // generic lookup
-		SectionRef
+		SectionRef,
+		MarkCE // deprecated
 	} ;
 
 	ExpansionPoint(ExpansionType t) : m_type(t), m_name() {}
 	ExpansionPoint(ExpansionType t, QString name) : m_type(t), m_name(name) {}
+	ExpansionPoint(Mark* mrk) : m_type(MarkCE), m_name(), m_mark(mrk) {}
 
 	ExpansionType getType() const { return m_type; }
 	QString getName() const { return m_name; }
+	Mark* getMark() const { return m_mark; }
 private:
 	ExpansionType m_type;
 	QString m_name;
+	Mark* m_mark;
 };
 
 

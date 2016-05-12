@@ -883,7 +883,7 @@ InlineFrame StoryText::object(int pos) const
 
 bool StoryText::hasExpansionPoint(int pos) const
 {
-	return text(pos) == SpecialChars::PAGENUMBER || text(pos) == SpecialChars::PAGECOUNT;
+	return text(pos) == SpecialChars::PAGENUMBER || text(pos) == SpecialChars::PAGECOUNT || hasMark(pos);
 }
 
 
@@ -893,6 +893,8 @@ ExpansionPoint StoryText::expansionPoint(int pos) const
 		return ExpansionPoint(ExpansionPoint::PageNumber);
 	else if( text(pos) == SpecialChars::PAGECOUNT)
 		return ExpansionPoint(ExpansionPoint::PageCount);
+	else if (hasMark(pos))
+		return ExpansionPoint(mark(pos));
 	else
 		return ExpansionPoint(ExpansionPoint::Invalid);
 }
@@ -980,6 +982,47 @@ Mark* StoryText::mark(int pos) const
 
 	StoryText* that = const_cast<StoryText *>(this);
 	return that->d->at(pos)->mark;
+}
+
+
+void StoryText::applyMarkCharstyle(Mark* mrk, CharStyle& currStyle) const
+{
+	TextNote* note = mrk->getNotePtr();
+	if (note == NULL)
+		return;
+	
+	NotesStyle* nStyle = note->notesStyle();
+	Q_ASSERT(nStyle != NULL);
+	
+	QString chsName = nStyle->marksChStyle();
+	if (!chsName.isEmpty())
+	{
+		CharStyle marksStyle(m_doc->charStyle(chsName));
+		if (!currStyle.equiv(marksStyle))
+		{
+			currStyle.setParent(chsName);
+		}
+	}
+	
+	StyleFlag s(currStyle.effects());
+	if (mrk->isType(MARKNoteMasterType))
+	{
+		if (nStyle->isSuperscriptInMaster())
+			s |= ScStyle_Superscript;
+		else
+			s &= ~ScStyle_Superscript;
+	}
+	else
+	{
+		if (nStyle->isSuperscriptInNote())
+			s |= ScStyle_Superscript;
+		else
+			s &= ~ScStyle_Superscript;
+	}
+	if (s != currStyle.effects())
+	{
+		currStyle.setFeatures(s.featureList());
+	}
 }
 
 
@@ -1075,9 +1118,18 @@ const CharStyle & StoryText::charStyle(int pos) const
 		qDebug() << "storytext::charstyle: access at end of text %i" << pos;
 		--pos;
 	}
+	
 	if (text(pos) == SpecialChars::PARSEP)
 		return paragraphStyle(pos).charStyle();
+	
 	StoryText* that = const_cast<StoryText *>(this);
+
+	Mark* mrk = NULL;
+	if (hasMark(pos, mrk))
+	{
+		applyMarkCharstyle(mrk, *that->d->at(pos)); // hack to keep note charstyles current
+	}
+	
 	return dynamic_cast<const CharStyle &> (*that->d->at(pos));
 }
 
