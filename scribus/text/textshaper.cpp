@@ -113,10 +113,9 @@ QList<TextShaper::FeaturesRun> TextShaper::itemizeFeatures(const TextRun &run)
 	while (start < run.start + run.len)
 	{
 		int end = start;
-		QStringList startFeatures;
+		QStringList startFeatures = m_story.charStyle(m_textMap.value(start)).fontFeatures().split(",");
 		while (end < run.start + run.len)
 		{
-			startFeatures = m_story.charStyle(m_textMap.value(start)).fontFeatures().split(",");
 			QStringList endFeatures = m_story.charStyle(m_textMap.value(end)).fontFeatures().split(",");
 			if (startFeatures != endFeatures)
 				break;
@@ -141,9 +140,9 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 		while (start < run.start + run.len)
 		{
 			int end = start;
+			const CharStyle &startStyle = m_story.charStyle(m_textMap.value(start));
 			while (end < run.start + run.len)
 			{
-				const CharStyle &startStyle = m_story.charStyle(m_textMap.value(start));
 				const CharStyle &endStyle = m_story.charStyle(m_textMap.value(end));
 				if (!startStyle.equivForShaping(endStyle))
 					break;

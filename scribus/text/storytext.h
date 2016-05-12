@@ -163,6 +163,7 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
     bool hasMark(int pos, Mark* mrk = NULL) const;
 	Mark *mark(int pos) const;
     void replaceMark(int pos, Mark* mrk);
+	void applyMarkCharstyle(Mark* mrk, CharStyle& currStyle) const;
 
 	bool isHighSurrogate(int pos) const;
 	bool isLowSurrogate(int pos) const;
