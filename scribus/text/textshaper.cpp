@@ -322,7 +322,7 @@ QList<GlyphCluster> TextShaper::shape()
 
 	QVector<int32_t> implicitSpaces;
 
-	// Insert implicit spaces in justification between words
+	// Insert implicit spaces in justification between characters
 	// in scripts that do not use spaces to seperate words
 	foreach (const TextRun& run, scriptRuns) {
 		switch (run.script) {
@@ -330,26 +330,21 @@ QList<GlyphCluster> TextShaper::shape()
 		case USCRIPT_LAO:
 		case USCRIPT_THAI:
 		{
-			BreakIterator* wordIt = StoryText::getWordIterator();
-			if (wordIt)
+			BreakIterator* charIt = StoryText::getGraphemeIterator();
+			if (charIt)
 			{
 				const QString text = m_text.mid(run.start, run.len);
-				wordIt->setText(text.utf16());
-				int32_t pos = wordIt->first();
+				charIt->setText(text.utf16());
+				int32_t pos = charIt->first();
 				while (pos != BreakIterator::DONE && pos < text.length())
 				{
-					if (pos > 0 && pos < text.length() - 1)
-					{
-						UErrorCode status = U_ZERO_ERROR;
-						UScriptCode current = uscript_getScript(text.at(pos).unicode(), &status);
-						UScriptCode before = uscript_getScript(text.at(pos - 1).unicode(), &status);
-						UScriptCode after = uscript_getScript(text.at(pos + 1).unicode(), &status);
-						// Do not insert implicit space before/after punctuation
-						// or other non-script specific characters
-						if (current != USCRIPT_COMMON && before != USCRIPT_COMMON && after != USCRIPT_COMMON)
-							implicitSpaces.append(run.start + pos);
-					}
-					pos = wordIt->next();
+					UErrorCode status = U_ZERO_ERROR;
+					UScriptCode sc = uscript_getScript(text.at(pos).unicode(), &status);
+					// do not insert implicit space before punctuation
+					// or other non-script specific characters
+					if (sc != USCRIPT_COMMON)
+						implicitSpaces.append(run.start + pos);
+					pos = charIt->next();
 				}
 			}
 			break;
