@@ -326,8 +326,13 @@ QList<GlyphCluster> TextShaper::shape()
 	// in scripts that do not use spaces to seperate words
 	foreach (const TextRun& run, scriptRuns) {
 		switch (run.script) {
+		// clustered scripts from https://drafts.csswg.org/css-text-3/#script-groups
 		case USCRIPT_KHMER:
 		case USCRIPT_LAO:
+		case USCRIPT_MYANMAR:
+		case USCRIPT_NEW_TAI_LUE:
+		case USCRIPT_TAI_LE:
+		case USCRIPT_TAI_VIET:
 		case USCRIPT_THAI:
 		{
 			BreakIterator* charIt = StoryText::getGraphemeIterator();
