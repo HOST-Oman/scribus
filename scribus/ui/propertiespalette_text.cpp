@@ -12,6 +12,7 @@ for which a new license (GPL+exception) is in place.
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
+#include <QSignalBlocker>
 
 #include "appmodes.h"
 #include "colorcombo.h"
@@ -725,6 +726,7 @@ void PropertiesPalette_Text::languageChange()
 	opentypefontWidgettsItem->setText(0, tr("Font Features"));
 	pathTextItem->setText(0, tr("Path Text Properties"));
 	QStringList languageList;
+	QSignalBlocker lineSpacingModeBlocker(lineSpacingModeCombo);
 	LanguageManager::instance()->fillInstalledStringList(&languageList, true);
 	int oldLineSpacingMode = lineSpacingModeCombo->currentIndex();
 	int oldLang = langCombo->currentIndex();
