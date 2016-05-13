@@ -56,4 +56,4 @@ ATTRDEF(bool, numOther, NumOther, false)
 ATTRDEF(bool, numHigher, NumHigher, true)
 ATTRDEF(QString, backgroundColor, BackgroundColor, "None")
 ATTRDEF(double, backgroundShade, BackgroundShade, 100)
-
+ATTRDEF(int, hyphenConsecutiveLines, HyphenConsecutiveLines, 2)

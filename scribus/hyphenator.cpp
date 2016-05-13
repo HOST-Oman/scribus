@@ -41,8 +41,6 @@ Hyphenator::Hyphenator(QWidget* parent, ScribusDoc *dok) : QObject( parent ),
 	m_doc(dok),
 	m_hdict(NULL),
 	m_codec(NULL),
-	m_minWordLen(m_doc->hyphMinimumWordLength()),
-	m_consecutiveLines(m_doc->hyphConsecutiveLines()),
 	m_automatic(m_doc->hyphAutomatic()),
 	AutoCheck(m_doc->hyphAutoCheck())
 {
@@ -91,10 +89,7 @@ bool Hyphenator::loadDict(const QString& name)
 
 void Hyphenator::slotNewSettings(int Wordlen, bool Autom, bool ACheck, int Num)
 {
-	m_minWordLen = Wordlen;
-	m_automatic = Autom;
 	AutoCheck = ACheck;
-	m_consecutiveLines = Num;
 	m_doc->setHyphMinimumWordLength(Wordlen);
 	m_doc->setHyphAutomatic(Autom);
 	m_doc->setHyphAutoCheck(AutoCheck);
@@ -105,9 +100,10 @@ void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC
 {
 	if (text.contains(SpecialChars::SHYPHEN))
 		return;
-	else if (text.length() >= m_minWordLen)
+	const CharStyle& style = it->itemText.charStyle(firstC);
+	if (text.length() >= style.hyphenWordMin())
 	{
-		bool ok = loadDict(it->itemText.charStyle(firstC).language());
+		bool ok = loadDict(style.language());
 		if (!ok)
 			return;
 
@@ -167,14 +163,15 @@ void Hyphenator::slotHyphenate(PageItem* it)
 		int lastC = pos;
 		int countC = lastC - firstC;
 
-		if (countC > 0 && countC > m_minWordLen - 1)
+		const CharStyle& style = it->itemText.charStyle(firstC);
+		if (countC > 0 && countC > style.hyphenWordMin() - 1)
 		{
 			QString word = text.mid(firstC, countC);
-			QString wordLower = QLocale(m_language).toLower(word);
+			QString wordLower = QLocale(style.language()).toLower(word);
 			if (wordLower.contains(SpecialChars::SHYPHEN))
 				break;
 
-			bool ok = loadDict(it->itemText.charStyle(firstC).language());
+			bool ok = loadDict(style.language());
 			if (!ok)
 				continue;
 

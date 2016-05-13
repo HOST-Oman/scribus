@@ -2282,7 +2282,7 @@ void PageItem_TextFrame::layout()
 					charEnd = static_cast<int>(ceil(current.xPos - current.maxShrink));
 				}
 				if (legacy &&
-						(((itemText.text(a) == '-' || current.glyphs[currentIndex].hasFlag(ScLayout_HyphenationPossible)) && (current.hyphenCount < m_Doc->hyphConsecutiveLines() || m_Doc->hyphConsecutiveLines() == 0))
+						(((itemText.text(a) == '-' || current.glyphs[currentIndex].hasFlag(ScLayout_HyphenationPossible)) && (current.hyphenCount < style.hyphenConsecutiveLines() || style.hyphenConsecutiveLines() == 0))
 						 || itemText.text(a) == SpecialChars::SHYPHEN))
 				{
 					if (current.glyphs[currentIndex].hasFlag(ScLayout_HyphenationPossible) || itemText.text(a) == SpecialChars::SHYPHEN)
@@ -2415,7 +2415,7 @@ void PageItem_TextFrame::layout()
 
 				if (legacy || (breakPos - rightHang < current.colRight - style.rightMargin()))
 				{
-					if ((current.hyphenCount < m_Doc->hyphConsecutiveLines()) || (m_Doc->hyphConsecutiveLines() == 0) || itemText.text(a) == SpecialChars::SHYPHEN)
+					if ((current.hyphenCount < style.hyphenConsecutiveLines()) || (style.hyphenConsecutiveLines() == 0) || itemText.text(a) == SpecialChars::SHYPHEN)
 					{
 						current.rememberBreak(i, breakPos, style.rightMargin() + hyphWidth);
 					}

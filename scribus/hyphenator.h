@@ -55,11 +55,6 @@ private:
 	/*! Language in use */
 	QString m_language;
 
-	/*! There are languages having rule not to hyphen word shorter than
-		MinWordLen */
-	int m_minWordLen;
-	/*! Maximum number of hyphenations allowed following each other */
-	int m_consecutiveLines;
 	/*! Flag - if user set auto hyphen processing.*/
 	bool m_automatic;
 
