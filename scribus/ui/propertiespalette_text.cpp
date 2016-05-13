@@ -725,19 +725,20 @@ void PropertiesPalette_Text::languageChange()
 	advancedWidgetsItem->setText(0, tr("Advanced Settings"));
 	opentypefontWidgettsItem->setText(0, tr("Font Features"));
 	pathTextItem->setText(0, tr("Path Text Properties"));
-	QStringList languageList;
 	QSignalBlocker lineSpacingModeBlocker(lineSpacingModeCombo);
-	LanguageManager::instance()->fillInstalledStringList(&languageList, true);
 	int oldLineSpacingMode = lineSpacingModeCombo->currentIndex();
-	int oldLang = langCombo->currentIndex();
-	langCombo->clear();
-	langCombo->addItems(languageList);
-	langCombo->setCurrentIndex(oldLang);
 	lineSpacingModeCombo->clear();
 	lineSpacingModeCombo->addItem( tr("Fixed Linespacing"));
 	lineSpacingModeCombo->addItem( tr("Automatic Linespacing"));
 	lineSpacingModeCombo->addItem( tr("Align to Baseline Grid"));
 	lineSpacingModeCombo->setCurrentIndex(oldLineSpacingMode);
+
+	QStringList languageList;
+	LanguageManager::instance()->fillInstalledStringList(&languageList, true);
+	int oldLang = langCombo->currentIndex();
+	langCombo->clear();
+	langCombo->addItems(languageList);
+	langCombo->setCurrentIndex(oldLang);
 
 	QString ptSuffix = tr(" pt");
 	fontSize->setSuffix(ptSuffix);
