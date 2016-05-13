@@ -806,6 +806,8 @@ struct LineControl {
 		double spaceExtension;
 		int spaceInsertion = 0;
 		double imSpace = -1;
+		int trackingInsertion = 0;
+		double trackingAmount = 0;
 
 		int glyphsCount = line.lastRun - line.firstRun + 1;
 
@@ -825,6 +827,10 @@ struct LineControl {
 			if (i != 0 && glyphrun.hasFlag(ScLayout_ImplicitSpace))
 			{
 				spaceInsertion += 1;
+			}
+			if (i != glyphsCount && glyphrun.hasFlag(ScLayout_JustificationTracking))
+			{
+				trackingInsertion += 1;
 			}
 		}
 
@@ -861,6 +867,10 @@ struct LineControl {
 					imSpace = remaining / spaceInsertion;
 					spaceExtension = 0;
 				}
+			} else if (trackingInsertion && spaceNatural == 0) {
+				double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
+				trackingAmount = remaining / trackingInsertion;
+				spaceExtension = 0;
 			} else {
 				if (spaceNatural > 0)
 					spaceExtension = (line.width - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
@@ -900,6 +910,11 @@ struct LineControl {
 				GlyphCluster& lastRun = glyphs[i - 1];
 				lastRun.extraWidth += imSpace;
 			}
+			if (i != glyphsCount && trackingAmount != 0 && glyphrun.hasFlag(ScLayout_JustificationTracking))
+			{
+				glyphrun.extraWidth += trackingAmount;
+			}
+
 		}
 	}
 

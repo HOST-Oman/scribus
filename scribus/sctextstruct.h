@@ -53,7 +53,8 @@ enum LayoutFlags {
 	ScLayout_LineBoundry		= 1<<16,	// line break is allowed before here
 	ScLayout_RightToLeft		= 1<<17,	// right-to-left glyph run
 	ScLayout_SmallCaps		= 1<<18,	// small caps
-	ScLayout_CJKFence		= 1<<19		// a CJK fence glyph that needs spacing adjustment at start of line
+	ScLayout_CJKFence		= 1<<19,	// a CJK fence glyph that needs spacing adjustment at start of line
+	ScLayout_JustificationTracking	= 1<<20		// marks place of tracking in justification (e.g. for Thai)
 };
 
 

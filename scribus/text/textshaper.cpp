@@ -320,7 +320,7 @@ QList<GlyphCluster> TextShaper::shape()
 			lineBreaks.append(pos);
 	}
 
-	QVector<int32_t> implicitSpaces;
+	QVector<int32_t> justificationTracking;
 
 	// Insert implicit spaces in justification between characters
 	// in scripts that do not use spaces to seperate words
@@ -343,7 +343,7 @@ QList<GlyphCluster> TextShaper::shape()
 					// do not insert implicit space before punctuation
 					// or other non-script specific characters
 					if (sc != USCRIPT_COMMON)
-						implicitSpaces.append(run.start + pos);
+						justificationTracking.append(run.start + pos);
 					pos = charIt->next();
 				}
 			}
@@ -456,8 +456,8 @@ QList<GlyphCluster> TextShaper::shape()
 
 			if (SpecialChars::isExpandingSpace(ch))
 				run.setFlag(ScLayout_ExpandingSpace);
-			else if (implicitSpaces.contains(firstCluster))
-				run.setFlag(ScLayout_ImplicitSpace);
+			else if (justificationTracking.contains(firstCluster))
+				run.setFlag(ScLayout_JustificationTracking);
 
 			if (effects & ScStyle_Underline)
 				run.setFlag(ScLayout_Underlined);
