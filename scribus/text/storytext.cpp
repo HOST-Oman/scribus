@@ -1124,9 +1124,9 @@ const CharStyle & StoryText::charStyle(int pos) const
 	
 	StoryText* that = const_cast<StoryText *>(this);
 
-	Mark* mrk = NULL;
-	if (hasMark(pos, mrk))
+	if (hasMark(pos))
 	{
+		Mark* mrk = mark(pos);
 		applyMarkCharstyle(mrk, *that->d->at(pos)); // hack to keep note charstyles current
 	}
 	
