@@ -1,3 +1,9 @@
+/*
+For general Scribus (>=1.3.2) copyright and licensing information please refer
+to the COPYING file provided with the program. Following this notice may exist
+a copyright and/or license notice that predates the release of Scribus 1.3.2
+for which a new license (GPL+exception) is in place.
+*/
 #include "propertywidget_opentypefontfeatures.h"
 #include "appmodes.h"
 #include "pageitem_table.h"
@@ -6,7 +12,6 @@
 #include "scribusdoc.h"
 #include "selection.h"
 #include "units.h"
-
 
 
 PropertyWidget_OpenTypeFontFeatures::PropertyWidget_OpenTypeFontFeatures(QWidget* parent) : QFrame(parent)
@@ -21,7 +26,6 @@ PropertyWidget_OpenTypeFontFeatures::PropertyWidget_OpenTypeFontFeatures(QWidget
 	setLineWidth(1);
 	layout()->setAlignment( Qt::AlignTop );
 	languageChange();
-
 }
 
 void PropertyWidget_OpenTypeFontFeatures::setMainWindow(ScribusMainWindow *mw)
@@ -454,12 +458,6 @@ void PropertyWidget_OpenTypeFontFeatures::setCurrentItem(PageItem *item)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
-	//CB We shouldn't really need to process this if our item is the same one
-	//maybe we do if the item has been changed by scripter.. but that should probably
-	//set some status if so.
-	//FIXME: This won't work until when a canvas deselect happens, m_item must be NULL.
-	//if (m_item == i)
-	//	return;
 
 	if (item && m_doc.isNull())
 		setDoc(item->doc());
