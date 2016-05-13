@@ -39,21 +39,21 @@ class ScribusDoc;
 // from charstlye.h ScStyleFlags
 enum LayoutFlags {
 	ScLayout_None			= 0,
-	ScLayout_BulletNum		= 1<<0, 	// new: marks list layout glyphs
-	ScLayout_FixedSpace		= 1<<1, 	// new: marks a fixed space
-	ScLayout_ExpandingSpace		= 1<<2, 	// new: marks an expanding space
-	ScLayout_ImplicitSpace		= 1<<3, 	// new: marks an implicit space
-	ScLayout_TabLeaders		= 1<<4, 	// new: marks a tab with fillchar
-	ScLayout_HyphenationPossible	= 1<<7, 	//Hyphenation possible here (Soft Hyphen)
+	ScLayout_BulletNum		= 1<<0, 	// marks list layout glyphs
+	ScLayout_FixedSpace		= 1<<1, 	// marks a fixed space
+	ScLayout_ExpandingSpace		= 1<<2, 	// marks an expanding space
+	ScLayout_ImplicitSpace		= 1<<3, 	// marks an implicit space
+	ScLayout_TabLeaders		= 1<<4, 	// marks a tab with fillchar
+	ScLayout_HyphenationPossible	= 1<<7, 	// marks possible hyphenation point
 	ScLayout_DropCap		= 1<<11,
-	ScLayout_SuppressSpace		= 1<<12,	//internal use in PageItem (Suppresses spaces when in Block alignment)
-	ScLayout_SoftHyphenVisible	= 1<<13,	//Soft Hyphen visible at line end
-	ScLayout_StartOfLine		= 1<<14,	//set for start of line
-	ScLayout_Underlined		= 1<<15,      	// chararcter should be underlined
-	ScLayout_LineBoundry		= 1<<16,	// line break is allowed before here
-	ScLayout_RightToLeft		= 1<<17,	// right-to-left glyph run
-	ScLayout_SmallCaps		= 1<<18,	// small caps
-	ScLayout_CJKFence		= 1<<19,	// a CJK fence glyph that needs spacing adjustment at start of line
+	ScLayout_SuppressSpace		= 1<<12,	// internal use in PageItem (Suppresses spaces when in Block alignment)
+	ScLayout_SoftHyphenVisible	= 1<<13,	// marks when a possible hyphenation point is used (st end of line)
+	ScLayout_StartOfLine		= 1<<14,	// marks the start of line
+	ScLayout_Underlined		= 1<<15,	// marks underlined glyphs
+	ScLayout_LineBoundry		= 1<<16,	// marks possible line breaking point
+	ScLayout_RightToLeft		= 1<<17,	// marks right-to-left glyph
+	ScLayout_SmallCaps		= 1<<18,	// marks small caps glyph
+	ScLayout_CJKFence		= 1<<19,	// marks CJK fence glyph that needs spacing adjustment at start of line
 	ScLayout_JustificationTracking	= 1<<20		// marks place of tracking in justification (e.g. for Thai)
 };
 
