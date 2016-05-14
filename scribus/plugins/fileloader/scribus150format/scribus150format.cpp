@@ -4979,10 +4979,6 @@ PageItem* Scribus150Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 		pstyle.charStyle().setFont(m_AvailableFonts->findFont(attrs.valueAsString("IFONT"), doc));
 	if (attrs.hasAttribute("ISIZE"))
 		pstyle.charStyle().setFontSize(qRound(attrs.valueAsDouble("ISIZE") * 10));
-	if (attrs.hasAttribute("IFONTFEATURE"))
-		pstyle.charStyle().setFontFeatures(attrs.valueAsString("IFONTFEATURE"));
-	if (attrs.hasAttribute("IHyphenWordMin"))
-		pstyle.charStyle().setHyphenWordMin(attrs.valueAsInt("IHyphenWordMin"));
 	if (attrs.hasAttribute("TXTSTROKE"))
 		pstyle.charStyle().setStrokeColor(attrs.valueAsString("TXTSTROKE"));
 	if (attrs.hasAttribute("TXTFILL"))
