@@ -173,6 +173,7 @@ SET(SCRIBUS_UI_SRC
 	ui/propertywidget_distancebase.ui
 	ui/propertywidget_pareffectbase.ui
 	ui/propertywidget_flopbase.ui
+	ui/propertywidget_hyphenationbase.ui
 	ui/propertywidget_optmarginsbase.ui
 	ui/propertywidget_orphansbase.ui
 	ui/propertywidget_pathtextbase.ui
@@ -456,6 +457,7 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/propertywidget_distance.h
 	ui/propertywidget_pareffect.h
 	ui/propertywidget_flop.h
+	ui/propertywidget_hyphenation.h
 	ui/propertywidget_optmargins.h
 	ui/propertywidget_orphans.h
 	ui/propertywidget_pathtext.h
@@ -921,6 +923,7 @@ SET(SCRIBUS_SOURCES
 	ui/propertywidget_distance.cpp
 	ui/propertywidget_pareffect.cpp
 	ui/propertywidget_flop.cpp
+	ui/propertywidget_hyphenation.cpp
 	ui/propertywidget_optmargins.cpp
 	ui/propertywidget_orphans.cpp
 	ui/propertywidget_pathtext.cpp

@@ -27,6 +27,7 @@ for which a new license (GPL+exception) is in place.
 #include "propertywidget_advanced.h"
 #include "propertywidget_distance.h"
 #include "propertywidget_flop.h"
+#include "propertywidget_hyphenation.h"
 #include "propertywidget_optmargins.h"
 #include "propertywidget_orphans.h"
 #include "propertywidget_pareffect.h"
@@ -69,6 +70,9 @@ PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(paren
 	paraStyleClear->setIcon(IconManager::instance()->loadPixmap("16/edit-clear.png"));
 	charStyleLabel->setBuddy(charStyleCombo);
 	charStyleClear->setIcon(IconManager::instance()->loadPixmap("16/edit-clear.png"));
+
+	hyphenationWidget = new PropertyWidget_Hyphenation(textTree);
+	hyphenationWidgetItem = textTree->addWidget(tr("Hyphenation"), hyphenationWidget);
 
 	colorWidgets = new PropertyWidget_TextColor(textTree);
 	colorWidgetsItem = textTree->addWidget( tr("Color && Effects"), colorWidgets);
@@ -127,6 +131,7 @@ void PropertiesPalette_Text::setMainWindow(ScribusMainWindow* mw)
 	opentypefontWidget->setMainWindow(mw);
 	colorWidgets->setMainWindow(mw);
 	distanceWidgets->setMainWindow(mw);
+	hyphenationWidget->setMainWindow(mw);
 	parEffectWidgets->setMainWindow(mw);
 	optMargins->setMainWindow(mw);
 	pathTextWidgets->setMainWindow(mw);
@@ -166,6 +171,7 @@ void PropertiesPalette_Text::setDoc(ScribusDoc *d)
 	distanceWidgets->setDoc(m_doc);
 	parEffectWidgets->setDoc(m_doc);
 	flopBox->setDoc(m_doc);
+	hyphenationWidget->setDoc(m_doc);
 	optMargins->setDoc(m_doc);
 	orphanBox->setDoc(m_doc);
 	pathTextWidgets->setDoc(m_doc);
@@ -199,6 +205,7 @@ void PropertiesPalette_Text::unsetDoc()
 	colorWidgets->setDoc(0);
 	distanceWidgets->setDoc(0);
 	flopBox->setDoc(0);
+	hyphenationWidget->setDoc(NULL);
 	optMargins->setDoc(0);
 	orphanBox->setDoc(0);
 	parEffectWidgets->setDoc(0);
@@ -514,6 +521,7 @@ void PropertiesPalette_Text::updateCharStyle(const CharStyle& charStyle)
 	advancedWidgets->updateCharStyle(charStyle);
 	opentypefontWidget->updateCharStyle(charStyle);
 	colorWidgets->updateCharStyle(charStyle);
+	hyphenationWidget->updateCharStyle(charStyle);
 
 	showFontFace(charStyle.font().scName());
 	showFontSize(charStyle.fontSize());
@@ -533,6 +541,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 	optMargins->updateStyle(newCurrent);
 	orphanBox->updateStyle (newCurrent);
 	parEffectWidgets->updateStyle(newCurrent);
+	hyphenationWidget->updateStyle(newCurrent);
 
 	showFontFace(charStyle.font().scName());
 	showFontSize(charStyle.fontSize());
@@ -711,6 +720,7 @@ void PropertiesPalette_Text::languageChange()
 
 	colorWidgetsItem->setText(0, tr("Color && Effects"));
 	flopItem->setText(0, tr("First Line Offset"));
+	hyphenationWidgetItem->setText(0, tr("Hyphenation"));
 	orphanItem->setText(0, tr("Orphans and Widows"));
 	parEffectItem->setText(0, tr("Paragraph Effects"));
 	distanceItem->setText(0, tr("Columns && Text Distances"));
@@ -745,6 +755,7 @@ void PropertiesPalette_Text::languageChange()
 	advancedWidgets->languageChange();
 	pathTextWidgets->languageChange();
 	opentypefontWidget->languageChange();
+	hyphenationWidget->languageChange();
 
 	textAlignment->languageChange();
 	textDirection->languageChange();

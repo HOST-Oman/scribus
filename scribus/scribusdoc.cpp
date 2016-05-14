@@ -515,6 +515,7 @@ void ScribusDoc::init()
 	pstyle.setHasDropCap(false);
 	pstyle.setHasBullet(false);
 	pstyle.setHasNum(false);
+	pstyle.setHyphenConsecutiveLines(2);
 	pstyle.setDropCapLines(2);
 	pstyle.setParEffectOffset(0);
 	pstyle.setBackgroundColor(CommonStrings::None);
@@ -528,6 +529,7 @@ void ScribusDoc::init()
 	cstyle.setFontSize(m_docPrefsData.itemToolPrefs.textSize);
 	cstyle.setFontFeatures("");
 	cstyle.setFeatures(QStringList(CharStyle::INHERIT));
+	cstyle.setHyphenWordMin(3);
 	cstyle.setFillColor(m_docPrefsData.itemToolPrefs.textColor);
 	cstyle.setFillShade(m_docPrefsData.itemToolPrefs.textShade);
 	cstyle.setStrokeColor(m_docPrefsData.itemToolPrefs.textStrokeColor);
@@ -7755,6 +7757,20 @@ void ScribusDoc::itemSelection_SetFontFeatures(QString fontfeature, Selection* c
 	CharStyle newStyle;
 	newStyle.setFontFeatures(fontfeature);
 	itemSelection_ApplyCharStyle(newStyle, customSelection, "FONTFEATURES");
+}
+
+void ScribusDoc::itemSelection_SetHyphenWordMin(int wordMin, Selection* customSelection)
+{
+	CharStyle newStyle;
+	newStyle.setHyphenWordMin(wordMin);
+	itemSelection_ApplyCharStyle(newStyle, customSelection, "HYPHENWORDMIN");
+}
+
+void ScribusDoc::itemSelection_SetHyphenConsecutiveLines(int consecutiveLines, Selection* customSelection)
+{
+	ParagraphStyle newStyle;
+	newStyle.setHyphenConsecutiveLines(consecutiveLines);
+	itemSelection_ApplyParagraphStyle(newStyle, customSelection);
 }
 
 void ScribusDoc::itemSelection_SetNamedCharStyle(const QString& name, Selection* customSelection)

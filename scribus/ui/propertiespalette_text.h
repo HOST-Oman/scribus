@@ -29,6 +29,7 @@ class PropertyWidget_Advanced;
 class PropertyWidget_Distance;
 class PropertyWidget_ParEffect;
 class PropertyWidget_Flop;
+class PropertyWidget_Hyphenation;
 class PropertyWidget_OptMargins;
 class PropertyWidget_Orphans;
 class PropertyWidget_PathText;
@@ -55,7 +56,6 @@ public:
                          // When user releases the mouse button or arrow key, changes must be checked
                          // and if in ScribusView a groupTransaction has been started it must be also
                          // commmited
-
 protected:
 
 	bool   m_haveDoc;
@@ -119,6 +119,9 @@ private slots:
 	void doClearPStyle();
 
 protected:
+	PropertyWidget_Hyphenation* hyphenationWidget;
+	QTreeWidgetItem* hyphenationWidgetItem;
+
 	PropertyWidget_TextColor* colorWidgets;
 	QTreeWidgetItem* colorWidgetsItem;
 
