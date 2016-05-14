@@ -8698,7 +8698,7 @@ QTransform PageItem::getTransform() const
 		}
 		result.translate(ite->xPos(), ite->yPos());
 		result.rotate(ite->rotation());
-		if (ite->isGroup() || ite->isSymbol())
+	/*	if (ite->isGroup() || ite->isSymbol())
 		{
 			if (ite->imageFlippedH())
 			{
@@ -8710,7 +8710,7 @@ QTransform PageItem::getTransform() const
 				result.translate(0, ite->height());
 				result.scale(1, -1);
 			}
-		}
+		}*/
 		if (ite == this)
 			return result;
 		if (ite->isGroup())
@@ -8720,7 +8720,7 @@ QTransform PageItem::getTransform() const
 			ite = itList.at(aa);
 			result.translate(ite->gXpos, ite->gYpos);
 			result.rotate(ite->rotation());
-			if (ite->isGroup() || ite->isSymbol())
+		/*	if (ite->isGroup() || ite->isSymbol())
 			{
 				if (ite->imageFlippedH())
 				{
@@ -8732,7 +8732,7 @@ QTransform PageItem::getTransform() const
 					result.translate(0, ite->height());
 					result.scale(1, -1);
 				}
-			}
+			}*/
 			if (ite == this)
 				return result;
 			if (ite->isGroup())
