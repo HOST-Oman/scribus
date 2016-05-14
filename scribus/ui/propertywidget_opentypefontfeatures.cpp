@@ -11,15 +11,11 @@ for which a new license (GPL+exception) is in place.
 #include "scribus.h"
 #include "scribusdoc.h"
 #include "selection.h"
-#include "units.h"
-
 
 PropertyWidget_OpenTypeFontFeatures::PropertyWidget_OpenTypeFontFeatures(QWidget* parent) : QFrame(parent)
 {
 	m_item = NULL;
 	m_ScMW = NULL;
-	m_unitIndex = 0;
-	m_unitRatio = 1.0;
 	setupUi(this);
 
 	setFrameStyle(QFrame::Box | QFrame::Plain);
@@ -306,8 +302,6 @@ void PropertyWidget_OpenTypeFontFeatures::setDoc(ScribusDoc *d)
 		return;
 	}
 
-	m_unitRatio   = m_doc->unitRatio();
-	m_unitIndex   = m_doc->unitIndex();
 	connect(m_doc->m_Selection, SIGNAL(selectionChanged()), this, SLOT(handleSelectionChanged()));
 	connect(m_doc             , SIGNAL(docChanged())      , this, SLOT(handleSelectionChanged()));
 }

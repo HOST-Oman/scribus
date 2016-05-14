@@ -6240,17 +6240,6 @@ void ScribusMainWindow::setItemFontSize(int fontSize)
 	propertiesPalette->textPal->showFontSize(fs*10);
 }
 
-void ScribusMainWindow::setItemFontFeatures(QString fontFeature)
-{
-		Query dia(this, "New", 1, tr("&FontFeatures:"), tr("FontFeatures"));
-		if (dia.exec())
-		{
-				doc->itemSelection_SetFontFeatures(fontFeature);
-		}
-
-	propertiesPalette->textPal->showFontFeatures(fontFeature);
-}
-
 void ScribusMainWindow::setItemLanguage(QString language)
 {
 	Query dia(this, "New", 1, tr("&Language:"), tr("Language"));

@@ -91,7 +91,6 @@ public slots:
 	void showFontFace(const QString&);
 	void showFontSize(double s);
 	void showLanguage(QString w);
-	void showFontFeatures(QString s);
 	void showFirstLinePolicy(FirstLineOffsetPolicy);
 	void showLineSpacing(double r);
 	void showParStyle(const QString& name);

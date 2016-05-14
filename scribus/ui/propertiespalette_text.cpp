@@ -453,13 +453,6 @@ void PropertiesPalette_Text::showFontSize(double s)
 	fontSize->showValue(s / 10.0);
 }
 
-void PropertiesPalette_Text::showFontFeatures(QString s)
-{
-	if (!m_ScMW || m_ScMW->scriptIsRunning())
-		return;
-	opentypefontWidget->showFontFeatures(s);
-}
-
 void PropertiesPalette_Text::showLanguage(QString w)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
