@@ -87,13 +87,11 @@ bool Hyphenator::loadDict(const QString& name)
 	return true;
 }
 
-void Hyphenator::slotNewSettings(int Wordlen, bool Autom, bool ACheck, int Num)
+void Hyphenator::slotNewSettings(bool Autom, bool ACheck)
 {
 	AutoCheck = ACheck;
-	m_doc->setHyphMinimumWordLength(Wordlen);
 	m_doc->setHyphAutomatic(Autom);
 	m_doc->setHyphAutoCheck(AutoCheck);
-	m_doc->setHyphConsecutiveLines(Num);
 }
 
 void Hyphenator::slotHyphenateWord(PageItem* it, const QString& text, int firstC)

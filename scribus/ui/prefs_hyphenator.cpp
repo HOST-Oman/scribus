@@ -68,8 +68,6 @@ void Prefs_Hyphenator::restoreDefaults(struct ApplicationPrefs *prefsData)
 	hyphSuggestionsCheckBox->setChecked(!prefsData->hyphPrefs.Automatic);
 	hyphAutoCheckBox->setChecked(prefsData->hyphPrefs.AutoCheck);
 	setCurrentComboItem(hyphLanguageComboBox, LanguageManager::instance()->getLangFromAbbrev(prefsData->hyphPrefs.Language, true));
-	smallestWordSpinBox->setValue(prefsData->hyphPrefs.MinWordLen);
-	maxConsecutiveCountSpinBox->setValue(prefsData->hyphPrefs.HyCount);
 	ignoreListWidget->addItems(prefsData->hyphPrefs.ignoredWords.toList());
 	ignoreListWidget->sortItems();
 	exceptionListWidget->addItems(prefsData->hyphPrefs.specialWords.values());
@@ -78,11 +76,9 @@ void Prefs_Hyphenator::restoreDefaults(struct ApplicationPrefs *prefsData)
 
 void Prefs_Hyphenator::saveGuiToPrefs(struct ApplicationPrefs *prefsData) const
 {
-	prefsData->hyphPrefs.MinWordLen = smallestWordSpinBox->value();
 	prefsData->hyphPrefs.Language = LanguageManager::instance()->getAbbrevFromLang(hyphLanguageComboBox->currentText(), false);
 	prefsData->hyphPrefs.Automatic = !hyphSuggestionsCheckBox->isChecked();
 	prefsData->hyphPrefs.AutoCheck = hyphAutoCheckBox->isChecked();
-	prefsData->hyphPrefs.HyCount = maxConsecutiveCountSpinBox->value();
 	QSet<QString> ignoreList;
 	for (int row = 0; row < ignoreListWidget->count(); row++)
 	{

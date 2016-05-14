@@ -341,8 +341,8 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 			m_Doc->setLanguage(lnew);
 		}
 
-		m_Doc->setHyphMinimumWordLength(dc.attribute("MINWORDLEN", "3").toInt());
-		m_Doc->setHyphConsecutiveLines(dc.attribute("HYCOUNT", "2").toInt());
+//		m_Doc->setHyphMinimumWordLength(dc.attribute("MINWORDLEN", "3").toInt());
+//		m_Doc->setHyphConsecutiveLines(dc.attribute("HYCOUNT", "2").toInt());
 		if (dc.hasAttribute("PAGEWIDTH"))
 			m_Doc->setPageWidth(ScCLocale::toDoubleC(dc.attribute("PAGEWIDTH")));
 		else

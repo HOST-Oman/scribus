@@ -315,8 +315,6 @@ void PrefsManager::initDefaults()
 	appPrefs.docSetupPrefs.margins.set(40, 40, 40, 40);
 	appPrefs.docSetupPrefs.marginPreset = 0;
 	appPrefs.docSetupPrefs.bleeds.set(0, 0, 0, 0);
-	appPrefs.hyphPrefs.MinWordLen = 3;
-	appPrefs.hyphPrefs.HyCount = 2;
 	appPrefs.hyphPrefs.Language = "en_GB";
 	appPrefs.hyphPrefs.specialWords.clear();
 	appPrefs.hyphPrefs.ignoredWords.clear();
@@ -1745,8 +1743,6 @@ bool PrefsManager::WritePref(QString ho)
 	elem.appendChild(dcExternalTools);
 	QDomElement rde=docu.createElement("Hyphenator");
 	rde.setAttribute("Language", appPrefs.hyphPrefs.Language);
-	rde.setAttribute("WordLength", appPrefs.hyphPrefs.MinWordLen);
-	rde.setAttribute("HyphenCount", appPrefs.hyphPrefs.HyCount);
 	rde.setAttribute("Automatic", static_cast<int>(appPrefs.hyphPrefs.Automatic));
 	rde.setAttribute("AutomaticCheck", static_cast<int>(appPrefs.hyphPrefs.AutoCheck));
 	for (QHash<QString, QString>::Iterator hyit = appPrefs.hyphPrefs.specialWords.begin(); hyit != appPrefs.hyphPrefs.specialWords.end(); ++hyit)
@@ -2469,8 +2465,6 @@ bool PrefsManager::ReadPref(QString ho)
 		if (dc.tagName()=="Hyphenator")
 		{
 			appPrefs.hyphPrefs.Language = dc.attribute("Language","en_GB");
-			appPrefs.hyphPrefs.MinWordLen = dc.attribute("WordLength", "3").toInt();
-			appPrefs.hyphPrefs.HyCount = dc.attribute("HyphenCount", "2").toInt();
 			appPrefs.hyphPrefs.Automatic = static_cast<bool>(dc.attribute("Automatic", "1").toInt());
 			appPrefs.hyphPrefs.AutoCheck = static_cast<bool>(dc.attribute("AutomaticCheck", "1").toInt());
 			QDomNode hyelm = dc.firstChild();

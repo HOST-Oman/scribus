@@ -83,7 +83,7 @@ public slots:
 	\param ACheck AutoCheck flag.
 	\param Num HyCount
 	*/
-	void slotNewSettings(int Wordlen, bool Autom, bool ACheck, int Num);
+	void slotNewSettings(bool Autom, bool ACheck);
 	/*! 
 	\brief Make hyphenation when user edits text in text frame manually.
 	If is everything set correctly and textframe selected language fits the

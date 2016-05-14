@@ -878,8 +878,8 @@ bool Scribus12Format::loadFile(const QString & fileName, const FileFormat & /* f
 				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
 			m_Doc->setLanguage(lnew);
 		}
-		m_Doc->setHyphMinimumWordLength(dc.attribute("MINWORDLEN", "3").toInt());
-		m_Doc->setHyphConsecutiveLines(dc.attribute("HYCOUNT", "2").toInt());
+//		m_Doc->setHyphMinimumWordLength(dc.attribute("MINWORDLEN", "3").toInt());
+//		m_Doc->setHyphConsecutiveLines(dc.attribute("HYCOUNT", "2").toInt());
 		m_Doc->setHyphAutomatic(static_cast<bool>(dc.attribute("AUTOMATIC", "1").toInt()));
 		m_Doc->setHyphAutoCheck(static_cast<bool>(dc.attribute("AUTOCHECK", "0").toInt()));
 		m_Doc->GuideLock = static_cast<bool>(dc.attribute("GUIDELOCK", "0").toInt());

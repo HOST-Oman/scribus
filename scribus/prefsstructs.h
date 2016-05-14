@@ -313,8 +313,6 @@ struct OperatorToolPrefs
 
 struct HyphenatorPrefs
 {
-	int MinWordLen; //! Minimum word length to hyphenate
-	int HyCount; //! Maximum number of consecutive rows to hyphenate
 	QString Language; //! Language to use for hyphenation
 	QHash<QString, QString> specialWords; //! List of special words to hyphenate
 	QSet<QString> ignoredWords; //! List of words the hyphenator ignores

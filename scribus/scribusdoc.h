@@ -147,13 +147,9 @@ public:
 	void appendToPageSets(const PageSet& ps) { m_docPrefsData.pageSets.append(ps); }
 	void setPaperColor(const QColor &c) { m_docPrefsData.displayPrefs.paperColor=c; }
 	const QColor& paperColor() const { return m_docPrefsData.displayPrefs.paperColor; }
-	int hyphMinimumWordLength() const { return m_docPrefsData.hyphPrefs.MinWordLen; }
-	int hyphConsecutiveLines() const { return m_docPrefsData.hyphPrefs.HyCount; }
 	const QString& language() const { return m_docPrefsData.hyphPrefs.Language; }
 	bool hyphAutomatic() const { return m_docPrefsData.hyphPrefs.Automatic; }
 	bool hyphAutoCheck() const { return m_docPrefsData.hyphPrefs.AutoCheck; }
-	void setHyphMinimumWordLength(int i) { m_docPrefsData.hyphPrefs.MinWordLen=i; }
-	void setHyphConsecutiveLines(int i) { m_docPrefsData.hyphPrefs.HyCount=i; }
 	void setLanguage(const QString& s) { m_docPrefsData.hyphPrefs.Language=s; }
 	void setHyphAutomatic(bool b) { m_docPrefsData.hyphPrefs.Automatic=b; }
 	void setHyphAutoCheck(bool b) { m_docPrefsData.hyphPrefs.AutoCheck=b; }

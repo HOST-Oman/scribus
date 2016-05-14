@@ -15935,10 +15935,7 @@ void ScribusDoc::setNewPrefs(const ApplicationPrefs& prefsData, const Applicatio
 		currDoc->docHyphenator->slotNewDict(ScMW->GetLang(tabHyphenator->language->currentText()));
 */
 
-	docHyphenator->slotNewSettings(m_docPrefsData.hyphPrefs.MinWordLen,
-											m_docPrefsData.hyphPrefs.Automatic,
-											m_docPrefsData.hyphPrefs.AutoCheck,
-											m_docPrefsData.hyphPrefs.HyCount);
+	docHyphenator->slotNewSettings(m_docPrefsData.hyphPrefs.Automatic, m_docPrefsData.hyphPrefs.AutoCheck);
 	docHyphenator->ignoredWords = m_docPrefsData.hyphPrefs.ignoredWords;
 	docHyphenator->specialWords = m_docPrefsData.hyphPrefs.specialWords;
 	if (ScCore->haveCMS())

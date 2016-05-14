@@ -2054,8 +2054,8 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, ScXmlStreamAttributes&
 
 
 
-	m_Doc->setHyphMinimumWordLength(attrs.valueAsInt("MINWORDLEN", 3));
-	m_Doc->setHyphConsecutiveLines(attrs.valueAsInt("HYCOUNT", 2));
+//	m_Doc->setHyphMinimumWordLength(attrs.valueAsInt("MINWORDLEN", 3));
+//	m_Doc->setHyphConsecutiveLines(attrs.valueAsInt("HYCOUNT", 2));
 
 	if (attrs.hasAttribute("PAGEWIDTH"))
 		m_Doc->setPageWidth(attrs.valueAsDouble("PAGEWIDTH"));
