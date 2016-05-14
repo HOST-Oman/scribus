@@ -161,7 +161,7 @@ void SMParagraphStyle::selected(const QStringList &styleNames)
 			m_selection.append(&m_tmpStyles[index]);
 	}
 
-	m_pwidget->show(m_selection, pstyles, cstyles, m_doc->unitIndex(), PrefsManager::instance()->appPrefs.hyphPrefs.Language);
+	m_pwidget->show(m_selection, pstyles, cstyles, m_doc->unitIndex(), PrefsManager::instance()->appPrefs.docSetupPrefs.language);
 
 	setupConnections();
 }
@@ -2027,7 +2027,7 @@ void SMCharacterStyle::selected(const QStringList &styleNames)
 			m_selection.append(&m_tmpStyles[index]);
 
 	}
-	m_page->show(m_selection, cstyles, PrefsManager::instance()->appPrefs.hyphPrefs.Language, m_doc->unitIndex());
+	m_page->show(m_selection, cstyles, PrefsManager::instance()->appPrefs.docSetupPrefs.language, m_doc->unitIndex());
 	setupConnections();
 }
 

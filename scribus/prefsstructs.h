@@ -166,6 +166,7 @@ struct PathPrefs
 //Document Setup
 struct DocumentSetupPrefs
 {
+	QString language; //! Default language of a document
 	QString pageSize; //! Default page size of a document
 	int pageOrientation; //! Default orientation of the page
 	double pageWidth; //! Width of a page
@@ -313,7 +314,6 @@ struct OperatorToolPrefs
 
 struct HyphenatorPrefs
 {
-	QString Language; //! Language to use for hyphenation
 	QHash<QString, QString> specialWords; //! List of special words to hyphenate
 	QSet<QString> ignoredWords; //! List of words the hyphenator ignores
 	bool Automatic;

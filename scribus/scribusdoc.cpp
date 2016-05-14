@@ -547,7 +547,7 @@ void ScribusDoc::init()
 	cstyle.setScaleH(1000);
 	cstyle.setScaleV(1000);
 	cstyle.setTracking(0);
-	cstyle.setLanguage(PrefsManager::instance()->appPrefs.hyphPrefs.Language);
+	cstyle.setLanguage(PrefsManager::instance()->appPrefs.docSetupPrefs.language);
 	
 	m_docParagraphStyles.create(pstyle);
 	m_docParagraphStyles.makeDefault( &(m_docParagraphStyles[0]) );

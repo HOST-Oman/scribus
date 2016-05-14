@@ -147,10 +147,8 @@ public:
 	void appendToPageSets(const PageSet& ps) { m_docPrefsData.pageSets.append(ps); }
 	void setPaperColor(const QColor &c) { m_docPrefsData.displayPrefs.paperColor=c; }
 	const QColor& paperColor() const { return m_docPrefsData.displayPrefs.paperColor; }
-	const QString& language() const { return m_docPrefsData.hyphPrefs.Language; }
 	bool hyphAutomatic() const { return m_docPrefsData.hyphPrefs.Automatic; }
 	bool hyphAutoCheck() const { return m_docPrefsData.hyphPrefs.AutoCheck; }
-	void setLanguage(const QString& s) { m_docPrefsData.hyphPrefs.Language=s; }
 	void setHyphAutomatic(bool b) { m_docPrefsData.hyphPrefs.Automatic=b; }
 	void setHyphAutoCheck(bool b) { m_docPrefsData.hyphPrefs.AutoCheck=b; }
 	bool autoSave() const { return m_docPrefsData.docSetupPrefs.AutoSave; }
@@ -187,6 +185,8 @@ public:
 	void clearCheckerProfiles() { m_docPrefsData.verifierPrefs.checkerPrefsList.clear(); }
 	const QString& curCheckProfile() const { return m_docPrefsData.verifierPrefs.curCheckProfile; }
 	void setCurCheckProfile(const QString& s) { m_docPrefsData.verifierPrefs.curCheckProfile=s; }
+	const QString& language() const { return m_docPrefsData.docSetupPrefs.language; }
+	void setLanguage(const QString& s) { m_docPrefsData.docSetupPrefs.language=s; }
 	int pageOrientation() const { return m_docPrefsData.docSetupPrefs.pageOrientation; }
 	void setPageOrientation(int o) { m_docPrefsData.docSetupPrefs.pageOrientation=o; }
 	int pagePositioning() const { return m_docPrefsData.docSetupPrefs.pagePositioning; }

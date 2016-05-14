@@ -410,10 +410,10 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 		ScCore->setSplashStatus( tr("Initializing Languages") );
 	LanguageManager::instance();
 
-	QString preLang(m_prefsManager->appPrefs.hyphPrefs.Language);
 	initHyphenator();
-	if (!LanguageManager::instance()->getHyphFilename( preLang ).isEmpty() )
-		m_prefsManager->appPrefs.hyphPrefs.Language = preLang;
+//	QString preLang(m_prefsManager->appPrefs.hyphPrefs.Language);
+//	if (!LanguageManager::instance()->getHyphFilename( preLang ).isEmpty() )
+//		m_prefsManager->appPrefs.hyphPrefs.Language = preLang;
 	if (primaryMainWindow)
 		ScCore->setSplashStatus( tr("Reading Scrapbook") );
 	initScrapbook();
@@ -8196,10 +8196,10 @@ void ScribusMainWindow::initHyphenator()
 		}
 	}
 	//For each hyphenation file, grab the strings and the hyphenation data.
-	QString lang = QString(QLocale::system().name()).left(2);
-	m_prefsManager->appPrefs.hyphPrefs.Language = "en_GB";
-	if (!LanguageManager::instance()->getHyphFilename(lang).isEmpty() )
-		m_prefsManager->appPrefs.hyphPrefs.Language = lang;
+//	QString lang = QString(QLocale::system().name()).left(2);
+//	m_prefsManager->appPrefs.hyphPrefs.Language = "en_GB";
+//	if (!LanguageManager::instance()->getHyphFilename(lang).isEmpty() )
+//		m_prefsManager->appPrefs.hyphPrefs.Language = lang;
 
 /*
 	if ((hyphDir.exists()) && (hyphDir.count() != 0))

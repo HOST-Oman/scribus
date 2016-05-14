@@ -307,6 +307,7 @@ void PrefsManager::initDefaults()
 	appPrefs.scrapbookPrefs.writePreviews = true;
 	appPrefs.scrapbookPrefs.numScrapbookCopies = 10;
 	appPrefs.displayPrefs.marginColored = false;
+	appPrefs.docSetupPrefs.language = "en_GB";
 	appPrefs.docSetupPrefs.pageSize = LocaleManager::instance()->pageSizeForLocale(ScQApp->currGUILanguage());
 	appPrefs.docSetupPrefs.pageOrientation = 0;
 	PageSize defaultPageSize(appPrefs.docSetupPrefs.pageSize);
@@ -315,7 +316,6 @@ void PrefsManager::initDefaults()
 	appPrefs.docSetupPrefs.margins.set(40, 40, 40, 40);
 	appPrefs.docSetupPrefs.marginPreset = 0;
 	appPrefs.docSetupPrefs.bleeds.set(0, 0, 0, 0);
-	appPrefs.hyphPrefs.Language = "en_GB";
 	appPrefs.hyphPrefs.specialWords.clear();
 	appPrefs.hyphPrefs.ignoredWords.clear();
 	appPrefs.hyphPrefs.Automatic = true;
@@ -1369,6 +1369,7 @@ bool PrefsManager::WritePref(QString ho)
 	elem.appendChild(dcUI);
 
 	QDomElement deDocumentSetup=docu.createElement("DocumentSetup");
+	deDocumentSetup.setAttribute("Language",appPrefs.docSetupPrefs.language);
 	deDocumentSetup.setAttribute("UnitIndex",appPrefs.docSetupPrefs.docUnitIndex);
 	deDocumentSetup.setAttribute("PageSize",appPrefs.docSetupPrefs.pageSize);
 	deDocumentSetup.setAttribute("PageOrientation",appPrefs.docSetupPrefs.pageOrientation);
@@ -1742,7 +1743,6 @@ bool PrefsManager::WritePref(QString ho)
 	}
 	elem.appendChild(dcExternalTools);
 	QDomElement rde=docu.createElement("Hyphenator");
-	rde.setAttribute("Language", appPrefs.hyphPrefs.Language);
 	rde.setAttribute("Automatic", static_cast<int>(appPrefs.hyphPrefs.Automatic));
 	rde.setAttribute("AutomaticCheck", static_cast<int>(appPrefs.hyphPrefs.AutoCheck));
 	for (QHash<QString, QString>::Iterator hyit = appPrefs.hyphPrefs.specialWords.begin(); hyit != appPrefs.hyphPrefs.specialWords.end(); ++hyit)
@@ -1981,6 +1981,7 @@ bool PrefsManager::ReadPref(QString ho)
 
 		if (dc.tagName()=="DocumentSetup")
 		{
+			appPrefs.docSetupPrefs.language = dc.attribute("Language", "en_GB");
 			appPrefs.docSetupPrefs.docUnitIndex = dc.attribute("UnitIndex", "0").toInt();
 			appPrefs.docSetupPrefs.pageSize = dc.attribute("PageSize","A4");
 			appPrefs.docSetupPrefs.pageOrientation = dc.attribute("PageOrientation", "0").toInt();
@@ -2464,7 +2465,6 @@ bool PrefsManager::ReadPref(QString ho)
 		}
 		if (dc.tagName()=="Hyphenator")
 		{
-			appPrefs.hyphPrefs.Language = dc.attribute("Language","en_GB");
 			appPrefs.hyphPrefs.Automatic = static_cast<bool>(dc.attribute("Automatic", "1").toInt());
 			appPrefs.hyphPrefs.AutoCheck = static_cast<bool>(dc.attribute("AutomaticCheck", "1").toInt());
 			QDomNode hyelm = dc.firstChild();
