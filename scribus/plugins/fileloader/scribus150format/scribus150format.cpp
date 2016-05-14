@@ -2451,6 +2451,10 @@ void Scribus150Format::readCharacterStyleAttrs(ScribusDoc *doc, ScXmlStreamAttri
 	if (attrs.hasAttribute(FCOLOR))
 		newStyle.setFillColor(attrs.valueAsString(FCOLOR));
 
+	static const QString HyphenWordMin("HyphenWordMin");
+	if (attrs.hasAttribute(HyphenWordMin))
+		newStyle.setHyphenWordMin(attrs.valueAsInt(HyphenWordMin));
+
 	static const QString KERN("KERN");
 	if (attrs.hasAttribute(KERN))
 		newStyle.setTracking(qRound(attrs.valueAsDouble(KERN) * 10));
@@ -2719,6 +2723,10 @@ void Scribus150Format::readParagraphStyle(ScribusDoc *doc, ScXmlStreamReader& re
 	static const QString OpticalMargins("OpticalMargins");
 	if (attrs.hasAttribute(OpticalMargins))
 		newStyle.setOpticalMargins(attrs.valueAsInt(OpticalMargins));
+
+	static const QString HyphenConsecutiveLines("HyphenConsecutiveLines");
+	if (attrs.hasAttribute(HyphenConsecutiveLines))
+		newStyle.setHyphenConsecutiveLines(attrs.valueAsInt(HyphenConsecutiveLines));
 
 	static const QString HyphenationMode("HyphenationMode");
 	if (attrs.hasAttribute(HyphenationMode))
@@ -4973,6 +4981,8 @@ PageItem* Scribus150Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 		pstyle.charStyle().setFontSize(qRound(attrs.valueAsDouble("ISIZE") * 10));
 	if (attrs.hasAttribute("IFONTFEATURE"))
 		pstyle.charStyle().setFontFeatures(attrs.valueAsString("IFONTFEATURE"));
+	if (attrs.hasAttribute("IHyphenWordMin"))
+		pstyle.charStyle().setHyphenWordMin(attrs.valueAsInt("IHyphenWordMin"));
 	if (attrs.hasAttribute("TXTSTROKE"))
 		pstyle.charStyle().setStrokeColor(attrs.valueAsString("TXTSTROKE"));
 	if (attrs.hasAttribute("TXTFILL"))

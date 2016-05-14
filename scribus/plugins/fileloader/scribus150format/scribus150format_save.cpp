@@ -713,6 +713,8 @@ void Scribus150Format::putPStyle(ScXmlStreamWriter & docu, const ParagraphStyle 
 		docu.writeAttribute("NumerationHigher", static_cast<int>(style.numHigher()));
 	if ( ! style.isInhOpticalMargins())
 		docu.writeAttribute("OpticalMargins", style.opticalMargins());
+	if ( ! style.isInhHyphenConsecutiveLines())
+		docu.writeAttribute("HyphenConsecutiveLines", style.hyphenConsecutiveLines());
 	if ( ! style.isInhHyphenationMode())
 		docu.writeAttribute("HyphenationMode", style.hyphenationMode());
 	if ( ! style.isInhMinWordTracking())
@@ -791,6 +793,8 @@ void Scribus150Format::putCStyle(ScXmlStreamWriter & docu, const CharStyle & sty
 		docu.writeAttribute("FCOLOR", style.fillColor());
 	if ( ! style.isInhFillShade())
 		docu.writeAttribute("FSHADE", style.fillShade());
+	if ( ! style.isInhHyphenWordMin())
+		docu.writeAttribute("HyphenWordMin", style.hyphenWordMin());
 	if ( ! style.isInhStrokeColor())
 		docu.writeAttribute("SCOLOR", style.strokeColor());
 	if ( ! style.isInhBackColor())
