@@ -48,6 +48,7 @@ public slots:
 private slots:
 	void handleWordMin(int minWord);
 	void handleConsecutiveLines(int consecutiveLines);
+	void handleHyphenChar(const QString& hyphenText);
 };
 
 #endif // PROPERTYWIDGET_HYPHENATION_H

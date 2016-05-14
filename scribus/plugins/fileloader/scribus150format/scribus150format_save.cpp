@@ -793,6 +793,8 @@ void Scribus150Format::putCStyle(ScXmlStreamWriter & docu, const CharStyle & sty
 		docu.writeAttribute("FCOLOR", style.fillColor());
 	if ( ! style.isInhFillShade())
 		docu.writeAttribute("FSHADE", style.fillShade());
+	if ( ! style.isInhHyphenChar())
+		docu.writeAttribute("HyphenChar", style.hyphenChar());
 	if ( ! style.isInhHyphenWordMin())
 		docu.writeAttribute("HyphenWordMin", style.hyphenWordMin());
 	if ( ! style.isInhStrokeColor())

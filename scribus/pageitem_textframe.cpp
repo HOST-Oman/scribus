@@ -1016,9 +1016,11 @@ struct LineControl {
 			const ScFace& font = style.font();
 			double chs = style.fontSize() * (style.scaleH() / 1000.0);
 			QChar chr = itemText.text(glyphs[b].lastChar());
-			ScFace::gid_type gid = glyphs[b].hasFlag(ScLayout_SoftHyphenVisible) ?
-				font.hyphenGlyph() : font.char2CMap(chr.unicode());
-			double rightCorr = font.glyphBBox(gid, chs / 10.0).width;
+			double rightCorr;
+			if (glyphs[b].hasFlag(ScLayout_SoftHyphenVisible))
+				rightCorr = font.hyphenWidth(style, chs / 10.0);
+			else
+				rightCorr = font.glyphBBox(font.char2CMap(chr.unicode()), chs / 10.0).width;
 			if (glyphs[b].hasFlag(ScLayout_SoftHyphenVisible)
 				|| QString("-,.`´'~").indexOf(chr) >= 0
 				|| chr == QChar(0x2010)
@@ -2212,7 +2214,7 @@ void PageItem_TextFrame::layout()
 			double hyphWidth = 0.0;
 			bool inOverflow = false;
 			if (current.glyphs[currentIndex].hasFlag(ScLayout_HyphenationPossible) || itemText.text(a) == SpecialChars::SHYPHEN)
-				hyphWidth = font.glyphBBox(font.hyphenGlyph(), hlcsize10).width * (charStyle.scaleH() / 1000.0);
+				hyphWidth = font.hyphenWidth(charStyle, hlcsize10) * (charStyle.scaleH() / 1000.0);
 			if ((current.isEndOfLine(style.rightMargin() + hyphWidth)) || current.isEndOfCol(realDesc) || SpecialChars::isBreak(itemText.text(a), Cols > 1) || (current.xPos - current.maxShrink + hyphWidth) >= current.mustLineEnd)
 			{
 				//end of row reached - right column, end of column, break char or line must end
@@ -2575,8 +2577,8 @@ void PageItem_TextFrame::layout()
 								current.hyphenCount++;
 							current.glyphs[currentIndex].setFlag(ScLayout_SoftHyphenVisible);
 							GlyphLayout hyphen;
-							hyphen.glyph = font.hyphenGlyph();
-							hyphen.xadvance = font.glyphBBox(hyphen.glyph, charStyle.fontSize() / 10.0).width;
+							hyphen.glyph = font.hyphenGlyph(charStyle);
+							hyphen.xadvance = font.hyphenWidth(charStyle, charStyle.fontSize() / 10.0);
 							hyphWidth = hyphen.xadvance * scaleH;
 							current.glyphs[currentIndex].append(hyphen);
 						}

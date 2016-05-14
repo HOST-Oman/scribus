@@ -65,6 +65,22 @@ void PropertyWidget_Hyphenation::handleConsecutiveLines(int consecutiveLines)
 	m_doc->itemSelection_SetHyphenConsecutiveLines(consecutiveLines, &tempSelection);
 }
 
+void PropertyWidget_Hyphenation::handleHyphenChar(const QString& hyphenText)
+{
+	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+
+	Selection tempSelection(this, false);
+	uint hyphenChar;
+	if (hyphenText.isEmpty())
+		hyphenChar = 0;
+	else
+		hyphenChar = hyphenText.toUcs4()[0];
+	qDebug() << hyphenChar;
+	tempSelection.addItem(m_item, true);
+	m_doc->itemSelection_SetHyphenChar(hyphenChar, &tempSelection);
+}
+
 void PropertyWidget_Hyphenation::setDoc(ScribusDoc *d)
 {
 	if((d == (ScribusDoc*) m_doc) || (m_ScMW && m_ScMW->scriptIsRunning()))
@@ -106,6 +122,11 @@ void PropertyWidget_Hyphenation::updateCharStyle(const CharStyle& charStyle)
 		return;
 
 	smallestWordSpinBox->setValue(charStyle.hyphenWordMin());
+	uint hyphenChar = charStyle.hyphenChar();
+	QString hyphenText;
+	if (hyphenChar)
+		hyphenText = QString::fromUcs4(&hyphenChar, 1);
+	hyphenCharLineEdit->setText(hyphenText);
 }
 
 void PropertyWidget_Hyphenation::updateStyle(const ParagraphStyle& paraStyle)
@@ -114,8 +135,8 @@ void PropertyWidget_Hyphenation::updateStyle(const ParagraphStyle& paraStyle)
 		return;
 
 	const CharStyle& charStyle = paraStyle.charStyle();
+	updateCharStyle(charStyle);
 
-	smallestWordSpinBox->setValue(charStyle.hyphenWordMin());
 	maxConsecutiveCountSpinBox->setValue(paraStyle.hyphenConsecutiveLines());
 }
 
@@ -123,12 +144,14 @@ void PropertyWidget_Hyphenation::connectSignals()
 {
 	connect(smallestWordSpinBox,        SIGNAL(valueChanged(int)), this, SLOT(handleWordMin(int)));
 	connect(maxConsecutiveCountSpinBox, SIGNAL(valueChanged(int)), this, SLOT(handleConsecutiveLines(int)));
+	connect(hyphenCharLineEdit,         SIGNAL(textChanged(const QString&)), this, SLOT(handleHyphenChar(const QString&)));
 }
 
 void PropertyWidget_Hyphenation::disconnectSignals()
 {
 	disconnect(smallestWordSpinBox,        SIGNAL(valueChanged(int)), this, SLOT(handleWordMin(int)));
 	disconnect(maxConsecutiveCountSpinBox, SIGNAL(valueChanged(int)), this, SLOT(handleConsecutiveLines(int)));
+	disconnect(hyphenCharLineEdit,         SIGNAL(textChanged(const QString&)), this, SLOT(handleHyphenChar(const QString&)));
 }
 
 void PropertyWidget_Hyphenation::configureWidgets(void)

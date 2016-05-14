@@ -87,6 +87,20 @@
      </item>
     </layout>
    </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_3">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Hyphenation Character</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QLineEdit" name="hyphenCharLineEdit"/>
+     </item>
+    </layout>
+   </item>
   </layout>
  </widget>
  <resources/>

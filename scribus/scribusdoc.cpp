@@ -7773,6 +7773,13 @@ void ScribusDoc::itemSelection_SetHyphenConsecutiveLines(int consecutiveLines, S
 	itemSelection_ApplyParagraphStyle(newStyle, customSelection);
 }
 
+void ScribusDoc::itemSelection_SetHyphenChar(uint hyphenChar, Selection *customSelection)
+{
+	CharStyle newStyle;
+	newStyle.setHyphenChar(hyphenChar);
+	itemSelection_ApplyCharStyle(newStyle, customSelection);
+}
+
 void ScribusDoc::itemSelection_SetNamedCharStyle(const QString& name, Selection* customSelection)
 {
 	CharStyle newStyle;

@@ -418,7 +418,6 @@ ScFace::gid_type ScFace::emulateGlyph(uint u) const
 	else
 		return 0;
 }
-
 ScFace::gid_type ScFace::hyphenGlyph() const
 {
 	// Try the typographic hyphen first, then the hyphen-minus
@@ -426,6 +425,22 @@ ScFace::gid_type ScFace::hyphenGlyph() const
 	if (hyphen == 0)
 		hyphen = m_m->char2CMap('-');
 	return hyphen;
+}
+
+ScFace::gid_type ScFace::hyphenGlyph(const CharStyle& style) const
+{
+	if (style.hyphenChar() == 0)
+		return  SpecialChars::ZWNBSPACE.unicode() + ScFace::CONTROL_GLYPHS;
+	if (style.hyphenChar() == 0x2010)
+		return  hyphenGlyph();
+	return  m_m->char2CMap(style.hyphenChar());
+}
+
+double ScFace::hyphenWidth(const CharStyle& style, qreal size) const
+{
+	if (style.hyphenChar() == 0)
+		return 0;
+	return glyphBBox(hyphenGlyph(style), size).width;
 }
 
 

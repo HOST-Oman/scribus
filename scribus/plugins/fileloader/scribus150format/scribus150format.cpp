@@ -2451,6 +2451,10 @@ void Scribus150Format::readCharacterStyleAttrs(ScribusDoc *doc, ScXmlStreamAttri
 	if (attrs.hasAttribute(FCOLOR))
 		newStyle.setFillColor(attrs.valueAsString(FCOLOR));
 
+	static const QString HyphenChar("HyphenChar");
+	if (attrs.hasAttribute(HyphenChar))
+		newStyle.setHyphenChar(attrs.valueAsInt(HyphenChar));
+
 	static const QString HyphenWordMin("HyphenWordMin");
 	if (attrs.hasAttribute(HyphenWordMin))
 		newStyle.setHyphenWordMin(attrs.valueAsInt(HyphenWordMin));

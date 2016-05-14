@@ -1443,6 +1443,7 @@ public slots:
 	void itemSelection_SetFontFeatures(QString fontfeature, Selection* customSelection=0);
 	void itemSelection_SetHyphenWordMin(int wordMin, Selection* customSelection=NULL);
 	void itemSelection_SetHyphenConsecutiveLines(int consecutiveLines, Selection* customSelection=NULL);
+	void itemSelection_SetHyphenChar(uint hyphenChar, Selection* customSelection=NULL);
 	void itemSelection_SetItemLineTransparency(double t);
 	void itemSelection_SetItemFillBlend(int t);
 	void itemSelection_SetItemLineBlend(int t);
