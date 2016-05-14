@@ -2051,7 +2051,12 @@ void PageItem_TextFrame::layout()
 					//	diff = (currentObject->height() + currentObject->lineWidth()) * scaleV + offset - (current.yPos - lastLineY);
 						diff = (currentObjectBox.height() * scaleV + offset) - (current.yPos - lastLineY);
 					else
-						diff = font.capHeight(hlcsize10) * scaleV + offset - (current.yPos - lastLineY) - desc;
+					{
+					//	Pre-boxes code equivalent below:
+					//	int glyphID = font.char2CMap(QChar('l'));
+					//	diff = font.glyphBBox(glyphID, hlcsize10).ascent * scaleV + offset - (current.yPos - lastLineY);
+						diff = realAsce - (current.yPos - lastLineY);
+					}
 				}
 				else
 				{
@@ -2831,6 +2836,7 @@ void PageItem_TextFrame::layout()
 			}
 			else
 				maxYAsc = current.yPos - realAsce;
+			//fix for glyphs with negative realAsce value
 			maxYAsc = qMax(maxYAsc, 0.0);
 			maxYDesc = current.yPos + realDesc;
 
