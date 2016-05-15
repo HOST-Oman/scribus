@@ -1087,7 +1087,7 @@ struct LineControl {
 		if (run.object().getPageItem(doc))
 		{
 			result = new ObjectBox(run, context);
-			QRectF bBox = context->getVisualBoundingRect(run.object());
+			QRectF bBox = context->getVisualBoundingBox(run.object());
 			if (run.hasFlag(ScLayout_DropCap))
 				result->setAscent(bBox.height() * run.scaleV() - run.yoffset);
 			else
