@@ -98,8 +98,8 @@ PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(paren
 	advancedWidgets = new PropertyWidget_Advanced(textTree);
 	advancedWidgetsItem = textTree->addWidget( tr("Advanced Settings"), advancedWidgets);
 	//>>Advanced Settings
-	opentypefontWidget = new PropertyWidget_OpenTypeFontFeatures(textTree);
-	opentypefontWidgettsItem = textTree->addWidget( tr("Open Type Font Features"), opentypefontWidget);
+	fontfeaturesWidget = new PropertyWidget_FontFeatures(textTree);
+	fontfeaturesWidgetItem = textTree->addWidget( tr("Open Type Font Features"), fontfeaturesWidget);
 
 	pathTextWidgets = new PropertyWidget_PathText(textTree);
 	pathTextItem = textTree->addWidget( tr("Path Text Properties"), pathTextWidgets);
@@ -128,7 +128,7 @@ void PropertiesPalette_Text::setMainWindow(ScribusMainWindow* mw)
 	m_ScMW = mw;
 
 	advancedWidgets->setMainWindow(mw);
-	opentypefontWidget->setMainWindow(mw);
+	fontfeaturesWidget->setMainWindow(mw);
 	colorWidgets->setMainWindow(mw);
 	distanceWidgets->setMainWindow(mw);
 	hyphenationWidget->setMainWindow(mw);
@@ -166,7 +166,7 @@ void PropertiesPalette_Text::setDoc(ScribusDoc *d)
 	lineSpacing->setValues( 1, 2048, 2, 1);
 
 	advancedWidgets->setDoc(m_doc);
-	opentypefontWidget->setDoc(m_doc);
+	fontfeaturesWidget->setDoc(m_doc);
 	colorWidgets->setDoc(m_doc);
 	distanceWidgets->setDoc(m_doc);
 	parEffectWidgets->setDoc(m_doc);
@@ -201,7 +201,7 @@ void PropertiesPalette_Text::unsetDoc()
 	charStyleCombo->setDoc(0);
 
 	advancedWidgets->setDoc(0);
-	opentypefontWidget->setDoc(0);
+	fontfeaturesWidget->setDoc(0);
 	colorWidgets->setDoc(0);
 	distanceWidgets->setDoc(0);
 	flopBox->setDoc(0);
@@ -389,7 +389,7 @@ void PropertiesPalette_Text::unitChange()
 	m_haveItem = false;
 
 	advancedWidgets->unitChange();
-	opentypefontWidget->unitChange();
+	fontfeaturesWidget->unitChange();
 	colorWidgets->unitChange();
 	distanceWidgets->unitChange();
 	flopBox->unitChange();
@@ -519,7 +519,7 @@ void PropertiesPalette_Text::updateCharStyle(const CharStyle& charStyle)
 		return;
 
 	advancedWidgets->updateCharStyle(charStyle);
-	opentypefontWidget->updateCharStyle(charStyle);
+	fontfeaturesWidget->updateCharStyle(charStyle);
 	colorWidgets->updateCharStyle(charStyle);
 	hyphenationWidget->updateCharStyle(charStyle);
 
@@ -536,7 +536,7 @@ void PropertiesPalette_Text::updateStyle(const ParagraphStyle& newCurrent)
 	const CharStyle& charStyle = newCurrent.charStyle();
 
 	advancedWidgets->updateStyle(newCurrent);
-	opentypefontWidget->updateStyle(newCurrent);
+	fontfeaturesWidget->updateStyle(newCurrent);
 	colorWidgets->updateStyle(newCurrent);
 	optMargins->updateStyle(newCurrent);
 	orphanBox->updateStyle (newCurrent);
@@ -726,7 +726,7 @@ void PropertiesPalette_Text::languageChange()
 	distanceItem->setText(0, tr("Columns && Text Distances"));
 	optMarginsItem->setText(0, tr("Optical Margins"));
 	advancedWidgetsItem->setText(0, tr("Advanced Settings"));
-	opentypefontWidgettsItem->setText(0, tr("Font Features"));
+	fontfeaturesWidgetItem->setText(0, tr("Font Features"));
 	pathTextItem->setText(0, tr("Path Text Properties"));
 	QSignalBlocker lineSpacingModeBlocker(lineSpacingModeCombo);
 	int oldLineSpacingMode = lineSpacingModeCombo->currentIndex();
@@ -754,7 +754,7 @@ void PropertiesPalette_Text::languageChange()
 	optMargins->languageChange();
 	advancedWidgets->languageChange();
 	pathTextWidgets->languageChange();
-	opentypefontWidget->languageChange();
+	fontfeaturesWidget->languageChange();
 	hyphenationWidget->languageChange();
 
 	textAlignment->languageChange();

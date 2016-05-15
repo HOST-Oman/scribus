@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>PropertyWidget_OpenTypeFontFeatures</class>
- <widget class="QFrame" name="PropertyWidget_OpenTypeFontFeatures">
+ <class>PropertyWidget_FontFeatures</class>
+ <widget class="QFrame" name="PropertyWidget_FontFeatures">
   <property name="geometry">
    <rect>
     <x>0</x>
@@ -605,10 +605,10 @@
  <resources/>
  <connections/>
  <buttongroups>
+  <buttongroup name="PositionGroup"/>
   <buttongroup name="CapitalsGroup"/>
+  <buttongroup name="FractionsGroup"/>
   <buttongroup name="NumeralStyleGroup"/>
   <buttongroup name="NumeralWidthGroup"/>
-  <buttongroup name="FractionsGroup"/>
-  <buttongroup name="PositionGroup"/>
  </buttongroups>
 </ui>

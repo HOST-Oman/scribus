@@ -4,7 +4,7 @@ to the COPYING file provided with the program. Following this notice may exist
 a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
-#include "propertywidget_opentypefontfeatures.h"
+#include "propertywidget_fontfeatures.h"
 #include "appmodes.h"
 #include "pageitem_table.h"
 #include "iconmanager.h"
@@ -12,7 +12,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribusdoc.h"
 #include "selection.h"
 
-PropertyWidget_OpenTypeFontFeatures::PropertyWidget_OpenTypeFontFeatures(QWidget* parent) : QFrame(parent)
+PropertyWidget_FontFeatures::PropertyWidget_FontFeatures(QWidget* parent) : QFrame(parent)
 {
 	m_item = NULL;
 	m_ScMW = NULL;
@@ -24,12 +24,12 @@ PropertyWidget_OpenTypeFontFeatures::PropertyWidget_OpenTypeFontFeatures(QWidget
 	languageChange();
 }
 
-void PropertyWidget_OpenTypeFontFeatures::setMainWindow(ScribusMainWindow *mw)
+void PropertyWidget_FontFeatures::setMainWindow(ScribusMainWindow *mw)
 {
 	m_ScMW = mw;
 }
 
-void PropertyWidget_OpenTypeFontFeatures::changeEvent(QEvent *e)
+void PropertyWidget_FontFeatures::changeEvent(QEvent *e)
 {
 	if (e->type() == QEvent::LanguageChange)
 	{
@@ -39,7 +39,7 @@ void PropertyWidget_OpenTypeFontFeatures::changeEvent(QEvent *e)
 	QWidget::changeEvent(e);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::languageChange()
+void PropertyWidget_FontFeatures::languageChange()
 {
 	CommonCheck->setChecked(true);
 	NormalCaRadio->setChecked(true);
@@ -88,7 +88,7 @@ void PropertyWidget_OpenTypeFontFeatures::languageChange()
 	StyleSet20->setChecked(false);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
+void PropertyWidget_FontFeatures::showFontFeatures(QString s)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -180,7 +180,7 @@ void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
 	}
 }
 
-void PropertyWidget_OpenTypeFontFeatures::handlefontfeatures()
+void PropertyWidget_FontFeatures::handlefontfeatures()
 {
 	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -282,7 +282,7 @@ void PropertyWidget_OpenTypeFontFeatures::handlefontfeatures()
 	m_doc->itemSelection_SetFontFeatures(font_feature.join(","), &tempSelection);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::setDoc(ScribusDoc *d)
+void PropertyWidget_FontFeatures::setDoc(ScribusDoc *d)
 {
 	if((d == (ScribusDoc*) m_doc) || (m_ScMW && m_ScMW->scriptIsRunning()))
 		return;
@@ -306,7 +306,7 @@ void PropertyWidget_OpenTypeFontFeatures::setDoc(ScribusDoc *d)
 	connect(m_doc             , SIGNAL(docChanged())      , this, SLOT(handleSelectionChanged()));
 }
 
-void PropertyWidget_OpenTypeFontFeatures::handleSelectionChanged()
+void PropertyWidget_FontFeatures::handleSelectionChanged()
 {
 	if (!m_doc || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -317,14 +317,14 @@ void PropertyWidget_OpenTypeFontFeatures::handleSelectionChanged()
 	repaint();
 }
 
-void PropertyWidget_OpenTypeFontFeatures::updateCharStyle(const CharStyle& charStyle)
+void PropertyWidget_FontFeatures::updateCharStyle(const CharStyle& charStyle)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	showFontFeatures(charStyle.fontFeatures());
 }
 
-void PropertyWidget_OpenTypeFontFeatures::updateStyle(const ParagraphStyle& newCurrent)
+void PropertyWidget_FontFeatures::updateStyle(const ParagraphStyle& newCurrent)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -333,7 +333,7 @@ void PropertyWidget_OpenTypeFontFeatures::updateStyle(const ParagraphStyle& newC
 	showFontFeatures(charStyle.fontFeatures());
 }
 
-void PropertyWidget_OpenTypeFontFeatures::connectSignals()
+void PropertyWidget_FontFeatures::connectSignals()
 {
 	connect(ContextualCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(CommonCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
@@ -382,7 +382,7 @@ void PropertyWidget_OpenTypeFontFeatures::connectSignals()
 	connect(StyleSet20, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 }
 
-void PropertyWidget_OpenTypeFontFeatures::disconnectSignals()
+void PropertyWidget_FontFeatures::disconnectSignals()
 {
 	disconnect(ContextualCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(CommonCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
@@ -431,7 +431,7 @@ void PropertyWidget_OpenTypeFontFeatures::disconnectSignals()
 	disconnect(StyleSet20, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 }
 
-void PropertyWidget_OpenTypeFontFeatures::configureWidgets(void)
+void PropertyWidget_FontFeatures::configureWidgets(void)
 {
 	bool enabled = false;
 	if (m_item && m_doc)
@@ -448,7 +448,7 @@ void PropertyWidget_OpenTypeFontFeatures::configureWidgets(void)
 	setEnabled(enabled);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::setCurrentItem(PageItem *item)
+void PropertyWidget_FontFeatures::setCurrentItem(PageItem *item)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
