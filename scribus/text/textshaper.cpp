@@ -273,10 +273,7 @@ void TextShaper::buildText(QVector<int>& smallCaps)
 				str = SpecialChars::ZWNBSPACE;
 		}
 		
-		// FIXME: Hack to allow soft hyphen inside ligatures, should
-		// be removed once we properly handle hyphenating ligatures.
-		if (str.at(0) == SpecialChars::SHYPHEN)
-			str.replace(SpecialChars::SHYPHEN, SpecialChars::ZWNJ);
+		str.replace(SpecialChars::SHYPHEN, SpecialChars::ZWNJ);
 
 		const CharStyle &style = m_story.charStyle(i);
 		int effects = style.effects() & ScStyle_UserStyles;

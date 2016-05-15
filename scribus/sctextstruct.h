@@ -107,6 +107,54 @@ private:
 
 
 /**
+ * simple class to abstract from inline pageitems. You will need a ITextContext
+ * to get meaningfull data about the InlineFrame, for other purposes it is opaque
+ */
+class SCRIBUS_API InlineFrame
+{
+	int m_object_id;
+public:
+	InlineFrame(int id) : m_object_id(id) {}
+	int getInlineCharID() const { return m_object_id; }
+	PageItem* getPageItem(ScribusDoc* doc) const;
+};
+
+
+/**
+ * Holds information about expansion points in a text source: pagenumber, counters, list bulllet, ...
+ */
+class SCRIBUS_API ExpansionPoint 
+{
+public:
+	enum ExpansionType {
+		Invalid,
+		PageNumber,
+		PageCount,
+		ListBullet,
+		ListCounter,
+		Note,	// foot or endnote number
+		Anchor,  // usually invisible	
+		PageRef,
+		Lookup, // generic lookup
+		SectionRef,
+		MarkCE // deprecated
+	} ;
+
+	ExpansionPoint(ExpansionType t) : m_type(t), m_name() {}
+	ExpansionPoint(ExpansionType t, QString name) : m_type(t), m_name(name) {}
+	ExpansionPoint(Mark* mrk) : m_type(MarkCE), m_name(), m_mark(mrk) {}
+
+	ExpansionType getType() const { return m_type; }
+	QString getName() const { return m_name; }
+	Mark* getMark() const { return m_mark; }
+private:
+	ExpansionType m_type;
+	QString m_name;
+	Mark* m_mark;
+};
+
+
+/**
  * This struct stores a positioned glyph. This is the result of the layout process.
  */
 struct SCRIBUS_API GlyphLayout {

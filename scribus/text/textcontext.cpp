@@ -42,24 +42,34 @@ PageItem* TextContext::object(const InlineFrame& frame)  const
 }
 
 
+<<<<<<< HEAD
 QRectF TextContext::getVisualBoundingBox(const InlineFrame& frame)  const
 {
 	return object(frame)->getVisualBoundingRect();
 }
 
 #if 0
+=======
+>>>>>>> github_avox/ctl
 double TextContext::getWidth(const InlineFrame& frame)  const
 {
 	return object(frame)->width() + object(frame)->lineWidth(); 
 }
+<<<<<<< HEAD
+=======
+	
+>>>>>>> github_avox/ctl
 
 double TextContext::getHeight(const InlineFrame& frame)  const
 {
 	return object(frame)->height() + object(frame)->lineWidth(); 
 }
 
+<<<<<<< HEAD
 #endif
 
+=======
+>>>>>>> github_avox/ctl
 	
 QString TextContext::expand(const ExpansionPoint& expansion) 
 {
