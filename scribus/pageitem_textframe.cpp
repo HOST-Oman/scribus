@@ -58,6 +58,7 @@ for which a new license (GPL+exception) is in place.
 #include "text/boxes.h"
 #include "text/screenpainter.h"
 #include "text/textshaper.h"
+#include "text/shapedtext.h"
 #include "ui/guidemanager.h"
 #include "ui/marksmanager.h"
 #include "undomanager.h"
@@ -65,6 +66,8 @@ for which a new license (GPL+exception) is in place.
 #include "units.h"
 #include "util.h"
 #include "util_math.h"
+
+
 
 using namespace std;
 
@@ -391,16 +394,6 @@ static void layoutDropCap(GlyphLayout layout, double curX, double curY, double o
 }
 */
 
-
-static bool logicalGlyphRunComp(const GlyphCluster &r1, const GlyphCluster &r2)
-{
-	return r1.firstChar() < r2.firstChar();
-}
-
-static bool visualGlyphRunComp(const GlyphCluster &r1, const GlyphCluster &r2)
-{
-	return r1.visualIndex() < r2.visualIndex();
-}
 
 enum TabStatus {
 	TabNONE    = 0,
@@ -1066,14 +1059,7 @@ struct LineControl {
 		result->setWidth(line.width);
 		result->setAscent(line.ascent);
 		result->setDescent(line.descent);
-
-		int glyphsCount = line.lastRun - line.firstRun + 1;
-		QList<GlyphCluster> runs;
-		for (int i = 0; i < glyphsCount; ++i)
-			runs.append(glyphs.at(i));
-		std::sort(runs.begin(), runs.end(), visualGlyphRunComp);
-
-		foreach (const GlyphCluster& run, runs)
+		foreach (const GlyphCluster& run, ShapedTextFeed::putInVisualOrder(glyphs, line.firstRun, line.lastRun + 1))
 		{
 			addBox(result, run);
 		}
@@ -1405,9 +1391,11 @@ void PageItem_TextFrame::layout()
 		}
 
 		ITextContext* context = this;
-		TextShaper textShaper(this, itemText, firstInFrame());
-		QList<GlyphCluster> glyphRuns = textShaper.shape();
-		std::sort(glyphRuns.begin(), glyphRuns.end(), logicalGlyphRunComp);
+		//TextShaper textShaper(this, itemText, firstInFrame());
+		ShapedTextFeed shapedText(&itemText, firstInFrame(), context);
+		
+		QList<GlyphCluster> glyphRuns; // = textShaper.shape();
+		// std::sort(glyphRuns.begin(), glyphRuns.end(), logicalGlyphRunComp);
 
 		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, context,columnWidth(), ColGap);
 		current.nextColumn(textLayout);
@@ -1467,7 +1455,7 @@ void PageItem_TextFrame::layout()
 		int regionMinY = 0, regionMaxY= 0;
 
 		double autoLeftIndent = 0.0;
-		for (int i = 0; i < glyphRuns.length(); ++i)
+		for (int i = 0; shapedText.haveMoreText(i, glyphRuns); ++i)
 		{
 			int currentIndex = i - current.line.firstRun;
 			GlyphCluster newRun = glyphRuns[i];
@@ -2197,7 +2185,7 @@ void PageItem_TextFrame::layout()
 				current.xPos = qMax(current.xPos, current.colLeft);
 			}
 			// remember possible break
-			if (i + 1 < glyphRuns.count() && glyphRuns[i + 1].hasFlag(ScLayout_LineBoundry))
+			if (shapedText.haveMoreText(i + 1, glyphRuns) && glyphRuns[i + 1].hasFlag(ScLayout_LineBoundry))
 			{
 				if (current.glyphs.length() > 1
 					&& (current.glyphs[currentIndex - 1].lastChar() != SpecialChars::CJK_NOBREAK_AFTER)
@@ -2788,7 +2776,7 @@ void PageItem_TextFrame::layout()
 					}
 				}
 			}
-			if (i == glyphRuns.length() - 1)
+			if (!shapedText.haveMoreText(i + 1, glyphRuns))
 			{
 				if (!current.afterOverflow || current.addLine)
 				{
