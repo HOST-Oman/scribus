@@ -42,16 +42,23 @@ PageItem* TextContext::object(const InlineFrame& frame)  const
 }
 
 
+QRectF TextContext::getVisualBoundingBox(const InlineFrame& frame)  const
+{
+	return object(frame)->getVisualBoundingRect();
+}
+
+#if 0
 double TextContext::getWidth(const InlineFrame& frame)  const
 {
 	return object(frame)->width() + object(frame)->lineWidth(); 
 }
-	
 
 double TextContext::getHeight(const InlineFrame& frame)  const
 {
 	return object(frame)->height() + object(frame)->lineWidth(); 
 }
+
+#endif
 
 	
 QString TextContext::expand(const ExpansionPoint& expansion) 

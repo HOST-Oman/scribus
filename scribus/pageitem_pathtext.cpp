@@ -280,7 +280,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		if (run.object().getPageItem(m_Doc))
 		{
 			box = new ObjectBox(run, this);
-			box->setAscent(this->getHeight(run.object())); // - run.object()->lineWidth());
+			box->setAscent(this->getVisualBoundingBox(run.object()).height());
 			box->setDescent(0);
 		}
 		else

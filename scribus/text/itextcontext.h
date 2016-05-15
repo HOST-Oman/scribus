@@ -8,6 +8,7 @@
 #ifndef ITEXTCONTEXT_H
 #define ITEXTCONTEXT_H
 
+#include <QRectF>
 #include <QString>
 
 #include "scribusapi.h"
@@ -33,8 +34,7 @@ public:
 	virtual double height() const = 0;
 	virtual double width() const = 0;
 	virtual /* const */ PageItem* object(const InlineFrame& frame) const = 0;
-	virtual double getWidth(const InlineFrame& frame) const = 0;
-	virtual double getHeight(const InlineFrame& frame) const = 0;
+	virtual QRectF getVisualBoundingBox(const InlineFrame& frame) const = 0;
 	virtual const CharStyle& charStyle() const = 0;
 	virtual const ParagraphStyle& paragraphStyle() const = 0;
 	virtual QString expand(const ExpansionPoint& expansion) = 0;
