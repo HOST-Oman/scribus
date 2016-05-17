@@ -381,9 +381,6 @@ public:
 
 	gid_type emulateGlyph(uint u) const;
 
-	/// deprecated, see glyphBBox()
-	qreal realCharWidth(QChar ch, qreal sz=1.0) const { return glyphBBox(char2CMap(ch.unicode()), sz).width; }
-
 	gid_type hyphenGlyph() const;
 	gid_type hyphenGlyph(const CharStyle& style) const;
 	double hyphenWidth(const CharStyle& style, qreal size=1.0) const;
