@@ -402,14 +402,13 @@ void ScFace::unload() const
 }
 
 
-ScFace::gid_type ScFace::emulateGlyph(uint u) const
+ScFace::gid_type ScFace::emulateGlyph(uint ch) const
 {
-	QChar ch(u);
 	if (ch == SpecialChars::LINEBREAK || ch == SpecialChars::PARSEP 
 		|| ch == SpecialChars::FRAMEBREAK || ch == SpecialChars::COLBREAK 
 		|| ch == SpecialChars::TAB || ch == SpecialChars::SHYPHEN
 		 || ch == SpecialChars::ZWSPACE || ch == SpecialChars::ZWNBSPACE || ch==SpecialChars::OBJECT)
-		return CONTROL_GLYPHS + ch.unicode();
+		return CONTROL_GLYPHS + ch;
 	else if (ch == SpecialChars::NBSPACE)
 		return  m_m->char2CMap(' ');
 	else if(ch == SpecialChars::NBHYPHEN)
