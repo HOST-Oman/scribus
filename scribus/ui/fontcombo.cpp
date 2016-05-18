@@ -44,7 +44,7 @@ FontCombo::FontCombo(QWidget* pa) : QComboBox(pa)
 	otfFont = IconManager::instance()->loadPixmap("font_otf16.png");
 	psFont = IconManager::instance()->loadPixmap("font_type1_16.png");
 	substFont = IconManager::instance()->loadPixmap("font_subst16.png");
-	setEditable(false);
+	setEditable(true);
 	QFont f(font());
 	f.setPointSize(f.pointSize()-1);
 	setFont(f);
@@ -121,6 +121,7 @@ FontComboH::FontComboH(QWidget* parent, bool labels) :
 		col=1;
 	}
 	fontFamily = new ScComboBox(this);
+	fontFamily->setEditable(true);
 	fontComboLayout->addWidget(fontFamily,0,col);
 	fontStyle = new ScComboBox(this);
 	fontComboLayout->addWidget(fontStyle,1,col);
