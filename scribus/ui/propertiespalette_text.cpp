@@ -27,6 +27,7 @@ for which a new license (GPL+exception) is in place.
 #include "propertywidget_advanced.h"
 #include "propertywidget_distance.h"
 #include "propertywidget_flop.h"
+#include "propertywidget_fontfeatures.h"
 #include "propertywidget_hyphenation.h"
 #include "propertywidget_optmargins.h"
 #include "propertywidget_orphans.h"
