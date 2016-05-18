@@ -134,7 +134,11 @@
       </spacer>
      </item>
      <item>
-      <widget class="QComboBox" name="langCombo"/>
+      <widget class="QComboBox" name="langCombo">
+       <property name="editable">
+        <bool>true</bool>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
