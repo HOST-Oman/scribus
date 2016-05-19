@@ -31,7 +31,8 @@ before_install:
       python-all-dev zlib1g-dev qt56base qt56declarative
       qt56tools libgraphicsmagick++1-dev
       libopenscenegraph-dev libpoppler-dev libcairo2-dev libwpg-dev libmspub-dev
-      libcdr-dev libvisio-dev libharfbuzz-dev libharfbuzz-icu0;
+      libcdr-dev libvisio-dev libharfbuzz-dev libharfbuzz-icu0
+      coreutils binutils python-tk;
     fi
 # OSX
 # - if [ $TRAVIS_OS_NAME == osx ]; then brew --env && brew config && brew list; fi
