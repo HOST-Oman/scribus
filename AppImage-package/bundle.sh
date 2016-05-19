@@ -6,18 +6,16 @@
 # For more information, see http://appimage.org/
 ########################################################################
 
-sudo apt-get -y install coreutils binutils python-tk
-
 export ARCH=$(arch)
 
 APP=Scribus
-LOWERAPP=${APP,,} 
+LOWERAPP=${APP,,}
 
 GIT_REV=$(git rev-parse --short HEAD)
 echo $GIT_REV
 make install DESTDIR=/home/travis/$APP/$APP.AppDir
 
-cd /home/travis/$APP/
+cd $HOME/$APP/
 
 wget -q https://github.com/probonopd/AppImages/raw/master/functions.sh -O ./functions.sh
 . ./functions.sh
@@ -40,7 +38,7 @@ rm -rf usr/share/icons/hicolor/48x48/
 # on all target systems
 ########################################################################
 
-# FIXME: How to find out which subset of plugins is really needed? 
+# FIXME: How to find out which subset of plugins is really needed?
 mkdir -p ./usr/lib/qt5/plugins/
 PLUGINS=/opt/qt56/plugins/
 cp -r $PLUGINS/* ./usr/lib/qt5/plugins/
@@ -64,7 +62,7 @@ mv usr/lib/x86_64-linux-gnu/* usr/lib/
 # Delete stuff that should not go into the AppImage
 ########################################################################
 
-# Delete dangerous libraries; see 
+# Delete dangerous libraries; see
 # https://github.com/probonopd/AppImages/blob/master/excludelist
 delete_blacklisted
 
