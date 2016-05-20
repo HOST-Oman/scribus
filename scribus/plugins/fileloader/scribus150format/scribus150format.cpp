@@ -4590,7 +4590,7 @@ bool Scribus150Format::readStoryText(ScribusDoc *doc, ScXmlStreamReader& reader,
 
 bool Scribus150Format::readItemText(PageItem *obj, ScXmlStreamAttributes& attrs, LastStyles* last)
 {
-	QString tmp2;
+	QVector<uint> txt;
 	CharStyle newStyle;
 	ScribusDoc* doc = obj->doc();
 	
@@ -4598,16 +4598,18 @@ bool Scribus150Format::readItemText(PageItem *obj, ScXmlStreamAttributes& attrs,
 
 	if (attrs.hasAttribute(QLatin1String("Unicode")))
 	{
-		tmp2 = QChar(attrs.valueAsInt("Unicode"));
+		txt += attrs.valueAsInt("Unicode");
 	}
 	else
 	{
-		tmp2 = attrs.valueAsString("CH");
+		QString tmp2 = attrs.valueAsString("CH");
 		
 		// legacy stuff:
 		tmp2.replace(QRegExp("\r"), QChar(13));
 		tmp2.replace(QRegExp("\n"), QChar(13));
 		tmp2.replace(QRegExp("\t"), QChar(9));
+
+		txt = tmp2.toUcs4();
 	}
 
 	// more legacy stuff:
@@ -4619,14 +4621,14 @@ bool Scribus150Format::readItemText(PageItem *obj, ScXmlStreamAttributes& attrs,
 
 	int iobj = attrs.valueAsInt("COBJ", -1);
 
-	for (int cxx=0; cxx<tmp2.length(); ++cxx)
+	for (int cxx=0; cxx<txt.length(); ++cxx)
 	{
-		QChar ch = tmp2.at(cxx);		
+		uint ch = txt.at(cxx);
 		{ // Legacy mode
-			if (ch == QChar(5))
-				ch = SpecialChars::PARSEP;
-			if (ch == QChar(4))
-				ch = SpecialChars::TAB;
+			if (ch == 5)
+				ch = SpecialChars::PARSEP.unicode();
+			if (ch == 4)
+				ch = SpecialChars::TAB.unicode();
 		}
 		
 		int pos = obj->itemText.length();
@@ -4655,7 +4657,7 @@ bool Scribus150Format::readItemText(PageItem *obj, ScXmlStreamAttributes& attrs,
 			if (obj->itemText.hasFlag(pos-1, ScLayout_HyphenationPossible))
 			{
 				obj->itemText.clearFlag(pos-1, ScLayout_HyphenationPossible);
-				obj->itemText.insertChars(pos, QString(ch));
+				obj->itemText.insertChars(pos, QVector<uint>(1, ch));
 			}
 			else
 			{
@@ -4663,7 +4665,7 @@ bool Scribus150Format::readItemText(PageItem *obj, ScXmlStreamAttributes& attrs,
 			}
 		}
 		else {
-			obj->itemText.insertChars(pos, QString(ch));
+			obj->itemText.insertChars(pos, QVector<uint>(1, ch));
 		}
 //		qDebug() << QString("style at %1: %2 ^ %3 = %4 (%5)").arg(pos).arg((uint)newStyle.effects()).arg((uint)last->Style.effects()).arg((uint)(newStyle.effects() ^ last->Style.effects())).arg(newStyle != last->Style);
 		if (newStyle != last->Style) // || (newStyle.effects() ^ last->Style.effects()) == ScStyle_HyphenationPossible) 
