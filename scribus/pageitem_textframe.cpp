@@ -867,15 +867,32 @@ struct LineControl {
 					imSpace = remaining / spaceInsertion;
 					spaceExtension = 0;
 				}
-			} else if (trackingInsertion && spaceNatural == 0) {
-				double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
-				trackingAmount = remaining / trackingInsertion;
-				spaceExtension = 0;
 			} else {
 				if (spaceNatural > 0)
-					spaceExtension = (line.width - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+					spaceExtension = (line.width - glyphNatural * (1 + glyphExtension)) / spaceNatural - 1;
 				else
 					spaceExtension = 0;
+
+				if (trackingInsertion && (spaceExtension == 0.0 || spaceExtension >= 20.0))
+				{
+					if (spaceExtension == 0.0)
+					{
+						double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
+						trackingAmount = remaining / trackingInsertion;
+					}
+					else
+					{
+						spaceExtension = qMin(20.0, spaceExtension);
+						double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
+						remaining -= spaceExtension * spaceNatural;
+						trackingAmount = remaining / trackingInsertion;
+						if (trackingAmount > imSpace)
+						{
+							trackingAmount = imSpace;
+							spaceExtension = (line.width - glyphNatural * (1 + glyphExtension) - trackingInsertion * trackingAmount) / spaceNatural - 1;
+						}
+					}
+				}
 			}
 		}
 
