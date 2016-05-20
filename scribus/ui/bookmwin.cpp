@@ -135,18 +135,18 @@ void BookMView::AddPageItem(PageItem* ite)
 {
 	QString bm = "";
 	QString bm2 = "";
-	QString cc;
+	uint cc;
 	for (int d = 0; d < ite->itemText.length(); ++d)
 	{
 		cc = ite->itemText.text(d);
-		if ((cc == QChar(13)) || (cc == QChar(10)))
+		if ((cc == 13) || (cc == 10))
 			break;
-		if (cc == QChar(29))
-			cc = " ";
-		if ((cc == "(") || (cc == ")") || (cc == "\\"))
+		if (cc == 29)
+			cc = ' ';
+		if ((cc == '(') || (cc == ')') || (cc == '\\'))
 			bm2 += "\\";
-		bm += cc;
-		bm2 += cc;
+		bm += QString::fromUcs4(&cc, 1);
+		bm2 += QString::fromUcs4(&cc, 1);
 	}
 	AddItem(bm, bm2, ite);
 	Last = NrItems;
@@ -278,16 +278,16 @@ void BookMView::ChangeText(PageItem *currItem)
 	BookMItem *ite;
 	QString bm = "";
 	QString bm2 = "";
-	QString cc;
+	uint cc;
 	for (int d = 0; d < currItem->itemText.length(); ++d)
 	{
 		cc = currItem->itemText.text(d);
-		if ((cc == QChar(13)) || (cc == QChar(10)))
+		if ((cc == 13) || (cc == 10))
 			break;
-		if ((cc == "(") || (cc == ")") || (cc == "\\"))
+		if ((cc == '(') || (cc == ')') || (cc == '\\'))
 			bm2 += "\\";
-		bm += cc;
-		bm2 += cc;
+		bm += QString::fromUcs4(&cc, 1);
+		bm2 += QString::fromUcs4(&cc, 1);
 	}
 	QTreeWidgetItemIterator it(this);
 	while (*it)

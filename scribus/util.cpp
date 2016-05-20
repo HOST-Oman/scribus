@@ -360,7 +360,8 @@ bool overwrite(QWidget *parent, QString filename)
 
 void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, int *cN)
 {
-	QChar Dat = QChar(32);
+	// FIXME HOST: use break iterators here
+	uint Dat = 32;
 	int para = 0;
 	int ww = 0;
 	int cc = 0;
@@ -381,12 +382,12 @@ void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, i
 	{
 		for (int a = qMax(nextItem->firstInFrame(),0); a <= nextItem->lastInFrame() && a < nextItem->itemText.length(); ++a)
 		{
-			QChar b = nextItem->itemText.text(a);
+			uint b = nextItem->itemText.text(a);
 			if (b == SpecialChars::PARSEP)
 			{
 				para++;
 			}
-			if ((!b.isLetterOrNumber()) && (Dat.isLetterOrNumber()) && (!first))
+			if ((!QChar::isLetterOrNumber(b)) && (QChar::isLetterOrNumber(Dat)) && (!first))
 			{
 				ww++;
 			}
@@ -401,12 +402,12 @@ void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, i
 		paraN++;
 		for (int a = nbl->lastInFrame()+1; a < nbl->itemText.length(); ++a)
 		{
-			QChar b = nbl->itemText.text(a);
+			uint b = nbl->itemText.text(a);
 			if (b == SpecialChars::PARSEP)
 			{
 				paraN++;
 			}
-			if ((!b.isLetterOrNumber()) && (Dat.isLetterOrNumber()) && (!first))
+			if ((!QChar::isLetterOrNumber(b)) && (QChar::isLetterOrNumber(Dat)) && (!first))
 			{
 				wwN++;
 			}
@@ -418,7 +419,7 @@ void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, i
 	else {
 		para++;
 	}
-	if (Dat.isLetterOrNumber())
+	if (QChar::isLetterOrNumber(Dat))
 	{
 		if (nbl->frameOverflows())
 			wwN++;

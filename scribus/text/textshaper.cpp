@@ -28,10 +28,10 @@ TextShaper::TextShaper(StoryText &story, int first)
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
-		QChar ch = m_story.text(i);
+		uint ch = m_story.text(i);
 		if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 			continue;
-		QString str(ch);
+		QString str = QString::fromUcs4(&ch, 1);
 		m_textMap.insert(i, i);
 		m_text.append(str);
 	}
@@ -168,7 +168,7 @@ void TextShaper::buildText(QVector<int>& smallCaps)
 	{
 		if (m_singlePar)
 		{
-			QChar ch = m_story.text(i);
+			uint ch = m_story.text(i);
 			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 				continue;
 		}
@@ -442,7 +442,7 @@ QList<GlyphCluster> TextShaper::shape()
 			int firstChar = m_textMap.value(firstCluster);
 			int lastChar = m_textMap.value(nextCluster - 1);
 
-			QChar ch = m_story.text(firstChar);
+			uint ch = m_story.text(firstChar);
 			LayoutFlags flags = m_story.flags(firstChar);
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 			const StyleFlag& effects = charStyle.effects();
@@ -466,12 +466,12 @@ QList<GlyphCluster> TextShaper::shape()
 
 			if (effects & ScStyle_Underline)
 				run.setFlag(ScLayout_Underlined);
-			if (effects & ScStyle_UnderlineWords && !ch.isSpace())
+			if (effects & ScStyle_UnderlineWords && !QChar::isSpace(ch))
 				run.setFlag(ScLayout_Underlined);
 
 			if (firstChar != 0 &&
-			    SpecialChars::isCJK(m_story.text(firstChar).unicode()) &&
-			    SpecialChars::isCJK(m_story.text(firstChar - 1).unicode()))
+			    SpecialChars::isCJK(m_story.text(firstChar)) &&
+			    SpecialChars::isCJK(m_story.text(firstChar - 1)))
 				run.setFlag(ScLayout_ImplicitSpace);
 
 			run.setScaleH(charStyle.scaleH() / 1000.0);
@@ -485,7 +485,7 @@ QList<GlyphCluster> TextShaper::shape()
 				    (ch == SpecialChars::LINEBREAK || ch == SpecialChars::PARSEP ||
 				     ch == SpecialChars::FRAMEBREAK || ch == SpecialChars::COLBREAK))
 				{
-					gl.glyph = scFace.emulateGlyph(ch.unicode());
+					gl.glyph = scFace.emulateGlyph(ch);
 				}
 
 				if (gl.glyph < ScFace::CONTROL_GLYPHS)

@@ -43,17 +43,17 @@ QChar SpecialChars::PAGECOUNT    = QChar(23);
 QChar SpecialChars::BLANK        = QChar(32);      // SPACE is some macro on my machine - av
 
 
-bool SpecialChars::isBreakingSpace(QChar c)
+bool SpecialChars::isBreakingSpace(uint c)
 {
 	return c == BLANK || c == ZWSPACE;
 }
 
-bool SpecialChars::isExpandingSpace(QChar c)
+bool SpecialChars::isExpandingSpace(uint c)
 {
 	return c == BLANK || c == NBSPACE;
 }
 
-bool SpecialChars::isBreak(QChar c, bool includeColBreak)
+bool SpecialChars::isBreak(uint c, bool includeColBreak)
 {
 	return (c == PARSEP 
 			|| c == LINEBREAK 
@@ -61,7 +61,7 @@ bool SpecialChars::isBreak(QChar c, bool includeColBreak)
 			|| (includeColBreak && c == COLBREAK));
 }
 
-int SpecialChars::getCJKAttr(QChar c)
+int SpecialChars::getCJKAttr(uint code)
 {
 	static uchar attr_3000[0x100] = {
 		// 0x3000 - 0x3007
@@ -159,7 +159,6 @@ int SpecialChars::getCJKAttr(QChar c)
 		// 0xff60
 		CJK_FENCE_END
 	};
-	ushort code = c.unicode();
 	if(code >= 0x3100 && code < 0xa000){
 		return CJK_KANJI;
 	}

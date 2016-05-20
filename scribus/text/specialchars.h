@@ -50,9 +50,9 @@ public:
 	static QChar PAGECOUNT;
 	static QChar BLANK;
 	
-	static bool isBreak(QChar c, bool includeColBreak = true);
-	static bool isBreakingSpace(QChar c);
-	static bool isExpandingSpace(QChar c);
+	static bool isBreak(uint c, bool includeColBreak = true);
+	static bool isBreakingSpace(uint c);
+	static bool isExpandingSpace(uint c);
 
 		enum {
 			CJK_FENCE_BEGIN = 0x0001,
@@ -75,7 +75,7 @@ public:
 			CJK_NOBREAK_BEFORE = 0x0100,
 			CJK_NOBREAK_AFTER = 0x0200,
 		};
-		static int getCJKAttr(QChar c);
+	static int getCJKAttr(uint c);
 
 	static bool isCJK(uint ch);
 };

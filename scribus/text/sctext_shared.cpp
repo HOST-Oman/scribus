@@ -132,7 +132,7 @@ void ScText_Shared::replaceCharStyleContextInParagraph(int pos, const StyleConte
 	while ( it.hasNext() ) {
 		ScText* elem = it.next();
 		assert( elem );
-		if ( elem->ch.isNull() ) 
+		if ( elem->ch == 0 )
 		{
 			// nothing, see code in removeParSep
 		}

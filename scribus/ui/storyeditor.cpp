@@ -740,7 +740,7 @@ void SEditor::insertUpdate(int position, int len)
 	for (int pos = position; pos < end; ++pos)
 	{
 		const CharStyle& cstyle(StyledText.charStyle(pos));
-		const QChar ch = StyledText.text(pos);
+		uint ch = StyledText.text(pos);
 		if (ch == SpecialChars::PARSEP)
 		{
 			text += "\n";
@@ -820,7 +820,7 @@ void SEditor::insertUpdate(int position, int len)
 			setColor(false);
 		}
 		else
-			text += ch;
+			text += QString::fromUcs4(&ch, 1);
 	}
 	if (position < end)
 	{

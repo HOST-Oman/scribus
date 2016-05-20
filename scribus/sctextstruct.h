@@ -81,11 +81,11 @@ public:
 	ParagraphStyle* parstyle; // only for parseps
 	int embedded;
 	Mark* mark;
-	QChar ch;
+	uint ch;
 	ScText() :
 		CharStyle(),
 		parstyle(NULL),
-		embedded(0), mark(NULL), ch() {}
+		embedded(0), mark(NULL), ch(0) {}
 	ScText(const ScText& other) :
 		CharStyle(other),
 		parstyle(NULL),

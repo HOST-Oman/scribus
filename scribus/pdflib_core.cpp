@@ -8838,7 +8838,7 @@ bool PDFLibCore::PDF_Annotation(PageItem *ite, uint PNr)
 	double x2 = x+ite->width();
 	double y2 = y-ite->height();
 	QString bmUtf16("");
-	if (!((ite->itemText.length() == 1) && (ite->itemText.text(0, 1) == QChar(13))))
+	if (!((ite->itemText.length() == 1) && (ite->itemText.text(0) == 13)))
 	{
 		// #6823 EncStringUTF16() perform the string encoding by its own
 		// via EncodeUTF16() so bmUtf16 must not encoded before

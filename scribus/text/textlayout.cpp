@@ -290,7 +290,7 @@ QLineF TextLayout::positionToPoint(int pos) const
 			Box* column = m_box->boxes().last();
 			Box* line = column->boxes().last();
 			Box* glyph = line->boxes().last();
-			QChar ch = story()->text(line->lastChar());
+			uint ch = story()->text(line->lastChar());
 			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 			{
 				// last character is a newline, draw the cursor on the next line.

@@ -78,7 +78,7 @@ QString Scribus150Format::saveElements(double xp, double yp, double wp, double h
 				continue;
 			for (int e = currItem->firstInFrame(); e <= currItem->lastInFrame(); ++e)
 			{
-				uint chr = currItem->itemText.text(e).unicode();
+				uint chr = currItem->itemText.text(e);
 				if (chr == 25)
 				{
                     if ((currItem->itemText.hasObject(e)) && (!emF.contains(currItem->itemText.object(e))))
@@ -1609,7 +1609,7 @@ void Scribus150Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Pag
 	for (int k = 0; k < iTLen; ++k)
 	{
 		const CharStyle& style1(item->itemText.charStyle(k));
-		const QChar ch = item->itemText.text(k);
+		const uint ch = item->itemText.text(k);
 
 		if (ch == SpecialChars::OBJECT ||
 			ch == SpecialChars::TAB ||
@@ -1623,9 +1623,9 @@ void Scribus150Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Pag
 			ch == SpecialChars::NBSPACE ||
 			ch == SpecialChars::ZWNBSPACE ||
 			ch == SpecialChars::ZWSPACE ||
-			ch.unicode() < 32 || 
-			(0xd800 <= ch.unicode() && ch.unicode() < 0xe000) ||
-			ch.unicode() == 0xfffe || ch.unicode() == 0xffff ||
+			ch < 32 ||
+			(0xd800 <= ch && ch < 0xe000) ||
+			ch == 0xfffe || ch == 0xffff ||
 			style1 != lastStyle)
 		{
 			// something new, write pending chars
@@ -1644,7 +1644,7 @@ void Scribus150Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Pag
 			// each obj in its own ITEXT for now
 			docu.writeEmptyElement("ITEXT");
 			putCStyle(docu, lastStyle);
-			tmpnum.setNum(ch.unicode());
+			tmpnum.setNum(ch);
 			docu.writeAttribute("Unicode", tmpnum);
 			docu.writeAttribute("COBJ", item->itemText.object(k)->inlineCharID);
 		}
@@ -1703,13 +1703,13 @@ void Scribus150Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Pag
 			docu.writeAttribute("name", "pgco");
 			putCStyle(docu, lastStyle);
 		}
-		else if (ch.unicode() < 32 || 
-				 (0xd800 <= ch.unicode() && ch.unicode() < 0xe000) ||
-				 ch.unicode() == 0xfffe || ch.unicode() == 0xffff)
+		else if (ch < 32 ||
+				 (0xd800 <= ch && ch < 0xe000) ||
+				 ch == 0xfffe || ch == 0xffff)
 		{
 			docu.writeEmptyElement("ITEXT");
 			putCStyle(docu, lastStyle);
-			tmpnum.setNum(ch.unicode());
+			tmpnum.setNum(ch);
 			docu.writeAttribute("Unicode", tmpnum);		
 		}
 		else

@@ -2482,8 +2482,8 @@ QImage PageItem::DrawObj_toImage(QList<PageItem*> &emG, double scaling)
 QString PageItem::ExpandToken(uint base)
 {
 	//uint zae = 0;
-	QChar ch = itemText.text(base);
-	QString chstr = ch;
+	uint ch = itemText.text(base);
+	QString chstr = QString::fromUcs4(&ch, 1);
 	if (ch == SpecialChars::PAGENUMBER)
 	{
 		// compatibility mode: ignore subsequent pagenumber chars

@@ -446,12 +446,12 @@ void SearchReplace::slotDoSearch()
 				found = (a >= 0);
 				if (!found) break;
 
-				if (Word->isChecked() && (a > 0) && !m_item->itemText.text(a - 1).isSpace())
+				if (Word->isChecked() && (a > 0) && !QChar::isSpace(m_item->itemText.text(a - 1)))
 					found = false;
 				if (Word->isChecked())
 				{
 					int lastChar = qMin(a + sText.length(), maxChar);
-					found = ((lastChar == maxChar) || m_item->itemText.text(lastChar).isSpace());
+					found = ((lastChar == maxChar) || QChar::isSpace(m_item->itemText.text(lastChar)));
 				}
 				if (!found) continue;
 			}
@@ -679,13 +679,13 @@ void SearchReplace::slotDoReplace()
 {
 	if (m_itemMode)
 	{
-		QString repl, sear;
+		QVector<uint> repl, sear;
 		int cs, cx;
 // 		ScText *hg;
 		if (RText->isChecked())
 		{
-			repl = RTextVal->text();
-			sear = STextVal->text();
+			repl = RTextVal->text().toUcs4();
+			sear = STextVal->text().toUcs4();
 			if (sear.length() == repl.length())
 			{
 				for (cs = 0; cs < sear.length(); ++cs)
