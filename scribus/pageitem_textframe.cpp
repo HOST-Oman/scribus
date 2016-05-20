@@ -910,7 +910,7 @@ struct LineControl {
 				GlyphCluster& lastRun = glyphs[i - 1];
 				lastRun.extraWidth += imSpace;
 			}
-			if (i != glyphsCount && trackingAmount != 0 && glyphrun.hasFlag(ScLayout_JustificationTracking))
+			if (i != glyphsCount && trackingAmount != 0.0 && glyphrun.hasFlag(ScLayout_JustificationTracking))
 			{
 				glyphrun.extraWidth += trackingAmount;
 			}
