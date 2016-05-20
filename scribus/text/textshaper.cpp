@@ -348,7 +348,7 @@ QList<GlyphCluster> TextShaper::shape()
 					// do not insert implicit space before punctuation
 					// or other non-script specific characters
 					if (sc != USCRIPT_COMMON)
-						justificationTracking.append(run.start + pos);
+						justificationTracking.append(run.start + pos - 1);
 					pos = charIt->next();
 				}
 			}
