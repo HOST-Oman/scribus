@@ -32,7 +32,8 @@ before_install:
       python-all-dev zlib1g-dev qt56base qt56declarative
       qt56tools libgraphicsmagick++1-dev
       libopenscenegraph-dev libpoppler-dev libcairo2-dev libwpg-dev libmspub-dev
-      libcdr-dev libvisio-dev libharfbuzz-dev libharfbuzz-icu0;
+      libcdr-dev libvisio-dev libharfbuzz-dev libharfbuzz-icu0
+      coreutils binutils python-tk;
     fi
 # OSX
 # - if [ $TRAVIS_OS_NAME == osx ]; then brew --env && brew config && brew list; fi
@@ -61,8 +62,9 @@ script:
       else
         export NPROC=1;
       fi;
-    cmake . -DWANT_HUNSPELL=1 -DWITH_PODOFO=1 -DWANT_GRAPHICSMAGICK=1 -DWANT_DEBUG=0 -DWANT_SVNVERSION=0 -DWANT_GUI_LANG=en_US -DWANT_NOEXAMPLES=1 -DWANT_NOTEMPLATES=1;
+    cmake . -DCMAKE_INSTALL_PREFIX=/usr -DWANT_HUNSPELL=1 -DWITH_PODOFO=1 -DWANT_GRAPHICSMAGICK=1 -DWANT_DEBUG=0 -DWANT_SVNVERSION=0 -DWANT_GUI_LANG=en_US;
     make -j"$NPROC";
+    bash -ex ./AppImage-package/bundle.sh;    
     fi
   
 
