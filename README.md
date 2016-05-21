@@ -1,6 +1,6 @@
 Scribus - Open Source Desktop Publishing 
 ==============================
-[![Build Status](https://travis-ci.org/scribusproject/scribus.svg?branch=master)](https://travis-ci.org/scribusproject/scribus) [![Coverity Scan Build Status](https://scan.coverity.com/projects/216/badge.svg)](https://scan.coverity.com/projects/scribus)
+[![Build Status](https://travis-ci.org/HOST-Oman/scribus.svg?branch=ctl)](https://travis-ci.org/HOST-Oman/scribus) [![Coverity Scan Build Status](https://scan.coverity.com/projects/216/badge.svg)](https://scan.coverity.com/projects/scribus)
 
 ## Status
 This README.md file is geared toward the Scribus github repository which serves as a mirror for the Scribus Subversion repository `svn://scribus.net/trunk/Scribus`. The Scribus development team prefer svn over git. This mirror is updated manually.
