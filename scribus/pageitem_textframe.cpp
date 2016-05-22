@@ -1677,7 +1677,7 @@ void PageItem_TextFrame::layout()
 					if (DropCmode && !current.afterOverflow)
 					{
 						DropLines = style.dropCapLines();
-						DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
+//						DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
 //						qDebug() << QString("dropcapdrop: y=%1+%2").arg(current.yPos).arg(DropCapDrop);
 					}
 					current.line.isFirstLine = true;
@@ -1686,7 +1686,7 @@ void PageItem_TextFrame::layout()
 			// find charsize factors
 			if (DropCmode)
 			{
-//				DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
+				DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
 
 				//text height, width, ascent and descent should be calculated for whole text provided by ScText in current position
 				//and that may be more than one char (variable text for example)
