@@ -47,6 +47,7 @@ private:
 		QStringList features;
 	};
 
+	QString ExpandToken(int base);
 	void buildText(QVector<int>& smallCaps);
 	QList<TextRun> itemizeBiDi();
 	QList<TextRun> itemizeScripts(const QList<TextRun> &runs);

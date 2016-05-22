@@ -415,7 +415,6 @@ public: // Start public functions
 	virtual void currentTextProps(ParagraphStyle& parStyle) const;
 	void SetQColor(QColor *tmp, QString farbe, double shad);
 	void DrawPolyL(QPainter *p, QPolygon pts);
-	QString ExpandToken(uint base);
 	const FPointArray shape() const { return PoLine; }
 	void setShape(FPointArray val) { PoLine = val; }
 	const FPointArray contour() const { return ContourLine; }

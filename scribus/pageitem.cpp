@@ -2479,49 +2479,6 @@ QImage PageItem::DrawObj_toImage(QList<PageItem*> &emG, double scaling)
 	return retImg;
 }
 
-QString PageItem::ExpandToken(uint base)
-{
-	//uint zae = 0;
-	uint ch = itemText.text(base);
-	QString chstr = QString::fromUcs4(&ch, 1);
-	if (ch == SpecialChars::PAGENUMBER)
-	{
-		// compatibility mode: ignore subsequent pagenumber chars
-		if (base > 0 && itemText.text(base-1) == SpecialChars::PAGENUMBER)
-			return "";
-		if ((!m_Doc->masterPageMode()) && (OwnPage != -1))
-		{
-			//CB Section numbering
-			//chstr = out.arg(m_Doc->getSectionPageNumberForPageIndex(OwnPage), -(int)zae);
-			chstr = QString("%1").arg(m_Doc->getSectionPageNumberForPageIndex(OwnPage),
-							m_Doc->getSectionPageNumberWidthForPageIndex(OwnPage),
-							m_Doc->getSectionPageNumberFillCharForPageIndex(OwnPage));
-		}
-		else
-			return "#";
-	}
-	else if (ch == SpecialChars::PAGECOUNT)
-	{
-		if (!m_Doc->masterPageMode())
-		{
-			int key = m_Doc->getSectionKeyForPageIndex(OwnPage);
-			if (key == -1)
-				return "%";
-			chstr = QString("%1").arg(getStringFromSequence(m_Doc->sections()[key].type, m_Doc->sections()[key].toindex - m_Doc->sections()[key].fromindex + 1));
-		}
-		else
-			return "%";
-	}
-	//check for marks
-	else if (ch == SpecialChars::OBJECT)
-	{
-		Mark* mark = itemText.mark(base);
-		if ((mark != NULL) && !mark->isType(MARKAnchorType) && !mark->isType(MARKIndexType))
-			chstr = mark->getString();
-	}
-	return chstr;
-}
-
 void PageItem::SetQColor(QColor *tmp, QString colorName, double shad)
 {
 	if (colorName == CommonStrings::None)
