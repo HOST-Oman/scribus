@@ -4215,7 +4215,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		if (itemText.lengthOfSelection() == 0)
 		{
 			int pos1 = itemText.cursorPosition();
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorForward();
 			int pos2 = itemText.cursorPosition();
 			itemText.select(pos1, pos2 - pos1, true);
 		}
