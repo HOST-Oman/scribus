@@ -4121,12 +4121,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorLeft();
 			ExpandSel(oldPos);
 		}
 		else
 		{
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorLeft();
 			if (itemText.cursorPosition() < firstInFrame())
 			{
 				itemText.setCursorPosition( firstInFrame() );
@@ -4142,7 +4142,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 
 		while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 		{
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorLeft();
 			if (itemText.cursorPosition() == 0)
 				break;
 		}
@@ -4160,12 +4160,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
-			itemText.moveCursorRight(true);
+			itemText.moveCursorRight();
 			ExpandSel(oldPos);
 		}
 		else
 		{
-			itemText.moveCursorRight(true); // new position within text ?
+			itemText.moveCursorRight(); // new position within text ?
 			if (itemText.cursorPosition() > lastInFrame())
 			{
 //				--CPos;

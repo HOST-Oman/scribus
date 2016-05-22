@@ -183,58 +183,44 @@ int StoryText::normalizedCursorPosition()
 	return (int) qMax((uint) 0, qMin(d->cursorPosition, d->len));
 }
 
-void StoryText::moveCursorForward(bool grapheme)
+void StoryText::moveCursorForward()
 {
-	if (grapheme)
-	{
-		BreakIterator* it = getGraphemeIterator();
-		if (!it)
-			return;
+	BreakIterator* it = getGraphemeIterator();
+	if (!it)
+		return;
 
-		it->setText(plainText().utf16());
-		int pos = it->following(cursorPosition());
-		if (pos != BreakIterator::DONE)
-			setCursorPosition(pos);
-	}
-	else
-	{
-		setCursorPosition(1, true);
-	}
+	it->setText(plainText().utf16());
+	int pos = it->following(cursorPosition());
+	if (pos != BreakIterator::DONE)
+		setCursorPosition(pos);
 }
 
-void StoryText::moveCursorBackward(bool grapheme)
+void StoryText::moveCursorBackward()
 {
-	if (grapheme)
-	{
-		BreakIterator* it = getGraphemeIterator();
-		if (!it)
-			return;
+	BreakIterator* it = getGraphemeIterator();
+	if (!it)
+		return;
 
-		it->setText(plainText().utf16());
-		int pos = it->preceding(cursorPosition());
-		if (pos != BreakIterator::DONE)
-			setCursorPosition(pos);
-	}
-	else
-	{
-		setCursorPosition(-1, true);
-	}
+	it->setText(plainText().utf16());
+	int pos = it->preceding(cursorPosition());
+	if (pos != BreakIterator::DONE)
+		setCursorPosition(pos);
 }
 
-void StoryText::moveCursorLeft(bool grapheme)
+void StoryText::moveCursorLeft()
 {
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
-		moveCursorForward(grapheme);
+		moveCursorForward();
 	else
-		moveCursorBackward(grapheme);
+		moveCursorBackward();
 }
 
-void StoryText::moveCursorRight(bool grapheme)
+void StoryText::moveCursorRight()
 {
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
-		moveCursorBackward(grapheme);
+		moveCursorBackward();
 	else
-		moveCursorForward(grapheme);
+		moveCursorForward();
 }
 
 void StoryText::moveCursorWordLeft()
