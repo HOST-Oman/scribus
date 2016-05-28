@@ -508,6 +508,7 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/smscrspinbox.h
 	ui/smshadebutton.h
 	ui/smspinbox.h
+	ui/smlineedit.h
 	ui/smstyleimport.h
 	ui/smstyleselect.h
 	ui/smtablestyle.h
@@ -978,6 +979,7 @@ SET(SCRIBUS_SOURCES
 	ui/smscrspinbox.cpp
 	ui/smshadebutton.cpp
 	ui/smspinbox.cpp
+	ui/smlineedit.cpp
 	ui/smstyleimport.cpp
 	ui/smstyleselect.cpp
 	ui/smtablestylewidget.cpp

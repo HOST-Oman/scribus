@@ -101,6 +101,7 @@ private slots:
 	void slotMinSpace();
 	void slotMinGlyphExt();
 	void slotMaxGlyphExt();
+	void slotConsecutiveLines();
 	void handleKeepLinesStart();
 	void handleKeepLinesEnd();
 	void handleKeepTogether();
@@ -122,6 +123,8 @@ private slots:
 	void slotBackColor();
 	void slotBackShade();
 	void slotLanguage();
+	void slotWordMin();
+	void slotHyphenChar();
 	void slotScaleH();
 	void slotScaleV();
 	void slotTracking();
@@ -195,6 +198,8 @@ private slots:
 	void slotTracking();
 	void slotWordTracking();
 	void slotBaselineOffset();
+	void slotHyphenChar();
+	void slotSmallestWord();
 	void slotFont(QString s);
 	void slotParentChanged(const QString &parent);
 

@@ -266,6 +266,12 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 
 		fontFace_->setCurrentFont(cstyle->font().scName(), cstyle->isInhFont());
 		fontFace_->setParentFont(parent->font().scName());
+
+		smallestWordSpinBox->setValue(cstyle->hyphenWordMin(), cstyle->isInhHyphenWordMin());
+		smallestWordSpinBox->setParentValue(parent->hyphenWordMin());
+
+		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1), cstyle->isInhHyphenChar());
+		hyphenCharLineEdit->setParentValue(QString::fromUcs4(&parent->hyphenChar(), 1));
 	}
 	else
 	{
@@ -283,6 +289,8 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		backColor_->setCurrentText(cstyle->backColor());
 		backShade_->setValue(qRound(cstyle->backShade()));
 		fontFace_->setCurrentFont(cstyle->font().scName());
+		smallestWordSpinBox->setValue(cstyle->hyphenWordMin());
+		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1));
 	}
 
 	effects_->ShadowVal->Xoffset->setValue(cstyle->shadowXOffset() / 10.0);
@@ -386,6 +394,8 @@ void SMCStyleWidget::show(QList<CharStyle*> &cstyles, QList<CharStyle> &cstylesA
 		showEffects(cstyles);
 		showColors(cstyles);
 		showLanguage(cstyles, defLang);
+		showSmallestWord(cstyles);
+		showHyphenChar(cstyles);
 		showParent(cstyles);
 	}
 }
@@ -660,6 +670,40 @@ void SMCStyleWidget::showLanguage(const QList<CharStyle*> &cstyles, const QStrin
 	}
 	else
 		setCurrentComboItem(language_, LanguageManager::instance()->getLangFromAbbrev(s));
+}
+
+void SMCStyleWidget::showSmallestWord(const QList<CharStyle *> &cstyles)
+{
+	int tmp = 0;
+	int s(cstyles[0]->hyphenWordMin());
+	for (int i = 0; i < cstyles.count(); ++i)
+	{
+		if (s != cstyles[i]->hyphenWordMin())
+		{
+			s = tmp;
+			break;
+		}
+		else
+			s = cstyles[i]->hyphenWordMin();
+	}
+	smallestWordSpinBox->setValue(s);
+}
+
+void SMCStyleWidget::showHyphenChar(const QList<CharStyle *> &cstyles)
+{
+	uint empty = 0;
+	uint ch(cstyles[0]->hyphenChar());
+	for (int i = 0; i < cstyles.count(); ++i)
+	{
+		if (ch != cstyles[i]->hyphenChar())
+		{
+			ch = empty;
+			break;
+		}
+		else
+			ch = cstyles[i]->hyphenChar();
+	}
+	hyphenCharLineEdit->setValue(QString::fromUcs4(&ch, 1));
 }
 
 void SMCStyleWidget::showParent(const QList<CharStyle*> &cstyles)

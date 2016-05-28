@@ -361,6 +361,8 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 	minSpaceSpin->setRange(1.0,100.0);
 	minGlyphExtSpin->setRange(90.0,100.0);
 	maxGlyphExtSpin->setRange(100.0,110.0);
+
+	maxConsecutiveCountSpinBox->clear();
 	
 	//fillBulletStrEditCombo();
 	//fillNumFormatCombo();
@@ -383,6 +385,9 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 		minGlyphExtSpin->setParentValue(parent->minGlyphExtension());
 		maxGlyphExtSpin->setValue(pstyle->maxGlyphExtension() * 100.0,  pstyle->isInhMaxGlyphExtension());
 		maxGlyphExtSpin->setParentValue(parent->maxGlyphExtension());
+
+		maxConsecutiveCountSpinBox->setValue(pstyle->hyphenConsecutiveLines(), pstyle->isInhHyphenConsecutiveLines());
+		maxConsecutiveCountSpinBox->setParentValue(parent->hyphenConsecutiveLines());
 
 		lineSpacing->setValue(pstyle->lineSpacing(), pstyle->isInhLineSpacing());
 		lineSpacing->setParentValue(parent->lineSpacing());
@@ -507,7 +512,7 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 		minSpaceSpin->setValue(pstyle->minWordTracking() * 100.0);
 		minGlyphExtSpin->setValue(pstyle->minGlyphExtension() * 100.0);
 		maxGlyphExtSpin->setValue(pstyle->maxGlyphExtension() * 100.0);
-
+		maxConsecutiveCountSpinBox->setValue(pstyle->hyphenConsecutiveLines());
 		parEffectOffset->setValue(pstyle->parEffectOffset() * unitRatio);
 		parEffectIndentBox->setChecked(pstyle->parEffectIndent());
 		parentParEffectsButton->hide();
@@ -620,6 +625,7 @@ void SMPStyleWidget::show(QList<ParagraphStyle*> &pstyles, QList<ParagraphStyle>
 		showMinSpace(pstyles);
 		showMinGlyphExt(pstyles);
 		showMaxGlyphExt(pstyles);
+		showConsecutiveLines(pstyles);
 		showTabs(pstyles, unitIndex);
 		showCStyle(pstyles, cstyles, defLang, unitIndex);
 		showParent(pstyles);
@@ -991,6 +997,28 @@ void SMPStyleWidget::showMaxGlyphExt(QList< ParagraphStyle * > & pstyles)
 		}
 	}
 	maxGlyphExtSpin->setValue(mge * 100.0);
+}
+
+void SMPStyleWidget::showConsecutiveLines(QList<ParagraphStyle *> &pstyles)
+{
+
+	if(pstyles.isEmpty())
+	{
+		qDebug()<<"Warning showConsecutiveLines called with an empty list of styles";
+		return;
+	}
+
+	double hyphenConsecutiveLines(pstyles[0]->hyphenConsecutiveLines());
+	for (int i = 0; i < pstyles.count(); ++i)
+	{
+		if (hyphenConsecutiveLines != pstyles[i]->hyphenConsecutiveLines())
+		{
+			maxConsecutiveCountSpinBox->setValue(0);
+			break;
+		}
+	}
+	maxConsecutiveCountSpinBox->setValue(hyphenConsecutiveLines);
+
 }
 
 
