@@ -81,7 +81,7 @@ void CharSelect::setDoc(ScribusDoc* doc)
 
 const QString & CharSelect::getCharacters()
 {
-	return chToIns;
+	return QString::fromUcs4(chToIns.data(), chToIns.length());
 }
 
 void CharSelect::userNewChar(uint i, QString font)
@@ -91,7 +91,7 @@ void CharSelect::userNewChar(uint i, QString font)
 
 void CharSelect::slot_insertSpecialChars(const QVector<uint> & chars)
 {
-	chToIns = QString::fromUcs4(chars.data(), chars.length());
+	chToIns = chars;
 	slot_insertSpecialChar();
 }
 
@@ -110,19 +110,19 @@ void CharSelect::slot_insertSpecialChar()
 		cItem->deleteSelectedTextFromFrame();
 	cItem->invalidateLayout(false);
 	//CB: Avox please make text->insertchar(char) so none of this happens in gui code, and item can tell doc its changed so the view and mainwindow slotdocch are not necessary
-	QChar ch;
+	uint ch;
 	QString fontName = m_doc->currentStyle.charStyle().font().scName();
 	if (m_enhanced)
 		fontName = m_enhanced->getUsedFont();
 	for (int a=0; a<chToIns.length(); ++a)
 	{
 		ch = chToIns.at(a);
-		if (ch == QChar(10))
-			ch = QChar(13);
-		if (ch == QChar(9))
-			ch = QChar(32);
+		if (ch == 10)
+			ch = 13;
+		if (ch == 9)
+			ch = 32;
 		int pot = cItem->itemText.cursorPosition();
-		cItem->itemText.insertChars(ch, true);
+		cItem->itemText.insertChars(pot, chToIns.mid(a, 1), true);
 		CharStyle nstyle = m_Item->itemText.charStyle(pot);
 		nstyle.setFont((*m_doc->AllFonts)[fontName]);
 		cItem->itemText.applyCharStyle(pot, 1, nstyle);
