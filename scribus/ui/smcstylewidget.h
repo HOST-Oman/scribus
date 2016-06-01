@@ -44,6 +44,7 @@ private:
 	void showSmallestWord(const QList<CharStyle*> &cstyles);
 	void showHyphenChar(const QList<CharStyle*> &cstyles);
 	void showParent(const QList<CharStyle*> &cstyles);
+	void showFontFeatures(const QList<CharStyle*> &cstyles);
 
 	friend class SMParagraphStyle;
 	friend class SMCharacterStyle;
