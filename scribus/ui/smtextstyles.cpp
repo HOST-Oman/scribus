@@ -514,6 +514,8 @@ void SMParagraphStyle::setupConnections()
 	connect(m_pwidget->minGlyphExtSpin, SIGNAL(valueChanged(double)),this,SLOT(slotMinGlyphExt()));
 	connect(m_pwidget->maxGlyphExtSpin, SIGNAL(valueChanged(double)),this,SLOT(slotMaxGlyphExt()));
 
+	connect(m_pwidget->maxConsecutiveCountSpinBox, SIGNAL(valueChanged(int)),this,SLOT(slotConsecutiveLines()));
+
 	connect(m_pwidget, SIGNAL(useParentParaEffects()), this, SLOT(slotParentParaEffects()));
 	connect(m_pwidget->dropCapsBox, SIGNAL(toggled(bool)), this, SLOT(slotDropCap(bool)));
 	connect(m_pwidget->dropCapLines, SIGNAL(valueChanged(int)), this, SLOT(slotDropCapLines(int)));
@@ -575,6 +577,8 @@ void SMParagraphStyle::setupConnections()
 	connect(m_pwidget->cpage->parentCombo, SIGNAL(activated(const QString&)), this, SLOT(slotCharParentChanged(const QString&)));
 	connect(m_pwidget->cpage->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	connect(m_pwidget->cpage->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	connect(m_pwidget->cpage->hyphenCharLineEdit, SIGNAL(textChanged(QString)), this, SLOT(slotHyphenChar()));
+	connect(m_pwidget->cpage->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotWordMin()));
 }
 
 void SMParagraphStyle::removeConnections()
@@ -604,7 +608,9 @@ void SMParagraphStyle::removeConnections()
 	disconnect(m_pwidget->minSpaceSpin, SIGNAL(valueChanged(double)),this,SLOT(slotMinSpace()));
 	disconnect(m_pwidget->minGlyphExtSpin, SIGNAL(valueChanged(double)),this,SLOT(slotMinGlyphExt()));
 	disconnect(m_pwidget->maxGlyphExtSpin, SIGNAL(valueChanged(double)),this,SLOT(slotMaxGlyphExt()));
-	
+
+	disconnect(m_pwidget->maxConsecutiveCountSpinBox, SIGNAL(valueChanged(int)),this,SLOT(slotConsecutiveLines()));
+
 	disconnect(m_pwidget, SIGNAL(useParentParaEffects()), this, SLOT(slotParentParaEffects()));
 	disconnect(m_pwidget->dropCapsBox, SIGNAL(toggled(bool)), this, SLOT(slotDropCap(bool)));
 	disconnect(m_pwidget->dropCapLines, SIGNAL(valueChanged(int)), this, SLOT(slotDropCapLines(int)));
@@ -664,6 +670,8 @@ void SMParagraphStyle::removeConnections()
 	disconnect(m_pwidget->cpage->parentCombo, SIGNAL(activated(const QString&)), this, SLOT(slotCharParentChanged(const QString&)));
 	disconnect(m_pwidget->cpage->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	disconnect(m_pwidget->cpage->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	disconnect(m_pwidget->cpage->hyphenCharLineEdit, SIGNAL(textChanged(QString)), this, SLOT(slotHyphenChar()));
+	disconnect(m_pwidget->cpage->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotWordMin()));
 }
 
 void SMParagraphStyle::slotLineSpacingMode(int mode)
@@ -886,6 +894,24 @@ void SMParagraphStyle::slotMaxGlyphExt()
 			m_selection[i]->setMaxGlyphExtension(mge / 100.0);
 	}
 	
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMParagraphStyle::slotConsecutiveLines()
+{
+	if (m_pwidget->maxConsecutiveCountSpinBox->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->resetHyphenConsecutiveLines();
+	else
+	{
+		double cL(m_pwidget->maxConsecutiveCountSpinBox->value());
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->setHyphenConsecutiveLines(cL);
+	}
 	if (!m_selectionIsDirty)
 	{
 		m_selectionIsDirty = true;
@@ -1720,6 +1746,46 @@ void SMParagraphStyle::slotLanguage()
 	}
 }
 
+void SMParagraphStyle::slotWordMin()
+{
+	if (m_pwidget->cpage->smallestWordSpinBox->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->charStyle().resetHyphenWordMin();
+	else
+	{
+		int wm = m_pwidget->cpage->smallestWordSpinBox->value();
+
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->charStyle().setHyphenWordMin(wm);
+	}
+
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMParagraphStyle::slotHyphenChar()
+{
+	if (m_pwidget->cpage->hyphenCharLineEdit->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->charStyle().resetHyphenWordMin();
+	else
+	{
+		int wm = m_pwidget->cpage->smallestWordSpinBox->value();
+
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->charStyle().setHyphenWordMin(wm);
+	}
+
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
 void SMParagraphStyle::slotScaleH()
 {
 	if (m_pwidget->cpage->fontHScale_->useParentValue())
@@ -2356,6 +2422,8 @@ void SMCharacterStyle::setupConnections()
 	connect(m_page->parentCombo, SIGNAL(activated(const QString&)), this, SLOT(slotParentChanged(const QString&)));
 	connect(m_page->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	connect(m_page->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	connect(m_page->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotSmallestWord()));
+	connect(m_page->hyphenCharLineEdit, SIGNAL(textChanged(QString)),this, SLOT(slotHyphenChar()));
 }
 
 void SMCharacterStyle::removeConnections()
@@ -2386,6 +2454,8 @@ void SMCharacterStyle::removeConnections()
 	disconnect(m_page->parentCombo, SIGNAL(activated(const QString&)),  this, SLOT(slotParentChanged(const QString&)));
 	disconnect(m_page->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	disconnect(m_page->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	disconnect(m_page->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotSmallestWord()));
+	disconnect(m_page->hyphenCharLineEdit, SIGNAL(textChanged(QString)),this, SLOT(slotHyphenChar()));
 }
 
 void SMCharacterStyle::slotFontSize()
@@ -2766,6 +2836,44 @@ void SMCharacterStyle::slotBaselineOffset()
 		value = value * 10;
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->setBaselineOffset(qRound(value));
+	}
+
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMCharacterStyle::slotHyphenChar()
+{
+	if (m_page->hyphenCharLineEdit->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->resetHyphenChar();
+	else
+	{
+		uint ch = m_page->hyphenCharLineEdit->text().toUcs4()[0];
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->setHyphenChar(ch);
+	}
+
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMCharacterStyle::slotSmallestWord()
+{
+	if (m_page->smallestWordSpinBox->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->resetHyphenWordMin();
+	else
+	{
+		int sw = m_page->smallestWordSpinBox->value();
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->setHyphenWordMin(sw);
 	}
 
 	if (!m_selectionIsDirty)

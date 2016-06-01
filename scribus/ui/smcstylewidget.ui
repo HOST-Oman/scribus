@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>380</width>
-    <height>473</height>
+    <height>518</height>
    </rect>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_2">
@@ -254,22 +254,7 @@
      <property name="title">
       <string>Advanced Formatting</string>
      </property>
-     <layout class="QVBoxLayout">
-      <property name="spacing">
-       <number>3</number>
-      </property>
-      <property name="leftMargin">
-       <number>5</number>
-      </property>
-      <property name="topMargin">
-       <number>5</number>
-      </property>
-      <property name="rightMargin">
-       <number>5</number>
-      </property>
-      <property name="bottomMargin">
-       <number>5</number>
-      </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
       <item>
        <layout class="QHBoxLayout">
         <item>
@@ -426,21 +411,79 @@
         </item>
        </layout>
       </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="groupBox">
+     <property name="title">
+      <string>Hyphenation</string>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
-       <spacer>
-        <property name="orientation">
-         <enum>Qt::Vertical</enum>
-        </property>
-        <property name="sizeType">
-         <enum>QSizePolicy::MinimumExpanding</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>300</width>
-          <height>0</height>
-         </size>
-        </property>
-       </spacer>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="label_4">
+          <property name="text">
+           <string>Hyphenation Character</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="SMLineEdit" name="hyphenCharLineEdit"/>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_2">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout">
+        <item>
+         <widget class="QLabel" name="label">
+          <property name="text">
+           <string>Smallest Word</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="SMSpinBox" name="smallestWordSpinBox">
+          <property name="minimum">
+           <number>3</number>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_2">
+          <property name="text">
+           <string>Charcters</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
       </item>
      </layout>
     </widget>
@@ -717,6 +760,16 @@
    <extends>QWidget</extends>
    <header>ui/smstyleselect.h</header>
    <container>1</container>
+  </customwidget>
+  <customwidget>
+   <class>SMSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>ui/smspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>SMLineEdit</class>
+   <extends>QLineEdit</extends>
+   <header>ui/smlineedit.h</header>
   </customwidget>
  </customwidgets>
  <resources/>
