@@ -18,7 +18,7 @@ class GlyphCluster
 	double m_scaleV;
 
 public:
-	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, const InlineFrame& o, int i);
+	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, const InlineFrame& o, int visualIdx);
 
 	void append(GlyphLayout&);
 

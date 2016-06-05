@@ -288,7 +288,7 @@ QLineF TextLayout::positionToPoint(int pos) const
 			// last glyph box in last line
 			Box* column = m_box->boxes().last();
 			Box* line = column->boxes().last();
-			Box* glyph = line->boxes().last();
+			Box* glyph = line->boxes().empty()? NULL : line->boxes().last();
 			QChar ch = story()->text(line->lastChar());
 			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 			{
@@ -303,7 +303,7 @@ QLineF TextLayout::positionToPoint(int pos) const
 			else
 			{
 				// draw the cursor at the end of last line.
-				if (isRTL)
+				if (isRTL || glyph == NULL)
 					x = line->x();
 				else
 					x = line->x() + glyph->x() + glyph->width();

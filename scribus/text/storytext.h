@@ -145,9 +145,10 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
 	// TextSource methods 
 
 	virtual bool isBlockStart(int pos) const; 
+	virtual int nextBlockStart(int pos) const;
 	virtual InlineFrame object(int pos) const;
-        virtual bool hasExpansionPoint(int pos) const;
-        virtual ExpansionPoint expansionPoint(int pos) const;
+	virtual bool hasExpansionPoint(int pos) const;
+	virtual ExpansionPoint expansionPoint(int pos) const;
 
 	// Get char at current cursor position
 //	QChar   text() const;

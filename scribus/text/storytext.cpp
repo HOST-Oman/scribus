@@ -864,7 +864,21 @@ QString StoryText::text(int pos, uint len) const
 
 bool StoryText::isBlockStart(int pos) const 
 {
-                return pos  == 0 || text(pos-1) == SpecialChars::PARSEP; 
+	return pos  == 0 || text(pos-1) == SpecialChars::PARSEP;
+}
+
+
+int StoryText::nextBlockStart(int pos) const
+{
+	int result = pos + 1;
+	while (result < length() && !isBlockStart(result))
+		++result;
+	
+	// lump empty (or small) paragraphs together
+	while (result+1 < length() && isBlockStart(result+1))
+		++result;
+	
+	return result;
 }
 
 

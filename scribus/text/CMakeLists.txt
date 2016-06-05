@@ -15,6 +15,7 @@ SET(SCRIBUS_TEXT_MOC_CLASSES
 )
 
 SET(SCRIBUS_TEXT_LIB_SOURCES
+	index.cpp
 	specialchars.cpp
 	storytext.cpp
 	textlayout.cpp
@@ -23,6 +24,8 @@ SET(SCRIBUS_TEXT_LIB_SOURCES
 	textcontext.cpp
 	screenpainter.cpp
 	sctext_shared.cpp
+	shapedtext.cpp
+	shapedtextfeed.cpp
 	fsize.cpp
 	frect.cpp
 	boxes.cpp

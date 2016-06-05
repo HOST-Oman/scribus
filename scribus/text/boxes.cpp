@@ -214,7 +214,7 @@ void LineBox::drawSelection(ScreenPainter *p, ITextContext *ctx) const
 		}
 	}
 
-	if (selectionFirst >= 0 && selectionLast >= 0)
+	if (selectionFirst >= 0 && selectionLast >= 0 && boxes().count() > 0)
 	{
 		qreal firstX, lastX;
 		firstX = positionToPoint(selectionFirst, item->itemText).x1() - x();

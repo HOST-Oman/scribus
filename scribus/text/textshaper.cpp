@@ -18,6 +18,7 @@ TextShaper::TextShaper(ITextContext* context, ITextSource &story, int first, boo
 	: m_context(context)
 	, m_story(story)
 	, m_firstChar(first)
+	, m_endChar(first)
 	, m_singlePar(singlePar)
 { }
 
@@ -25,6 +26,7 @@ TextShaper::TextShaper(ITextSource &story, int first)
 	: m_context(NULL)
 	, m_story(story)
 	, m_firstChar(first)
+	, m_endChar(m_story.length())
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
@@ -161,9 +163,12 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 	return newRuns;
 }
 
-void TextShaper::buildText(QVector<int>& smallCaps)
+void TextShaper::buildText(int toPos, QVector<int>& smallCaps)
 {
-	for (int i = m_firstChar; i < m_story.length(); ++i)
+	if (toPos > m_story.length())
+		toPos = m_story.length();
+	
+	for (int i = m_firstChar; i < toPos; ++i)
 	{
 		QString str = m_story.text(i,1);
 		
@@ -268,9 +273,17 @@ void TextShaper::buildText(QVector<int>& smallCaps)
 
 		if (m_story.hasExpansionPoint(i))
 		{
-			str = m_context->expand(m_story.expansionPoint(i));
-			if (str.isEmpty())
-				str = SpecialChars::ZWNBSPACE;
+			m_contextNeeded = true;
+			if (m_context != NULL)
+			{
+				str = m_context->expand(m_story.expansionPoint(i));
+				if (str.isEmpty())
+					str = SpecialChars::ZWNBSPACE;
+			}
+			else
+			{
+				str = SpecialChars::OBJECT;
+			}
 		}
 		
 		str.replace(SpecialChars::SHYPHEN, SpecialChars::ZWNJ);
@@ -299,14 +312,20 @@ void TextShaper::buildText(QVector<int>& smallCaps)
 
 		m_text.append(str);
 	}
+	m_endChar = toPos;
+	qDebug() << "build text len=" << m_text.length();
 }
 
-QList<GlyphCluster> TextShaper::shape()
+ShapedText TextShaper::shape(int toPos)
 {
-	// maps expanded characters to itemText tokens.
+	m_contextNeeded = false;
+	
+	ShapedText result(ShapedText(&m_story, m_endChar, toPos, m_context));
+	
+
 	QVector<int> smallCaps;
-	if (m_text.isEmpty())
-		buildText(smallCaps);
+	if (m_endChar < toPos)
+		buildText(toPos, smallCaps);
 
 	QList<TextRun> bidiRuns = itemizeBiDi();
 	QList<TextRun> scriptRuns = itemizeScripts(bidiRuns);
@@ -361,7 +380,6 @@ QList<GlyphCluster> TextShaper::shape()
 		}
 	}
 
-	QList<GlyphCluster> glyphRuns;
 	foreach (const TextRun& textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
 
@@ -411,7 +429,7 @@ QList<GlyphCluster> TextShaper::shape()
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);
 		hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(hbBuffer, NULL);
 
-		glyphRuns.reserve(glyphRuns.size() + count);
+		result.glyphs().reserve(result.glyphs().size() + count);
 		for (size_t i = 0; i < count; )
 		{
 			uint32_t firstCluster = glyphs[i].cluster;
@@ -443,13 +461,13 @@ QList<GlyphCluster> TextShaper::shape()
 			assert(m_textMap.contains(nextCluster - 1));
 			int firstChar = m_textMap.value(firstCluster);
 			int lastChar = m_textMap.value(nextCluster - 1);
-
+			
 			QChar ch = m_story.text(firstChar);
 			LayoutFlags flags = m_story.flags(firstChar);
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 			const StyleFlag& effects = charStyle.effects();
 
-			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length());
+			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), result.glyphs().length());
 
 			run.clearFlag(ScLayout_HyphenationPossible);
 			if (m_story.hasFlag(lastChar, ScLayout_HyphenationPossible))
@@ -511,32 +529,45 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.xadvance *= run.style().wordTracking();
 
 				if (m_story.hasObject(firstChar))
-					gl.xadvance = m_context->getVisualBoundingBox(m_story.object(firstChar)).width();
+				{
+					m_contextNeeded = true;
+					if (m_context != NULL)
+						gl.xadvance = m_context->getVisualBoundingBox(m_story.object(firstChar)).width();
+				}
 
 				if ((effects & ScStyle_Superscript) || (effects & ScStyle_Subscript))
 				{
-					double scale;
-					double asce = style.font().ascent(style.fontSize() / 10.0);
-					if (effects & ScStyle_Superscript)
+					m_contextNeeded = true;
+					if (m_context != NULL)
 					{
-						gl.yoffset -= asce * m_context->typographicPrefs().valueSuperScript / 100.0;
-						scale = qMax(m_context->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+						double scale;
+						double asce = style.font().ascent(style.fontSize() / 10.0);
+						if (effects & ScStyle_Superscript)
+						{
+							gl.yoffset -= asce * m_context->typographicPrefs().valueSuperScript / 100.0;
+							scale = qMax(m_context->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+						}
+						else // effects & ScStyle_Subscript
+						{
+							gl.yoffset += asce * m_context->typographicPrefs().valueSubScript / 100.0;
+							scale = qMax(m_context->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
+						}
+						
+						run.setScaleH(run.scaleH() * scale);
+						run.setScaleV(run.scaleV() * scale);
 					}
-					else // effects & ScStyle_Subscript
-					{
-						gl.yoffset += asce * m_context->typographicPrefs().valueSubScript / 100.0;
-						scale = qMax(m_context->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
-					}
-
-					run.setScaleH(run.scaleH() * scale);
-					run.setScaleV(run.scaleV() * scale);
 				}
 
 				if (smallCaps.contains(firstCluster))
 				{
-					double smallcapsScale = m_context->typographicPrefs().valueSmallCaps / 100.0;
-					run.setScaleH(run.scaleH() * smallcapsScale);
-					run.setScaleV(run.scaleV() * smallcapsScale);
+					m_contextNeeded = true;
+					if (m_context != NULL)
+					{
+						
+						double smallcapsScale = m_context->typographicPrefs().valueSmallCaps / 100.0;
+						run.setScaleH(run.scaleH() * smallcapsScale);
+						run.setScaleV(run.scaleV() * smallcapsScale);
+					}
 				}
 
 				if (run.scaleH() == 0.0)
@@ -619,11 +650,15 @@ QList<GlyphCluster> TextShaper::shape()
 				}
 			}
 
-			glyphRuns.append(run);
+			result.glyphs().append(run);
 		}
 		hb_buffer_destroy(hbBuffer);
 
 	}
 
-	return glyphRuns;
+	m_firstChar = m_endChar;
+	m_textMap.clear();
+	m_text = "";
+	result.needsContext(m_contextNeeded);
+	return result;
 }

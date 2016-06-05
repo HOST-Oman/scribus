@@ -22,7 +22,14 @@ public:
 	virtual int length() const = 0; 
 	virtual QChar text(int pos) const = 0;
 	virtual QString text(int pos, uint len) const = 0;
-	virtual bool isBlockStart(int pos) const = 0; 
+	
+	/// Checks if it's the start of a paragraph or "block"
+	virtual bool isBlockStart(int pos) const = 0;
+	
+	/// Returns a blockstart position > pos.
+	/// You may lie here, i.e. lump blocks together or just return the end of the text
+	virtual int nextBlockStart(int pos) const = 0;
+	
 	virtual const CharStyle& charStyle(int pos) const = 0; 
 	virtual const ParagraphStyle& paragraphStyle(int pos) const = 0; 
 	virtual LayoutFlags flags(int pos) const = 0;
@@ -34,6 +41,19 @@ public:
 	virtual InlineFrame object(int pos) const = 0;
 	virtual bool hasExpansionPoint(int pos) const = 0;
 	virtual ExpansionPoint expansionPoint(int pos) const = 0;
+	
+	virtual const ITextSource* parent() const { return NULL; }
+	virtual int parentPos() const { return 0; }
+	
+	const ITextSource* original() const
+    {
+		return parent() == NULL? this : parent()->original();
+	}
+	
+	const int originalStartPos() const
+	{
+		return parent() == NULL? 0 : parent()->parent() == NULL? parentPos() : parent()->originalStartPos();
+    }
 };
 
 
