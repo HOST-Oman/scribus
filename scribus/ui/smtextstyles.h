@@ -133,6 +133,7 @@ private slots:
 	void slotFont(QString s);
 	void slotParentChanged(const QString &parent);
 	void slotCharParentChanged(const QString &parent);
+	void slotFontFeatures();
 };
 
 class SMCharacterStyle : public StyleItem
@@ -202,6 +203,7 @@ private slots:
 	void slotSmallestWord();
 	void slotFont(QString s);
 	void slotParentChanged(const QString &parent);
+	void slotFontFeatures();
 
 };
 

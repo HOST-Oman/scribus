@@ -577,6 +577,7 @@ void SMParagraphStyle::setupConnections()
 	connect(m_pwidget->cpage->parentCombo, SIGNAL(activated(const QString&)), this, SLOT(slotCharParentChanged(const QString&)));
 	connect(m_pwidget->cpage->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	connect(m_pwidget->cpage->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	connect(m_pwidget->cpage->fontfeaturesSetting,SIGNAL(changed()), this, SLOT(slotFontFeatures()));
 	connect(m_pwidget->cpage->hyphenCharLineEdit, SIGNAL(textChanged(QString)), this, SLOT(slotHyphenChar()));
 	connect(m_pwidget->cpage->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotWordMin()));
 }
@@ -670,6 +671,7 @@ void SMParagraphStyle::removeConnections()
 	disconnect(m_pwidget->cpage->parentCombo, SIGNAL(activated(const QString&)), this, SLOT(slotCharParentChanged(const QString&)));
 	disconnect(m_pwidget->cpage->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	disconnect(m_pwidget->cpage->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	disconnect(m_pwidget->cpage->fontfeaturesSetting, SIGNAL(changed()), this, SLOT(slotFontFeatures()));
 	disconnect(m_pwidget->cpage->hyphenCharLineEdit, SIGNAL(textChanged(QString)), this, SLOT(slotHyphenChar()));
 	disconnect(m_pwidget->cpage->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotWordMin()));
 }
@@ -1982,6 +1984,25 @@ void SMParagraphStyle::slotCharParentChanged(const QString &parent)
 	}
 }
 
+void SMParagraphStyle::slotFontFeatures()
+{
+	if (m_pwidget->cpage->fontfeaturesSetting->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->charStyle().resetFontFeatures();
+	else
+	{
+		QString fontfeatures = m_pwidget->cpage->fontfeaturesSetting->fontFeatures();
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->charStyle().setFontFeatures(fontfeatures);
+	}
+
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
 SMParagraphStyle::~SMParagraphStyle()
 {
 	delete m_pwidget;
@@ -1998,12 +2019,12 @@ SMCharacterStyle::SMCharacterStyle() : StyleItem(), m_widget(0), m_page(0), m_do
 	m_widget->setContentsMargins(5, 5, 5, 5);//CB the SMCStylePage parent has a 0 value to fit properly onto the pstyle page, so add it here
 	m_page = new SMCStyleWidget();
 	Q_CHECK_PTR(m_page);
-	m_widget->addTab(m_page, tr("Properties"));
+//	m_widget->addTab(m_page, tr("Properties"));
 }
 
 QTabWidget* SMCharacterStyle::widget()
 {
-	return m_widget;
+	return m_page->tabwidget;
 }
 
 QString SMCharacterStyle::typeNamePlural()
@@ -2372,9 +2393,8 @@ void SMCharacterStyle::nameChanged(const QString &newName)
 
 void SMCharacterStyle::languageChange()
 {
-	if (m_widget && m_page)
+	if (m_page)
 	{
-		m_widget->setTabText(m_widget->indexOf(m_page), tr("Properties"));
 		m_page->languageChange();
 	}
 }
@@ -2422,6 +2442,7 @@ void SMCharacterStyle::setupConnections()
 	connect(m_page->parentCombo, SIGNAL(activated(const QString&)), this, SLOT(slotParentChanged(const QString&)));
 	connect(m_page->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	connect(m_page->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	connect(m_page->fontfeaturesSetting, SIGNAL(changed()), this, SLOT(slotFontFeatures()));
 	connect(m_page->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotSmallestWord()));
 	connect(m_page->hyphenCharLineEdit, SIGNAL(textChanged(QString)),this, SLOT(slotHyphenChar()));
 }
@@ -2454,6 +2475,7 @@ void SMCharacterStyle::removeConnections()
 	disconnect(m_page->parentCombo, SIGNAL(activated(const QString&)),  this, SLOT(slotParentChanged(const QString&)));
 	disconnect(m_page->backColor_, SIGNAL(activated(const QString&)), this, SLOT(slotBackColor()));
 	disconnect(m_page->backShade_, SIGNAL(clicked()), this, SLOT(slotBackShade()));
+	disconnect(m_page->fontfeaturesSetting, SIGNAL(changed()), this, SLOT(slotFontFeatures()));
 	disconnect(m_page->smallestWordSpinBox, SIGNAL(valueChanged(int)), this, SLOT(slotSmallestWord()));
 	disconnect(m_page->hyphenCharLineEdit, SIGNAL(textChanged(QString)),this, SLOT(slotHyphenChar()));
 }
@@ -2937,6 +2959,25 @@ void SMCharacterStyle::slotParentChanged(const QString &parent)
 
 	selected(sel);
 
+	if (!m_selectionIsDirty)
+	{
+		m_selectionIsDirty = true;
+		emit selectionDirty();
+	}
+}
+
+void SMCharacterStyle::slotFontFeatures()
+{
+	if (m_page->fontfeaturesSetting->useParentValue())
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->resetFontFeatures();
+	else
+	{
+		QString fontfeatures = m_page->fontfeaturesSetting->fontFeatures();
+
+		for (int i = 0; i < m_selection.count(); ++i)
+			m_selection[i]->setFontFeatures(fontfeatures);
+	}
 	if (!m_selectionIsDirty)
 	{
 		m_selectionIsDirty = true;

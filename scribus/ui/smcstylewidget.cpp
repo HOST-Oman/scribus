@@ -45,6 +45,7 @@ SMCStyleWidget::SMCStyleWidget(QWidget *parent) : QWidget(),
 	StrokeIcon->setEnabled(false);
 	strokeShade_->setEnabled(false);
 	strokeColor_->setEnabled(false);
+	fontfeaturesSetting->resetFontFeatures();
 
 	connect(effects_, SIGNAL(State(int)), this, SLOT(slotColorChange()));
 }
@@ -267,6 +268,9 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		fontFace_->setCurrentFont(cstyle->font().scName(), cstyle->isInhFont());
 		fontFace_->setParentFont(parent->font().scName());
 
+		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures());
+		fontfeaturesSetting->setParentValue(parent->fontFeatures());
+
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin(), cstyle->isInhHyphenWordMin());
 		smallestWordSpinBox->setParentValue(parent->hyphenWordMin());
 
@@ -289,6 +293,7 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		backColor_->setCurrentText(cstyle->backColor());
 		backShade_->setValue(qRound(cstyle->backShade()));
 		fontFace_->setCurrentFont(cstyle->font().scName());
+		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures());
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin());
 		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1));
 	}
@@ -397,6 +402,7 @@ void SMCStyleWidget::show(QList<CharStyle*> &cstyles, QList<CharStyle> &cstylesA
 		showSmallestWord(cstyles);
 		showHyphenChar(cstyles);
 		showParent(cstyles);
+		showFontFeatures(cstyles);
 	}
 }
 
@@ -709,6 +715,23 @@ void SMCStyleWidget::showHyphenChar(const QList<CharStyle *> &cstyles)
 void SMCStyleWidget::showParent(const QList<CharStyle*> &cstyles)
 {
 	parentCombo->setEnabled(false);
+}
+
+void SMCStyleWidget::showFontFeatures(const QList<CharStyle *> &cstyles)
+{
+	QString tmp;
+	QString fontfeatures(cstyles[0]->fontFeatures());
+	for (int i = 0; i < cstyles.count(); ++i)
+	{
+		if (fontfeatures != cstyles[i]->fontFeatures())
+		{
+			fontfeatures = tmp;
+			break;
+		}
+		else
+			fontfeatures = cstyles[i]->fontFeatures();
+	}
+	fontfeaturesSetting->setFontFeatures(fontfeatures);
 }
 
 void SMCStyleWidget::clearAll()

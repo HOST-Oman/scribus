@@ -180,6 +180,7 @@ SET(SCRIBUS_UI_SRC
 	ui/propertywidget_textcolorbase.ui
 	ui/recoverdialog.ui
 	ui/propertywidget_fontfeaturesbase.ui
+	ui/smfontfeaturesbase.ui
 	ui/replacecolors.ui
 	ui/replaceonecolor.ui
 	ui/resourcemanagerbase.ui
@@ -498,6 +499,7 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/smcolorcombo.h
 	ui/smcstylewidget.h
 	ui/smdirectionselect.h
+	ui/smfontfeatures.h
 	ui/smtablestylewidget.h
 	ui/smfontcomboh.h
 	ui/smlinestyle.h
@@ -969,6 +971,7 @@ SET(SCRIBUS_SOURCES
 	ui/smcolorcombo.cpp
 	ui/smcstylewidget.cpp
 	ui/smdirectionselect.cpp
+	ui/smfontfeatures.cpp
 	ui/smfontcomboh.cpp
 	ui/smlinestyle.cpp
 	ui/smlinestylewidget.cpp
