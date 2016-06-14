@@ -551,7 +551,8 @@ struct LineControl {
 		line.lastRun = 0;
 		line.ascent = 0.0;
 		line.descent = 0.0;
-		line.width = 0.0;
+		line.width  = 0.0;
+		line.height = 0.0;
 		line.naturalWidth = 0.0;
 		line.colLeft = colLeft;
 		breakIndex = -1;
@@ -2513,6 +2514,8 @@ void PageItem_TextFrame::layout()
 				{
 					// find end of line
 					current.breakLine(i);
+					regionMinY = current.line.y - current.line.ascent;
+					regionMaxY = current.line.y + current.line.descent;
 					EndX = current.endOfLine(m_availableRegion, style.rightMargin(), regionMinY, regionMaxY);
 					current.finishLine(EndX);
 					//addLine = true;
@@ -2944,7 +2947,18 @@ void PageItem_TextFrame::layout()
 		{
 			if (verticalAlign == 1)
 				hAdjust /= 2;
-			textLayout.box()->moveBy(0, hAdjust);
+			if (FrameType == 0) // Rectangular frame
+				textLayout.box()->moveBy(0, hAdjust);
+			else
+			{
+				int vertAlign = verticalAlign;
+				double topDist = m_textDistanceMargins.top();
+				m_textDistanceMargins.setTop(topDist + hAdjust);
+				verticalAlign = 0;
+				layout();
+				verticalAlign = vertAlign;
+				m_textDistanceMargins.setTop(topDist);
+			}
 		}
 	}
 	invalid = false;
