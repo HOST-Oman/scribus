@@ -2036,26 +2036,20 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, ScXmlStreamAttributes&
 	m_Doc->PageSpa = attrs.valueAsDouble("ABSTSPALTEN");
 	m_Doc->setUnitIndex( attrs.valueAsInt("UNITS", 0) );
 
-	//m_Doc->setHyphLanguage(attrs.valueAsString("LANGUAGE", "en_US"));
 	static const QString LANGUAGE("LANGUAGE");
 	if (attrs.hasAttribute(LANGUAGE))
 	{
 		QString l(attrs.valueAsString(LANGUAGE));
-		if (LanguageManager::instance()->langTableIndex(l)!=-1)
+		if (LanguageManager::instance()->langTableIndex(l) != -1)
 			m_Doc->setLanguage(l); //new style storage
 		else
 		{ //old style storage
-			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
+			QString lnew = LanguageManager::instance()->getAbbrevFromLang(l, true);
 			if (lnew.isEmpty())
-				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
+				lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
 			m_Doc->setLanguage(lnew);
 		}
 	}
-
-
-
-//	m_Doc->setHyphMinimumWordLength(attrs.valueAsInt("MINWORDLEN", 3));
-//	m_Doc->setHyphConsecutiveLines(attrs.valueAsInt("HYCOUNT", 2));
 
 	if (attrs.hasAttribute("PAGEWIDTH"))
 		m_Doc->setPageWidth(attrs.valueAsDouble("PAGEWIDTH"));
