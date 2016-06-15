@@ -23,10 +23,12 @@ class PropertyWidget_FontFeatures : public QFrame, Ui::PropertyWidget_FontFeatur
 public:
 	PropertyWidget_FontFeatures(QWidget *parent);
 	~PropertyWidget_FontFeatures() {};
+	void enableFeatures(QStringList fontFeatures);
 
 protected:
 	void connectSignals();
 	void disconnectSignals();
+	void disableAllFeatures();
 	PageItem* m_item;
 	ScribusMainWindow* m_ScMW;
 
@@ -40,7 +42,7 @@ public slots:
 	void handleSelectionChanged();
 	void languageChange();
 	void unitChange() {};
-	void showFontFeatures(QString s);
+	void showFontFeatures(QString s, QStringList availableFeatures);
 	void updateCharStyle(const CharStyle& charStyle);
 	void updateStyle(const ParagraphStyle& newCurrent);
 
