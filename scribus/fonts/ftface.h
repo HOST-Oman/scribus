@@ -53,8 +53,8 @@ so there are no extra cleaning-up chores to take care of.
 struct SCRIBUS_API FtFace : public ScFace::ScFaceData
 {
 
-	FtFace(QString fam, QString sty, QString variant, QString scname, 
-		   QString psname, QString path, int face);
+	FtFace(QString fam, QString sty, QString variant, QString scname,
+		   QString psname, QString path, int face, QStringList features);
 
 	FT_Face ftFace() const;
 

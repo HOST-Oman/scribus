@@ -41,7 +41,7 @@ FT_Library FtFace::m_library = NULL;
  *****/
 
 FtFace::FtFace(QString fam, QString sty, QString vari, QString scname, 
-			   QString psname, QString path, int face) 
+			   QString psname, QString path, int face, QStringList features)
 : ScFaceData(), m_face(NULL)
 {
 	family = fam;
@@ -51,6 +51,7 @@ FtFace::FtFace(QString fam, QString sty, QString vari, QString scname,
 	psName = psname;
 	fontFile = path;
 	faceIndex = face;
+	fontFeatures = features;
 	if (!m_library) {
 		if (FT_Init_FreeType( &m_library ))
 			sDebug(QObject::tr("Freetype2 library not available"));

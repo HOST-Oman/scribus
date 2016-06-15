@@ -21,8 +21,8 @@ for which a new license (GPL+exception) is in place.
 #include FT_TRUETYPE_IDS_H
 
 
-ScFace_ttf::ScFace_ttf ( QString fam, QString sty, QString alt, QString scname, QString psname, QString path, int face )
-		: FtFace ( fam, sty, alt, scname, psname, path, face )
+ScFace_ttf::ScFace_ttf (QString fam, QString sty, QString alt, QString scname, QString psname, QString path, int face, QStringList features )
+		: FtFace (fam, sty, alt, scname, psname, path, face, features)
 {
 	formatCode = ScFace::SFNT;
 }

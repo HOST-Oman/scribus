@@ -62,6 +62,10 @@ for which a new license (GPL+exception) is in place.
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
 
+#include <hb.h>
+#include <hb-ot.h>
+#include <hb-ft.h>
+
 #include "scpaths.h"
 #include "util_debug.h"
 
@@ -443,6 +447,44 @@ static QString getFamilyName(const FT_Face face)
 	return familyName;
 }
 
+static QStringList getfontFeaturesFromTable(hb_tag_t table, hb_face_t *hb_face)
+{
+	QStringList fontFeaturesList;
+	//get all supported Opentype Features
+	unsigned count = hb_ot_layout_table_get_feature_tags(hb_face, table, 0, NULL, NULL);
+	hb_tag_t features[count];
+	hb_ot_layout_table_get_feature_tags(hb_face, table, 0,  &count, features);
+	for (unsigned i = 0; i < count; ++i)
+	{
+		char feature[3] = {0};
+		hb_tag_to_string(features[i], feature);
+		std::string strFeature(feature, 4);
+		fontFeaturesList.append(QString::fromStdString(strFeature));
+	}
+	fontFeaturesList.removeDuplicates();
+	fontFeaturesList.sort();
+	return fontFeaturesList;
+}
+
+static QStringList getFontFeatures(const FT_Face face)
+{
+	// Create hb-ft font and get hb_face from it
+	hb_font_t *hb_font;
+	hb_font = hb_ft_font_create(face, NULL);
+	hb_face_t *hb_face = hb_font_get_face(hb_font);
+	//find Opentype Font Features in GSUB table
+	QStringList featuresGSUB = getfontFeaturesFromTable(HB_OT_TAG_GSUB, hb_face);
+	// find Opentype Font Features in GPOS table
+	QStringList featuresGPOS = getfontFeaturesFromTable(HB_OT_TAG_GPOS, hb_face);
+
+	hb_font_destroy(hb_font);
+
+	QStringList fontFeatures = featuresGSUB + featuresGPOS;
+	fontFeatures.removeDuplicates();
+	fontFeatures.sort();
+	return fontFeatures;
+}
+
 ScFace SCFonts::LoadScalableFont(const QString &filename)
 {
 	ScFace t;
@@ -501,6 +543,7 @@ ScFace SCFonts::LoadScalableFont(const QString &filename)
 
 	int faceIndex=0;
 	QString fam(getFamilyName(face));;
+	QStringList features(getFontFeatures(face));
 	QString sty(face->style_name);
 	if (sty == "Regular")
 	{
@@ -533,17 +576,17 @@ ScFace SCFonts::LoadScalableFont(const QString &filename)
 		switch (format)
 		{
 			case ScFace::PFA:
-				t = ScFace(new ScFace_pfa(fam, sty, "", ts, qpsName, filename, faceIndex));
+				t = ScFace(new ScFace_pfa(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 				t.subset(Subset);
 				break;
 			case ScFace::PFB:
-				t = ScFace(new ScFace_pfb(fam, sty, "", ts, qpsName, filename, faceIndex));
+				t = ScFace(new ScFace_pfb(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 				t.subset(Subset);
 				break;
 			case ScFace::SFNT:
 			case ScFace::TTCF:
 			case ScFace::TYPE42:
-				t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex));
+				t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 				getSFontType(face, t.m_m->typeCode);
 				if (t.type() == ScFace::OTF)
 					t.subset(true);
@@ -716,6 +759,7 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 	while (!error)
 	{
 		QString fam(getFamilyName(face));
+		QStringList features(getFontFeatures(face));
 		QString sty(face->style_name);
 		if (sty == "Regular")
 		{
@@ -761,15 +805,15 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 			switch (format) 
 			{
 				case ScFace::PFA:
-					t = ScFace(new ScFace_pfa(fam, sty, "", ts, qpsName, filename, faceIndex));
+					t = ScFace(new ScFace_pfa(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 					t.subset(Subset);
 					break;
 				case ScFace::PFB:
-					t = ScFace(new ScFace_pfb(fam, sty, "", ts, qpsName, filename, faceIndex));
+					t = ScFace(new ScFace_pfb(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 					t.subset(Subset);
 					break;
 				case ScFace::SFNT:
-					t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex));
+					t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 					getSFontType(face, t.m_m->typeCode);
 					if (t.type() == ScFace::OTF) 
 					{
@@ -779,7 +823,7 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 						t.subset(Subset);
 					break;
 				case ScFace::TTCF:
-					t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex));
+					t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 					t.m_m->formatCode = ScFace::TTCF;
 					t.m_m->typeCode = ScFace::TTF;
 					//getSFontType(face, t.m->typeCode);
@@ -791,7 +835,7 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 						t.subset(Subset);
 					break;
 				case ScFace::TYPE42:
-					t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex));
+					t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 					getSFontType(face, t.m_m->typeCode);
 					if (t.type() == ScFace::OTF) 
 					{

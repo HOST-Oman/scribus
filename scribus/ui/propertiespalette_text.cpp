@@ -474,7 +474,6 @@ void PropertiesPalette_Text::showLanguage(QString w)
 		QString langName = LanguageManager::instance()->getLangFromAbbrev(w, false);
 		langCombo->setCurrentIndex(lang.indexOf(langName));
 	}
-
 	m_haveItem = tmp;
 
 }

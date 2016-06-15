@@ -102,7 +102,6 @@ void* ScFace::ScFaceData::hbFont()
 	return m_hbFont;
 }
 
-
 bool ScFace::ScFaceData::glyphNames(FaceEncoding& /*gList*/) const
 { 
 	return false; 
@@ -441,6 +440,10 @@ double ScFace::hyphenWidth(const CharStyle& style, qreal size) const
 	return glyphBBox(hyphenGlyph(style), size).width;
 }
 
+QStringList ScFace::fontFeatures() const
+{
+	return m_m->fontFeatures;
+}
 
 ScFace::gid_type ScFace::char2CMap(uint ch) const
 {

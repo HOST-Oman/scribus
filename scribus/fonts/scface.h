@@ -114,6 +114,7 @@ public:
 		QString family;
 		QString style;
 		QString variant;
+		QStringList fontFeatures;
 
 		QString forDocument;
 
@@ -384,6 +385,7 @@ public:
 	gid_type hyphenGlyph() const;
 	gid_type hyphenGlyph(const CharStyle& style) const;
 	double hyphenWidth(const CharStyle& style, qreal size=1.0) const;
+	QStringList fontFeatures() const;
 
 private:
 
