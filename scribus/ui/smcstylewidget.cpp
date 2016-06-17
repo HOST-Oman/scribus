@@ -9,6 +9,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "iconmanager.h"
 #include "langmgr.h"
+#include "prefsmanager.h"
 #include "scribus.h"
 #include "smcstylewidget.h"
 #include "util.h"
@@ -48,6 +49,7 @@ SMCStyleWidget::SMCStyleWidget(QWidget *parent) : QWidget(),
 	fontfeaturesSetting->resetFontFeatures();
 
 	connect(effects_, SIGNAL(State(int)), this, SLOT(slotColorChange()));
+	connect(fontFace_, SIGNAL(fontSelected(QString)), this, SLOT(slotEnableFontFeatures(QString)));
 }
 
 void SMCStyleWidget::changeEvent(QEvent *e)
@@ -200,6 +202,12 @@ void SMCStyleWidget::handleUpdateRequest(int updateFlags)
 		fillColorCombo(m_Doc->PageColors);
 }
 
+void SMCStyleWidget::slotEnableFontFeatures(QString s)
+{
+	const ScFace& font = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[s];
+	fontfeaturesSetting->enableFontFeatures(font.fontFeatures());
+}
+
 void SMCStyleWidget::setDoc(ScribusDoc *doc)
 {
 	if (m_Doc)
@@ -268,7 +276,7 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		fontFace_->setCurrentFont(cstyle->font().scName(), cstyle->isInhFont());
 		fontFace_->setParentFont(parent->font().scName());
 
-		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures());
+		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures(), cstyle->font().fontFeatures());
 		fontfeaturesSetting->setParentValue(parent->fontFeatures());
 
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin(), cstyle->isInhHyphenWordMin());
@@ -293,7 +301,7 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		backColor_->setCurrentText(cstyle->backColor());
 		backShade_->setValue(qRound(cstyle->backShade()));
 		fontFace_->setCurrentFont(cstyle->font().scName());
-		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures());
+		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures(), cstyle->font().fontFeatures());
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin());
 		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1));
 	}
@@ -720,18 +728,24 @@ void SMCStyleWidget::showParent(const QList<CharStyle*> &cstyles)
 void SMCStyleWidget::showFontFeatures(const QList<CharStyle *> &cstyles)
 {
 	QString tmp;
+	QStringList tmp2;
 	QString fontfeatures(cstyles[0]->fontFeatures());
+	QStringList featuresList(cstyles[0]->font().fontFeatures());
 	for (int i = 0; i < cstyles.count(); ++i)
 	{
 		if (fontfeatures != cstyles[i]->fontFeatures())
 		{
 			fontfeatures = tmp;
+			featuresList = tmp2;
 			break;
 		}
 		else
+		{
 			fontfeatures = cstyles[i]->fontFeatures();
+			featuresList = cstyles[i]->font().fontFeatures();
+		}
 	}
-	fontfeaturesSetting->setFontFeatures(fontfeatures);
+	fontfeaturesSetting->setFontFeatures(fontfeatures, featuresList);
 }
 
 void SMCStyleWidget::clearAll()

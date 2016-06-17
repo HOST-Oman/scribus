@@ -41,16 +41,15 @@ SMFontFeatures::SMFontFeatures(QWidget *parent)
 	connect(this->setMenu, SIGNAL(triggered(QAction*)), this, SLOT(slotChange()));
 }
 
-void SMFontFeatures::setFontFeatures(QString s)
+void SMFontFeatures::setFontFeatures(QString s, QStringList fontFeaturesList)
 {
 	disconnectSignals();
 	m_hasParent = false;
 	m_pValue = "";
 
 	resetFontFeatures();
+	enableFontFeatures(fontFeaturesList);
 	QStringList fontFeatures = s.split(',');
-	ContextualCheck->setChecked(true);
-	CommonCheck->setChecked(true);
 	for (int i = 0; i < fontFeatures.count(); i++)
 	{
 		// Ligatures
@@ -144,14 +143,14 @@ void SMFontFeatures::setFontFeatures(QString s)
 	}
 }
 
-void SMFontFeatures::setFontFeatures(QString val, bool isParentVal)
+void SMFontFeatures::setFontFeatures(QString val, QStringList fontFeatures, bool isParentVal)
 {
 	disconnectSignals();
 	m_hasParent = true;
 	m_pValue = val;
 
 	if (isParentVal)
-		setFontFeatures(val);
+		setFontFeatures(val, fontFeatures);
 	connectSignals();
 }
 
@@ -295,6 +294,228 @@ void SMFontFeatures::disconnectSignals()
 	disconnect(setMenu, SIGNAL(triggered(QAction*)), this, SLOT(slotSetMenu()));
 }
 
+void SMFontFeatures::hideAllFontFeatures()
+{
+	statusLabel->hide();
+	ligaturesGroupBox->hide();
+	CommonCheck->setChecked(false);
+	CommonCheck->setDisabled(true);
+	DiscretinoryCheck->setChecked(false);
+	DiscretinoryCheck->setDisabled(true);
+	ContextualCheck->setDisabled(true);
+	HistoricalCheck->setDisabled(true);
+
+	capitalsLabel->hide();
+	removeComboItem(capitalsComboBox, "Small Capitals");
+	removeComboItem(capitalsComboBox, "Small Capitals from Captials");
+	removeComboItem(capitalsComboBox, "Petite Capitals");
+	removeComboItem(capitalsComboBox, "Petite Capitals from Captials");
+	removeComboItem(capitalsComboBox, "Unicase");
+	removeComboItem(capitalsComboBox, "Titling");
+	capitalsComboBox->hide();
+
+
+	positionLabel->hide();
+	removeComboItem(positionComboBox, "Subscript");
+	removeComboItem(positionComboBox, "Superscript");
+	removeComboItem(positionComboBox, "Ordinals");
+	positionComboBox->hide();
+	capitalsGroupBox->hide();
+
+	numeralsGroupBox->hide();
+	styleLabel->hide();
+	removeComboItem(numeralComboBox, "Lining");
+	removeComboItem(numeralComboBox, "Old Style");
+	numeralComboBox->hide();
+
+	widthLabel->hide();
+	removeComboItem(widthComboBox, "Proportional");
+	removeComboItem(widthComboBox, "Tabular");
+	widthComboBox->hide();
+
+	fractionLabel->hide();
+	removeComboItem(fractionComboBox, "Diagonal Fractions");
+	removeComboItem(fractionComboBox, "Stacked Fractions");
+	fractionComboBox->hide();
+
+	SlashedZeroCheck->hide();
+	stylisticSetsLabel->hide();
+	commandLinkButton->hide();
+	stylisticSetsLabel->hide();
+	for (int i = 0; i < setMenu->actions().count(); i++)
+	{
+		setMenu->actions().at(i)->setVisible(false);
+	}
+}
+
+void SMFontFeatures::enableFontFeatures(QStringList fontFeatures)
+{
+	hideAllFontFeatures();
+	capitalsLabel->show();
+	capitalsComboBox->show();
+	numeralsGroupBox->show();
+	numeralComboBox->show();
+	positionComboBox->show();
+	positionLabel->show();
+	fractionLabel->show();
+	fractionComboBox->show();
+	capitalsGroupBox->show();
+
+	widthComboBox->show();
+	styleLabel->show();
+	widthLabel->show();
+	stylisticSetsLabel->show();
+	commandLinkButton->show();
+
+	for (int i = 0; i < fontFeatures.count(); i++)
+	{
+		// Ligatures
+		if (fontFeatures[i] == "clig")
+		{
+			ContextualCheck->setDisabled(false);
+			ContextualCheck->setChecked(true);
+		}
+		else if (fontFeatures[i] == "liga")
+		{
+			CommonCheck->setDisabled(false);
+			CommonCheck->setChecked(true);
+		}
+		else if (fontFeatures[i] == "dlig")
+			DiscretinoryCheck->setDisabled(false);
+		else if (fontFeatures[i] == "hlig")
+			HistoricalCheck->setDisabled(false);
+		// position comboBox
+		else if (fontFeatures[i] == "subs")
+			positionComboBox->addItem("Subscript");
+		else if (fontFeatures[i] == "sups")
+			positionComboBox->addItem("Superscript");
+		else if (fontFeatures[i] == "ordn")
+			positionComboBox->addItem("Ordinals");
+		// Capitals ComboBox
+		else if (fontFeatures[i] == "smcp")
+			capitalsComboBox->addItem("Small Capitals");
+		else if (fontFeatures[i] == "c2sc")
+			capitalsComboBox->addItem("Small Capitals from Captials");
+		else if (fontFeatures[i] == "pcap")
+			capitalsComboBox->addItem("Petite Capitals");
+		else if (fontFeatures[i] == "c2pc")
+			capitalsComboBox->addItem("Petite Capitals from Capitals");
+		else if (fontFeatures[i] == "unic")
+			capitalsComboBox->addItem("Unicase");
+		else if (fontFeatures[i] == "titl")
+			capitalsComboBox->addItem("Titling");
+		// Numerals style
+		else if (fontFeatures[i] == "lnum")
+			numeralComboBox->addItem("Lining");
+		else if (fontFeatures[i] == "onum")
+			numeralComboBox->addItem("Old Style");
+		// Numerals width
+		else if (fontFeatures[i] == "pnum")
+			widthComboBox->addItem("Proportional");
+		else if (fontFeatures[i] == "tnum")
+			widthComboBox->addItem("Tabular");
+		// Numerals Fraction
+		else if (fontFeatures[i] == "frac")
+			fractionComboBox->addItem("Diagonal Fractions");
+		else if (fontFeatures[i] == "afrc")
+			fractionComboBox->addItem("Stacked Fractions");
+		// Numerals Zero
+		else if (fontFeatures[i] == "zero")
+			SlashedZeroCheck->show();
+		// Style Sets
+		else if (fontFeatures[i] == "ss01")
+			setMenu->actions().at(0)->setVisible(true);
+		else if (fontFeatures[i] == "ss02")
+			setMenu->actions().at(1)->setVisible(true);
+		else if (fontFeatures[i] == "ss03")
+			setMenu->actions().at(2)->setVisible(true);
+		else if (fontFeatures[i] == "ss04")
+			setMenu->actions().at(3)->setVisible(true);
+		else if (fontFeatures[i] == "ss05")
+			setMenu->actions().at(4)->setVisible(true);
+		else if (fontFeatures[i] == "ss06")
+			setMenu->actions().at(5)->setVisible(true);
+		else if (fontFeatures[i] == "ss07")
+			setMenu->actions().at(6)->setVisible(true);
+		else if (fontFeatures[i] == "ss08")
+			setMenu->actions().at(7)->setVisible(true);
+		else if (fontFeatures[i] == "ss09")
+			setMenu->actions().at(8)->setVisible(true);
+		else if (fontFeatures[i] == "ss10")
+			setMenu->actions().at(9)->setVisible(true);
+		else if (fontFeatures[i] == "ss11")
+			setMenu->actions().at(10)->setVisible(true);
+		else if (fontFeatures[i] == "ss12")
+			setMenu->actions().at(11)->setVisible(true);
+		else if (fontFeatures[i] == "ss13")
+			setMenu->actions().at(12)->setVisible(true);
+		else if (fontFeatures[i] == "ss14")
+			setMenu->actions().at(13)->setVisible(true);
+		else if (fontFeatures[i] == "ss15")
+			setMenu->actions().at(14)->setVisible(true);
+		else if (fontFeatures[i] == "ss16")
+			setMenu->actions().at(15)->setVisible(true);
+		else if (fontFeatures[i] == "ss17")
+			setMenu->actions().at(16)->setVisible(true);
+		else if (fontFeatures[i] == "ss18")
+			setMenu->actions().at(17)->setVisible(true);
+		else if (fontFeatures[i] == "ss19")
+			setMenu->actions().at(18)->setVisible(true);
+		else if (fontFeatures[i] == "ss20")
+			setMenu->actions().at(19)->setVisible(true);
+	}
+
+	if (positionComboBox->count() < 2)
+	{
+		positionComboBox->hide();
+		positionLabel->hide();
+	}
+	if (capitalsComboBox->count() < 2)
+	{
+		capitalsComboBox->hide();
+		capitalsLabel->hide();
+	}
+	if (numeralComboBox->count() < 2)
+	{
+		numeralComboBox->hide();
+		styleLabel->hide();
+	}
+	if (widthComboBox->count() < 2)
+	{
+		widthComboBox->hide();
+		widthLabel->hide();
+	}
+	if (fractionComboBox->count() < 2)
+	{
+		fractionComboBox->hide();
+		fractionLabel->hide();
+	}
+	if (ContextualCheck->isEnabled() || CommonCheck->isEnabled()
+			|| DiscretinoryCheck->isEnabled() || HistoricalCheck->isEnabled())
+		ligaturesGroupBox->show();
+	if (positionComboBox->isHidden() && capitalsComboBox->isHidden())
+		capitalsGroupBox->hide();
+	if (numeralComboBox->isHidden() && fractionComboBox->isHidden()
+			&& widthComboBox->isHidden() && SlashedZeroCheck->isHidden())
+		numeralsGroupBox->hide();
+
+	int visibleCount = 0;
+	for (int i = 0; i < setMenu->actions().size(); ++i)
+		if (setMenu->actions().at(i)->isVisible())
+			visibleCount ++;
+
+	if (visibleCount == 0)
+	{
+		stylisticSetsLabel->hide();
+		commandLinkButton->hide();
+	}
+	if (ligaturesGroupBox->isHidden() && capitalsGroupBox->isHidden()
+			&& numeralsGroupBox && commandLinkButton->isHidden())
+	{
+		statusLabel->show();
+	}
+}
+
 void SMFontFeatures::showStyleSetsList()
 {
 	setMenu->popup(commandLinkButton->mapToGlobal(QPoint(0,0)));
@@ -411,7 +632,7 @@ void SMFontFeatures::slotSetMenu()
 	{
 		QFont f(font());
 		f.setBold(true);
-		for (int i=0; i < setMenu->actions().count(); i++)
+		for (int i = 0; i < setMenu->actions().count(); i++)
 		{
 			if (setMenu->actions().at(i)->isChecked())
 				setMenu->actions().at(i)->setFont(f);
@@ -422,8 +643,8 @@ void SMFontFeatures::slotSetMenu()
 void SMFontFeatures::resetFontFeatures()
 {
 	disconnectSignals();
-	ContextualCheck->setChecked(true);
-	CommonCheck->setChecked(true);
+	ContextualCheck->setChecked(false);
+	CommonCheck->setChecked(false);
 	DiscretinoryCheck->setChecked(false);
 	HistoricalCheck->setChecked(false);
 	capitalsComboBox->setCurrentIndex(0);

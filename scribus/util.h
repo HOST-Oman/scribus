@@ -132,6 +132,7 @@ void SCRIBUS_API parsePagesString(QString pages, std::vector<int>* pageNs, int s
 
 QString SCRIBUS_API readLinefromDataStream(QDataStream &s);
 void SCRIBUS_API setCurrentComboItem(QComboBox *box, QString text);
+void SCRIBUS_API removeComboItem(QComboBox *box, QString text);
 
 QString SCRIBUS_API readAdobeUniCodeString(QDataStream &s);
 QString SCRIBUS_API readAdobeUniCodeString16(QDataStream &s);

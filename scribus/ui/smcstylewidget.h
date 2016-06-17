@@ -52,6 +52,7 @@ private:
 private slots:
 	void slotColorChange();
 	void handleUpdateRequest(int);
+	void slotEnableFontFeatures(QString s);
 };
 
 #endif

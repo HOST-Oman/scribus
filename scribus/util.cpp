@@ -798,6 +798,15 @@ void setCurrentComboItem(QComboBox *box, QString text)
 	box->blockSignals(sigBlocked);
 }
 
+void removeComboItem(QComboBox *box, QString text)
+{
+	bool sigBlocked = box->blockSignals(true);
+	int ind = box->findText(text);
+	if (ind > -1)
+		box->removeItem(ind);
+	box->blockSignals(sigBlocked);
+}
+
 QString readAdobeUniCodeString(QDataStream &s)
 {
 	QString ret = "";

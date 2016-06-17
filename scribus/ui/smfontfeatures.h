@@ -39,9 +39,10 @@ public:
 	SMFontFeatures(QWidget *parent);
 	~SMFontFeatures(){}
 
-	void setFontFeatures(QString s);
-	void setFontFeatures(QString val, bool isParentVal);
+	void setFontFeatures(QString s, QStringList fontFeaturesList);
+	void setFontFeatures(QString val, QStringList fontFeatures, bool isParentVal);
 	QString fontFeatures();
+	void enableFontFeatures(QStringList fontFeatures);
 	void resetFontFeatures();
 
 	void setParentValue(QString val);
@@ -54,6 +55,7 @@ protected:
 	void disconnectSignals();
 
 private:
+	void hideAllFontFeatures();
 	bool m_hasParent;
 	bool m_useParentValue;
 	QString m_pValue;
