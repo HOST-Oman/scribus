@@ -456,7 +456,7 @@ static const ScFace& getscFace(QString classname, QString text)
 	PrefsManager* prefsManager = PrefsManager::instance();
 
 	// Handle FontComboH class witch has only Famliy names in the combo class.
-	if (classname == "FontComboH")
+	if (classname == "FontComboH" || classname == "SMFontComboH")
 	{
 		QStringList styles = prefsManager->appPrefs.fontPrefs.AvailFonts.fontMap[text];
 		const ScFace& fon = prefsManager->appPrefs.fontPrefs.AvailFonts.findFont(text, styles[0]);
