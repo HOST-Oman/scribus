@@ -593,10 +593,7 @@ void StoryText::insertChars(int pos, QVector<uint> txt, bool applyNeighbourStyle
 
 	for (int i = 0; i < txt.length(); ++i) {
 		ScText * item = new ScText(clone);
-		uint ch = txt.at(i);
-		if (QChar::isNonCharacter(ch) || QChar::isSurrogate(ch) || ch > QChar::LastValidCodePoint)
-			ch = QChar::ReplacementCharacter;
-		item->ch = ch;
+		item->ch= txt.at(i);
 		item->setContext(cStyleContext);
 		d->insert(pos + i, item);
 		d->len++;
