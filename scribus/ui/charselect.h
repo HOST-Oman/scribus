@@ -70,7 +70,7 @@ private:
 	CharSelectEnhanced * m_enhanced;
 
 	//! Hold the "glyphs to insert" here.
-	QVector<uint> chToIns;
+	QString chToIns;
 
 	QString paletteFileMask;
 
