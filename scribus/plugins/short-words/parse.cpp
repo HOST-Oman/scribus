@@ -114,9 +114,8 @@ void SWParse::parseItem(PageItem *aFrame)
 	// return text into frame
 	for (i=0; i < aFrame->itemText.length() && ! aFrame->frameDisplays(i); ++i)
 		;
-	QVector<uint> uContent = content.toUcs4();
 	for (; i < aFrame->itemText.length() && aFrame->frameDisplays(i); ++i)
-		aFrame->itemText.replaceChar(i, uContent.at(i));
+		aFrame->itemText.replaceChar(i, content.at(i));
 	if (content.count(SpecialChars::NBSPACE) > changes)
 		++modify;
 

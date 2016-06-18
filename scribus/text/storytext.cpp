@@ -168,7 +168,15 @@ void StoryText::setCursorPosition(int pos, bool relative)
 {
 	if (relative)
 	{
+		bool forward = (pos >= 0);
 		pos += d->cursorPosition;
+		if (isLowSurrogate(pos) && isHighSurrogate(pos - 1))
+		{
+			if (forward)
+				pos += 1;
+			else
+				pos -= 1;
+		}
 	}
 	d->cursorPosition = qMin((uint) qMax(pos, 0), d->len);
 }
@@ -233,13 +241,13 @@ void StoryText::moveCursorWordLeft()
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
 		pos = it->following(pos);
-		if (pos < length() && QChar::isSpace(text(pos)))
+		if (pos < length() && text(pos).isSpace())
 			pos += 1;
 	}
 	else
 	{
 		pos = cursorPosition();
-		if (pos > 0 && QChar::isSpace(text(pos - 1)))
+		if (pos > 0 && text(pos - 1).isSpace())
 			pos -= 1;
 		pos = it->preceding(pos);
 	}
@@ -259,14 +267,14 @@ void StoryText::moveCursorWordRight()
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
 		pos = cursorPosition();
-		if (pos > 0 && QChar::isSpace(text(pos - 1)))
+		if (pos > 0 && text(pos - 1).isSpace())
 			pos -= 1;
 		pos = it->preceding(pos);
 	}
 	else
 	{
 		pos = it->following(pos);
-		if (pos < length() && QChar::isSpace(text(pos)))
+		if (pos < length() && text(pos).isSpace())
 			pos += 1;
 	}
 
@@ -297,16 +305,13 @@ int StoryText::indexOf(const QString &str, int from, Qt::CaseSensitivity cs) con
 	if (str.isEmpty() || (from < 0))
 		return -1;
 
-	QVector<uint> qStr;
-	if (cs == Qt::CaseInsensitive)
-		qStr = str.toLower().toUcs4();
-	else
-		qStr = str.toUcs4();
-
-	int strLen   = qStr.length();
+	int strLen   = str.length();
 	int storyLen = length();
 
-	uint ch = qStr.at(0);
+	QString qStr = str;
+	if (cs == Qt::CaseInsensitive)
+		qStr = qStr.toLower();
+	QChar ch = qStr.at(0);
 
 	if (cs == Qt::CaseSensitive)
 	{
@@ -336,7 +341,7 @@ int StoryText::indexOf(const QString &str, int from, Qt::CaseSensitivity cs) con
 			int index = 0;
 			while ((index < strLen) && ((index + i) < storyLen))
 			{
-				if (qStr.at(index) != QChar::toLower(d->at(index + i)->ch))
+				if (qStr.at(index) != d->at(index + i)->ch.toLower())
 					break;
 				++index;
 			}
@@ -352,7 +357,7 @@ int StoryText::indexOf(const QString &str, int from, Qt::CaseSensitivity cs) con
 	return foundIndex;
 }
 
-int StoryText::indexOf(uint ch, int from, Qt::CaseSensitivity cs) const
+int StoryText::indexOf(QChar ch, int from, Qt::CaseSensitivity cs) const
 {
 	int foundIndex = -1;
 	int textLength = length();
@@ -372,7 +377,7 @@ int StoryText::indexOf(uint ch, int from, Qt::CaseSensitivity cs) const
 	{
 		for (int i = from; i < textLength; ++i)
 		{
-			if (QChar::toLower(d->at(i)->ch) == ch)
+			if (d->at(i)->ch.toLower() == ch)
 			{
 				foundIndex = i;
 				break;
@@ -543,7 +548,7 @@ void StoryText::trim()
 	for ( int i = static_cast<int>(length()) - 1; i >= 0; --i )
 	{
 		ScText *it = d->at(i);
-		if ((it->ch == SpecialChars::PARSEP) || QChar::isSpace(it->ch))
+		if ((it->ch == SpecialChars::PARSEP) || (it->ch.isSpace()))
 		{
 			pos--;
 			posCount++;
@@ -566,11 +571,6 @@ void StoryText::insertChars(QString txt, bool applyNeighbourStyle) //, const Cha
 }
 
 void StoryText::insertChars(int pos, QString txt, bool applyNeighbourStyle) //, const CharStyle & charstyle)
-{
-	insertChars(pos, txt.toUcs4(), applyNeighbourStyle);
-}
-
-void StoryText::insertChars(int pos, QVector<uint> txt, bool applyNeighbourStyle) //, const CharStyle & charstyle)
 {
 	if (pos < 0)
 		pos += length()+1;
@@ -620,8 +620,6 @@ void StoryText::insertCharsWithSoftHyphens(int pos, QString txt, bool applyNeigh
 	
 	if (txt.length() == 0)
 		return;
-
-	QVector<uint> uTxt = txt.toUcs4();
 	
 	const StyleContext* cStyleContext = paragraphStyle(pos).charStyleContext();
 
@@ -634,9 +632,9 @@ void StoryText::insertCharsWithSoftHyphens(int pos, QString txt, bool applyNeigh
 	}
 
 	int inserted = 0;
-	for (int i = 0; i < uTxt.length(); ++i)
+	for (int i = 0; i < txt.length(); ++i) 
 	{
-		uint ch = uTxt.at(i);
+		QChar ch = txt.at(i);
 		int  index  = pos + inserted;
 		bool insert = true; 
 		if (ch == SpecialChars::SHYPHEN && index > 0) {
@@ -669,7 +667,7 @@ void StoryText::insertCharsWithSoftHyphens(int pos, QString txt, bool applyNeigh
 	invalidate(pos, pos + inserted);
 }
 
-void StoryText::replaceChar(int pos, uint ch)
+void StoryText::replaceChar(int pos, QChar ch)
 {
 	if (pos < 0)
 		pos += length();
@@ -697,39 +695,35 @@ int StoryText::replaceWord(int pos, QString newWord)
 	int eoWord=pos;
 	while(eoWord < length())
 	{
-		if (QChar::isLetterOrNumber(text(eoWord)))
+		if (text(eoWord).isLetterOrNumber())
 			++eoWord;
 		else
 			break;
 	}
 	QString word=text(pos,eoWord-pos);
-	QVector<uint> uNewWord = newWord.toUcs4();
-	QVector<uint> uWord = word.toUcs4();
-	int lengthDiff = uNewWord.length() - uWord.length();
+	int lengthDiff=newWord.length()-word.length();
 	if (lengthDiff==0)
 	{
-		for (int j = 0; j < uWord.length(); ++j)
-			replaceChar(pos + j, uNewWord[j]);
+		for (int j = 0; j < word.length(); ++j)
+			replaceChar(pos+j, newWord[j]);
 	}
 	else
 	{
 		if (lengthDiff>0)
 		{
-			for (int j = 0; j < uWord.length(); ++j)
-				replaceChar(pos + j, uNewWord[j]);
-			for (int j = word.length(); j < uNewWord.length(); ++j)
-				insertChars(pos + j, uNewWord.mid(j, 1), true);
+			for (int j = 0; j < word.length(); ++j)
+				replaceChar(pos+j, newWord[j]);
+			for (int j = word.length(); j < newWord.length(); ++j)
+				insertChars(pos+j, newWord.mid(j,1), true);
 		}
 		else
 		{
-			for (int j = 0; j < uNewWord.length(); ++j)
-				replaceChar(pos + j, uNewWord[j]);
-			removeChars(pos + uNewWord.length(), -lengthDiff);
+			for (int j = 0; j < newWord.length(); ++j)
+				replaceChar(pos+j, newWord[j]);
+			removeChars(pos+newWord.length(), -lengthDiff);
 		}
 	}
-	// We return the QString (UTF-16) diff, not the UTF-32 one
-	// because this what the caller expects.
-	return newWord.length() - word.length();
+	return lengthDiff;
 }
 
 void StoryText::hyphenateWord(int pos, uint len, char* hyphens)
@@ -785,7 +779,7 @@ void StoryText::replaceObject(int pos, int ob)
 	if (pos < 0)
 		pos += length()+1;
 
-	replaceChar(pos, SpecialChars::OBJECT.unicode());
+	replaceChar(pos, SpecialChars::OBJECT);
 	const_cast<StoryText *>(this)->d->at(pos)->embedded = ob;
 	m_doc->FrameItems[ob]->isEmbedded = true;   // this might not be enough...
 	m_doc->FrameItems[ob]->OwnPage = -1; // #10379: OwnPage is not meaningful for inline object
@@ -802,8 +796,8 @@ QString StoryText::plainText() const
 	if (length() <= 0)
 		return QString();
 
-	uint   ch;
-	QVector<uint> result;
+	QChar   ch;
+	QString result;
 
 	int len = length();
 	result.reserve(len);
@@ -812,19 +806,19 @@ QString StoryText::plainText() const
 	for (int i = 0; i < len; ++i) {
 		ch = that->d->at(i)->ch;
 		if (ch == SpecialChars::PARSEP)
-			ch = '\n';
+			ch = QLatin1Char('\n');
 		result += ch;
 	}
 
-	return QString::fromUcs4(result.data(), result.length());
+	return result;
 }
 
-uint StoryText::text() const
+QChar StoryText::text() const
 {
 	return text(d->cursorPosition);
 }
 
-uint StoryText::text(int pos) const
+QChar StoryText::text(int pos) const
 {
 	if (pos < 0)
 		pos += length();
@@ -843,13 +837,13 @@ QString StoryText::text(int pos, uint len) const
 	assert(pos >= 0);
 	assert(pos + signed(len) <= length());
 
-	QVector<uint> result;
+	QString result;
 	StoryText* that(const_cast<StoryText*>(this));
 	for (int i = pos; i < pos+signed(len); ++i) {
 		result += that->d->at(i)->ch;
 	}
 
-	return QString::fromUcs4(result.data(), result.length());
+	return result;
 }
 
 QString StoryText::sentence(int pos, int &posn)
@@ -944,6 +938,17 @@ void StoryText::replaceMark(int pos, Mark* mrk)
     assert(pos < length());
 
     this->d->at(pos)->mark = mrk;
+}
+
+
+bool StoryText::isHighSurrogate(int pos) const
+{
+	return pos >= 0 && pos < length() && text(pos).isHighSurrogate();
+}
+
+bool StoryText::isLowSurrogate(int pos) const
+{
+	return pos >= 0 && pos < length() && text(pos).isLowSurrogate();
 }
 
 
@@ -1478,7 +1483,7 @@ int StoryText::firstWord()
 
 	while (pos < len)
 	{
-		if (QChar::isLetter(text(pos)))
+		if (text(pos).isLetter())
 			break;
 		++pos;
 	}
@@ -1658,6 +1663,8 @@ void StoryText::select(int pos, uint len, bool on)
 			m_selLast = pos - 1;
 	}
 
+	fixSurrogateSelection();
+	
 //	qDebug("new selection: %d - %d", m_selFirst, m_selLast);
 }
 
@@ -1689,6 +1696,17 @@ void StoryText::extendSelection(int oldPos, int newPos)
 		m_selFirst = newPos;
 		m_selLast = oldPos - 1;
 	}
+
+	fixSurrogateSelection();
+}
+
+
+void StoryText::fixSurrogateSelection()
+{
+	if (isLowSurrogate(m_selFirst) && isHighSurrogate(m_selFirst - 1))
+		m_selFirst -= 1;
+	if (isHighSurrogate(m_selLast) && isLowSurrogate(m_selLast + 1))
+		m_selLast += 1;
 }
 
 BreakIterator* StoryText::m_graphemeIterator = NULL;
@@ -1910,7 +1928,7 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 	lastStyle.saxx(handler);
 	for (int i=0; i < length(); ++i)
 	{
-		uint curr = text(i);
+		const QChar curr(text(i));
 		const CharStyle& style(charStyle(i));
 		
 		if (curr == SpecialChars::OBJECT ||
@@ -1921,9 +1939,9 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 			curr == SpecialChars::FRAMEBREAK ||
 			curr == SpecialChars::PAGENUMBER ||
 			curr == SpecialChars::PAGECOUNT ||
-			curr < 32 ||
-			(0xd800 <= curr && curr < 0xe000) ||
-			curr == 0xfffe || curr == 0xffff ||
+			curr.unicode() < 32 || 
+			(0xd800 <= curr.unicode() && curr.unicode() < 0xe000) ||
+			curr.unicode() == 0xfffe || curr.unicode() == 0xffff ||
 			style != lastStyle)
 		{
 			// something new, write pending chars
@@ -2027,12 +2045,12 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 		{
 			handler.beginEnd("var", pageco);
 		}
-		else if (curr < 32 ||
-				 (0xd800 <= curr && curr < 0xe000) ||
-				 curr == 0xfffe || curr == 0xffff)
+		else if (curr.unicode() < 32 || 
+				 (0xd800 <= curr.unicode() && curr.unicode() < 0xe000) ||
+				 curr.unicode() == 0xfffe || curr.unicode() == 0xffff)
 		{
 			Xml_attr unic;
-			unic.insert("code", toXMLString(curr));
+			unic.insert("code", toXMLString(curr.unicode()));
 			handler.beginEnd("unicode", unic);
 		}
 		else if (lastStyle != style)

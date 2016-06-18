@@ -1948,9 +1948,9 @@ bool PSLib::ProcessItem(ScribusDoc* Doc, ScPage* a, PageItem* c, uint PNr, bool 
 				QString cc;
 				for (int d = 0; d < c->itemText.length(); ++d)
 				{
-					if ((c->itemText.text(d) == 13) || (c->itemText.text(d) == 10) || (c->itemText.text(d) == 28))
+					if ((c->itemText.text(d) == QChar(13)) || (c->itemText.text(d) == QChar(10)) || (c->itemText.text(d) == QChar(28)))
 						break;
-					bm += "\\"+cc.setNum(qMax(c->itemText.text(d), (uint) 32), 8);
+					bm += "\\"+cc.setNum(qMax(c->itemText.text(d).unicode(), (ushort) 32), 8);
 				}
 				PDF_Bookmark(bm, a->pageNr()+1);
 			}
@@ -1962,7 +1962,7 @@ bool PSLib::ProcessItem(ScribusDoc* Doc, ScPage* a, PageItem* c, uint PNr, bool 
 					QString cc;
 					for (int d = 0; d < c->itemText.length(); ++d)
 					{
-						bm += "\\"+cc.setNum(qMax(c->itemText.text(d), (uint) 32), 8);
+						bm += "\\"+cc.setNum(qMax(c->itemText.text(d).unicode(), (ushort) 32), 8);
 					}
 					PDF_Annotation(c, bm, 0, 0, c->width(), -c->height());
 				}

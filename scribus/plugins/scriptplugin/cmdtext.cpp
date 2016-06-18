@@ -257,11 +257,11 @@ PyObject *scribus_getframetext(PyObject* /* self */, PyObject* args)
 		if (it->HasSel)
 		{
 			if (it->itemText.selected(a))
-				text += it->itemText.text(a, 1);
+				text += it->itemText.text(a);
 		}
 		else
 		{
-			text += it->itemText.text(a, 1);
+			text += it->itemText.text(a);
 		}
 	}
 	return PyString_FromString(text.toUtf8());
@@ -290,11 +290,11 @@ PyObject *scribus_gettext(PyObject* /* self */, PyObject* args)
 		if (it->HasSel)
 		{
 			if (it->itemText.selected(a))
-				text += it->itemText.text(a, 1);
+				text += it->itemText.text(a);
 		}
 		else
 		{
-			text += it->itemText.text(a, 1);
+			text += it->itemText.text(a);
 		}
 	} // for
 	return PyString_FromString(text.toUtf8());

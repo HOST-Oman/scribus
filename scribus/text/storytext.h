@@ -105,7 +105,7 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 
 	// Find text in story
 	int indexOf(const QString &str, int from = 0, Qt::CaseSensitivity cs = Qt::CaseSensitive) const;
-	int indexOf(uint ch, int from = 0, Qt::CaseSensitivity cs = Qt::CaseSensitive) const;
+	int indexOf(QChar ch, int from = 0, Qt::CaseSensitivity cs = Qt::CaseSensitive) const;
 	
 	// Add, change, replace
 	// Insert chars from another StoryText object at current cursor position
@@ -121,15 +121,14 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	// Insert chars at current cursor position
 	void insertChars(QString txt, bool applyNeighbourStyle = false);
 	// Insert chars ar specific position
-	void insertChars(int pos, QString txt, bool applyNeighbourStyle = false);
-	void insertChars(int pos, QVector<uint> txt, bool applyNeighbourStyle = false);
+ 	void insertChars(int pos, QString txt, bool applyNeighbourStyle = false);
 	// Insert inline object at current cursor position
 	void insertObject(int obj);
 	// Insert object at specific position
 	void insertObject(int pos, int obj);
 	// Insert mark at cursor or specific position
 	void insertMark(Mark* Mark, int pos = -1);
-	void replaceChar(int pos, uint ch);
+ 	void replaceChar(int pos, QChar ch);
  	// Replaced a word, and return the difference in length between old and new
 	int replaceWord(int pos, QString newWord);
 	void replaceObject(int pos, int obj);
@@ -146,9 +145,9 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	QString plainText() const;
 
 	// Get char at current cursor position
-	uint text() const;
+	QChar   text() const;
 	// Get char at specific position
-	uint text(int pos) const;
+ 	QChar   text(int pos) const;
 	// Get text with len chars at specific position
  	QString text(int pos, uint len) const;
  	//Get sentence at any position within it
@@ -159,6 +158,9 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
     bool hasMark(int pos, Mark* mrk = NULL) const;
 	Mark *mark(int pos) const;
     void replaceMark(int pos, Mark* mrk);
+
+	bool isHighSurrogate(int pos) const;
+	bool isLowSurrogate(int pos) const;
 
 	// Get charstyle at current cursor position
 	const CharStyle& charStyle() const;
@@ -266,6 +268,7 @@ signals:
 private:
  	ScText * item(uint index);
  	const ScText * item(uint index) const;
+	void fixSurrogateSelection();
 
 //public:
 //	ScText * item_p(uint index) { return item(index); }

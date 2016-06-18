@@ -566,7 +566,7 @@ struct LineControl {
 
 
 	/// called when glyphs are placed on the line
-	void rememberShrinkStretch(uint ch, double wide, const ParagraphStyle& style)
+	void rememberShrinkStretch(QChar ch, double wide, const ParagraphStyle& style)
 	{
 		if (SpecialChars::isExpandingSpace(ch))
 			maxShrink += (1 - style.minWordTracking()) * wide;
@@ -1033,48 +1033,36 @@ struct LineControl {
 			const CharStyle& style = glyphs[b].style();
 			const ScFace& font = style.font();
 			double chs = style.fontSize() * (style.scaleH() / 1000.0);
-			uint chr = itemText.text(glyphs[b].lastChar());
+			QChar chr = itemText.text(glyphs[b].lastChar());
 			double rightCorr;
 			if (glyphs[b].hasFlag(ScLayout_SoftHyphenVisible))
-			{
-				chr = SpecialChars::SHYPHEN.unicode();
 				rightCorr = font.hyphenWidth(style, chs / 10.0);
-			}
 			else
-				rightCorr = font.glyphBBox(font.char2CMap(chr), chs / 10.0).width;
-			switch (chr) {
-			case '-':
-			case 0x00ad:
-			case ',':
-			case '.':
-			case '`':
-			case 0x00b4:
-			case '\'':
-			case '~':
-			case 0x2010:
-			case 0x2018:
-			case 0x2019:
-			case 0x201a:
-			case 0x201b:
-			case 0x2039:
-			case 0x203a:
-			case 0x2032: // PRIME
+				rightCorr = font.glyphBBox(font.char2CMap(chr.unicode()), chs / 10.0).width;
+			if (glyphs[b].hasFlag(ScLayout_SoftHyphenVisible)
+				|| QString("-,.`´'~").indexOf(chr) >= 0
+				|| chr == QChar(0x2010)
+				|| chr == QChar(0x2018)
+				|| chr == QChar(0x2019)
+				|| chr == QChar(0x201a)
+				|| chr == QChar(0x201b)
+				|| chr == QChar(0x2039)
+				|| chr == QChar(0x203a)
+				|| chr == QChar(0x2032) // PRIME
+				)
 				rightCorr *= 0.7;
-				break;
-			case ';':
-			case ':':
-			case '"':
-			case 0x00ab:
-			case 0x00bb:
-			case 0x201c:
-			case 0x201d:
-			case 0x201e:
-			case 0x201f:
-			case 0x2013: // EN DASH
-			case 0x2033: // double prime
+			else if (QString(";:\"").indexOf(chr) >= 0
+					 || chr == QChar(0x00ab)
+					 || chr == QChar(0x00bb)
+					 || chr == QChar(0x201c)
+					 || chr == QChar(0x201d)
+					 || chr == QChar(0x201e)
+					 || chr == QChar(0x201f)
+					 || chr == QChar(0x2013) // EN DASH
+					 || chr == QChar(0x2033) // double prime
+					 )
 				rightCorr *= 0.5;
-				break;
-			default:
+			else {
 #if 0
 				// FIXME HOST: is the kerning with "." a realy reliable way to check this?
 				rightCorr = chStyle.font().realCharWidth(chr, chs / 10.0);
@@ -1082,7 +1070,6 @@ struct LineControl {
 #else
 				rightCorr = 0;
 #endif
-				break;
 			}
 			return rightCorr;
 		}
@@ -1222,7 +1209,7 @@ bool PageItem_TextFrame::moveLinesFromPreviousFrame ()
 	if (!prev) return false;
 	if (!prev->incompleteLines) return false;   // no incomplete lines - nothing to do
 	int pos = textLayout.endOfFrame()-1;
-	uint lastChar = itemText.text (pos);
+	QChar lastChar = itemText.text (pos);
 	// qDebug()<<"pos is"<<pos<<", length is"<<itemText.length()<<", incomplete is "<<prev->incompleteLines;
 	if ((pos != itemText.length()-1) && (!SpecialChars::isBreak (lastChar, true)))
 		return false;  // the paragraph isn't ending yet
@@ -1263,7 +1250,7 @@ void PageItem_TextFrame::adjustParagraphEndings ()
 
 	ParagraphStyle style = itemText.paragraphStyle (pos);
 	int paragraphStart = itemText.prevParagraph (pos) + 1;
-	uint lastChar = itemText.text (pos);
+	QChar lastChar = itemText.text (pos);
 	bool keepWithNext = style.keepWithNext() && (lastChar == SpecialChars::PARSEP);
 	if (keepWithNext || (!SpecialChars::isBreak (lastChar, true))) {
 		// paragraph continues in the next frame, or needs to be kept with the next one
@@ -1620,7 +1607,7 @@ void PageItem_TextFrame::layout()
 			}
 			else // from 134 on use NBSPACE for this effect
 			{
-				if ( current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || QChar::isSpace(itemText.text(a))))
+				if ( current.isEmpty && (SpecialChars::isBreakingSpace(itemText.text(a)) || itemText.text(a).isSpace()))
 				{
 					current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
 					continue;
@@ -2438,7 +2425,7 @@ void PageItem_TextFrame::layout()
 			if ((current.glyphs[currentIndex].hasFlag(ScLayout_HyphenationPossible)
 				  || itemText.text(a) == '-'
 				  || itemText.text(a) == SpecialChars::SHYPHEN)
-				 && (!outs) && ((i == 0) || !QChar::isSpace(itemText.text(glyphRuns[i - 1].lastChar()))) )
+				 && (!outs) && ((i == 0) || !itemText.text(glyphRuns[i - 1].lastChar()).isSpace()) )
 			{
 				breakPos = current.xPos;
 				if (itemText.text(a) != '-')
@@ -2557,7 +2544,7 @@ void PageItem_TextFrame::layout()
 									 itemText.text(a) == SpecialChars::FRAMEBREAK ||
 									 itemText.text(a) == SpecialChars::COLBREAK)
 								&&  (current.line.lastRun - 1 >= 0)
-								&&  !QChar::isSpace(itemText.text(glyphRuns[current.line.lastRun - 1].lastChar()))))
+								&&  !itemText.text(glyphRuns[current.line.lastRun - 1].lastChar()).isSpace()))
 						{
 							current.justifyLine(style);
 						}
@@ -2908,7 +2895,7 @@ void PageItem_TextFrame::layout()
 					&&  (itemText.text(a) == SpecialChars::LINEBREAK ||
 						 itemText.text(a) == SpecialChars::FRAMEBREAK ||
 						 itemText.text(a) == SpecialChars::COLBREAK)
-					&& !QChar::isSpace(itemText.text(a))))
+					&&  !itemText.text(a).isSpace()))
 			{
 				current.justifyLine(style);
 			}
