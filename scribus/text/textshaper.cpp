@@ -166,7 +166,7 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 QString TextShaper::ExpandToken(int base)
 {
 	int pageNum = m_item->OwnPage;
-	uint ch = m_story.text(base);
+	QChar ch = m_story.text(base);
 	QString chstr = m_story.text(base, 1);
 	if (ch == SpecialChars::PAGENUMBER)
 	{
