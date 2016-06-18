@@ -1623,7 +1623,9 @@ void Scribus150Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Pag
 			ch == SpecialChars::NBSPACE ||
 			ch == SpecialChars::ZWNBSPACE ||
 			ch == SpecialChars::ZWSPACE ||
-			ch < 32 || ch == 0xfffe || ch == 0xffff ||
+			ch < 32 ||
+			(0xd800 <= ch && ch < 0xe000) ||
+			ch == 0xfffe || ch == 0xffff ||
 			style1 != lastStyle)
 		{
 			// something new, write pending chars
@@ -1701,7 +1703,9 @@ void Scribus150Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Pag
 			docu.writeAttribute("name", "pgco");
 			putCStyle(docu, lastStyle);
 		}
-		else if (ch < 32 || ch == 0xfffe || ch == 0xffff)
+		else if (ch < 32 ||
+				 (0xd800 <= ch && ch < 0xe000) ||
+				 ch == 0xfffe || ch == 0xffff)
 		{
 			docu.writeEmptyElement("ITEXT");
 			putCStyle(docu, lastStyle);
