@@ -497,7 +497,6 @@ void fontFamilyDelegate::paint(QPainter *painter,
 	QFont font2 = QFontDatabase().font(scFace.family(), scFace.style(), QFontInfo(option.font).pointSize());
 	font2.setPointSize(QFontInfo(font2).pointSize() * 3 / 2);
 
-	text = scFace.family();
 	bool hasLatin;
 	QFontDatabase::WritingSystem system = writingSystemForFont(font2, &hasLatin);
 
