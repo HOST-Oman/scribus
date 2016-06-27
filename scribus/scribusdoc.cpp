@@ -10712,8 +10712,8 @@ void ScribusDoc::itemSelection_Transform(int nrOfCopies, QTransform matrix, int 
 		QTransform comulatedMatrix = matrix;
 		PageItem *currItem = m_Selection->itemAt(0);
 		Elements.append(currItem);
-		int rotBack = RotMode();
-		RotMode ( 0 );
+		int rotBack = rotationMode();
+		setRotationMode ( 0 );
 		ScriXmlDoc xmlDoc;
 		QString copyBuffer = xmlDoc.WriteElem(this, m_Selection);
 		view()->Deselect(true);
@@ -10803,7 +10803,7 @@ void ScribusDoc::itemSelection_Transform(int nrOfCopies, QTransform matrix, int 
 			m_Selection->addItem(Elements.at(c), true);
 		}
 		m_Selection->setGroupRect();
-		RotMode (rotBack);
+		setRotationMode (rotBack);
 		SnapGrid  = savedAlignGrid;
 		SnapGuides = savedAlignGuides;
 		SnapElement = savedAlignElement;
@@ -15951,7 +15951,7 @@ Serializer *ScribusDoc::textSerializer()
 }
 
 
-void ScribusDoc::RotMode(const int& val)
+void ScribusDoc::setRotationMode(const int val)
 {
 	m_rotMode = val;
 	emit rotationMode(m_rotMode);
