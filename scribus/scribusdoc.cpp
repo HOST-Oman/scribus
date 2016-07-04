@@ -4513,22 +4513,23 @@ public:
 		: m_really(Really)
 	{}
 
-	void drawGlyph(const GlyphLayout& gl)
+	void drawGlyph(const GlyphCluster& gc)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		if (gc.isControlGlyphs())
 			return;
-
-		QString replacementName = font().replacementName();
-		if (!replacementName.isEmpty())
-		{
-			FPointArray outline(font().glyphOutline(gl.glyph));
-			m_really[replacementName].insert(gl.glyph, outline);
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			QString replacementName = font().replacementName();
+			if (!replacementName.isEmpty())
+			{
+				FPointArray outline = font().glyphOutline(gl.glyph);
+				m_really[replacementName].insert(gl.glyph, outline);
+			}
 		}
 	}
 
-	void drawGlyphOutline(const GlyphLayout& gl, bool)
+	void drawGlyphOutline(const GlyphCluster& gc, bool)
 	{
-		drawGlyph(gl);
+		drawGlyph(gc);
 	}
 
 	// we don't need this one

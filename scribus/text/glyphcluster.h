@@ -16,9 +16,10 @@ class GlyphCluster
 	int m_visualIndex;
 	double m_scaleH;
 	double m_scaleV;
+	QString m_str;
 
 public:
-	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i);
+	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i, QString str);
 
 	void append(GlyphLayout&);
 
@@ -44,6 +45,13 @@ public:
 	double scaleV() const;
 	void setScaleH(double);
 	void setScaleV(double);
+
+	bool isEmpty() const;
+	bool isControlGlyphs() const;
+	bool isSpace() const;
+	QVector<FPointArray> glyphClusterOutline() const;
+	// get text out
+	QString getText() const;
 
 	double extraWidth;
 	double xoffset;

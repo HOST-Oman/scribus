@@ -12,6 +12,7 @@
 
 #include "scribusapi.h"
 #include "sctextstruct.h"
+#include "glyphcluster.h"
 
 
 struct TextLayoutColor
@@ -109,11 +110,11 @@ public:
 
 	/// Draws a regular (filled) glyph using the current font, fill color
 	/// etc. at the current x and y positions.
-	virtual void drawGlyph(const GlyphLayout& gl) = 0;
+	virtual void drawGlyph(const GlyphCluster& gc) = 0;
 	/// Same as drawGlyphs() but draws an outlined glyph with current
 	/// stroke color, if @fill is true then the glyphs is also filled by
 	/// the current fill color.
-	virtual void drawGlyphOutline(const GlyphLayout& gl, bool fill) = 0;
+	virtual void drawGlyphOutline(const GlyphCluster& gc, bool fill) = 0;
 	/// Draws a line from @start to @end relative current x and y
 	/// positions, with current stroke color and width.
 	virtual void drawLine(const QPointF start, const QPointF end) = 0;
