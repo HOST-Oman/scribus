@@ -52,7 +52,7 @@ public:
 	{
 		if (gc.isEmpty())
 		{
-			int pos = m_textLayout.pointToPosition(QPointF(x(), y()));
+			int pos = gc.firstChar();
 			m_itemError.insert(MissingGlyph, pos + 1);
 		}
 	}
