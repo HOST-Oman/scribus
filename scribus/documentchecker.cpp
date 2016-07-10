@@ -53,7 +53,7 @@ public:
 		if (gc.isEmpty())
 		{
 			int pos = gc.firstChar();
-			m_itemError.insert(MissingGlyph, pos + 1);
+			m_itemError.insert(MissingGlyph, pos);
 		}
 	}
 	void drawGlyphOutline(const GlyphCluster& gc, bool)
