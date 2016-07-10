@@ -46,8 +46,8 @@ namespace sfnt {
 	
 	quint16 word16(const QByteArray & bb, uint pos)
 	{
-		const unsigned char * pp = reinterpret_cast<const unsigned char*>(bb.data()) + pos;
-		return pp[0] << 8 | pp[1];
+		const unsigned char * pp = reinterpret_cast<const unsigned char*>(bb.data());
+		return pp[pos] << 8 | pp[pos + 1];
 	}
 	
 	void putWord16(QByteArray & bb, uint pos, quint16 val)
@@ -719,8 +719,8 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 				uint idDeltas = startCodes + segCount2 + ttf_cmap4_IdDeltas_StartCodes;
 				uint idRangeOffsets = idDeltas + segCount2 + ttf_cmap4_IdRangeOffsets_IdDeltas;
 				//uint glyphIndexArray = idRangeOffsets + segCount2 + ttf_cmap4_GlyphIds_IdRangeOffsets;
-				
-				for (uint seg = 0; seg < segCount2; seg+=2)
+
+				for (uint seg = 0; seg < segCount2; seg++)
 				{
 					uint start = word16(cmaps, startCodes + seg);
 					uint end = word16(cmaps, endCodes + seg);
