@@ -810,6 +810,7 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 		QList<uint> chars;
 		QMap<uint, uint>::ConstIterator cit;
 		qDebug() << "writing cmap";
+		bool cmapHasData = false;
 		for(cit = cmap.cbegin(); cit != cmap.cend(); ++cit)
 		{
 			uint ch = cit.key();
@@ -817,6 +818,7 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 			{
 				qDebug() << "(" << QChar(cit.key()) << "," << cit.value() << ")";
 				chars.append(ch);
+				cmapHasData = true;
 			}
 //			qDebug() << QChar(ch) << QChar::requiresSurrogates(ch) << cit.value();
 		}
@@ -826,7 +828,8 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 		QList<quint16> endCodes;
 		QList<quint16> idDeltas;
 		QList<quint16> rangeOffsets;
-		
+		if (cmapHasData)
+		{
 		uint pos = 0;
 		do {
 			quint16 start = chars[pos];
@@ -850,6 +853,7 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 			rangeOffsets.append(rangeOffset);
 		}
 		while (pos < (uint) chars.length());
+		}
 		
 		startCodes.append(0xFFFF);
 		endCodes.append(0xFFFF);
