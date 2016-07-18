@@ -2505,7 +2505,7 @@ void PageItem_TextFrame::layout()
 				{
 					// find end of line
 					current.breakLine(i);
-					regionMinY = current.line.y - current.line.ascent;
+					regionMinY = qMax(0.0, current.line.y - current.line.ascent);
 					regionMaxY = current.line.y + current.line.descent;
 					EndX = current.endOfLine(m_availableRegion, style.rightMargin(), regionMinY, regionMaxY);
 					current.finishLine(EndX);
