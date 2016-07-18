@@ -830,29 +830,29 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 		QList<quint16> rangeOffsets;
 		if (cmapHasData)
 		{
-		uint pos = 0;
-		do {
-			quint16 start = chars[pos];
-			quint16 delta = cmap[start] - start;
-			quint16 rangeOffset = 0;
-			quint16 end = start;
-			quint16 next;
-			++pos;
-			while (pos < (uint) chars.length() && (next = chars[pos]) == end+1)
-			{
-				end = next;
-				if (delta != (quint16)(cmap[chars[pos]] - next))
-				{
-					rangeOffset = 1; // will be changed later
-				}
+			uint pos = 0;
+			do {
+				quint16 start = chars[pos];
+				quint16 delta = cmap[start] - start;
+				quint16 rangeOffset = 0;
+				quint16 end = start;
+				quint16 next;
 				++pos;
+				while (pos < (uint) chars.length() && (next = chars[pos]) == end+1)
+				{
+					end = next;
+					if (delta != (quint16)(cmap[chars[pos]] - next))
+					{
+						rangeOffset = 1; // will be changed later
+					}
+					++pos;
+				}
+				startCodes.append(start);
+				endCodes.append(end);
+				idDeltas.append(delta);
+				rangeOffsets.append(rangeOffset);
 			}
-			startCodes.append(start);
-			endCodes.append(end);
-			idDeltas.append(delta);
-			rangeOffsets.append(rangeOffset);
-		}
-		while (pos < (uint) chars.length());
+			while (pos < (uint) chars.length());
 		}
 		
 		startCodes.append(0xFFFF);
