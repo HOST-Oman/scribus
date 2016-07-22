@@ -339,6 +339,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 					(*a_scrActions)["insertSampleText"]->setEnabled(true);
 					(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(true);
 					enableTextActions(true);
+					setTextEditMode(true);
 					a_actMgr->saveActionShortcutsPreEditMode();
 					// #11938: Paste is not correctly enabled in modeEditTable
 					if (ScMimeData::clipboardHasScribusData())
@@ -660,6 +661,9 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		case PageItem::Table:
 			(*a_scrActions)["editCut"]->setEnabled(true);
 			(*a_scrActions)["editCopy"]->setEnabled(true);
+			(*a_scrActions)["itemDelete"]->setEnabled(!inAnEditMode);
+			(*a_scrActions)["itemSendToPattern"]->setEnabled(!inAnEditMode);
+			(*a_scrActions)["itemSendToInline"]->setEnabled(!inAnEditMode);
 			(*a_scrActions)["toolsRotate"]->setEnabled(!inAnEditMode);
 			if (doc->appMode == modeEditTable)
 			{
