@@ -98,6 +98,7 @@ for which a new license (GPL+exception) is in place.
 #include "serializer.h"
 #include "tableborder.h"
 #include "text/textlayoutpainter.h"
+#include "text/textshaper.h"
 #include "ui/hruler.h"
 #include "ui/layers.h"
 #include "ui/mark2item.h"
@@ -4543,8 +4544,115 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 	if (!it->isTextFrame() && !it->isPathText())
 		return;
 
+	// This works pretty well except for the case of page numbers and al. placed on masterpages
+	// where layout may depend on the page where the masterpage item is placed
 	UsedGlyphsPainter p(Really);
 	it->textLayout.render(&p);
+
+	// Process page numbers and page count special characters
+	int start = it->isTextFrame() ? it->firstInFrame() : 0;
+	int stop  = it->isTextFrame() ? it->lastInFrame() + 1 : it->itemText.length();
+	for (int e = start; e < stop; ++e)
+	{
+		const ScFace& font = it->itemText.charStyle(e).font();
+		double fontSize = it->itemText.charStyle(e).fontSize();
+		QString fontName = font.replacementName();
+		if (!Really.contains(fontName) )
+		{
+			if (!fontName.isEmpty())
+				Really.insert(fontName, QMap<uint, FPointArray>());
+		}
+		uint chr = it->itemText.text(e).unicode();
+		QStringList txtList;
+		if ((chr == 30) || (chr == 23))
+		{
+			//Our page number collection string
+			QString pageNumberText;
+			if (chr == 30)
+			{//ch == SpecialChars::PAGENUMBER
+				if (e > 0 && it->itemText.text(e-1) == SpecialChars::PAGENUMBER)
+					pageNumberText = SpecialChars::ZWNBSPACE;
+				else if (lc!=0) //If not on a master page just get the page number for the page and the text
+				{
+					pageNumberText = QString("%1").arg(getSectionPageNumberForPageIndex(it->OwnPage),
+									getSectionPageNumberWidthForPageIndex(it->OwnPage),
+									getSectionPageNumberFillCharForPageIndex(it->OwnPage));
+					txtList.append(pageNumberText);
+				}
+				else
+				{
+					//Else, for a page number in a text frame on a master page we must scan
+					//all pages to see which ones use this page and get their page numbers.
+					//We only add each character of the pages' page number text if its nothing
+					//already in the pageNumberText variable. No need to add glyphs twice.
+					QString newText;
+					uint docPageCount = DocPages.count();
+					for (uint a = 0; a < docPageCount; ++a)
+					{
+						if (DocPages.at(a)->MPageNam == it->OnMasterPage)
+						{
+							newText = QString("%1").arg(getSectionPageNumberForPageIndex(a),
+											getSectionPageNumberWidthForPageIndex(a),
+											getSectionPageNumberFillCharForPageIndex(a));
+							txtList.append(newText);
+						}
+					}
+				}
+			}
+			else
+			{//ch == SpecialChars::PAGECOUNT
+				if (lc!=0)
+				{
+					int key = getSectionKeyForPageIndex(it->OwnPage);
+					if (key == -1)
+						pageNumberText = "";
+					else
+						pageNumberText = QString("%1").arg(getStringFromSequence(m_docPrefsData.docSectionMap[key].type, m_docPrefsData.docSectionMap[key].toindex - m_docPrefsData.docSectionMap[key].fromindex + 1));
+					txtList.append(pageNumberText);
+				}
+				else
+				{
+					QString newText;
+					uint docPageCount = DocPages.count();
+					for (uint a = 0; a < docPageCount; ++a)
+					{
+						if (DocPages.at(a)->MPageNam == it->OnMasterPage)
+						{
+							int key = getSectionKeyForPageIndex(a);
+							if (key == -1)
+								newText = "";
+							else
+								newText = QString("%1").arg(getStringFromSequence(m_docPrefsData.docSectionMap[key].type, m_docPrefsData.docSectionMap[key].toindex - m_docPrefsData.docSectionMap[key].fromindex + 1));
+							txtList.append(newText);
+						}
+					}
+				}
+			}
+
+			//Now scan and add any glyphs used in page numbers
+			for (int a = 0; a < txtList.count(); ++a)
+			{
+				CharStyle style(font, fontSize);
+				StoryText story;
+				story.insertChars(txtList[a]);
+				story.setCharStyle(0, txtList[a].count(), style);
+
+				TextShaper textShaper(story, 0);
+				QList<GlyphCluster> glyphRuns = textShaper.shape();
+
+				foreach (const GlyphCluster &run, glyphRuns)
+				{
+					foreach (const GlyphLayout &gl, run.glyphs())
+					{
+						FPointArray outline(font.glyphOutline(gl.glyph));
+						if (!fontName.isEmpty())
+							Really[fontName].insert(gl.glyph, outline);
+					}
+				}
+			}
+			continue;
+		}
+	}
 }
 
 
