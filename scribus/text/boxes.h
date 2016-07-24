@@ -132,10 +132,10 @@ public:
 	virtual double naturalAsc() const { return m_naturalAscent; }
 	virtual double naturalDecent() const { return m_naturalDecent; }
 
-public slots:
-	virtual void childChanged() { }
-signals:
-	void boxChanged();
+//public slots:
+//	virtual void childChanged() { }
+//signals:
+//	void boxChanged();
 
 protected:
 	BoxType m_type;

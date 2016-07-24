@@ -25,6 +25,7 @@ SET(SCRIBUS_TEXT_LIB_SOURCES
 	screenpainter.cpp
 	sctext_shared.cpp
 	shapedtext.cpp
+	shapedtextcache.cpp
 	shapedtextfeed.cpp
 	fsize.cpp
 	frect.cpp

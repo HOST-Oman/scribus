@@ -14,7 +14,10 @@
 
 #include "scribusapi.h"
 #include <cassert>
+#include <vector>
+#include <QList>
 
+typedef unsigned int uint;
 
 /**
  * Holds track of an ordered set of integers, e.g. positions of inline frames within a text.
@@ -167,7 +170,7 @@ public:
 	
 	bool isExactPosition(int pos) const
 	{
-		return pos == 0 || pos = exactPositionAfter(pos-1);
+		return pos == 0 || pos == exactPositionAfter(pos-1);
 	}
 	
 	
@@ -208,7 +211,7 @@ public:
 	{
 		if (!isExactPosition(pos + len))
 		{
-			insert(pos + len, this(pos + len));
+			insert(pos + len, (*this)(pos + len));
 		}
 		insert(pos, elem);
 		uint idx1 = offsets(pos) + 1;

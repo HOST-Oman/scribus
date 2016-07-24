@@ -166,7 +166,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	double wordExtra = 0;
 
 	TextShaper textShaper(this, itemText, firstChar, true);
-	QList<GlyphCluster> glyphRuns = textShaper.shape(itemText.length()).glyphs();
+	QList<GlyphCluster> glyphRuns = textShaper.shape(0, itemText.length()).glyphs();
 	if (glyphRuns.isEmpty())
 		return;
 

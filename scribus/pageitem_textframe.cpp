@@ -1252,6 +1252,37 @@ void PageItem_TextFrame::adjustParagraphEndings ()
 	}
 }
 
+
+
+void PageItem_TextFrame::layoutAll()
+{
+	layout();
+	PageItem_TextFrame * next = dynamic_cast<PageItem_TextFrame*>(NextBox);
+	if (next != NULL)
+	{
+		next->invalid = true;
+		next->firstChar = MaxChars;
+		if (itemText.cursorPosition() > signed(MaxChars))
+		{
+			int nCP = itemText.cursorPosition();
+			//			CPos = MaxChars;
+			if (m_Doc->appMode == modeEdit)
+			{
+			//							OwnPage->Deselect(true);
+				next->itemText.setCursorPosition( qMax(nCP, signed(MaxChars)) );
+			//							Doc->currentPage = NextBox->OwnPage;
+			//							NextBox->OwnPage->SelectItemNr(NextBox->ItemNr);
+			//				qDebug("textframe: len=%d, leaving relayout in editmode && Tinput", itemText.length());
+				return;
+			}
+		}
+		// relayout next frame
+		//		qDebug("textframe: len=%d, going to next", itemText.length());
+		next->layoutAll();
+	}
+}
+
+
 void PageItem_TextFrame::layout()
 {
 // 	qDebug()<<"==Layout==" << itemName() ;
@@ -1269,7 +1300,7 @@ void PageItem_TextFrame::layout()
 			prevInChain = dynamic_cast<PageItem_TextFrame*>(prevInChain->BackBox);
 		}
 		if (prevInChain && prevInChain->invalid)
-			prevInChain->layout();
+			prevInChain->layoutAll();
 		// #9592 : warning, BackBox->layout() may not layout BackBox next box
 		if (!invalid)
 			return;
@@ -1281,7 +1312,7 @@ void PageItem_TextFrame::layout()
 	if (invalid && BackBox == NULL)
 		firstChar = 0;
 
-//	qDebug() << QString("textframe(%1,%2): len=%3, start relayout at %4").arg(Xpos).arg(Ypos).arg(itemText.length()).arg(firstInFrame());
+//	qDebug() << QString("textframe(%1,%2): len=%3, start relayout at %4").arg(m_xPos).arg(m_yPos).arg(itemText.length()).arg(firstInFrame());
 	QPoint pt1, pt2;
 	QRect pt;
 	double chs, chsd = 0;
@@ -2937,9 +2968,16 @@ void PageItem_TextFrame::layout()
 
 NoRoom:
 	invalid = false;
-
+	
 	adjustParagraphEndings ();
 
+	PageItem_TextFrame * next = dynamic_cast<PageItem_TextFrame*>(NextBox);
+	if (next != NULL)
+	{
+		next->invalid = true;
+		next->firstChar = MaxChars;
+	}
+	
 	if (!isNoteFrame() && (!m_Doc->notesList().isEmpty() || m_Doc->notesChanged()))
 	{
 		UndoManager::instance()->setUndoEnabled(false);
@@ -2952,29 +2990,7 @@ NoRoom:
 		UndoManager::instance()->setUndoEnabled(true);
 	}
 
-	PageItem_TextFrame * next = dynamic_cast<PageItem_TextFrame*>(NextBox);
-	if (next != NULL)
-	{
-		next->invalid = true;
-		next->firstChar = MaxChars;
-		if (itemText.cursorPosition() > signed(MaxChars))
-		{
-			int nCP = itemText.cursorPosition();
-//			CPos = MaxChars;
-			if (m_Doc->appMode == modeEdit)
-			{
-				//							OwnPage->Deselect(true);
-				next->itemText.setCursorPosition( qMax(nCP, signed(MaxChars)) );
-				//							Doc->currentPage = NextBox->OwnPage;
-				//							NextBox->OwnPage->SelectItemNr(NextBox->ItemNr);
-//				qDebug("textframe: len=%d, leaving relayout in editmode && Tinput", itemText.length());
-				return;
-			}
-		}
-		// relayout next frame
-//		qDebug("textframe: len=%d, going to next", itemText.length());
-		next->layout();
-	}
+
 //	qDebug("textframe: len=%d, done relayout (no room %d)", itemText.length(), MaxChars);
 	itemText.blockSignals(false);
 }

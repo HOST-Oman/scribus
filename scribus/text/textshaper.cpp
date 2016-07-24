@@ -14,19 +14,17 @@
 #include "styles/paragraphstyle.h"
 
 
-TextShaper::TextShaper(ITextContext* context, ITextSource &story, int first, bool singlePar)
+TextShaper::TextShaper(ITextContext* context, ITextSource &story, int firstChar, bool singlePar)
 	: m_context(context)
 	, m_story(story)
-	, m_firstChar(first)
-	, m_endChar(first)
+	, m_firstChar(firstChar)
 	, m_singlePar(singlePar)
 { }
 
-TextShaper::TextShaper(ITextSource &story, int first)
+TextShaper::TextShaper(ITextSource &story, int firstChar)
 	: m_context(NULL)
 	, m_story(story)
-	, m_firstChar(first)
-	, m_endChar(m_story.length())
+	, m_firstChar(firstChar)
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
@@ -163,12 +161,15 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 	return newRuns;
 }
 
-void TextShaper::buildText(int toPos, QVector<int>& smallCaps)
+void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 {
-	if (toPos > m_story.length())
+	m_firstChar = fromPos;
+	m_text = "";
+	
+	if (toPos > m_story.length() || toPos < 0)
 		toPos = m_story.length();
 	
-	for (int i = m_firstChar; i < toPos; ++i)
+	for (int i = fromPos; i < toPos; ++i)
 	{
 		QString str = m_story.text(i,1);
 		
@@ -312,20 +313,19 @@ void TextShaper::buildText(int toPos, QVector<int>& smallCaps)
 
 		m_text.append(str);
 	}
-	m_endChar = toPos;
-	qDebug() << "build text len=" << m_text.length();
 }
 
-ShapedText TextShaper::shape(int toPos)
+
+ShapedText TextShaper::shape(int fromPos, int toPos)
 {
 	m_contextNeeded = false;
 	
-	ShapedText result(ShapedText(&m_story, m_endChar, toPos, m_context));
+	ShapedText result(ShapedText(&m_story, fromPos, toPos, m_context));
 	
 
 	QVector<int> smallCaps;
-	if (m_endChar < toPos)
-		buildText(toPos, smallCaps);
+
+	buildText(fromPos, toPos, smallCaps);
 
 	QList<TextRun> bidiRuns = itemizeBiDi();
 	QList<TextRun> scriptRuns = itemizeScripts(bidiRuns);
@@ -656,7 +656,6 @@ ShapedText TextShaper::shape(int toPos)
 
 	}
 
-	m_firstChar = m_endChar;
 	m_textMap.clear();
 	m_text = "";
 	result.needsContext(m_contextNeeded);

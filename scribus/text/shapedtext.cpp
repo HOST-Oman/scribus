@@ -25,15 +25,22 @@ public:
 	QList<GlyphCluster> m_glyphs;
 	
 	/** only possible if it also cleanly splits the textsource */
-	bool canSplit(int pos) const
+	bool canSplit(int charPos) const
 	{
-		return false; // TODO: implement
+		return splitPosition(charPos) >= 0;
 	}
 	
-	ShapedText split(int pos)
+	ShapedText split(int charPos)
 	{
-		// TODO: implement
-	}
+		int pos = splitPosition(charPos);
+		this->m_lastChar = charPos - 1;
+		this->m_glyphs.erase(this->m_glyphs.begin() + pos, this->m_glyphs.end());
+
+		ShapedTextImplementation* result = new ShapedTextImplementation(*this);
+		result->m_firstChar = charPos;
+		result->m_glyphs.erase(result->m_glyphs.begin(), result->m_glyphs.begin() + pos);
+		return ShapedText(result);
+}
 	
 	/** only possible if they are adjacent pieces of the same text source */
 	bool canCombine(const QSharedPointer<ShapedTextImplementation>  other) const
@@ -45,12 +52,34 @@ public:
 	{
 		// TODO: implement
 	}
+	
+private:
+	
+	int splitPosition(int charPos) const
+	{
+		int result = 0;
+		while (result < m_glyphs.count() && m_glyphs[result].lastChar() < charPos)
+			++result;
+		for (int check = result + 1; check < m_glyphs.count(); ++check)
+		{
+			if (m_glyphs[check].firstChar() < charPos)
+				return -1;
+		}
+		return result;
+	}
 };
 
 
 
+ShapedText ShapedText::Invalid = ShapedText(NULL);
+
+bool ShapedText::isValid() const
+{
+	return p_impl != NULL && p_impl->m_source != NULL;
+}
 
 
+ShapedText::ShapedText(ShapedTextImplementation* my_p_impl) : p_impl(my_p_impl) {}
 ShapedText::ShapedText(ITextSource* src, int firstChar, int lastChar, ITextContext* ctx) : p_impl(new ShapedTextImplementation(src,firstChar,lastChar,ctx)) {}
 ShapedText::ShapedText(const ShapedText& other) : p_impl(other.p_impl) {}
 	

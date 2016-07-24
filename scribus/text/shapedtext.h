@@ -28,9 +28,6 @@
 
 
 class ShapedTextImplementation;
-class ShapedTextCacheImplementation;
-class ShapedTextFeedImplementation;
-
 
 /**
  * This class holds the shaped glyphs for a range of characters. The glyphs are always in logical order.
@@ -38,10 +35,16 @@ class ShapedTextFeedImplementation;
 class ShapedText 
 {
     QSharedPointer<ShapedTextImplementation> p_impl;
+	ShapedText(ShapedTextImplementation* p_impl);
+	
+	friend class ShapedTextImplementation;
 
 public:
 	ShapedText(ITextSource* src, int firstChar, int lastChar, ITextContext* ctx = 0);
 	ShapedText(const ShapedText& other);
+	
+	static ShapedText Invalid;
+	bool isValid() const;
 	
 	bool needsContext() const;
 	void needsContext(bool);
@@ -55,23 +58,12 @@ public:
 	const QList<GlyphCluster>& glyphs() const;
 	QList<GlyphCluster>& glyphs();
 	
-	/** only possible if it also cleanly splits the textsource */
-	bool canSplit(int pos) const;
-	ShapedText split(int pos);
+	/** only possible if it also cleanly splits the textsource and glyphs */
+	bool canSplit(int charPos) const;
+	ShapedText split(int charPos);
 	/** only possible if they are adjacent pieces of the same text source */
 	bool canCombine(const ShapedText& other) const;
 	void combine(ShapedText& other);
-};
-
-
-class ShapedTextCache
-{
-	QSharedPointer<ShapedTextCacheImplementation> p_impl;
-	
-public:
-	bool contains(int charPos, uint len = 1) const;
-	const ShapedText* get(int charPos, uint minLen=1) const;
-	void put(const ShapedText& txt);
 };
 
 

@@ -38,6 +38,7 @@ pageitem.cpp  -  description
 #include "desaxe/saxiohelper.h"
 #include "desaxe/digester.h"
 #include "desaxe/simple_actions.h"
+#include "shapedtextcache.h"
 
 
 StoryText::StoryText(ScribusDoc * doc_) : m_doc(doc_)
@@ -52,6 +53,8 @@ StoryText::StoryText(ScribusDoc * doc_) : m_doc(doc_)
 	}
 	m_selFirst = 0;
 	m_selLast = -1;
+	
+	m_shapedTextCache = new ShapedTextCache();
 	
 //	m_firstFrameItem = 0;
 //	m_lastFrameItem = -1;

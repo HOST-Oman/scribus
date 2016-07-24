@@ -76,7 +76,6 @@ void GroupBox::render(ScreenPainter *p, ITextContext *ctx) const
 void GroupBox::addBox(const Box* box)
 {
 	boxes().append(const_cast<Box*>(box));
-	QObject::connect(box, SIGNAL(boxChanged()), this, SLOT(childChanged()));
 	update();
 }
 
@@ -107,7 +106,7 @@ void GroupBox::update()
 		}
 	}
 
-	emit boxChanged();
+//	emit boxChanged();
 }
 
 #if 0
@@ -336,7 +335,7 @@ void LineBox::update()
 		m_naturalDecent = qMin(m_naturalDecent, box->naturalDecent());
 	}
 
-	emit boxChanged();
+//	emit boxChanged();
 }
 
 #if 0
@@ -465,7 +464,7 @@ void PathLineBox::update()
 		m_lastChar = qMax(m_lastChar, box->lastChar());
 	}
 
-	emit boxChanged();
+//	emit boxChanged();
 }
 
 void PathLineBox::drawBackGround(TextLayoutPainter *p) const

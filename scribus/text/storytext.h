@@ -51,7 +51,7 @@ class PageItem;
 class ScribusDoc;
 class ScText_Shared;
 class ResourceCollection;
- 
+class ShapedTextCache;
 
 
 /**
@@ -253,6 +253,8 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
 
 // layout helpers
 
+	ShapedTextCache* shapedTextCache() { return m_shapedTextCache; }
+
 	LayoutFlags flags(int pos) const;
 	bool hasFlag(int pos, LayoutFlags flag) const;
 	void setFlag(int pos, LayoutFlags flag);
@@ -290,6 +292,8 @@ private:
 private:
 	ScribusDoc * m_doc; 
 	int m_selFirst, m_selLast;
+	ShapedTextCache* m_shapedTextCache;
+	
 	static BreakIterator* m_graphemeIterator;
 	static BreakIterator* m_wordIterator;
 	static BreakIterator* m_sentenceIterator;
