@@ -390,6 +390,8 @@ void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, i
 			{
 				ww++;
 			}
+			if (b.isSurrogate())
+				++a;
 			cc++;
 			Dat = b;
 			first = false;
@@ -410,6 +412,8 @@ void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, i
 			{
 				wwN++;
 			}
+			if (b.isSurrogate())
+				++a;
 			ccN++;
 			Dat = b;
 			first = false;
