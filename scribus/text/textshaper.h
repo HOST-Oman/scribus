@@ -7,18 +7,24 @@
 #include <QStringList>
 
 #include <unicode/uscript.h>
+#include "itextsource.h"
+#include "itextcontext.h"
+#include "shapedtext.h"
+
 
 class GlyphCluster;
 class StoryText;
 class PageItem;
 
+
+
 class TextShaper
 {
 public:
-	TextShaper(PageItem *item, StoryText &story, int first, bool singlePar=false);
-	TextShaper(StoryText &story, int first);
+	TextShaper(ITextContext* context, ITextSource& story, int firstChar, bool singlePar=false);
+	TextShaper(ITextSource &story, int firstChar);
 
-	QList<GlyphCluster> shape();
+	ShapedText shape(int fromPos, int toPos);
 
 private:
 	struct TextRun {
@@ -47,19 +53,20 @@ private:
 		QStringList features;
 	};
 
-	QString ExpandToken(int base);
-	void buildText(QVector<int>& smallCaps);
+//	QString ExpandToken(int base);
+	void buildText(int fromPos, int toPos, QVector<int>& smallCaps);
 	QList<TextRun> itemizeBiDi();
 	QList<TextRun> itemizeScripts(const QList<TextRun> &runs);
 	QList<TextRun> itemizeStyles(const QList<TextRun> &runs);
 
 	QList<FeaturesRun> itemizeFeatures(const TextRun &run);
 
-	PageItem *m_item;
-	StoryText &m_story;
-	int m_firstChar;
+	ITextContext* m_context;
+	bool m_contextNeeded;
+	ITextSource& m_story;
 	bool m_singlePar;
 	QString m_text;
+	int m_firstChar;
 	QMap<int, int> m_textMap;
 };
 

@@ -89,7 +89,7 @@ using namespace std;
 
 PageItem::PageItem(const PageItem & other)
 	: QObject(other.parent()),
-	 UndoObject(other), SingleObservable<PageItem>(other.m_Doc->itemsChanged()),
+	 UndoObject(other), SingleObservable<PageItem>(other.m_Doc->itemsChanged()), TextContext(this),
 
 // 200 attributes! That is madness, or to quote some famous people from Kriquet:
 // "THAT ALL HAS TO GO!"
@@ -388,7 +388,7 @@ PageItem::PageItem(const PageItem & other)
 
 PageItem::PageItem(ScribusDoc *pa, ItemType newType, double x, double y, double w, double h, double w2, QString fill, QString outline)
 	// Initialize superclass(es)
-	: QObject(pa), SingleObservable<PageItem>(pa->itemsChanged()),
+	: QObject(pa), SingleObservable<PageItem>(pa->itemsChanged()), TextContext(this),
 	// Initialize member variables
 	OverrideCompressionMethod(false),
 	CompressionMethodIndex(0),

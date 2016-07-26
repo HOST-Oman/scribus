@@ -30,6 +30,7 @@ pageitem.cpp  -  description
 #include <QList>
 #include <cassert>
 #include "unicode/brkiter.h"
+#include "itextsource.h"
 
 #include "marks.h"
 //#include "text/paragraphlayout.h"
@@ -50,7 +51,7 @@ class PageItem;
 class ScribusDoc;
 class ScText_Shared;
 class ResourceCollection;
- 
+class ShapedTextCache;
 
 
 /**
@@ -69,7 +70,7 @@ class ResourceCollection;
  * offsets to its basepoint. Other information in the ScriptItem is only
  * used by the layouter.
  */
-class SCRIBUS_API StoryText : public QObject, public SaxIO
+class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
 {
 	Q_OBJECT
 	
@@ -144,8 +145,16 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	// text editors
 	QString plainText() const;
 
+	// TextSource methods 
+
+	virtual bool isBlockStart(int pos) const; 
+	virtual int nextBlockStart(int pos) const;
+	virtual InlineFrame object(int pos) const;
+	virtual bool hasExpansionPoint(int pos) const;
+	virtual ExpansionPoint expansionPoint(int pos) const;
+
 	// Get char at current cursor position
-	QChar   text() const;
+//	QChar   text() const;
 	// Get char at specific position
  	QChar   text(int pos) const;
 	// Get text with len chars at specific position
@@ -154,10 +163,11 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 	QString sentence(int pos, int &posn);
 
 	bool hasObject(int pos) const;
- 	PageItem* object(int pos) const;
+ 	PageItem* getItem(int pos) const; // deprecated
     bool hasMark(int pos, Mark* mrk = NULL) const;
 	Mark *mark(int pos) const;
     void replaceMark(int pos, Mark* mrk);
+	void applyMarkCharstyle(Mark* mrk, CharStyle& currStyle) const;
 
 	bool isHighSurrogate(int pos) const;
 	bool isLowSurrogate(int pos) const;
@@ -246,6 +256,8 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO
 
 // layout helpers
 
+	ShapedTextCache* shapedTextCache() { return m_shapedTextCache; }
+
 	LayoutFlags flags(int pos) const;
 	bool hasFlag(int pos, LayoutFlags flag) const;
 	void setFlag(int pos, LayoutFlags flag);
@@ -283,6 +295,8 @@ private:
 private:
 	ScribusDoc * m_doc; 
 	int m_selFirst, m_selLast;
+	ShapedTextCache* m_shapedTextCache;
+	
 	static BreakIterator* m_graphemeIterator;
 	static BreakIterator* m_wordIterator;
 	static BreakIterator* m_sentenceIterator;

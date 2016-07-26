@@ -48,6 +48,7 @@ for which a new license (GPL+exception) is in place.
 #include "sctextstruct.h"
 #include "text/storytext.h"
 #include "text/textlayout.h"
+#include "text/textcontext.h"
 #include "undoobject.h"
 #include "vgradient.h"
 #include "mesh.h"
@@ -89,7 +90,7 @@ class PageItem_TextFrame;
 #define _unlink unlink
 #endif
 
-class SCRIBUS_API PageItem : public QObject, public UndoObject, public SaxIO, public SingleObservable<PageItem>
+class SCRIBUS_API PageItem : public QObject, public UndoObject, public SaxIO, public SingleObservable<PageItem>, public TextContext
 {
 	Q_OBJECT
 
@@ -455,6 +456,10 @@ public: // Start public functions
 	PageItem* nextInChain() { return NextBox; }
 	const PageItem* prevInChain() const { return BackBox; }
 	const PageItem* nextInChain() const { return NextBox; }
+	 //simplify conditions checking if frame is in chain
+        //FIX: use it in other places
+        bool isInChain() { return ((prevInChain() != NULL) || (nextInChain() != NULL)); }
+
 	//you can change all code for search first or last item in chain
 	PageItem* firstInChain();
 	PageItem* lastInChain();

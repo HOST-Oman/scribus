@@ -10,6 +10,15 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "scribusdoc.h"
 
+
+PageItem* InlineFrame::getPageItem(ScribusDoc* doc) const
+{
+	if (doc->FrameItems.contains(m_object_id))
+		return doc->FrameItems[m_object_id];
+	return NULL;
+}
+
+
 ScText::~ScText() 
 {
 	if (parstyle)

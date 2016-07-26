@@ -10,7 +10,7 @@ class GlyphCluster
 	const CharStyle* m_style;
 	LayoutFlags m_flags;
 	QList<GlyphLayout> m_glyphs;
-	PageItem* m_object;
+	InlineFrame m_object;
 	int m_firstChar;
 	int m_lastChar;
 	int m_visualIndex;
@@ -19,7 +19,7 @@ class GlyphCluster
 	QString m_str;
 
 public:
-	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, PageItem* o, int i, QString str);
+	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, const InlineFrame& o, int visualIdx, QString str);
 
 	void append(GlyphLayout&);
 
@@ -30,7 +30,7 @@ public:
 
 	QList<GlyphLayout>& glyphs();
 	const QList<GlyphLayout>& glyphs() const;
-	PageItem* object() const;
+	const InlineFrame& object() const;
 
 	int firstChar() const;
 	int lastChar() const;

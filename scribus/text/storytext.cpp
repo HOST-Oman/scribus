@@ -38,6 +38,7 @@ pageitem.cpp  -  description
 #include "desaxe/saxiohelper.h"
 #include "desaxe/digester.h"
 #include "desaxe/simple_actions.h"
+#include "shapedtextcache.h"
 
 
 StoryText::StoryText(ScribusDoc * doc_) : m_doc(doc_)
@@ -52,6 +53,8 @@ StoryText::StoryText(ScribusDoc * doc_) : m_doc(doc_)
 	}
 	m_selFirst = 0;
 	m_selLast = -1;
+	
+	m_shapedTextCache = new ShapedTextCache();
 	
 //	m_firstFrameItem = 0;
 //	m_lastFrameItem = -1;
@@ -812,11 +815,12 @@ QString StoryText::plainText() const
 
 	return result;
 }
-
+#if 0
 QChar StoryText::text() const
 {
 	return text(d->cursorPosition);
 }
+#endif
 
 QChar StoryText::text(int pos) const
 {
@@ -845,6 +849,59 @@ QString StoryText::text(int pos, uint len) const
 
 	return result;
 }
+
+
+bool StoryText::isBlockStart(int pos) const 
+{
+	return pos  == 0 || text(pos-1) == SpecialChars::PARSEP;
+}
+
+
+int StoryText::nextBlockStart(int pos) const
+{
+	int result = pos + 1;
+	while (result < length() && !isBlockStart(result))
+		++result;
+	
+	// lump empty (or small) paragraphs together
+	while (result+1 < length() && isBlockStart(result+1))
+		++result;
+	
+	return result;
+}
+
+
+InlineFrame StoryText::object(int pos) const
+{
+	  if (pos < 0)
+                pos += length();
+
+        assert(pos >= 0);
+        assert(pos < length());
+
+        StoryText* that = const_cast<StoryText *>(this);
+        return InlineFrame(that->d->at(pos)->embedded);
+}
+
+
+bool StoryText::hasExpansionPoint(int pos) const
+{
+	return text(pos) == SpecialChars::PAGENUMBER || text(pos) == SpecialChars::PAGECOUNT || hasMark(pos);
+}
+
+
+ExpansionPoint StoryText::expansionPoint(int pos) const
+{
+	if (text(pos) == SpecialChars::PAGENUMBER)
+		return ExpansionPoint(ExpansionPoint::PageNumber);
+	else if( text(pos) == SpecialChars::PAGECOUNT)
+		return ExpansionPoint(ExpansionPoint::PageCount);
+	else if (hasMark(pos))
+		return ExpansionPoint(mark(pos));
+	else
+		return ExpansionPoint(ExpansionPoint::Invalid);
+}
+
 
 QString StoryText::sentence(int pos, int &posn)
 {
@@ -890,7 +947,8 @@ bool StoryText::hasObject(int pos) const
 	return false;
 }
 
-PageItem* StoryText::object(int pos) const
+
+PageItem* StoryText::getItem(int pos) const
 {
 	if (pos < 0)
 		pos += length();
@@ -901,6 +959,7 @@ PageItem* StoryText::object(int pos) const
 	StoryText* that = const_cast<StoryText *>(this);
 	return that->d->at(pos)->getItem(m_doc);
 }
+
 
 bool StoryText::hasMark(int pos, Mark* mrk) const
 {
@@ -926,6 +985,47 @@ Mark* StoryText::mark(int pos) const
 
 	StoryText* that = const_cast<StoryText *>(this);
 	return that->d->at(pos)->mark;
+}
+
+
+void StoryText::applyMarkCharstyle(Mark* mrk, CharStyle& currStyle) const
+{
+	TextNote* note = mrk->getNotePtr();
+	if (note == NULL)
+		return;
+	
+	NotesStyle* nStyle = note->notesStyle();
+	Q_ASSERT(nStyle != NULL);
+	
+	QString chsName = nStyle->marksChStyle();
+	if (!chsName.isEmpty())
+	{
+		CharStyle marksStyle(m_doc->charStyle(chsName));
+		if (!currStyle.equiv(marksStyle))
+		{
+			currStyle.setParent(chsName);
+		}
+	}
+	
+	StyleFlag s(currStyle.effects());
+	if (mrk->isType(MARKNoteMasterType))
+	{
+		if (nStyle->isSuperscriptInMaster())
+			s |= ScStyle_Superscript;
+		else
+			s &= ~ScStyle_Superscript;
+	}
+	else
+	{
+		if (nStyle->isSuperscriptInNote())
+			s |= ScStyle_Superscript;
+		else
+			s &= ~ScStyle_Superscript;
+	}
+	if (s != currStyle.effects())
+	{
+		currStyle.setFeatures(s.featureList());
+	}
 }
 
 
@@ -1021,9 +1121,18 @@ const CharStyle & StoryText::charStyle(int pos) const
 		qDebug() << "storytext::charstyle: access at end of text %i" << pos;
 		--pos;
 	}
+	
 	if (text(pos) == SpecialChars::PARSEP)
 		return paragraphStyle(pos).charStyle();
+	
 	StoryText* that = const_cast<StoryText *>(this);
+
+	if (hasMark(pos))
+	{
+		Mark* mrk = mark(pos);
+		applyMarkCharstyle(mrk, *that->d->at(pos)); // hack to keep note charstyles current
+	}
+	
 	return dynamic_cast<const CharStyle &> (*that->d->at(pos));
 }
 
@@ -1284,7 +1393,7 @@ void StoryText::getNamedResources(ResourceCollection& lists) const
 		if (text(i) == SpecialChars::PARSEP)
 			paragraphStyle(i).getNamedResources(lists);
 		else if (hasObject(i))
-			object(i)->getNamedResources(lists);
+			getItem(i)->getNamedResources(lists);
 		else
 			charStyle(i).getNamedResources(lists);
 	}
@@ -1964,7 +2073,7 @@ void StoryText::saxx(SaxHandler& handler, const Xml_string& elemtag) const
 		}
 		else if (this->hasObject(i))
 		{
-			object(i)->saxx(handler);
+			getItem(i)->saxx(handler);
 		}
 		else if (hasMark(i))
 		{

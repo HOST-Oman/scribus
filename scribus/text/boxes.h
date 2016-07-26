@@ -12,6 +12,8 @@
 
 #include "glyphcluster.h"
 #include "sctextstruct.h"
+#include "itextcontext.h"
+
 
 class StoryText;
 class TextLayoutPainter;
@@ -108,6 +110,7 @@ public:
 
 	/// Sets the transformation matrix to applied to the box.
 	void setMatrix(QTransform x) { m_matrix = x; }
+
 	/// The transformation matrix applied to the box.
 	const QTransform& matrix() const { return m_matrix; }
 
@@ -123,16 +126,16 @@ public:
 	virtual void render(TextLayoutPainter *p) const = 0;
 
 	/// Same as render() but handles text selection, for rendering on screen.
-	virtual void render(ScreenPainter *p, PageItem *item) const = 0;
+	virtual void render(ScreenPainter *p, ITextContext *ctx) const = 0;
 
 	/// Get natural ascent and decent.
 	virtual double naturalAsc() const { return m_naturalAscent; }
 	virtual double naturalDecent() const { return m_naturalDecent; }
 
-public slots:
-	virtual void childChanged() { }
-signals:
-	void boxChanged();
+//public slots:
+//	virtual void childChanged() { }
+//signals:
+//	void boxChanged();
 
 protected:
 	BoxType m_type;
@@ -167,7 +170,7 @@ public:
 	QLineF positionToPoint(int pos, const StoryText& story) const;
 
 	void render(TextLayoutPainter *p) const;
-	void render(ScreenPainter *p, PageItem *item) const;
+	void render(ScreenPainter *p, ITextContext *ctx) const;
 
 	double naturalWidth() const { return m_naturalWidth; }
 	double naturalHeight() const { return m_naturalHeight; }
@@ -208,7 +211,7 @@ public:
 	bool containsPoint(QPointF coord) const;
 
 	void render(TextLayoutPainter *p) const;
-	void render(ScreenPainter *p, PageItem *item) const;
+	void render(ScreenPainter *p, ITextContext *ctx) const;
 
 	double naturalWidth() const { return m_naturalWidth; }
 	double naturalHeight() const { return height(); }
@@ -220,7 +223,7 @@ public:
 
 protected:
 	virtual void drawBackGround(TextLayoutPainter *p) const;
-	virtual void drawSelection(ScreenPainter *p, PageItem *item) const;
+	virtual void drawSelection(ScreenPainter *p, ITextContext *ctx) const;
 	virtual void update();
 };
 
@@ -256,7 +259,7 @@ public:
 	QLineF positionToPoint(int pos, const StoryText& story) const;
 
 	void render(TextLayoutPainter *p) const;
-	void render(ScreenPainter *p, PageItem *item) const;
+	void render(ScreenPainter *p, ITextContext *ctx) const;
 	GlyphCluster glyphRun() const { return m_glyphRun; }
 
 	const CharStyle& style() const { return m_glyphRun.style(); }
@@ -269,18 +272,18 @@ protected:
 class ObjectBox: public GlyphBox
 {
 public:
-	ObjectBox(const GlyphCluster& run)
+	ObjectBox(const GlyphCluster& run, ITextContext* ctx)
 		: GlyphBox(run)
-		, m_item(run.object())
+		, m_object(ctx->object(run.object()))
 	{
 		m_type = T_Object;
 	}
 
 	void render(TextLayoutPainter *p) const;
-	void render(ScreenPainter*, PageItem *item) const;
+	void render(ScreenPainter*, ITextContext *ctx) const;
 
 private:
-	PageItem* m_item;
+	/* const */ PageItem* m_object;
 };
 
 #endif // BOXES_H

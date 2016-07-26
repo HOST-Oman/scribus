@@ -15,17 +15,17 @@
 #include "util.h"
 
 
-TextShaper::TextShaper(PageItem *item, StoryText &story, int first, bool singlePar)
-	: m_item(item)
+TextShaper::TextShaper(ITextContext* context, ITextSource &story, int firstChar, bool singlePar)
+	: m_context(context)
 	, m_story(story)
-	, m_firstChar(first)
+	, m_firstChar(firstChar)
 	, m_singlePar(singlePar)
 { }
 
-TextShaper::TextShaper(StoryText &story, int first)
-	: m_item(NULL)
+TextShaper::TextShaper(ITextSource &story, int firstChar)
+	: m_context(NULL)
 	, m_story(story)
-	, m_firstChar(first)
+	, m_firstChar(firstChar)
 {
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
@@ -114,10 +114,9 @@ QList<TextShaper::FeaturesRun> TextShaper::itemizeFeatures(const TextRun &run)
 	while (start < run.start + run.len)
 	{
 		int end = start;
-		QStringList startFeatures;
+		QStringList startFeatures = m_story.charStyle(m_textMap.value(start)).fontFeatures().split(",");
 		while (end < run.start + run.len)
 		{
-			startFeatures = m_story.charStyle(m_textMap.value(start)).fontFeatures().split(",");
 			QStringList endFeatures = m_story.charStyle(m_textMap.value(end)).fontFeatures().split(",");
 			if (startFeatures != endFeatures)
 				break;
@@ -142,9 +141,9 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 		while (start < run.start + run.len)
 		{
 			int end = start;
+			const CharStyle &startStyle = m_story.charStyle(m_textMap.value(start));
 			while (end < run.start + run.len)
 			{
-				const CharStyle &startStyle = m_story.charStyle(m_textMap.value(start));
 				const CharStyle &endStyle = m_story.charStyle(m_textMap.value(end));
 				if (!startStyle.equivForShaping(endStyle))
 					break;
@@ -163,61 +162,71 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 	return newRuns;
 }
 
-QString TextShaper::ExpandToken(int base)
-{
-	int pageNum = m_item->OwnPage;
-	QChar ch = m_story.text(base);
-	QString chstr = m_story.text(base, 1);
-	if (ch == SpecialChars::PAGENUMBER)
-	{
-		// Compatibility mode: ignore subsequent pagenumber chars
-		if (base > 0 && m_story.text(base - 1) == SpecialChars::PAGENUMBER)
-			return "";
-		if (!m_item->doc()->masterPageMode() && pageNum != -1)
-		{
-			chstr = QString("%1").arg(m_item->doc()->getSectionPageNumberForPageIndex(pageNum),
-						  m_item->doc()->getSectionPageNumberWidthForPageIndex(pageNum),
-						  m_item->doc()->getSectionPageNumberFillCharForPageIndex(pageNum));
-		}
-		else
-			return "#";
-	}
-	else if (ch == SpecialChars::PAGECOUNT)
-	{
-		if (!m_item->doc()->masterPageMode())
-		{
-			int key = m_item->doc()->getSectionKeyForPageIndex(pageNum);
-			if (key == -1)
-				return "%";
-			NumFormat numType = m_item->doc()->sections()[key].type;
-			uint numPos = m_item->doc()->sections()[key].toindex - m_item->doc()->sections()[key].fromindex + 1;
-			chstr = getStringFromSequence(numType, numPos);
-		}
-		else
-			return "%";
-	}
-	else if (ch == SpecialChars::OBJECT)
-	{
-		// Check for marks.
-		Mark* mark = m_story.mark(base);
-		if ((mark != NULL) && !mark->isType(MARKAnchorType) && !mark->isType(MARKIndexType))
-			chstr = mark->getString();
-	}
+//QString TextShaper::ExpandToken(int base)
+//{
+//	int pageNum = m_item->OwnPage;
+//	QChar ch = m_story.text(base);
+//	QString chstr = m_story.text(base, 1);
+//	if (ch == SpecialChars::PAGENUMBER)
+//	{
+//		// Compatibility mode: ignore subsequent pagenumber chars
+//		if (base > 0 && m_story.text(base - 1) == SpecialChars::PAGENUMBER)
+//			return "";
+//		if (!m_item->doc()->masterPageMode() && pageNum != -1)
+//		{
+//			chstr = QString("%1").arg(m_item->doc()->getSectionPageNumberForPageIndex(pageNum),
+//						  m_item->doc()->getSectionPageNumberWidthForPageIndex(pageNum),
+//						  m_item->doc()->getSectionPageNumberFillCharForPageIndex(pageNum));
+//		}
+//		else
+//			return "#";
+//	}
+//	else if (ch == SpecialChars::PAGECOUNT)
+//	{
+//		if (!m_item->doc()->masterPageMode())
+//		{
+//			int key = m_item->doc()->getSectionKeyForPageIndex(pageNum);
+//			if (key == -1)
+//				return "%";
+//			NumFormat numType = m_item->doc()->sections()[key].type;
+//			uint numPos = m_item->doc()->sections()[key].toindex - m_item->doc()->sections()[key].fromindex + 1;
+//			chstr = getStringFromSequence(numType, numPos);
+//		}
+//		else
+//			return "%";
+//	}
+//	else if (ch == SpecialChars::OBJECT)
+//	{
+//		// Check for marks.
+//		Mark* mark = m_story.mark(base);
+//		if ((mark != NULL) && !mark->isType(MARKAnchorType) && !mark->isType(MARKIndexType))
+//			chstr = mark->getString();
+//	}
 
-	return chstr;
-}
+//	return chstr;
+//}
 
-void TextShaper::buildText(QVector<int>& smallCaps)
+
+void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 {
-	for (int i = m_firstChar; i < m_story.length(); ++i)
+	m_firstChar = fromPos;
+	m_text = "";
+	
+	if (toPos > m_story.length() || toPos < 0)
+		toPos = m_story.length();
+	
+	for (int i = fromPos; i < toPos; ++i)
 	{
+		QString str = m_story.text(i,1);
+		
 		if (m_singlePar)
 		{
-			QChar ch = m_story.text(i);
+			QChar ch = str[0];
 			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 				continue;
 		}
-#if 1 // FIXME HOST: review this insanity
+		
+#if 0 // FIXME HOST: review this insanity
 		Mark* mark = m_story.mark(i);
 		if ((mark != NULL) && (m_story.hasMark(i)))
 		{
@@ -308,16 +317,27 @@ void TextShaper::buildText(QVector<int>& smallCaps)
 			continue;
 		}
 #endif
-		QString str = ExpandToken(i);
-		if (str.isEmpty())
-			str = SpecialChars::ZWNBSPACE;
+//		QString str = ExpandToken(i);
+//		if (str.isEmpty())
+//			str = SpecialChars::ZWNBSPACE;
 
-		// FIXME: Hack to allow soft hyphen inside ligatures, should
-		// be removed once we properly handle hyphenating ligatures.
-		if (str.at(0) == SpecialChars::SHYPHEN)
+		if (m_story.hasExpansionPoint(i))
 		{
-			str = QString(SpecialChars::ZWNJ);
+			m_contextNeeded = true;
+			if (m_context != NULL)
+			{
+				str = m_context->expand(m_story.expansionPoint(i));
+				if (str.isEmpty())
+					str = SpecialChars::ZWNBSPACE;
+			}
+			else
+			{
+				str = SpecialChars::OBJECT;
+			}
 		}
+		
+		str.replace(SpecialChars::SHYPHEN, SpecialChars::ZWNJ);
+
 		const CharStyle &style = m_story.charStyle(i);
 		int effects = style.effects() & ScStyle_UserStyles;
 		bool hasSmallCap = false;
@@ -344,12 +364,17 @@ void TextShaper::buildText(QVector<int>& smallCaps)
 	}
 }
 
-QList<GlyphCluster> TextShaper::shape()
+
+ShapedText TextShaper::shape(int fromPos, int toPos)
 {
-	// maps expanded characters to itemText tokens.
+	m_contextNeeded = false;
+	
+	ShapedText result(ShapedText(&m_story, fromPos, toPos, m_context));
+	
+
 	QVector<int> smallCaps;
-	if (m_text.isEmpty())
-		buildText(smallCaps);
+
+	buildText(fromPos, toPos, smallCaps);
 
 	QList<TextRun> bidiRuns = itemizeBiDi();
 	QList<TextRun> scriptRuns = itemizeScripts(bidiRuns);
@@ -404,7 +429,6 @@ QList<GlyphCluster> TextShaper::shape()
 		}
 	}
 
-	QList<GlyphCluster> glyphRuns;
 	foreach (const TextRun& textRun, textRuns) {
 		const CharStyle &style = m_story.charStyle(m_textMap.value(textRun.start));
 
@@ -454,7 +478,7 @@ QList<GlyphCluster> TextShaper::shape()
 		hb_glyph_info_t *glyphs = hb_buffer_get_glyph_infos(hbBuffer, NULL);
 		hb_glyph_position_t *positions = hb_buffer_get_glyph_positions(hbBuffer, NULL);
 
-		glyphRuns.reserve(glyphRuns.size() + count);
+		result.glyphs().reserve(result.glyphs().size() + count);
 		for (size_t i = 0; i < count; )
 		{
 			uint32_t firstCluster = glyphs[i].cluster;
@@ -486,13 +510,14 @@ QList<GlyphCluster> TextShaper::shape()
 			assert(m_textMap.contains(nextCluster - 1));
 			int firstChar = m_textMap.value(firstCluster);
 			int lastChar = m_textMap.value(nextCluster - 1);
-
+			
 			QChar ch = m_story.text(firstChar);
 			LayoutFlags flags = m_story.flags(firstChar);
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 			const StyleFlag& effects = charStyle.effects();
+
 			QString str = m_text.mid(firstChar, lastChar-firstChar+1);
-			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), glyphRuns.length(), str);
+			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), result.glyphs().length(), str);
 
 			run.clearFlag(ScLayout_HyphenationPossible);
 			if (m_story.hasFlag(lastChar, ScLayout_HyphenationPossible))
@@ -541,43 +566,58 @@ QList<GlyphCluster> TextShaper::shape()
 					gl.yadvance = positions[i].y_advance / 10.0;
 				}
 
+#if 0
 				if (m_story.hasMark(firstChar))
 				{
 					GlyphLayout control;
 					control.glyph = SpecialChars::OBJECT.unicode() + ScFace::CONTROL_GLYPHS;
 					run.append(control);
 				}
-
+#endif
+				
 				if (SpecialChars::isExpandingSpace(ch))
 					gl.xadvance *= run.style().wordTracking();
 
 				if (m_story.hasObject(firstChar))
-					gl.xadvance = m_story.object(firstChar)->getVisualBoundingRect().width();
+				{
+					m_contextNeeded = true;
+					if (m_context != NULL)
+						gl.xadvance = m_context->getVisualBoundingBox(m_story.object(firstChar)).width();
+				}
 
 				if ((effects & ScStyle_Superscript) || (effects & ScStyle_Subscript))
 				{
-					double scale;
-					double asce = style.font().ascent(style.fontSize() / 10.0);
-					if (effects & ScStyle_Superscript)
+					m_contextNeeded = true;
+					if (m_context != NULL)
 					{
-						gl.yoffset -= asce * m_item->doc()->typographicPrefs().valueSuperScript / 100.0;
-						scale = qMax(m_item->doc()->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+						double scale;
+						double asce = style.font().ascent(style.fontSize() / 10.0);
+						if (effects & ScStyle_Superscript)
+						{
+							gl.yoffset -= asce * m_context->typographicPrefs().valueSuperScript / 100.0;
+							scale = qMax(m_context->typographicPrefs().scalingSuperScript / 100.0, 10.0 / style.fontSize());
+						}
+						else // effects & ScStyle_Subscript
+						{
+							gl.yoffset += asce * m_context->typographicPrefs().valueSubScript / 100.0;
+							scale = qMax(m_context->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
+						}
+						
+						run.setScaleH(run.scaleH() * scale);
+						run.setScaleV(run.scaleV() * scale);
 					}
-					else // effects & ScStyle_Subscript
-					{
-						gl.yoffset += asce * m_item->doc()->typographicPrefs().valueSubScript / 100.0;
-						scale = qMax(m_item->doc()->typographicPrefs().scalingSubScript / 100.0, 10.0 / style.fontSize());
-					}
-
-					run.setScaleH(run.scaleH() * scale);
-					run.setScaleV(run.scaleV() * scale);
 				}
 
 				if (smallCaps.contains(firstCluster))
 				{
-					double smallcapsScale = m_item->doc()->typographicPrefs().valueSmallCaps / 100.0;
-					run.setScaleH(run.scaleH() * smallcapsScale);
-					run.setScaleV(run.scaleV() * smallcapsScale);
+					m_contextNeeded = true;
+					if (m_context != NULL)
+					{
+						
+						double smallcapsScale = m_context->typographicPrefs().valueSmallCaps / 100.0;
+						run.setScaleH(run.scaleH() * smallcapsScale);
+						run.setScaleV(run.scaleV() * smallcapsScale);
+					}
 				}
 
 				if (run.scaleH() == 0.0)
@@ -660,11 +700,14 @@ QList<GlyphCluster> TextShaper::shape()
 				}
 			}
 
-			glyphRuns.append(run);
+			result.glyphs().append(run);
 		}
 		hb_buffer_destroy(hbBuffer);
 
 	}
 
-	return glyphRuns;
+	m_textMap.clear();
+	m_text = "";
+	result.needsContext(m_contextNeeded);
+	return result;
 }

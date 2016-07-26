@@ -71,11 +71,9 @@ public:
 	virtual void invalidateLayout(bool wholeChain);
 	using PageItem::invalidateLayout;
 	virtual void layout();
+	void layoutAll();
 	//return true if all previouse frames from chain are valid (including that one)
 	bool isValidChainFromBegin();
-	//simplify conditions checking if frame is in chain
-	//FIX: use it in other places
-	bool isInChain() { return ((prevInChain() != NULL) || (nextInChain() != NULL)); }
 	void setTextAnnotationOpen(bool open);
 
 	double columnWidth();
