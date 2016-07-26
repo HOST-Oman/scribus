@@ -39,7 +39,7 @@ bool ShapedTextFeed::haveMoreText(int glyphPos, QList<GlyphCluster>& glyphs)
 		if (more.glyphs().count() == 0)
 			break;
 //		qDebug() << "feed" << m_endChar << "-->" << more.lastChar() + 1;
-		m_endChar = more.lastChar() + 1;
+		m_endChar = more.lastChar();
 		int nOldGlyphs = glyphs.count();
 		glyphs.append(more.glyphs());
 		std::sort(glyphs.begin() + nOldGlyphs, glyphs.end(), logicalGlyphRunComp);
