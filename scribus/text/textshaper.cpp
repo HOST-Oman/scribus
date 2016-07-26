@@ -162,51 +162,6 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 	return newRuns;
 }
 
-//QString TextShaper::ExpandToken(int base)
-//{
-//	int pageNum = m_item->OwnPage;
-//	QChar ch = m_story.text(base);
-//	QString chstr = m_story.text(base, 1);
-//	if (ch == SpecialChars::PAGENUMBER)
-//	{
-//		// Compatibility mode: ignore subsequent pagenumber chars
-//		if (base > 0 && m_story.text(base - 1) == SpecialChars::PAGENUMBER)
-//			return "";
-//		if (!m_item->doc()->masterPageMode() && pageNum != -1)
-//		{
-//			chstr = QString("%1").arg(m_item->doc()->getSectionPageNumberForPageIndex(pageNum),
-//						  m_item->doc()->getSectionPageNumberWidthForPageIndex(pageNum),
-//						  m_item->doc()->getSectionPageNumberFillCharForPageIndex(pageNum));
-//		}
-//		else
-//			return "#";
-//	}
-//	else if (ch == SpecialChars::PAGECOUNT)
-//	{
-//		if (!m_item->doc()->masterPageMode())
-//		{
-//			int key = m_item->doc()->getSectionKeyForPageIndex(pageNum);
-//			if (key == -1)
-//				return "%";
-//			NumFormat numType = m_item->doc()->sections()[key].type;
-//			uint numPos = m_item->doc()->sections()[key].toindex - m_item->doc()->sections()[key].fromindex + 1;
-//			chstr = getStringFromSequence(numType, numPos);
-//		}
-//		else
-//			return "%";
-//	}
-//	else if (ch == SpecialChars::OBJECT)
-//	{
-//		// Check for marks.
-//		Mark* mark = m_story.mark(base);
-//		if ((mark != NULL) && !mark->isType(MARKAnchorType) && !mark->isType(MARKIndexType))
-//			chstr = mark->getString();
-//	}
-
-//	return chstr;
-//}
-
-
 void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 {
 	m_firstChar = fromPos;
@@ -317,10 +272,6 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 			continue;
 		}
 #endif
-//		QString str = ExpandToken(i);
-//		if (str.isEmpty())
-//			str = SpecialChars::ZWNBSPACE;
-
 		if (m_story.hasExpansionPoint(i))
 		{
 			m_contextNeeded = true;
