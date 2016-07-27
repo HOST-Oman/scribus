@@ -126,8 +126,8 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		{
 			outline = m_item->doc()->symTab.copy();
 			chma4.translate(gc.width() - fontSize() * 0.7, -fontSize() * gc.scaleV() * 0.5);
-            if(gc.hasFlag(ScLayout_RightToLeft))
-                    flipHorizontal(chma4);
+			if(gc.hasFlag(ScLayout_RightToLeft))
+				flipHorizontal(chma4);
 		}
 		else if (gid == SpecialChars::COLBREAK.unicode())
 		{
@@ -143,15 +143,15 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		{
 			outline = m_item->doc()->symReturn.copy();
 			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.8);
-            if(gc.hasFlag(ScLayout_RightToLeft))
-                    flipHorizontal(chma4);
+			if(gc.hasFlag(ScLayout_RightToLeft))
+				flipHorizontal(chma4);
 		}
 		else if (gid == SpecialChars::LINEBREAK.unicode())
 		{
 			outline = m_item->doc()->symNewLine.copy();
 			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.4);
-            if(gc.hasFlag(ScLayout_RightToLeft))
-                    flipHorizontal(chma4);
+			if(gc.hasFlag(ScLayout_RightToLeft))
+				flipHorizontal(chma4);
 		}
 		else if (gid == SpecialChars::NBSPACE.unicode() || gid == 32)
 		{
@@ -186,7 +186,7 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 			outline.addQuadPoint(1, -10, 1, -10, 0, -10, 0, -10);
 		}
 		chma.scale(gc.scaleH() * fontSize() / 10.0, gc.scaleV() * fontSize() / 10.0);
-        outline.map(chma*chma4);
+		outline.map(chma * chma4);
 		m_painter->setupPolygon(&outline, true);
 		QColor oldBrush = m_painter->brush();
 		m_painter->setBrush(gc.hasFlag(ScLayout_SuppressSpace) ? Qt::green
@@ -194,7 +194,7 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		m_painter->setBrush(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
 		if (stroke)
 		{
-            QColor tmp = m_painter->pen();
+			QColor tmp = m_painter->pen();
 			m_painter->setStrokeMode(1);
 			m_painter->setPen(m_painter->brush(), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			m_painter->setLineWidth(fontSize() * gc.scaleV() / 20.0);
