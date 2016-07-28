@@ -1258,3 +1258,26 @@ QChar cjkDigit(uint i)
 	}
 	return QChar::Null;
 }
+
+void flipHorizontal(QTransform &transform)
+{
+
+    // Get the current transform
+
+    qreal m11 = transform.m11();    // Horizontal scaling
+    qreal m12 = transform.m12();    // Vertical shearing
+    qreal m13 = transform.m13();    // Horizontal Projection
+    qreal m21 = transform.m21();    // Horizontal shearing
+    qreal m22 = transform.m22();    // vertical scaling
+    qreal m23 = transform.m23();    // Vertical Projection
+    qreal m31 = transform.m31();    // Horizontal Position (DX)
+    qreal m32 = transform.m32();    // Vertical Position (DY)
+    qreal m33 = transform.m33();    // Addtional Projection Factor
+
+    // flip Horizontal axis
+    m11 = -m11;
+
+    // Write back to the matrix
+    transform.setMatrix(m11, m12, m13, m21, m22, m23, m31, m32, m33);
+
+}
