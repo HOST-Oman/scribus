@@ -126,8 +126,8 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		{
 			outline = m_item->doc()->symTab.copy();
 			chma4.translate(gc.width() - fontSize() * 0.7, -fontSize() * gc.scaleV() * 0.5);
-			if(gc.hasFlag(ScLayout_RightToLeft))
-				flipHorizontal(chma4);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::COLBREAK.unicode())
 		{
@@ -143,15 +143,15 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		{
 			outline = m_item->doc()->symReturn.copy();
 			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.8);
-			if(gc.hasFlag(ScLayout_RightToLeft))
-				flipHorizontal(chma4);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::LINEBREAK.unicode())
 		{
 			outline = m_item->doc()->symNewLine.copy();
 			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.4);
-			if(gc.hasFlag(ScLayout_RightToLeft))
-				flipHorizontal(chma4);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::NBSPACE.unicode() || gid == 32)
 		{

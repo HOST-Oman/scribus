@@ -156,7 +156,4 @@ void SCRIBUS_API setWidgetBoldFont(QWidget* w, bool wantBold);
 */
 void SCRIBUS_API getUniqueName(QString &name, QStringList list, QString separator = "", bool prepend = false);
 
-/*This is a small function to filp QTransform x-axis. It is used only to flip the SpecialChars in screenpainter to get right-to-left version of it. */
-void flipHorizontal(QTransform &transform);
-
 #endif
