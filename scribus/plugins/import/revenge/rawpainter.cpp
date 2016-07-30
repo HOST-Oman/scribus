@@ -2990,10 +2990,10 @@ void RawPainter::startTextObject(const ::WPXPropertyList &propList, const ::WPXP
 		applyShadow(ite);
 		if (rot != 0)
 		{
-			int rm = m_Doc->setRotationMode();
-			m_Doc->setRotationMode(2);
-			m_Doc->rotateItem(rot, ite);
-			m_Doc->setRotationMode(rm);
+                    int rm = m_Doc->rotationMode();
+                    m_Doc->setRotationMode(2);
+                    m_Doc->rotateItem(rot, ite);
+                    m_Doc->setRotationMode(rm);
 		}
 		if (propList["draw-mirror-horizontal"])
 			ite->flipImageH();
