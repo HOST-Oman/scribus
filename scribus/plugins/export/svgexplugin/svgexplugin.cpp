@@ -1161,9 +1161,10 @@ public:
 	{
 		if (gc.isControlGlyphs())
 			return;
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			QTransform transform = matrix();
-			transform.translate(x() + gl.xoffset, y() - (fontSize() * gc.scaleV()) + gl.yoffset);
+			transform.translate(x() + gl.xoffset + current_x, y() - (fontSize() * gc.scaleV()) + gl.yoffset);
 			transform.scale(gc.scaleH() * fontSize() / 10.0, gc.scaleV() * fontSize() / 10.0);
 			QDomElement glyph = m_svg->docu.createElement("use");
 			glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
@@ -1172,6 +1173,7 @@ public:
 			QString stroke = "stroke:none;";
 			glyph.setAttribute("style", fill + stroke);
 			m_elem.appendChild(glyph);
+			current_x += gl.xadvance;
 		}
 
 	}
@@ -1179,9 +1181,10 @@ public:
 	{
 		if (gc.isControlGlyphs())
 			return;
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			QTransform transform = matrix();
-			transform.translate(x() + gl.xoffset, y() - (fontSize() * gc.scaleV()) + gl.yoffset);
+			transform.translate(x() + gl.xoffset + current_x, y() - (fontSize() * gc.scaleV()) + gl.yoffset);
 			transform.scale(gc.scaleH() * fontSize() / 10.0, gc.scaleV() * fontSize() / 10.0);
 			QDomElement glyph = m_svg->docu.createElement("use");
 			glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
@@ -1193,6 +1196,7 @@ public:
 			stroke += " stroke-width:" + m_svg->FToStr(strokeWidth() / (gc.scaleV() * fontSize() / 10.0)) + ";";
 			glyph.setAttribute("style", fill + stroke);
 			m_elem.appendChild(glyph);
+			current_x += gl.xadvance;
 		}
 
 	}

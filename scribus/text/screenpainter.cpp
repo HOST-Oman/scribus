@@ -81,14 +81,12 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		cairo_set_font_face(cr, m_cairoFace);
 		cairo_set_font_size(cr, fontSize());
 
-		for (int i = 0; i < gc.glyphs().count(); ++i)
-		{
-			const GlyphLayout& gl = gc.glyphs()[i];
-			if (i != 0 && gl.xadvance != gc.width())
-				m_painter->translate(gl.xadvance, 0);
+		double current_x = 0.0;
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			cairo_scale(cr, gl.scaleH, gl.scaleV);
-			cairo_glyph_t glyph = { gl.glyph, gl.xoffset, gl.yoffset };
+			cairo_glyph_t glyph = { gl.glyph, gl.xoffset + current_x, gl.yoffset };
 			cairo_show_glyphs(cr, &glyph, 1);
+			current_x += gl.xadvance;
 		}
 		m_painter->restore();
 		return;
@@ -240,9 +238,10 @@ void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 	m_painter->setFillRule(false);
 
 	setupState(false);
+	double current_x = 0.0;
 	foreach (const GlyphLayout& gl, gc.glyphs()) {
 		m_painter->save();
-		m_painter->translate(gl.xoffset, - (fontSize() * gl.scaleV) + gl.yoffset );
+		m_painter->translate(gl.xoffset + current_x, - (fontSize() * gl.scaleV) + gl.yoffset );
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		double scaleHv = gl.scaleH * fontSize() / 10.0;
 		double scaleVv = gl.scaleV * fontSize() / 10.0;
@@ -256,6 +255,7 @@ void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 			m_painter->strokePath();
 		}
 		m_painter->restore();
+		current_x += gl.xadvance;
 	}
 
 	m_painter->setFillRule(fr);
