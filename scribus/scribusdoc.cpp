@@ -762,6 +762,8 @@ ScribusDoc::~ScribusDoc()
 		delete m_serializer;
 	if (m_tserializer)
 		delete m_tserializer;
+        if (m_docUpdater)
+            delete m_docUpdater;
 	if (!m_docPrefsData.docSetupPrefs.AutoSaveKeep)
 	{
 		if (autoSaveFiles.count() != 0)

@@ -58,6 +58,8 @@ CharSelect::CharSelect(QWidget* parent) : ScrPaletteBase(parent, "CharSelect"), 
 
 CharSelect::~CharSelect()
 {
+    if (m_unicodeSearchModel)
+        delete m_unicodeSearchModel;
 }
 
 void CharSelect::setDoc(ScribusDoc* doc)
