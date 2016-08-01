@@ -241,8 +241,6 @@ ScribusView::~ScribusView()
 		m_canvasMode->deactivate(false);
 		m_canvasMode = m_canvasMode->delegate();
 	}
-	delete m_canvasMode;
-
 }
 
 void ScribusView::changeEvent(QEvent *e)
@@ -497,7 +495,6 @@ void ScribusView::requestMode(int appMode)
 			m_canvasMode->activate(false);
 		}
 		updateNecessary = true;
-		delete newCanvasMode;
 	}
 	else
 	{
