@@ -48,8 +48,8 @@ void RunIndex::remove (uint idx)
 
 void RunIndex::adjust(int pos, int delta)
 {
-	int idx = search(pos);
-	for (int i=idx; i < runEnds.size(); ++i)
+	uint idx = search(pos);
+	for (uint i = idx; i < runEnds.size(); ++i)
 	{
 		runEnds[i] += delta;
 	}

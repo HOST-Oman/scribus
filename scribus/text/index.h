@@ -163,50 +163,42 @@ public:
 	{
 		return elems.at(idx);
 	}
-	
-	
+
 	int count() const { return elems.size(); }
 
-	
 	bool isExactPosition(int pos) const
 	{
 		return pos == 0 || pos == exactPositionAfter(pos-1);
 	}
-	
-	
+
 	int exactPositionBefore(int pos) const
 	{
 		return offsets.runStart(offsets(pos));
 	}
-	
-	
+
 	int exactPositionAfter(int pos) const
 	{
 		return offsets.runEnd(offsets(pos));
 	}
-	
-	
+
 	void removeAt(uint idx)
 	{
 		elems.removeAt(idx);
 		offsets.remove(idx);
 	}
-	
-	
-	bool remove(int pos)
+
+	void remove(int pos)
 	{
 		uint idx = offsets(pos);
 		removeAt(idx);
 	}
-	
-	
+
 	void insert(int pos, const T& elem)
 	{
 		uint idx = offsets.insert(pos);
 		elems.insert(idx, elem);
 	}
 
-	
 	void replace(int pos, uint len, const T& elem)
 	{
 		if (!isExactPosition(pos + len))
@@ -216,19 +208,17 @@ public:
 		insert(pos, elem);
 		uint idx1 = offsets(pos) + 1;
 		uint idx2 = offsets(pos + len);
-		for (int i = idx1; i < idx2; ++i)
+		for (uint i = idx1; i < idx2; ++i)
 		{
 			removeAt(idx1);
 		}
 	}
-	
-	
+
 	void clear()
 	{
 		offsets.clear();
 		elems.clear();
 	}
-	
 };
 
 #endif

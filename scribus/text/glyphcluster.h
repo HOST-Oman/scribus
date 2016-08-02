@@ -7,17 +7,6 @@
 
 class GlyphCluster
 {
-	const CharStyle* m_style;
-	LayoutFlags m_flags;
-	QList<GlyphLayout> m_glyphs;
-	InlineFrame m_object;
-	int m_firstChar;
-	int m_lastChar;
-	int m_visualIndex;
-	double m_scaleH;
-	double m_scaleV;
-	QString m_str;
-
 public:
 	GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, const InlineFrame& o, int visualIdx, QString str);
 
@@ -56,6 +45,17 @@ public:
 	double extraWidth;
 	double xoffset;
 	double yoffset;
+private:
+	const CharStyle* m_style;
+	LayoutFlags m_flags;
+	QList<GlyphLayout> m_glyphs;
+	InlineFrame m_object;
+	int m_firstChar;
+	int m_lastChar;
+	int m_visualIndex;
+	double m_scaleH;
+	double m_scaleV;
+	QString m_str;
 };
 
 #endif // GLYPHRUN_H
