@@ -108,7 +108,13 @@ ModeToolBar::ModeToolBar(ScribusMainWindow* parent) : ScToolBar( tr("Tools"), "T
 	languageChange();
 	connect(autoFormButtonGroup, SIGNAL(FormSel(int, int, qreal *)), this, SLOT(SelShape(int, int, qreal *)));
 	connect(Angle, SIGNAL(valueChanged(double)), this, SLOT(newCalValues()));
-	connect(PWidth, SIGNAL(valueChanged(double)), this, SLOT(newCalValues()));
+        connect(PWidth, SIGNAL(valueChanged(double)), this, SLOT(newCalValues()));
+}
+
+ModeToolBar::~ModeToolBar()
+{
+    delete calValAct;
+    delete calPop;
 }
 
 void ModeToolBar::newCalValues()

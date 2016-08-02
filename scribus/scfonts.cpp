@@ -826,7 +826,7 @@ bool SCFonts::AddScalableFont(QString filename, FT_Library &library, QString Doc
 					t = ScFace(new ScFace_ttf(fam, sty, "", ts, qpsName, filename, faceIndex, features));
 					t.m_m->formatCode = ScFace::TTCF;
 					t.m_m->typeCode = ScFace::TTF;
-					//getSFontType(face, t.m->typeCode);
+					getSFontType(face, t.m_m->typeCode);
 					if (t.type() == ScFace::OTF) 
 					{
 						t.subset(true);
@@ -979,7 +979,8 @@ void SCFonts::AddFontconfigFonts()
 	FcObjectSet* os = FcObjectSetBuild (FC_FILE, (char *) 0);
 	// Now ask fontconfig to retrieve info as specified in 'os' about fonts
 	// matching pattern 'pat'.
-	FcFontSet* fs = FcFontList(config, pat, os);
+        FcFontSet* fs = FcFontList(config, pat, os);
+        FcConfigDestroy(config);
 	FcObjectSetDestroy(os);
 	FcPatternDestroy(pat);
 	// Create the Freetype library
@@ -1002,6 +1003,8 @@ void SCFonts::AddFontconfigFonts()
 				sDebug(QObject::tr("Failed to load a font - freetype2 couldn't find the font file"));
 	}
 	FT_Done_FreeType(library);
+        if (fs)
+            FcFontSetDestroy(fs);
 }
 
 #elif defined(Q_OS_LINUX)

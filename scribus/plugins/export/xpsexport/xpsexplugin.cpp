@@ -838,11 +838,13 @@ public:
 		glyph.setAttribute("UnicodeString", gc.getText());
 		QString gcMap = QString("(%1:%2)").arg(gc.getText().size()).arg(gc.glyphs().size());
 		QString indices;
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			indices += QString("%1,%2,%3,%4;").arg(gl.glyph)
-					.arg((gl.xadvance * m_xps->conversionFactor) / size * 100)
+					.arg(((gl.xadvance + current_x) * m_xps->conversionFactor) / size * 100)
 					.arg((-gl.xoffset * m_xps->conversionFactor) / size * 100)
 					.arg((-gl.yoffset * m_xps->conversionFactor) / size * 100);
+			current_x += gl.xadvance;
 		}
 		indices.chop(1);
 		glyph.setAttribute("Indices", QString("%1%2").arg(gcMap).arg(indices));
@@ -853,6 +855,7 @@ public:
 	{
 		if (gc.isControlGlyphs())
 			return;
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			FPointArray outline = font().glyphOutline(gl.glyph);
 			if (outline.size() >= 4)
@@ -860,7 +863,7 @@ public:
 				QTransform transform = matrix();
 				transform.scale((fontSize() * gc.scaleH()) / 10.0, (fontSize() * gc.scaleV()) / 10.0);
 				outline.map(transform);
-				outline.translate(gl.xoffset, -(fontSize() * gl.scaleV) + gl.yoffset);
+				outline.translate(gl.xoffset + current_x, -(fontSize() * gl.scaleV) + gl.yoffset);
 				outline.translate(x(), y());
 				outline.scale(m_xps->conversionFactor, m_xps->conversionFactor);
 				QString pathData = m_xps->SetClipPath(&outline, true);
@@ -875,6 +878,7 @@ public:
 				m_group.appendChild(glyph);
 				qDebug() << "StrokeWidth XPS" << strokeWidth();
 			}
+			current_x += gl.xadvance;
 		}
 	}
 

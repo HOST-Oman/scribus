@@ -981,9 +981,10 @@ public:
 		m_painter->setFillMode(1);
 
 		setupState();
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			m_painter->save();
-			m_painter->translate(gl.xoffset, -(fontSize() * gl.scaleV) + gl.yoffset);
+			m_painter->translate(gl.xoffset + current_x, -(fontSize() * gl.scaleV) + gl.yoffset);
 			FPointArray outline = font().glyphOutline(gl.glyph);
 			double scaleH = gc.scaleH() * fontSize() / 10.0;
 			double scaleV = gc.scaleV() * fontSize() / 10.0;
@@ -992,6 +993,7 @@ public:
 			if (outline.size() > 3)
 				m_painter->fillPath();
 			m_painter->restore();
+			current_x += gl.xadvance;
 		}
 
 		m_painter->setFillMode(fm);
@@ -1012,9 +1014,10 @@ public:
 		m_painter->setFillRule(false);
 
 		setupState();
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			m_painter->save();
-			m_painter->translate(gl.xoffset, -(fontSize() * gc.scaleV()) + gl.yoffset);
+			m_painter->translate(gl.xoffset + current_x, -(fontSize() * gc.scaleV()) + gl.yoffset);
 
 			FPointArray outline = font().glyphOutline(gl.glyph);
 			double scaleH = gc.scaleH() * fontSize() / 10.0;
@@ -1027,6 +1030,7 @@ public:
 				m_painter->strokePath();
 			}
 			m_painter->restore();
+			current_x += gl.xadvance;
 		}
 
 		m_painter->setFillRule(fr);

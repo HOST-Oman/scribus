@@ -108,6 +108,7 @@ void PSPainter::drawGlyph(const GlyphCluster& gc)
 	m_ps->PS_save();
 	applyTransform();
 	m_ps->PS_translate(x(), -(y() - fontSize()));
+	double current_x = 0.0;
 	foreach (const GlyphLayout& gl, gc.glyphs()) {
 		m_ps->PS_save();
 		if (gc.scaleH() != 1.0)
@@ -116,12 +117,13 @@ void PSPainter::drawGlyph(const GlyphCluster& gc)
 		{
 			m_ps->PS_scale(1, gc.scaleV());
 		}
-		m_ps->PS_translate(gl.xoffset, -(fontSize() - fontSize() * gc.scaleV()) - gl.yoffset);
+		m_ps->PS_translate(gl.xoffset + current_x, -(fontSize() - fontSize() * gc.scaleV()) - gl.yoffset);
 
 		if (fillColor().color != CommonStrings::None)
 			m_ps->putColorNoDraw(fillColor().color, fillColor().shade);
 		m_ps->PS_showSub(gl.glyph, m_ps->FontSubsetMap[font().scName()], fontSize(), false);
 		m_ps->PS_restore();
+		current_x += gl.xadvance;
 	}
 	m_ps->PS_restore();
 }
@@ -142,13 +144,14 @@ void PSPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 		m_ps->PS_setcapjoin(Qt::FlatCap, Qt::MiterJoin);
 		m_ps->PS_setdash(Qt::SolidLine, 0, dum);
 		m_ps->PS_translate(x(), -(y() - fontSize()));
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			m_ps->PS_save();
 			FPointArray gly = font().glyphOutline(gl.glyph);
 			QTransform chma;
 			chma.scale((fontSize() * gc.scaleH()) / 10.0, (fontSize() * gc.scaleV()) / 10.0);
 			gly.map(chma);
-			m_ps->PS_translate(gl.xoffset, -(fontSize() - fontSize() * gc.scaleV()) - gl.yoffset);
+			m_ps->PS_translate(gl.xoffset + current_x, -(fontSize() - fontSize() * gc.scaleV()) - gl.yoffset);
 			if (gc.scaleH() != 1.0 || gc.scaleV() != 1.0)
 				m_ps->PS_scale(gc.scaleH(), gc.scaleV());
 			if (fill)
@@ -160,6 +163,7 @@ void PSPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 			m_ps->PS_closepath();
 			m_ps->putColor(strokeColor().color, strokeColor().shade, false);
 			m_ps->PS_restore();
+			current_x += gl.xadvance;
 		}
 	}
 	m_ps->PS_restore();

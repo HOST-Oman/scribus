@@ -22,6 +22,7 @@ for which a new license (GPL+exception) is in place.
 #include <QString>
 #include <QStringList>
 #include <QVector>
+#include <QTransform>
 
 #include "pagestructs.h"
 #include "scribusapi.h"
@@ -154,4 +155,5 @@ void SCRIBUS_API setWidgetBoldFont(QWidget* w, bool wantBold);
  * if exist then seprator and numbers are pre/append to name while it will be unique
 */
 void SCRIBUS_API getUniqueName(QString &name, QStringList list, QString separator = "", bool prepend = false);
+
 #endif

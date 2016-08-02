@@ -204,7 +204,17 @@ ColorListBox::ColorListBox(QWidget * parent)
 		sortRule = 0;
 	initialized = 12345;
 	setItemDelegate(new ColorWideItemDelegate());
-	connect(this, SIGNAL(showContextMenue()), this, SLOT(slotRightClick()));
+        connect(this, SIGNAL(showContextMenue()), this, SLOT(slotRightClick()));
+}
+
+ColorListBox::~ColorListBox()
+{
+    int count = this->count();
+    for(int index = 0; index < count; index++)
+        delete this->item(index);
+    if (itemDelegate())
+        delete itemDelegate();
+    clear();
 }
 
 void ColorListBox::changeEvent(QEvent *e)
@@ -324,7 +334,7 @@ void ColorListBox::addItem(QString text)
 	{
 		QListWidgetItem* item = this->item(count() - 1);
 		item->setData(Qt::UserRole, CommonStrings::None);
-	}
+        }
 }
 
 void ColorListBox::insertSmallPixmapItems(ColorList& list)

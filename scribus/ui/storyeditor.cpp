@@ -1590,6 +1590,7 @@ StoryEditor::StoryEditor(QWidget* parent) : QMainWindow(parent, Qt::Window), // 
 StoryEditor::~StoryEditor()
 {
 	savePrefs();
+        delete StoryEd2Layout;
 }
 
 void StoryEditor::showEvent(QShowEvent *)

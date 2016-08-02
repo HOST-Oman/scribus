@@ -16,6 +16,7 @@
 #include "scribusdoc.h"
 #include "prefsmanager.h"
 #include "scribusapp.h"
+#include "util.h"
 
 ScreenPainter::ScreenPainter(ScPainter *p, PageItem *item)
 	: m_painter(p)
@@ -79,10 +80,13 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 
 		cairo_set_font_face(cr, m_cairoFace);
 		cairo_set_font_size(cr, fontSize());
+
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			cairo_scale(cr, gl.scaleH, gl.scaleV);
-			cairo_glyph_t glyph = { gl.glyph, gl.xoffset, gl.yoffset };
+			cairo_glyph_t glyph = { gl.glyph, gl.xoffset + current_x, gl.yoffset };
 			cairo_show_glyphs(cr, &glyph, 1);
+			current_x += gl.xadvance;
 		}
 		m_painter->restore();
 		return;
@@ -125,6 +129,8 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		{
 			outline = m_item->doc()->symTab.copy();
 			chma4.translate(gc.width() - fontSize() * 0.7, -fontSize() * gc.scaleV() * 0.5);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::COLBREAK.unicode())
 		{
@@ -140,11 +146,15 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		{
 			outline = m_item->doc()->symReturn.copy();
 			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.8);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::LINEBREAK.unicode())
 		{
 			outline = m_item->doc()->symNewLine.copy();
 			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.4);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::NBSPACE.unicode() || gid == 32)
 		{
@@ -228,9 +238,10 @@ void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 	m_painter->setFillRule(false);
 
 	setupState(false);
+	double current_x = 0.0;
 	foreach (const GlyphLayout& gl, gc.glyphs()) {
 		m_painter->save();
-		m_painter->translate(gl.xoffset, - (fontSize() * gl.scaleV) + gl.yoffset );
+		m_painter->translate(gl.xoffset + current_x, - (fontSize() * gl.scaleV) + gl.yoffset );
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		double scaleHv = gl.scaleH * fontSize() / 10.0;
 		double scaleVv = gl.scaleV * fontSize() / 10.0;
@@ -244,6 +255,7 @@ void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 			m_painter->strokePath();
 		}
 		m_painter->restore();
+		current_x += gl.xadvance;
 	}
 
 	m_painter->setFillRule(fr);

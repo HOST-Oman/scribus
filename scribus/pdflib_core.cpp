@@ -141,6 +141,7 @@ public:
 
 	void drawGlyph(const GlyphCluster& gc)
 	{
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			if (gc.isControlGlyphs() || gc.isEmpty())
 				return;
@@ -162,7 +163,7 @@ public:
 
 				m_pathBuffer += "q\n";
 				m_pathBuffer += transformToStr(transform) + " cm\n";
-				m_pathBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " " + FToStr(x() + gl.xoffset) + " " + FToStr((y() - fontSize() + gl.yoffset) * -1) + " cm\n";
+				m_pathBuffer += FToStr(fontSize()) + " 0 0 " + FToStr(fontSize()) + " " + FToStr(x() + gl.xoffset + current_x) + " " + FToStr((y() - fontSize() + gl.yoffset) * -1) + " cm\n";
 
 				if (gl.scaleV != 1.0)
 					m_pathBuffer += "1 0 0 1 0 " + FToStr(((fontSize() - fontSize() * gl.scaleV) / fontSize()) * -1) + " cm\n";
@@ -208,7 +209,7 @@ public:
 
 				m_glyphBuffer += "0 Tr\n";
 
-				transform.translate(x() + gl.xoffset , y() + gl.yoffset);
+				transform.translate(x() + gl.xoffset + current_x , y() + gl.yoffset);
 				transform.scale(qMax(gl.scaleH, 0.1), qMax(gl.scaleV, 0.1));
 				m_glyphBuffer += transformToStr(transform) + " Tm\n";
 
@@ -228,11 +229,13 @@ public:
 					}
 				}
 			}
+		 current_x += gl.xadvance;
 		}
 	}
 
 	void drawGlyphOutline(const GlyphCluster& gc, bool fill)
 	{
+		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
 			if (gc.isControlGlyphs() || gc.isEmpty())
 				return;
@@ -347,7 +350,7 @@ public:
 					m_pathBuffer += FToStr(strokeWidth()) + " w\n[] 0 d\n0 J\n0 j\n";
 
 					transform.scale(fontSize(), fontSize());
-					transform.translate(x() + gl.xoffset, y() + gl.yoffset);
+					transform.translate(x() + gl.xoffset + current_x, y() + gl.yoffset);
 					if (gc.scaleV() != 1.0)
 						transform.translate(0, ((fontSize() - fontSize() * gc.scaleV()) / fontSize()) * -1);
 					transform.scale(qMax(gc.scaleH(), 0.1), qMax(gc.scaleV(), 0.1));
@@ -398,7 +401,7 @@ public:
 						m_glyphBuffer += "1 Tr\n";
 				}
 
-				transform.translate(x() + gl.xoffset, y() + gl.yoffset);
+				transform.translate(x() + gl.xoffset + current_x, y() + gl.yoffset);
 				transform.scale(qMax(gc.scaleH(), 0.1), qMax(gc.scaleV(), 0.1));
 				m_glyphBuffer += transformToStr(transform) + " Tm\n";
 
@@ -417,6 +420,7 @@ public:
 					}
 				}
 			}
+			current_x += gl.xadvance;
 		}
 	}
 
