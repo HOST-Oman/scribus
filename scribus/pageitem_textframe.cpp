@@ -1659,7 +1659,7 @@ void PageItem_TextFrame::layout()
 				//text height, width, ascent and descent should be calculated for whole text provided by ScText in current position
 				//and that may be more than one char (variable text for example)
 				double realCharHeight = 0.0, realCharAscent = 0.0;
-				foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs()) {
+				foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs()) {
 					GlyphMetrics gm = font.glyphBBox(gl.glyph);
 					realCharHeight = qMax(realCharHeight, gm.ascent + gm.descent);
 					realCharAscent = qMax(realCharAscent, gm.ascent);
@@ -1737,7 +1737,7 @@ void PageItem_TextFrame::layout()
 				{
 					double realCharHeight = 0.0;
 					wide = 0.0; realAsce = 0.0;
-					foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs()) {
+					foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs()) {
 						GlyphMetrics gm;
 						gm = font.glyphBBox(gl.glyph, charStyle.fontSize() / 10.0);
 						realCharHeight = qMax(realCharHeight, gm.ascent + gm.descent);
@@ -1774,7 +1774,7 @@ void PageItem_TextFrame::layout()
 				{
 					if (itemText.text(a) != SpecialChars::OBJECT)
 					{
-						foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
+						foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs())
 						{
 							GlyphMetrics gm = font.glyphBBox(gl.glyph, hlcsize10);
 							realDesc = qMax(realDesc, gm.descent * scaleV - offset);
@@ -1798,7 +1798,7 @@ void PageItem_TextFrame::layout()
 						realAsce = asce * scaleV + offset;
 					else
 					{
-						foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
+						foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs())
 							realAsce = qMax(realAsce, font.glyphBBox(gl.glyph, hlcsize10).ascent * scaleV + offset);
 					}
 				}
@@ -2191,7 +2191,7 @@ void PageItem_TextFrame::layout()
 			if (DropCmode)
 			{
 				double yoffset = 0.0;
-				foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
+				foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs())
 					yoffset = qMax(yoffset, font.glyphBBox(gl.glyph, chsd / 10.0).descent);
 				current.glyphs[currentIndex].yoffset -= yoffset;
 			}
