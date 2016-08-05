@@ -1436,7 +1436,7 @@ void PageItem_TextFrame::layout()
 		// find start of first line
 		if (firstInFrame() < itLen)
 		{
-			CharStyle cstyle = itemText.charStyle(firstInFrame());
+			const CharStyle& cstyle = itemText.charStyle(firstInFrame());
 			style = itemText.paragraphStyle(firstInFrame());
 			style.setLineSpacing (calculateLineSpacing (style, this));
 
