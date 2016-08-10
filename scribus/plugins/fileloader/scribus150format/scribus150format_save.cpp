@@ -81,8 +81,14 @@ QString Scribus150Format::saveElements(double xp, double yp, double wp, double h
 				uint chr = currItem->itemText.text(e).unicode();
 				if (chr == 25)
 				{
-                    if ((currItem->itemText.hasObject(e)) && (!emF.contains(currItem->itemText.object(e))))
-                        emF.append(currItem->itemText.object(e));
+		                    if ((currItem->itemText.hasObject(e)))
+				    {
+					PageItem* pi = currItem->itemText.object(e).getPageItem(currItem->doc());
+					if (!emF.contains(pi))
+					{
+       			                     emF.append(pi);
+					}
+				    }
 				}
 			}
 		}
@@ -1639,14 +1645,14 @@ void Scribus150Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Pag
 			lastPos = k;
 		}
 
-		if (ch == SpecialChars::OBJECT && item->itemText.object(k) != NULL) 
+		if (ch == SpecialChars::OBJECT && item->itemText.object(k).getPageItem(doc) != NULL) 
 		{
 			// each obj in its own ITEXT for now
 			docu.writeEmptyElement("ITEXT");
 			putCStyle(docu, lastStyle);
 			tmpnum.setNum(ch.unicode());
 			docu.writeAttribute("Unicode", tmpnum);
-			docu.writeAttribute("COBJ", item->itemText.object(k)->inlineCharID);
+			docu.writeAttribute("COBJ", item->itemText.object(k).getInlineCharID());
 		}
 		else if (ch == SpecialChars::OBJECT && item->itemText.hasMark(k))
 		{

@@ -4643,7 +4643,7 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 				story.setCharStyle(0, txtList[a].count(), style);
 
 				TextShaper textShaper(story, 0);
-				QList<GlyphCluster> glyphRuns = textShaper.shape();
+				QList<GlyphCluster> glyphRuns = textShaper.shape(0, story.length()).glyphs();
 
 				foreach (const GlyphCluster &run, glyphRuns)
 				{
@@ -16422,7 +16422,7 @@ void ScribusDoc::checkItemForFrames(PageItem *it, int fIndex)
 	{
 		if (it->itemText.hasObject(e))
 		{
-			if (it->itemText.object(e)->inlineCharID == fIndex)
+			if (it->itemText.object(e).getInlineCharID() == fIndex)
 				deleteList.prepend(e);
 		}
 	}

@@ -168,7 +168,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 	double wordExtra = 0;
 
 	TextShaper textShaper(this, itemText, firstChar, true);
-	QList<GlyphCluster> glyphRuns = textShaper.shape();
+	QList<GlyphCluster> glyphRuns = textShaper.shape(0, itemText.length()).glyphs();
 	if (glyphRuns.isEmpty())
 		return;
 
@@ -279,10 +279,10 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		linebox->setAscent(ascent);
 		linebox->setDescent(descent);
 		Box* box;
-		if (run.object())
+		if (run.object().getPageItem(m_Doc))
 		{
-			box = new ObjectBox(run);
-			box->setAscent(run.object()->height() - run.object()->lineWidth());
+			box = new ObjectBox(run, this);
+			box->setAscent(this->getVisualBoundingBox(run.object()).height());
 			box->setDescent(0);
 		}
 		else

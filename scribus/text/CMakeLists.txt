@@ -15,13 +15,18 @@ SET(SCRIBUS_TEXT_MOC_CLASSES
 )
 
 SET(SCRIBUS_TEXT_LIB_SOURCES
+	index.cpp
 	specialchars.cpp
 	storytext.cpp
 	textlayout.cpp
 	textlayoutpainter.cpp
 	textshaper.cpp
+	textcontext.cpp
 	screenpainter.cpp
 	sctext_shared.cpp
+	shapedtext.cpp
+	shapedtextcache.cpp
+	shapedtextfeed.cpp
 	fsize.cpp
 	frect.cpp
 	boxes.cpp
