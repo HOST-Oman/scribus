@@ -115,6 +115,7 @@ void Scribus150Format::registerFormats()
 	fmt.mimeTypes.append("application/x-scribus");
 	fmt.fileExtensions = QStringList() << "sla" << "sla.gz" << "scd" << "scd.gz";
 	fmt.priority = 64;
+	fmt.nativeScribus = true;
 	registerFormat(fmt);
 }
 
@@ -1592,12 +1593,12 @@ bool Scribus150Format::loadFile(const QString & fileName, const FileFormat & /* 
 	for (it = bookmarks.begin(); it != bookmarks.end(); ++it)
 	{
 		int elem = it.key();
-		if (elem < m_Doc->Items->count())
-		{
-			ScribusDoc::BookMa bookmark = it.value();
-			bookmark.PageObject = m_Doc->Items->at(elem);
-			m_Doc->BookMarks.append( bookmark );
-		}
+		PageItem* item = LinkID.value(elem, (PageItem*) 0);
+		if (!item)
+			continue;
+		ScribusDoc::BookMa bookmark = it.value();
+		bookmark.PageObject = item;
+		m_Doc->BookMarks.append( bookmark );
 	}
 
 	if (isNewFormat)
@@ -1802,6 +1803,8 @@ bool Scribus150Format::loadFile(const QString & fileName, const FileFormat & /* 
 	m_Doc->refreshGuides();
 
 	// #12282 : some docs have language dependent style names specified in style properties
+	// #14129 : some others reference deleted character styles
+	m_Doc->fixCharacterStyles();
 	m_Doc->fixParagraphStyles();
 	m_Doc->fixNotesStyles();
 
@@ -2036,26 +2039,20 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, ScXmlStreamAttributes&
 	m_Doc->PageSpa = attrs.valueAsDouble("ABSTSPALTEN");
 	m_Doc->setUnitIndex( attrs.valueAsInt("UNITS", 0) );
 
-	//m_Doc->setHyphLanguage(attrs.valueAsString("LANGUAGE", "en_US"));
 	static const QString LANGUAGE("LANGUAGE");
 	if (attrs.hasAttribute(LANGUAGE))
 	{
 		QString l(attrs.valueAsString(LANGUAGE));
-		if (LanguageManager::instance()->langTableIndex(l)!=-1)
+		if (LanguageManager::instance()->langTableIndex(l) != -1)
 			m_Doc->setLanguage(l); //new style storage
 		else
 		{ //old style storage
-			QString lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
+			QString lnew = LanguageManager::instance()->getAbbrevFromLang(l, true);
 			if (lnew.isEmpty())
-				lnew=LanguageManager::instance()->getAbbrevFromLang(l, false);
+				lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
 			m_Doc->setLanguage(lnew);
 		}
 	}
-
-
-
-//	m_Doc->setHyphMinimumWordLength(attrs.valueAsInt("MINWORDLEN", 3));
-//	m_Doc->setHyphConsecutiveLines(attrs.valueAsInt("HYCOUNT", 2));
 
 	if (attrs.hasAttribute("PAGEWIDTH"))
 		m_Doc->setPageWidth(attrs.valueAsDouble("PAGEWIDTH"));
@@ -5760,7 +5757,7 @@ bool Scribus150Format::readItemTableCell(PageItem_Table* item, ScXmlStreamReader
 		item->cellAt(row, col).setBottomPadding(tAtt.valueAsDouble("BottomPadding", 0.0));
 
 		PageItem* newItem = item->cellAt(row, col).textFrame();
-		newItem->Cols   = tAtt.valueAsInt("TextColums", 1);
+		newItem->Cols   = tAtt.valueAsInt("TextColumns", 1);
 		newItem->ColGap = tAtt.valueAsDouble("TextColGap", 0.0);
 		newItem->setTextToFrameDist(tAtt.valueAsDouble("TextDistLeft", 0.0),
 							tAtt.valueAsDouble("TextDistRight", 0.0),
@@ -6278,12 +6275,12 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 	for (it = bookmarks.begin(); it != bookmarks.end(); ++it)
 	{
 		int elem = it.key();
-		if (elem < m_Doc->Items->count())
-		{
-			ScribusDoc::BookMa bookmark = it.value();
-			bookmark.PageObject = LinkID[elem];
-			m_Doc->BookMarks.append( bookmark );
-		}
+		PageItem* item = LinkID.value(elem, (PageItem*) 0);
+		if (!item)
+			continue;
+		ScribusDoc::BookMa bookmark = it.value();
+		bookmark.PageObject = item;
+		m_Doc->BookMarks.append( bookmark );
 	}
 
 	if (isNewFormat)

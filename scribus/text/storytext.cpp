@@ -194,31 +194,44 @@ int StoryText::normalizedCursorPosition()
 	return (int) qMax((uint) 0, qMin(d->cursorPosition, d->len));
 }
 
-void StoryText::moveCursorLeft(bool isGrapheme)
+void StoryText::moveCursorForward()
 {
-	if (isGrapheme)
-	{
-		BreakIterator* it = getGraphemeIterator();
-		if (!it)
-			return;
+	BreakIterator* it = getGraphemeIterator();
+	if (!it)
+		return;
 
-		it->setText(plainText().utf16());
-		int pos = cursorPosition();
-		if (paragraphStyle().direction() == ParagraphStyle::RTL)
-			pos = it->following(pos);
-		else
-			pos = it->preceding(pos);
+	it->setText(plainText().utf16());
+	int pos = it->following(cursorPosition());
+	if (pos != BreakIterator::DONE)
+		setCursorPosition(pos);
+}
 
-		if (pos != BreakIterator::DONE)
-			setCursorPosition(pos);
-	}
+void StoryText::moveCursorBackward()
+{
+	BreakIterator* it = getGraphemeIterator();
+	if (!it)
+		return;
+
+	it->setText(plainText().utf16());
+	int pos = it->preceding(cursorPosition());
+	if (pos != BreakIterator::DONE)
+		setCursorPosition(pos);
+}
+
+void StoryText::moveCursorLeft()
+{
+	if (paragraphStyle().direction() == ParagraphStyle::RTL)
+		moveCursorForward();
 	else
-	{
-		if (paragraphStyle().direction() == ParagraphStyle::RTL)
-			setCursorPosition(1, true);
-		else
-			setCursorPosition(-1, true);
-	}
+		moveCursorBackward();
+}
+
+void StoryText::moveCursorRight()
+{
+	if (paragraphStyle().direction() == ParagraphStyle::RTL)
+		moveCursorBackward();
+	else
+		moveCursorForward();
 }
 
 void StoryText::moveCursorWordLeft()
@@ -244,33 +257,6 @@ void StoryText::moveCursorWordLeft()
 
 	if (pos != BreakIterator::DONE)
 		setCursorPosition(pos);
-}
-
-void StoryText::moveCursorRight(bool isGrapheme)
-{
-	if (isGrapheme)
-	{
-		BreakIterator* it = getGraphemeIterator();
-		if (!it)
-			return;
-
-		it->setText(plainText().utf16());
-		int pos = cursorPosition();
-		if (paragraphStyle().direction() == ParagraphStyle::RTL)
-			pos = it->preceding(pos);
-		else
-			pos = it->following(pos);
-
-		if (pos != BreakIterator::DONE)
-			setCursorPosition(pos);
-	}
-	else
-	{
-		if (paragraphStyle().direction() == ParagraphStyle::RTL)
-			setCursorPosition(-1, true);
-		else
-			setCursorPosition(1, true);
-	}
 }
 
 void StoryText::moveCursorWordRight()

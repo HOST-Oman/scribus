@@ -1590,6 +1590,7 @@ StoryEditor::StoryEditor(QWidget* parent) : QMainWindow(parent, Qt::Window), // 
 StoryEditor::~StoryEditor()
 {
 	savePrefs();
+        delete StoryEd2Layout;
 }
 
 void StoryEditor::showEvent(QShowEvent *)
@@ -3373,7 +3374,7 @@ void StoryEditor::LoadTextFile()
 		QString fileName = "";
 		PrefsContext* dirs = prefsManager->prefsFile->getContext("dirs");
 		QString wdir = dirs->get("story_load", prefsManager->documentDir());
-		CustomFDialog dia(this, wdir, tr("Open"), tr("Text Files (*.txt);;All Files (*)"), fdExistingFiles | fdShowCodecs);
+		CustomFDialog dia(this, wdir, tr("Open"), tr("Text Files (*.txt);;All Files (*)"), fdExistingFiles | fdShowCodecs | fdDisableOk);
 		if (dia.exec() != QDialog::Accepted)
 			return;
 		LoadEnc = dia.TxCodeM->currentText();

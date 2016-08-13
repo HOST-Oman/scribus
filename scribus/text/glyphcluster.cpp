@@ -1,6 +1,6 @@
 #include "glyphcluster.h"
 
-GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, const InlineFrame& o, int i)
+GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first, int last, const InlineFrame& o, int i, QString str)
 	: m_style(style)
 	, m_flags(flags)
 	, m_object(o)
@@ -12,6 +12,7 @@ GlyphCluster::GlyphCluster(const CharStyle* style, LayoutFlags flags, int first,
 	, extraWidth(0.0)
 	, xoffset(0.0)
 	, yoffset(0.0)
+	, m_str(str)
 {}
 
 void GlyphCluster::append(GlyphLayout& gl)
@@ -139,4 +140,44 @@ void GlyphCluster::setScaleV(double s)
 		GlyphLayout& gl = m_glyphs[i];
 		gl.scaleV = m_scaleV;
 	}
+}
+
+bool GlyphCluster::isEmpty() const
+{
+	if (m_glyphs.size() == 1 && m_glyphs.first().glyph == 0)
+		return true;
+	else
+		return false;
+}
+
+bool GlyphCluster::isControlGlyphs() const
+{
+	if (m_glyphs.size() == 1 && m_glyphs.first().glyph >= ScFace::CONTROL_GLYPHS)
+		return true;
+	else
+		return false;
+}
+
+bool GlyphCluster::isSpace() const
+{
+	if (m_glyphs.size() == 1 &&
+			(hasFlag(ScLayout_ExpandingSpace) || hasFlag(ScLayout_FixedSpace) || hasFlag(ScLayout_ImplicitSpace)))
+		return true;
+	else
+		return false;
+}
+
+QVector<FPointArray> GlyphCluster::glyphClusterOutline() const
+{
+	QVector<FPointArray> outline;
+	const ScFace& face = m_style->font();
+	foreach (const GlyphLayout& gl, m_glyphs) {
+		outline.append(face.glyphOutline(gl.glyph));
+	}
+	return outline;
+}
+
+QString GlyphCluster::getText() const
+{
+	return m_str;
 }

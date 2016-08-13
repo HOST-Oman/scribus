@@ -4,7 +4,7 @@ to the COPYING file provided with the program. Following this notice may exist
 a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
-#include "propertywidget_opentypefontfeatures.h"
+#include "propertywidget_fontfeatures.h"
 #include "appmodes.h"
 #include "pageitem_table.h"
 #include "iconmanager.h"
@@ -12,7 +12,7 @@ for which a new license (GPL+exception) is in place.
 #include "scribusdoc.h"
 #include "selection.h"
 
-PropertyWidget_OpenTypeFontFeatures::PropertyWidget_OpenTypeFontFeatures(QWidget* parent) : QFrame(parent)
+PropertyWidget_FontFeatures::PropertyWidget_FontFeatures(QWidget* parent) : QFrame(parent)
 {
 	m_item = NULL;
 	m_ScMW = NULL;
@@ -24,12 +24,12 @@ PropertyWidget_OpenTypeFontFeatures::PropertyWidget_OpenTypeFontFeatures(QWidget
 	languageChange();
 }
 
-void PropertyWidget_OpenTypeFontFeatures::setMainWindow(ScribusMainWindow *mw)
+void PropertyWidget_FontFeatures::setMainWindow(ScribusMainWindow *mw)
 {
 	m_ScMW = mw;
 }
 
-void PropertyWidget_OpenTypeFontFeatures::changeEvent(QEvent *e)
+void PropertyWidget_FontFeatures::changeEvent(QEvent *e)
 {
 	if (e->type() == QEvent::LanguageChange)
 	{
@@ -39,7 +39,7 @@ void PropertyWidget_OpenTypeFontFeatures::changeEvent(QEvent *e)
 	QWidget::changeEvent(e);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::languageChange()
+void PropertyWidget_FontFeatures::languageChange()
 {
 	CommonCheck->setChecked(true);
 	NormalCaRadio->setChecked(true);
@@ -88,10 +88,11 @@ void PropertyWidget_OpenTypeFontFeatures::languageChange()
 	StyleSet20->setChecked(false);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
+void PropertyWidget_FontFeatures::showFontFeatures(QString s, QStringList availableFeatures)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
+	enableFeatures(availableFeatures);
 	QStringList fontFeatures = s.split(',');
 	ContextualCheck->setChecked(true);
 	CommonCheck->setChecked(true);
@@ -180,7 +181,7 @@ void PropertyWidget_OpenTypeFontFeatures::showFontFeatures(QString s)
 	}
 }
 
-void PropertyWidget_OpenTypeFontFeatures::handlefontfeatures()
+void PropertyWidget_FontFeatures::handlefontfeatures()
 {
 	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -282,7 +283,7 @@ void PropertyWidget_OpenTypeFontFeatures::handlefontfeatures()
 	m_doc->itemSelection_SetFontFeatures(font_feature.join(","), &tempSelection);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::setDoc(ScribusDoc *d)
+void PropertyWidget_FontFeatures::setDoc(ScribusDoc *d)
 {
 	if((d == (ScribusDoc*) m_doc) || (m_ScMW && m_ScMW->scriptIsRunning()))
 		return;
@@ -306,7 +307,7 @@ void PropertyWidget_OpenTypeFontFeatures::setDoc(ScribusDoc *d)
 	connect(m_doc             , SIGNAL(docChanged())      , this, SLOT(handleSelectionChanged()));
 }
 
-void PropertyWidget_OpenTypeFontFeatures::handleSelectionChanged()
+void PropertyWidget_FontFeatures::handleSelectionChanged()
 {
 	if (!m_doc || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -317,23 +318,23 @@ void PropertyWidget_OpenTypeFontFeatures::handleSelectionChanged()
 	repaint();
 }
 
-void PropertyWidget_OpenTypeFontFeatures::updateCharStyle(const CharStyle& charStyle)
+void PropertyWidget_FontFeatures::updateCharStyle(const CharStyle& charStyle)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
-	showFontFeatures(charStyle.fontFeatures());
+	showFontFeatures(charStyle.fontFeatures(), charStyle.font().fontFeatures());
 }
 
-void PropertyWidget_OpenTypeFontFeatures::updateStyle(const ParagraphStyle& newCurrent)
+void PropertyWidget_FontFeatures::updateStyle(const ParagraphStyle& newCurrent)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 
 	const CharStyle& charStyle = newCurrent.charStyle();
-	showFontFeatures(charStyle.fontFeatures());
+	showFontFeatures(charStyle.fontFeatures(), charStyle.font().fontFeatures());
 }
 
-void PropertyWidget_OpenTypeFontFeatures::connectSignals()
+void PropertyWidget_FontFeatures::connectSignals()
 {
 	connect(ContextualCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	connect(CommonCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
@@ -382,7 +383,7 @@ void PropertyWidget_OpenTypeFontFeatures::connectSignals()
 	connect(StyleSet20, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 }
 
-void PropertyWidget_OpenTypeFontFeatures::disconnectSignals()
+void PropertyWidget_FontFeatures::disconnectSignals()
 {
 	disconnect(ContextualCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 	disconnect(CommonCheck, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
@@ -431,7 +432,276 @@ void PropertyWidget_OpenTypeFontFeatures::disconnectSignals()
 	disconnect(StyleSet20, SIGNAL(clicked()), this, SLOT(handlefontfeatures()));
 }
 
-void PropertyWidget_OpenTypeFontFeatures::configureWidgets(void)
+void PropertyWidget_FontFeatures::disableAllFeatures()
+{
+	ContextualCheck->hide();
+	CommonCheck->hide();
+	DiscretinoryCheck->hide();
+	HistoricalCheck->hide();
+	line->hide();
+
+	NormalCaRadio->hide();
+	SmallRadio->hide();
+	SmallFromCRadio->hide();
+	PetiteRadio->hide();
+	PetiteCapRadio->hide();
+	UnicaseRadio->hide();
+	TiltingRadio->hide();
+	line_3->hide();
+
+	DefaultStyleRadio->hide();
+	LininRadio->hide();
+	OldStyleRadio->hide();
+	line_5->hide();
+
+	DefaultWidthRadio->hide();
+	ProportionalRadio->hide();
+	TabularRadio->hide();
+	line_2->hide();
+
+	DefaultFractionsRadio->hide();
+	DiagonalRadio->hide();
+	StackedRadio->hide();
+	line_4->hide();
+
+	NormalRadio->hide();
+	SubscriptRadio->hide();
+	SuperscriptRaido->hide();
+	OrdinalCheck->hide();
+	line_6->hide();
+
+	SlashedZeroCheck->hide();
+	line_7->hide();
+
+	StyleSet01->hide();
+	StyleSet02->hide();
+	StyleSet03->hide();
+	StyleSet04->hide();
+	StyleSet05->hide();
+	StyleSet06->hide();
+	StyleSet07->hide();
+	StyleSet08->hide();
+	StyleSet09->hide();
+	StyleSet10->hide();
+	StyleSet11->hide();
+	StyleSet12->hide();
+	StyleSet13->hide();
+	StyleSet14->hide();
+	StyleSet15->hide();
+	StyleSet16->hide();
+	StyleSet17->hide();
+	StyleSet18->hide();
+	StyleSet19->hide();
+	StyleSet20->hide();
+	groupBox_7->hide();
+}
+
+void PropertyWidget_FontFeatures::enableFeatures(QStringList fontFeatures)
+{
+	disableAllFeatures();
+	line->show();
+	line_2->show();
+	line_3->show();
+	line_4->show();
+	line_5->show();
+	line_6->show();
+	line_7->show();
+
+	NormalCaRadio->show();
+	DefaultStyleRadio->show();
+	DefaultWidthRadio->show();
+	DefaultFractionsRadio->show();
+	NormalRadio->show();
+
+	for (int i = 0; i < fontFeatures.count(); i++)
+	{
+		if (fontFeatures[i] == "clig")
+			ContextualCheck->hide();
+		else if (fontFeatures[i] == "liga")
+			CommonCheck->show();
+		else if (fontFeatures[i] == "dlig")
+			DiscretinoryCheck->show();
+		else if (fontFeatures[i] == "hlig")
+			HistoricalCheck->show();
+		else if (fontFeatures[i] == "subs")
+			SubscriptRadio->show();
+		else if (fontFeatures[i] == "sups")
+			SuperscriptRaido->show();
+		else if (fontFeatures[i] == "smcp")
+			SmallRadio->show();
+		else if (fontFeatures[i] == "c2sc")
+			SmallFromCRadio->show();
+		else if (fontFeatures[i] == "pcap")
+			PetiteRadio->show();
+		else if (fontFeatures[i] == "c2pc")
+			PetiteCapRadio->show();
+		else if (fontFeatures[i] == "unic")
+			UnicaseRadio->show();
+		else if (fontFeatures[i] == "titl")
+			TiltingRadio->show();
+		else if (fontFeatures[i] == "lnum")
+			LininRadio->show();
+		else if (fontFeatures[i] == "onum")
+			OldStyleRadio->show();
+		else if (fontFeatures[i] == "pnum")
+			ProportionalRadio->show();
+		else if (fontFeatures[i] == "tnum")
+			TabularRadio->show();
+		else if (fontFeatures[i] == "frac")
+			DiagonalRadio->show();
+		else if (fontFeatures[i] == "afrc")
+			StackedRadio->show();
+		else if (fontFeatures[i] == "ordn")
+			OrdinalCheck->show();
+		else if (fontFeatures[i] == "zero")
+			SlashedZeroCheck->show();
+		else if (fontFeatures[i] == "ss01")
+		{
+			groupBox_7->show();
+			StyleSet01->show();
+		}
+		else if (fontFeatures[i] == "ss02")
+		{
+			groupBox_7->show();
+			StyleSet02->show();
+		}
+		else if (fontFeatures[i] == "ss03")
+		{
+			groupBox_7->show();
+			StyleSet03->show();
+		}
+		else if (fontFeatures[i] == "ss04")
+		{
+			groupBox_7->show();
+			StyleSet04->show();
+		}
+		else if (fontFeatures[i] == "ss05")
+		{
+			groupBox_7->show();
+			StyleSet05->show();
+		}
+		else if (fontFeatures[i] == "ss06")
+		{
+			groupBox_7->show();
+			StyleSet06->show();
+		}
+		else if (fontFeatures[i] == "ss07")
+		{
+			groupBox_7->show();
+			StyleSet07->show();
+		}
+		else if (fontFeatures[i] == "ss08")
+		{
+			groupBox_7->show();
+			StyleSet08->show();
+		}
+		else if (fontFeatures[i] == "ss09")
+		{
+			groupBox_7->show();
+			StyleSet09->show();
+		}
+		else if (fontFeatures[i] == "ss10")
+		{
+			groupBox_7->show();
+			StyleSet10->show();
+		}
+		else if (fontFeatures[i] == "ss11")
+		{
+			groupBox_7->show();
+			StyleSet11->show();
+		}
+		else if (fontFeatures[i] == "ss12")
+		{
+			groupBox_7->show();
+			StyleSet12->show();
+		}
+		else if (fontFeatures[i] == "ss13")
+		{
+			groupBox_7->show();
+			StyleSet13->show();
+		}
+		else if (fontFeatures[i] == "ss14")
+		{
+			groupBox_7->show();
+			StyleSet14->show();
+		}
+		else if (fontFeatures[i] == "ss15")
+		{
+			groupBox_7->show();
+			StyleSet15->show();
+		}
+		else if (fontFeatures[i] == "ss16")
+		{
+			groupBox_7->show();
+			StyleSet16->show();
+		}
+		else if (fontFeatures[i] == "ss17")
+		{
+			groupBox_7->show();
+			StyleSet17->show();
+		}
+		else if (fontFeatures[i] == "ss18")
+		{
+			groupBox_7->show();
+			StyleSet18->show();
+		}
+		else if (fontFeatures[i] == "ss19")
+		{
+			groupBox_7->show();
+			StyleSet19->show();
+		}
+		else if (fontFeatures[i] == "ss20")
+		{
+			groupBox_7->show();
+			StyleSet20->show();
+		}
+	}
+
+	// Hide Default features when their relative ones aren't found in the font.
+	if (SmallRadio->isHidden()
+			&& SmallFromCRadio->isHidden() && PetiteRadio->isHidden()
+			&& PetiteCapRadio->isHidden() && UnicaseRadio->isHidden()
+			&& TiltingRadio->isHidden())
+		NormalCaRadio->hide();
+
+	if (LininRadio->isHidden() && OldStyleRadio->isHidden())
+		DefaultStyleRadio->hide();
+
+	if (ProportionalRadio->isHidden() && TabularRadio->isHidden())
+		DefaultWidthRadio->hide();
+
+	if (DiagonalRadio->isHidden() && StackedRadio->isHidden())
+		DefaultFractionsRadio->hide();
+
+	if (SubscriptRadio->isHidden() && SuperscriptRaido->isHidden() && OrdinalCheck->isHidden())
+		NormalRadio->hide();
+
+	// Hide Lines
+	if (ContextualCheck->isHidden() && CommonCheck->isHidden()
+			&& DiscretinoryCheck->isHidden() && HistoricalCheck->isHidden())
+		line->hide();
+	if (NormalCaRadio->isHidden() && SmallRadio->isHidden()
+			&& SmallFromCRadio->isHidden() && PetiteRadio->isHidden()
+			&& PetiteCapRadio->isHidden() && UnicaseRadio->isHidden()
+			&& TiltingRadio->isHidden())
+		line_3->hide();
+	if (DefaultStyleRadio->isHidden() && LininRadio->isHidden()
+			&& OldStyleRadio->isHidden())
+		line_5->hide();
+	if (DefaultWidthRadio->isHidden() && ProportionalRadio->isHidden()
+			&& TabularRadio->isHidden())
+		line_2->hide();
+	if (DefaultFractionsRadio->isHidden() && DiagonalRadio->isHidden()
+			&& StackedRadio->isHidden())
+		line_4->hide();
+	if (NormalRadio->isHidden() && SubscriptRadio->isHidden()
+			&& SuperscriptRaido->isHidden() && OrdinalCheck->isHidden())
+		line_6->hide();
+	if (SlashedZeroCheck->isHidden() )
+		line_7->hide();
+}
+
+void PropertyWidget_FontFeatures::configureWidgets(void)
 {
 	bool enabled = false;
 	if (m_item && m_doc)
@@ -448,7 +718,7 @@ void PropertyWidget_OpenTypeFontFeatures::configureWidgets(void)
 	setEnabled(enabled);
 }
 
-void PropertyWidget_OpenTypeFontFeatures::setCurrentItem(PageItem *item)
+void PropertyWidget_FontFeatures::setCurrentItem(PageItem *item)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;

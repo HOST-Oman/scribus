@@ -5,7 +5,6 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 
-#include <QDebug>
 #include <hb.h>
 #include <hb-ft.h>
 #include <hb-ot.h>
@@ -102,7 +101,6 @@ void* ScFace::ScFaceData::hbFont()
 
 	return m_hbFont;
 }
-
 
 bool ScFace::ScFaceData::glyphNames(FaceEncoding& /*gList*/) const
 { 
@@ -403,14 +401,13 @@ void ScFace::unload() const
 }
 
 
-ScFace::gid_type ScFace::emulateGlyph(uint u) const
+ScFace::gid_type ScFace::emulateGlyph(uint ch) const
 {
-	QChar ch(u);
 	if (ch == SpecialChars::LINEBREAK || ch == SpecialChars::PARSEP 
 		|| ch == SpecialChars::FRAMEBREAK || ch == SpecialChars::COLBREAK 
 		|| ch == SpecialChars::TAB || ch == SpecialChars::SHYPHEN
 		 || ch == SpecialChars::ZWSPACE || ch == SpecialChars::ZWNBSPACE || ch==SpecialChars::OBJECT)
-		return CONTROL_GLYPHS + ch.unicode();
+		return CONTROL_GLYPHS + ch;
 	else if (ch == SpecialChars::NBSPACE)
 		return  m_m->char2CMap(' ');
 	else if(ch == SpecialChars::NBHYPHEN)
@@ -443,6 +440,10 @@ double ScFace::hyphenWidth(const CharStyle& style, qreal size) const
 	return glyphBBox(hyphenGlyph(style), size).width;
 }
 
+QStringList ScFace::fontFeatures() const
+{
+	return m_m->fontFeatures;
+}
 
 ScFace::gid_type ScFace::char2CMap(uint ch) const
 {

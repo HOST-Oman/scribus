@@ -31,6 +31,7 @@ FormatsManager::FormatsManager()
 	m_fmts.insert(FormatsManager::GIF,  QStringList() << "gif");
 	m_fmts.insert(FormatsManager::JPEG, QStringList() << "jpg" << "jpeg");
 	m_fmts.insert(FormatsManager::ORA,  QStringList() << "ora");
+    m_fmts.insert(FormatsManager::KRA,  QStringList() << "kra");
 	m_fmts.insert(FormatsManager::PAT,  QStringList() << "pat");
 	m_fmts.insert(FormatsManager::PCT,  QStringList() << "pct" << "pic" << "pict");
 	m_fmts.insert(FormatsManager::PDF,  QStringList() << "pdf");
@@ -63,6 +64,7 @@ FormatsManager::FormatsManager()
 	MagickFree(magick_array);
 	//qDebug()<<gmagickformats;
 	gmagickformats.removeAll("eps");
+	gmagickformats.removeAll("html");
 	gmagickformats.removeAll("pdf");
 	gmagickformats.removeAll("pict");
 	gmagickformats.removeAll("ps");
@@ -70,6 +72,7 @@ FormatsManager::FormatsManager()
 	gmagickformats.removeAll("svg");
 	gmagickformats.removeAll("svgz");
 	gmagickformats.removeAll("tiff");
+	gmagickformats.removeAll("txt");
 	gmagickformats.removeAll("wmf");
 	gmagickformats.removeAll("wpg");
 	m_fmts.insert(FormatsManager::GMAGICK, gmagickformats);
@@ -82,6 +85,7 @@ FormatsManager::FormatsManager()
 	m_fmtNames[FormatsManager::GIF]  = QObject::tr("GIF");
 	m_fmtNames[FormatsManager::JPEG] = QObject::tr("JPEG");
 	m_fmtNames[FormatsManager::ORA]  = QObject::tr("Open Raster");
+    m_fmtNames[FormatsManager::KRA]  = QObject::tr("Krita");
 	m_fmtNames[FormatsManager::PAT]  = QObject::tr("Pattern Files");
 	m_fmtNames[FormatsManager::PDF]  = QObject::tr("PDF Document");
 	m_fmtNames[FormatsManager::PGF]  = QObject::tr("PGF");
@@ -109,6 +113,7 @@ FormatsManager::FormatsManager()
 	m_fmtMimeTypes.insert(FormatsManager::GIF,  QStringList() << "image/gif");
 	m_fmtMimeTypes.insert(FormatsManager::JPEG, QStringList() << "image/jpeg");
 	m_fmtMimeTypes.insert(FormatsManager::ORA,  QStringList() << "");
+    m_fmtMimeTypes.insert(FormatsManager::KRA,  QStringList() << "application/x-krita");
 	m_fmtMimeTypes.insert(FormatsManager::PAT,  QStringList() << "");
 	m_fmtMimeTypes.insert(FormatsManager::PCT,  QStringList() << "");
 	m_fmtMimeTypes.insert(FormatsManager::PDF,  QStringList() << "application/pdf");
@@ -271,8 +276,8 @@ QString FormatsManager::extensionListForFormat(int type, int listType)
 
 void FormatsManager::fileTypeStrings(int type, QString& formatList, QString& formatText, QString& formatAll, bool lowerCaseOnly)
 {
-	QString fmtList = QObject::tr("All Supported Formats")+" (";
-	QString fmtText;
+	QString allFormats = QObject::tr("All Supported Formats")+" (";
+	QStringList formats;
 	QMapIterator<int, QStringList> it(m_fmts);
 	bool first=true;
 	int n=0;
@@ -290,34 +295,34 @@ void FormatsManager::fileTypeStrings(int type, QString& formatList, QString& for
 				first=false;
 			else
 			{
-				fmtList += " ";
-				fmtText += ";;";
+				allFormats += " ";
 			}
 			QString text=m_fmtNames[it.key()] + " (";
 			QStringListIterator itSL(it.value());
 			while (itSL.hasNext())
 			{
 				QString t("*." + itSL.next());
-				fmtList += t;
+				allFormats += t;
 				text += t;
 				if(!lowerCaseOnly)
 				{
-					fmtList += " " + t.toUpper();
+					allFormats += " " + t.toUpper();
 					text += " " + t.toUpper();
 				}
 				if (itSL.hasNext())
 				{
-					fmtList += " ";
+					allFormats += " ";
 					text += " ";
 				}
 			}
 			text += ")";
-			fmtText += text;
+			formats.append(text);
 		}
 		++n;
 	}
-	formatList+=fmtList + ");;";
-	formatText+=fmtText;
+	formatList+=allFormats + ");;";
+	formats.sort(Qt::CaseInsensitive);
+	formatText+=formats.join(";;");
 	formatAll=QObject::tr("All Files (*)");
 }
 

@@ -12,6 +12,7 @@
 #include "scribusdoc.h"
 #include "storytext.h"
 #include "styles/paragraphstyle.h"
+#include "util.h"
 
 
 TextShaper::TextShaper(ITextContext* context, ITextSource &story, int firstChar, bool singlePar)
@@ -271,7 +272,6 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 			continue;
 		}
 #endif
-
 		if (m_story.hasExpansionPoint(i))
 		{
 			m_contextNeeded = true;
@@ -369,7 +369,7 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 					// do not insert implicit space before punctuation
 					// or other non-script specific characters
 					if (sc != USCRIPT_COMMON)
-						justificationTracking.append(run.start + pos);
+						justificationTracking.append(run.start + pos - 1);
 					pos = charIt->next();
 				}
 			}
@@ -467,7 +467,8 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 			const StyleFlag& effects = charStyle.effects();
 
-			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), result.glyphs().length());
+			QString str = m_text.mid(firstChar, lastChar-firstChar+1);
+			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), result.glyphs().length(), str);
 
 			run.clearFlag(ScLayout_HyphenationPossible);
 			if (m_story.hasFlag(lastChar, ScLayout_HyphenationPossible))

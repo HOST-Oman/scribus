@@ -1027,6 +1027,10 @@ void PageItem::setRotation(const double newRotation, bool drawingOnly)
 	double dR = newRotation - m_rotation;
 	double oldRot = m_rotation;
 	m_rotation = newRotation;
+	while (m_rotation < 0.0)
+		m_rotation += 360.0;
+	while (m_rotation > 360.0)
+		m_rotation -= 360.0;
 	if (drawingOnly || m_Doc->isLoading())
 		return;
 	rotateWelded(dR, oldRot);
@@ -1037,7 +1041,11 @@ void PageItem::rotateBy(const double dR)
 {
 	if (dR==0.0)
 		return;
-	m_rotation+=dR;
+	m_rotation += dR;
+	while (m_rotation < 0.0)
+		m_rotation += 360.0;
+	while (m_rotation > 360.0)
+		m_rotation -= 360.0;
 	if (m_Doc->isLoading())
 		return;
 	checkChanges();
@@ -1504,17 +1512,30 @@ bool PageItem::frameDisplays(int textpos) const
 /// returns the style at the current charpos
 const ParagraphStyle& PageItem::currentStyle() const
 {
-	if (frameDisplays(itemText.cursorPosition()))
-		return itemText.paragraphStyle(itemText.cursorPosition());
-	else
-		return itemText.defaultStyle();
+	int cursorPosition = itemText.cursorPosition();
+	if (itemText.lengthOfSelection() > 0)
+	{
+		int firstSelected = itemText.startOfSelection();
+		int lastSelected  = qMax(itemText.endOfSelection() - 1, 0);
+		cursorPosition = qMax(firstSelected, qMin(cursorPosition, lastSelected));
+	}
+	if (frameDisplays(cursorPosition))
+		return itemText.paragraphStyle(cursorPosition);
+	return itemText.defaultStyle();
 }
 
 /// returns the style at the current charpos for changing
 ParagraphStyle& PageItem::changeCurrentStyle()
 {
-	if (frameDisplays(itemText.cursorPosition()))
-		return const_cast<ParagraphStyle&>(itemText.paragraphStyle(itemText.cursorPosition()));
+	int cursorPosition = itemText.cursorPosition();
+	if (itemText.lengthOfSelection() > 0)
+	{
+		int firstSelected = itemText.startOfSelection();
+		int lastSelected  = qMax(itemText.endOfSelection() - 1, 0);
+		cursorPosition = qMax(firstSelected, qMin(cursorPosition, lastSelected));
+	}
+	if (frameDisplays(cursorPosition))
+		return const_cast<ParagraphStyle&>(itemText.paragraphStyle(cursorPosition));
 	else
 		return const_cast<ParagraphStyle&>(itemText.defaultStyle());
 }
@@ -1522,8 +1543,15 @@ ParagraphStyle& PageItem::changeCurrentStyle()
 /// returns the style at the current charpos
 const CharStyle& PageItem::currentCharStyle() const
 {
-	if (frameDisplays(itemText.cursorPosition()))
-		return itemText.charStyle(itemText.cursorPosition());
+	int cursorPosition = itemText.cursorPosition();
+	if (itemText.lengthOfSelection() > 0)
+	{
+		int firstSelected = itemText.startOfSelection();
+		int lastSelected  = qMax(itemText.endOfSelection() - 1, 0);
+		cursorPosition = qMax(firstSelected, qMin(cursorPosition, lastSelected));
+	}
+	if (frameDisplays(cursorPosition))
+		return itemText.charStyle(cursorPosition);
 	else
 		return itemText.defaultStyle().charStyle();
 }
@@ -2477,49 +2505,6 @@ QImage PageItem::DrawObj_toImage(QList<PageItem*> &emG, double scaling)
 	m_Doc->guidesPrefs().framesShown = savedFlag;
 	isEmbedded = isEmbedded_Old;
 	return retImg;
-}
-
-QString PageItem::ExpandToken(uint base)
-{
-	//uint zae = 0;
-	QChar ch = itemText.text(base);
-	QString chstr = ch;
-	if (ch == SpecialChars::PAGENUMBER)
-	{
-		// compatibility mode: ignore subsequent pagenumber chars
-		if (base > 0 && itemText.text(base-1) == SpecialChars::PAGENUMBER)
-			return "";
-		if ((!m_Doc->masterPageMode()) && (OwnPage != -1))
-		{
-			//CB Section numbering
-			//chstr = out.arg(m_Doc->getSectionPageNumberForPageIndex(OwnPage), -(int)zae);
-			chstr = QString("%1").arg(m_Doc->getSectionPageNumberForPageIndex(OwnPage),
-							m_Doc->getSectionPageNumberWidthForPageIndex(OwnPage),
-							m_Doc->getSectionPageNumberFillCharForPageIndex(OwnPage));
-		}
-		else
-			return "#";
-	}
-	else if (ch == SpecialChars::PAGECOUNT)
-	{
-		if (!m_Doc->masterPageMode())
-		{
-			int key = m_Doc->getSectionKeyForPageIndex(OwnPage);
-			if (key == -1)
-				return "%";
-			chstr = QString("%1").arg(getStringFromSequence(m_Doc->sections()[key].type, m_Doc->sections()[key].toindex - m_Doc->sections()[key].fromindex + 1));
-		}
-		else
-			return "%";
-	}
-	//check for marks
-	else if (ch == SpecialChars::OBJECT)
-	{
-		Mark* mark = itemText.mark(base);
-		if ((mark != NULL) && !mark->isType(MARKAnchorType) && !mark->isType(MARKIndexType))
-			chstr = mark->getString();
-	}
-	return chstr;
 }
 
 void PageItem::SetQColor(QColor *tmp, QString colorName, double shad)
@@ -10399,7 +10384,7 @@ void PageItem::rotateWelded(double dR, double oldRot)
 	ma.translate(xPos(), yPos());
 	ma.scale(1, 1);
 	ma.rotate(oldRot);
-	switch (m_Doc->RotMode())
+	switch (m_Doc->rotationMode())
 	{
 		case 2:
 			ma.translate(width()/2.0, height()/2.0);

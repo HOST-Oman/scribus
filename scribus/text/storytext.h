@@ -93,9 +93,12 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
 	void normalizeCursorPosition();
 	int  normalizedCursorPosition();
 
-	void moveCursorLeft(bool isGrapheme);
+	void moveCursorForward();
+	void moveCursorBackward();
+	void moveCursorLeft();
+	void moveCursorRight();
+
 	void moveCursorWordLeft();
-	void moveCursorRight(bool isGrapheme);
 	void moveCursorWordRight();
 
  	void clear();

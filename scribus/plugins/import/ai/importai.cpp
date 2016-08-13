@@ -1531,9 +1531,9 @@ void AIPlug::processData(QString data)
 			//	}
 				b->setXPos(xp + xoffset);
 				b->setYPos(yp + yoffset);
-				m_Doc->RotMode(3);
+				m_Doc->setRotationMode(3);
 				m_Doc->rotateItem(rotation * 180 / M_PI, b);
-				m_Doc->RotMode(0);
+				m_Doc->setRotationMode(0);
 //				b->setRotation(rotation * 180 / M_PI);
 				b->setTextFlowMode(PageItem::TextFlowDisabled);
 				b->setFillTransparency(1.0 - Opacity);
@@ -2425,7 +2425,9 @@ void AIPlug::processData(QString data)
 					int pot = textData.length();
 					textData.insertChars(pot, ch);
 					textData.applyCharStyle(pot, 1, nstyle);
-					tempW += nstyle.font().realCharWidth(ch[0], nstyle.fontSize() / 10.0)+1;
+					// FIXME HOST: This code does not hansle CTL!
+					ScFace::gid_type gid = nstyle.font().char2CMap(ch.toUcs4()[0]);
+					tempW += nstyle.font().glyphBBox(gid, nstyle.fontSize() / 10.0).width + 1;
 					tempH  = qMax(tempH, nstyle.font().height(nstyle.fontSize() / 10.0) + 2.0);
 					maxWidth  = qMax(tempW, maxWidth);
 					maxHeight = qMax(tempH, maxHeight);

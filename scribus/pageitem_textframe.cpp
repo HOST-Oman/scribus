@@ -546,7 +546,8 @@ struct LineControl {
 		line.lastCluster = 0;
 		line.ascent = 0.0;
 		line.descent = 0.0;
-		line.width = 0.0;
+		line.width  = 0.0;
+		line.height = 0.0;
 		line.naturalWidth = 0.0;
 		line.colLeft = colLeft;
 		breakIndex = -1;
@@ -862,15 +863,32 @@ struct LineControl {
 					imSpace = remaining / spaceInsertion;
 					spaceExtension = 0;
 				}
-			} else if (trackingInsertion && spaceNatural == 0) {
-				double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
-				trackingAmount = remaining / trackingInsertion;
-				spaceExtension = 0;
 			} else {
 				if (spaceNatural > 0)
-					spaceExtension = (line.width - glyphNatural * (1+glyphExtension) ) / spaceNatural  - 1;
+					spaceExtension = (line.width - glyphNatural * (1 + glyphExtension)) / spaceNatural - 1;
 				else
 					spaceExtension = 0;
+
+				if (trackingInsertion && (spaceExtension == 0.0 || spaceExtension >= 20.0))
+				{
+					if (spaceExtension == 0.0)
+					{
+						double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
+						trackingAmount = remaining / trackingInsertion;
+					}
+					else
+					{
+						spaceExtension = qMin(20.0, spaceExtension);
+						double remaining = line.width - glyphNatural * (1 + glyphExtension) - spaceNatural;
+						remaining -= spaceExtension * spaceNatural;
+						trackingAmount = remaining / trackingInsertion;
+						if (trackingAmount > imSpace)
+						{
+							trackingAmount = imSpace;
+							spaceExtension = (line.width - glyphNatural * (1 + glyphExtension) - trackingInsertion * trackingAmount) / spaceNatural - 1;
+						}
+					}
+				}
 			}
 		}
 
@@ -1440,7 +1458,7 @@ void PageItem_TextFrame::layout()
 		// find start of first line
 		if (firstInFrame() < itLen)
 		{
-			CharStyle cstyle = itemText.charStyle(firstInFrame());
+			const CharStyle& cstyle = itemText.charStyle(firstInFrame());
 			style = itemText.paragraphStyle(firstInFrame());
 			style.setLineSpacing (calculateLineSpacing (style, this));
 
@@ -1650,7 +1668,7 @@ void PageItem_TextFrame::layout()
 					if (DropCmode && !current.afterOverflow)
 					{
 						DropLines = style.dropCapLines();
-						DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
+//						DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
 //						qDebug() << QString("dropcapdrop: y=%1+%2").arg(current.yPos).arg(DropCapDrop);
 					}
 					current.line.isFirstLine = true;
@@ -1659,12 +1677,12 @@ void PageItem_TextFrame::layout()
 			// find charsize factors
 			if (DropCmode)
 			{
-//				DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
+				DropCapDrop = calculateLineSpacing (style, this) * (DropLines - 1);
 
 				//text height, width, ascent and descent should be calculated for whole text provided by ScText in current position
 				//and that may be more than one char (variable text for example)
 				double realCharHeight = 0.0, realCharAscent = 0.0;
-				foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs()) {
+				foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs()) {
 					GlyphMetrics gm = font.glyphBBox(gl.glyph);
 					realCharHeight = qMax(realCharHeight, gm.ascent + gm.descent);
 					realCharAscent = qMax(realCharAscent, gm.ascent);
@@ -1742,7 +1760,7 @@ void PageItem_TextFrame::layout()
 				{
 					double realCharHeight = 0.0;
 					wide = 0.0; realAsce = 0.0;
-					foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs()) {
+					foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs()) {
 						GlyphMetrics gm;
 						gm = font.glyphBBox(gl.glyph, charStyle.fontSize() / 10.0);
 						realCharHeight = qMax(realCharHeight, gm.ascent + gm.descent);
@@ -1779,7 +1797,7 @@ void PageItem_TextFrame::layout()
 				{
 					if (itemText.text(a) != SpecialChars::OBJECT)
 					{
-						foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
+						foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs())
 						{
 							GlyphMetrics gm = font.glyphBBox(gl.glyph, hlcsize10);
 							realDesc = qMax(realDesc, gm.descent * scaleV - offset);
@@ -1803,7 +1821,7 @@ void PageItem_TextFrame::layout()
 						realAsce = asce * scaleV + offset;
 					else
 					{
-						foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
+						foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs())
 							realAsce = qMax(realAsce, font.glyphBBox(gl.glyph, hlcsize10).ascent * scaleV + offset);
 					}
 				}
@@ -1819,9 +1837,6 @@ void PageItem_TextFrame::layout()
 					if (current.startOfCol)
 					{
 						lastLineY = qMax(lastLineY, m_textDistanceMargins.top() + lineCorr);
-						//fix for proper rendering first empty line (only with PARSEP)
-						if (itemText.isBlockStart(a+1))
-							current.yPos += style.lineSpacing();
 						if (style.lineSpacingMode() == ParagraphStyle::BaselineGridLineSpacing || FlopBaseline)
 						{
 							if (current.yPos <= lastLineY)
@@ -1837,7 +1852,7 @@ void PageItem_TextFrame::layout()
 						{
 							if (firstLineOffset() == FLOPRealGlyphHeight)
 							{
-								if (DropCmode)
+								if (DropCmode || (itemText.text(a) == SpecialChars::PARSEP))
 									current.yPos += asce;
 								else
 									current.yPos += realAsce;
@@ -2124,6 +2139,9 @@ void PageItem_TextFrame::layout()
 						}
 					}
 					i = current.restartRow(false);
+					tabs.active = false;
+					tabs.status = TabNONE;
+					tabs.xPos   = 0.0;
 					continue;
 				}
 			}
@@ -2196,7 +2214,7 @@ void PageItem_TextFrame::layout()
 			if (DropCmode)
 			{
 				double yoffset = 0.0;
-				foreach (GlyphLayout gl, current.glyphs[currentIndex].glyphs())
+				foreach (const GlyphLayout& gl, current.glyphs[currentIndex].glyphs())
 					yoffset = qMax(yoffset, font.glyphBBox(gl.glyph, chsd / 10.0).descent);
 				current.glyphs[currentIndex].yoffset -= yoffset;
 			}
@@ -2502,10 +2520,13 @@ void PageItem_TextFrame::layout()
 			{
 				tabs.active = false;
 				tabs.status = TabNONE;
+				tabs.xPos   = 0.0;
 				if (SpecialChars::isBreak(itemText.text(a), Cols > 1))
 				{
 					// find end of line
 					current.breakLine(i);
+					regionMinY = qMax(0.0, current.line.y - current.line.ascent);
+					regionMaxY = current.line.y + current.line.descent;
 					EndX = current.endOfLine(m_availableRegion, style.rightMargin(), regionMinY, regionMaxY);
 					current.finishLine(EndX);
 					//addLine = true;
@@ -2937,7 +2958,18 @@ void PageItem_TextFrame::layout()
 		{
 			if (verticalAlign == 1)
 				hAdjust /= 2;
-			textLayout.box()->moveBy(0, hAdjust);
+			if (FrameType == 0) // Rectangular frame
+				textLayout.box()->moveBy(0, hAdjust);
+			else
+			{
+				int vertAlign = verticalAlign;
+				double topDist = m_textDistanceMargins.top();
+				m_textDistanceMargins.setTop(topDist + hAdjust);
+				verticalAlign = 0;
+				layout();
+				verticalAlign = vertAlign;
+				m_textDistanceMargins.setTop(topDist);
+			}
 		}
 	}
 	invalid = false;
@@ -4099,12 +4131,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorLeft();
 			ExpandSel(oldPos);
 		}
 		else
 		{
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorLeft();
 			if (itemText.cursorPosition() < firstInFrame())
 			{
 				itemText.setCursorPosition( firstInFrame() );
@@ -4120,7 +4152,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 
 		while ((itemText.cursorPosition() > 1) && (itemText.flags(itemText.cursorPosition() - 1) & ScLayout_SuppressSpace))
 		{
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorLeft();
 			if (itemText.cursorPosition() == 0)
 				break;
 		}
@@ -4138,12 +4170,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		else if ( buttonModifiers & Qt::ShiftModifier )
 		{
-			itemText.moveCursorRight(true);
+			itemText.moveCursorRight();
 			ExpandSel(oldPos);
 		}
 		else
 		{
-			itemText.moveCursorRight(true); // new position within text ?
+			itemText.moveCursorRight(); // new position within text ?
 			if (itemText.cursorPosition() > lastInFrame())
 			{
 //				--CPos;
@@ -4193,7 +4225,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		if (itemText.lengthOfSelection() == 0)
 		{
 			int pos1 = itemText.cursorPosition();
-			itemText.moveCursorLeft(true);
+			itemText.moveCursorForward();
 			int pos2 = itemText.cursorPosition();
 			itemText.select(pos1, pos2 - pos1, true);
 		}

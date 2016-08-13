@@ -48,17 +48,17 @@ public:
 		, m_textLayout(textLayout)
 	{ }
 
-	void drawGlyph(const GlyphLayout& gl)
+	void drawGlyph(const GlyphCluster& gc)
 	{
-		if (gl.glyph == 0)
+		if (gc.isEmpty())
 		{
-			int pos = m_textLayout.pointToPosition(QPointF(x(), y()));
-			m_itemError.insert(MissingGlyph, pos + 1);
+			int pos = gc.firstChar();
+			m_itemError.insert(MissingGlyph, pos);
 		}
 	}
-	void drawGlyphOutline(const GlyphLayout& gl, bool)
+	void drawGlyphOutline(const GlyphCluster& gc, bool)
 	{
-		drawGlyph(gl);
+		drawGlyph(gc);
 	}
 	void drawLine(QPointF, QPointF) { }
 	void drawRect(QRectF) { }

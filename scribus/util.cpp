@@ -390,6 +390,8 @@ void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, i
 			{
 				ww++;
 			}
+			if (b.isSurrogate())
+				++a;
 			cc++;
 			Dat = b;
 			first = false;
@@ -410,6 +412,8 @@ void WordAndPara(PageItem* currItem, int *w, int *p, int *c, int *wN, int *pN, i
 			{
 				wwN++;
 			}
+			if (b.isSurrogate())
+				++a;
 			ccN++;
 			Dat = b;
 			first = false;
@@ -794,6 +798,15 @@ void setCurrentComboItem(QComboBox *box, QString text)
 	int ind = box->findText(text);
 	if (ind > -1)
 		box->setCurrentIndex(ind);
+	box->blockSignals(sigBlocked);
+}
+
+void removeComboItem(QComboBox *box, QString text)
+{
+	bool sigBlocked = box->blockSignals(true);
+	int ind = box->findText(text);
+	if (ind > -1)
+		box->removeItem(ind);
 	box->blockSignals(sigBlocked);
 }
 

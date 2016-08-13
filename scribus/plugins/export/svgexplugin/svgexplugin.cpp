@@ -1157,44 +1157,49 @@ public:
 		, m_trans(trans)
 	{}
 
-	void drawGlyph(const GlyphLayout& gl)
+	void drawGlyph(const GlyphCluster& gc)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		if (gc.isControlGlyphs())
 			return;
+		double current_x = 0.0;
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			QTransform transform = matrix();
+			transform.translate(x() + gl.xoffset + current_x, y() - (fontSize() * gc.scaleV()) + gl.yoffset);
+			transform.scale(gc.scaleH() * fontSize() / 10.0, gc.scaleV() * fontSize() / 10.0);
+			QDomElement glyph = m_svg->docu.createElement("use");
+			glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
+			glyph.setAttribute("transform", m_svg->MatrixToStr(transform));
+			QString fill = "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
+			QString stroke = "stroke:none;";
+			glyph.setAttribute("style", fill + stroke);
+			m_elem.appendChild(glyph);
+			current_x += gl.xadvance;
+		}
 
-		QTransform transform = matrix();
-		transform.translate(x(), y() - (fontSize() * gl.scaleV));
-		transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
-
-		QDomElement glyph = m_svg->docu.createElement("use");
-		glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
-		glyph.setAttribute("transform", m_svg->MatrixToStr(transform));
-		QString fill = "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
-		QString stroke = "stroke:none;";
-		glyph.setAttribute("style", fill + stroke);
-		m_elem.appendChild(glyph);
 	}
-
-	void drawGlyphOutline(const GlyphLayout& gl, bool hasFill)
+	void drawGlyphOutline(const GlyphCluster& gc, bool hasFill)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		if (gc.isControlGlyphs())
 			return;
+		double current_x = 0.0;
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			QTransform transform = matrix();
+			transform.translate(x() + gl.xoffset + current_x, y() - (fontSize() * gc.scaleV()) + gl.yoffset);
+			transform.scale(gc.scaleH() * fontSize() / 10.0, gc.scaleV() * fontSize() / 10.0);
+			QDomElement glyph = m_svg->docu.createElement("use");
+			glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
+			glyph.setAttribute("transform", m_svg->MatrixToStr(transform));
+			QString fill = "fill:none;";
+			if (hasFill)
+				fill = "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
+			QString stroke ="stroke:" + m_svg->SetColor(strokeColor().color, strokeColor().shade) + ";";
+			stroke += " stroke-width:" + m_svg->FToStr(strokeWidth() / (gc.scaleV() * fontSize() / 10.0)) + ";";
+			glyph.setAttribute("style", fill + stroke);
+			m_elem.appendChild(glyph);
+			current_x += gl.xadvance;
+		}
 
-		QTransform transform = matrix();
-		transform.translate(x(), y() - (fontSize() * gl.scaleV));
-		transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
-		QDomElement glyph = m_svg->docu.createElement("use");
-		glyph.setAttribute("xlink:href", "#" + m_svg->handleGlyph(gl.glyph, font()));
-		glyph.setAttribute("transform", m_svg->MatrixToStr(transform));
-		QString fill = "fill:none;";
-		if (hasFill)
-			fill = "fill:" + m_svg->SetColor(fillColor().color, fillColor().shade) + ";";
-		QString stroke ="stroke:" + m_svg->SetColor(strokeColor().color, strokeColor().shade) + ";";
-		stroke += " stroke-width:" + m_svg->FToStr(strokeWidth() / (gl.scaleV * fontSize() / 10.0)) + ";";
-		glyph.setAttribute("style", fill + stroke);
-		m_elem.appendChild(glyph);
 	}
-
 	void drawLine(QPointF start, QPointF end)
 	{
 		QTransform transform = matrix();
@@ -1266,9 +1271,12 @@ QDomElement SVGExPlug::processTextItem(PageItem *Item, QString trans, QString fi
 		}
 	}
 
-	SvgPainter p(trans, this, ob);
-	Item->textLayout.renderBackground(&p);
-	Item->textLayout.render(&p);
+	if (Item->itemText.length() != 0)
+	{
+		SvgPainter p(trans, this, ob);
+		Item->textLayout.renderBackground(&p);
+		Item->textLayout.render(&p);
+	}
 	if (Item->isTextFrame())
 	{
 		if (Item->NamedLStyle.isEmpty())

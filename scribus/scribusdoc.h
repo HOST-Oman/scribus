@@ -867,6 +867,8 @@ public:
 
 	/** @brief Check and fix if needed PageItem OwnPage member */
 	void fixItemPageOwner();
+	/** @brief Fix character styles */
+	void fixCharacterStyles();
 	/** @brief Fix paragraph styles */
 	void fixParagraphStyles();
 	/** @brief Fix notes styles */
@@ -1171,9 +1173,9 @@ public:
 	Serializer *textSerializer();
 
 	//! \brief Get rotation mode
-	int RotMode() const {return m_rotMode;}
+	int rotationMode() const {return m_rotMode;}
 	//! \brief Set rotation mode
-	void RotMode(const int& val);
+	void setRotationMode(const int val);
 
 	//! \brief Fonctions which avoid doc updater and update manager to send too much
 	// unncessary signals when doing updates on multiple items

@@ -629,12 +629,16 @@ void ScribusView::contentsDragEnterEvent(QDragEnterEvent *e)
 		text = elemData->scribusElem();
 	else if (e->mimeData()->hasUrls())
 	{
-		QUrl url = e->mimeData()->urls().at(0);
-		QFileInfo fi(url.toLocalFile());
-		if (fi.exists())
+		QList<QUrl> urls = e->mimeData()->urls();
+		if (!urls.isEmpty())
 		{
-			fromFile = true;
-			text = url.toLocalFile();
+			QUrl url = urls[0];
+			QFileInfo fi(url.toLocalFile());
+			if (fi.exists())
+			{
+				fromFile = true;
+				text = url.toLocalFile();
+			}
 		}
 	}
 
@@ -1024,21 +1028,51 @@ void ScribusView::contentsDropEvent(QDropEvent *e)
 		{
 			if ((fi.exists()) && (!img))
 			{
-				QByteArray file;
-				QTextCodec *codec = QTextCodec::codecForLocale();
-				// TODO create a Dialog for selecting the codec
-				if (loadRawText(url.toLocalFile(), file))
+				gtGetText* gt = new gtGetText(Doc);
+				QStringList exts = gt->getSupportedTypes();
+				if (exts.contains(fi.suffix().toLower()))
 				{
-					QString txt = codec->toUnicode( file.data() );
-					txt.replace(QRegExp("\r"), QChar(13));
-					txt.replace(QRegExp("\n"), QChar(13));
-					txt.replace(QRegExp("\t"), QChar(9));
-					b->itemText.insertChars(txt, true);
-					if (Doc->docHyphenator->AutoCheck)
-						Doc->docHyphenator->slotHyphenate(b);
-					b->invalidateLayout();
-					b->update();
+					ImportSetup impsetup;
+					impsetup.runDialog = true;
+					impsetup.encoding = "";
+					impsetup.prefixNames = true;
+					impsetup.textOnly = false;
+					impsetup.importer = -1;
+					impsetup.filename = url.toLocalFile();
+					if (b->itemText.length() != 0)
+					{
+						int t = ScMessageBox::warning(this, CommonStrings::trWarning, tr("Do you really want to clear all your text?"),
+									QMessageBox::Yes | QMessageBox::No,
+									QMessageBox::No,	// GUI default
+									QMessageBox::Yes);	// batch default
+						if (t == QMessageBox::No)
+						{
+							delete gt;
+							return;
+						}
+					}
+					gt->launchImporter(impsetup.importer, impsetup.filename, impsetup.textOnly, impsetup.encoding, false, impsetup.prefixNames, b);
+					m_ScMW->updateFromDrop();
 				}
+				else
+				{
+					QByteArray file;
+					QTextCodec *codec = QTextCodec::codecForLocale();
+					// TODO create a Dialog for selecting the codec
+					if (loadRawText(url.toLocalFile(), file))
+					{
+						QString txt = codec->toUnicode( file.data() );
+						txt.replace(QRegExp("\r"), QChar(13));
+						txt.replace(QRegExp("\n"), QChar(13));
+						txt.replace(QRegExp("\t"), QChar(9));
+						b->itemText.insertChars(txt, true);
+					}
+				}
+				if (Doc->docHyphenator->AutoCheck)
+					Doc->docHyphenator->slotHyphenate(b);
+				b->invalidateLayout();
+				b->update();
+				delete gt;
 			}
 		}
 		emit DocChanged();
@@ -3011,7 +3045,7 @@ void ScribusView::ToPathText()
 			currItem=Doc->m_Selection->itemAt(1);
 		}
 		ParagraphStyle dstyle(currItem->itemText.defaultStyle());
-		if (polyLineItem->asPolyLine() || polyLineItem->asPolygon())
+		if (polyLineItem->asPolyLine() || polyLineItem->asPolygon() || polyLineItem->asSpiral() || polyLineItem->asArc() || polyLineItem->asRegularPolygon())
 		{
 			Deselect(true);
 			PageItem* newItem=Doc->convertItemTo(currItem, PageItem::PathText, polyLineItem);
@@ -3055,78 +3089,82 @@ public:
 		, m_counter(0)
 	{}
 
-	void drawGlyph(const GlyphLayout& gl)
+	void drawGlyph(const GlyphCluster& gc)
 	{
-		FPointArray outline = font().glyphOutline(gl.glyph);
-		if (outline.size() < 4)
-			return;
-		QTransform transform;
-		if (m_item->isPathText())
-			transform = matrix();
-		transform.translate(x(), y());
-		transform.translate(0, -(fontSize() * gl.scaleV));
-		transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
-		outline.map(transform);
-		uint z = m_view->Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_item->xPos(), m_item->yPos(), m_item->width(), m_item->height(), 0, fillColor().color, CommonStrings::None);
-		PageItem* item = m_view->Doc->Items->at(z);
-		m_view->undoManager->setUndoEnabled(false);
-		item->setTextFlowMode(m_item->textFlowMode());
-		item->setSizeLocked(m_item->sizeLocked());
-		item->setLocked(m_item->locked());
-		item->NamedLStyle = m_item->NamedLStyle;
-		item->setItemName(m_item->itemName() + "+U" + QString::number(m_counter++));
-		item->PoLine = outline.copy();
-		if (!m_item->asPathText())
-			item->setRotation(m_item->rotation());
-		item->setFillColor(fillColor().color);
-		item->setFillShade(fillColor().shade);
-		m_view->Doc->adjustItemSize(item);
-		item->ContourLine = item->PoLine.copy();
-		item->ClipEdited = true;
-		item->FrameType = 3;
-		item->OldB2 = item->width();
-		item->OldH2 = item->height();
-		m_view->Doc->setRedrawBounding(item);
-		m_view->undoManager->setUndoEnabled(true);
-		m_group.append(m_view->Doc->Items->takeAt(z));
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			FPointArray outline = font().glyphOutline(gl.glyph);
+			if (outline.size() < 4)
+				return;
+			QTransform transform;
+			if (m_item->isPathText())
+				transform = matrix();
+			transform.translate(x(), y());
+			transform.translate(0, -(fontSize() * gl.scaleV));
+			transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
+			outline.map(transform);
+			uint z = m_view->Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_item->xPos(), m_item->yPos(), m_item->width(), m_item->height(), 0, fillColor().color, CommonStrings::None);
+			PageItem* item = m_view->Doc->Items->at(z);
+			m_view->undoManager->setUndoEnabled(false);
+			item->setTextFlowMode(m_item->textFlowMode());
+			item->setSizeLocked(m_item->sizeLocked());
+			item->setLocked(m_item->locked());
+			item->NamedLStyle = m_item->NamedLStyle;
+			item->setItemName(m_item->itemName() + "+U" + QString::number(m_counter++));
+			item->PoLine = outline.copy();
+			if (!m_item->asPathText())
+				item->setRotation(m_item->rotation());
+			item->setFillColor(fillColor().color);
+			item->setFillShade(fillColor().shade);
+			m_view->Doc->adjustItemSize(item);
+			item->ContourLine = item->PoLine.copy();
+			item->ClipEdited = true;
+			item->FrameType = 3;
+			item->OldB2 = item->width();
+			item->OldH2 = item->height();
+			m_view->Doc->setRedrawBounding(item);
+			m_view->undoManager->setUndoEnabled(true);
+			m_group.append(m_view->Doc->Items->takeAt(z));
+		}
 	}
-	void drawGlyphOutline(const GlyphLayout& gl, bool fill)
+	void drawGlyphOutline(const GlyphCluster& gc, bool fill)
 	{
-		FPointArray outline = font().glyphOutline(gl.glyph);
-		if (outline.size() < 4)
-			return;
-		QTransform transform;
-		if (m_item->isPathText())
-			transform = matrix();
-		transform.translate(x(), y());
-		transform.translate(0, -(fontSize() * gl.scaleV));
-		transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
-		outline.map(transform);
-		uint z = m_view->Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_item->xPos(), m_item->yPos(), m_item->width(), m_item->height(), strokeWidth(), fillColor().color, strokeColor().color);
-		PageItem* item = m_view->Doc->Items->at(z);
-		m_view->undoManager->setUndoEnabled(false);
-		item->setTextFlowMode(m_item->textFlowMode());
-		item->setSizeLocked(m_item->sizeLocked());
-		item->setLocked(m_item->locked());
-		item->NamedLStyle = m_item->NamedLStyle;
-		item->setItemName(m_item->itemName() + "+U" + QString::number(m_counter++));
-		item->PoLine = outline.copy();
-		if (!m_item->asPathText())
-			item->setRotation(m_item->rotation());
-		item->setFillColor(fillColor().color);
-		item->setFillShade(fillColor().shade);
-		item->setLineColor(strokeColor().color);
-		item->setLineShade(strokeColor().shade);
-		item->setLineWidth(strokeWidth());
-		m_view->Doc->adjustItemSize(item);
-		item->ContourLine = item->PoLine.copy();
-		item->ClipEdited = true;
-		item->FrameType = 3;
-		item->OldB2 = item->width();
-		item->OldH2 = item->height();
-		m_view->Doc->setRedrawBounding(item);
-		m_view->undoManager->setUndoEnabled(true);
-		m_group.append(m_view->Doc->Items->takeAt(z));
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			FPointArray outline = font().glyphOutline(gl.glyph);
+			if (outline.size() < 4)
+				return;
+			QTransform transform;
+			if (m_item->isPathText())
+				transform = matrix();
+			transform.translate(x(), y());
+			transform.translate(0, -(fontSize() * gl.scaleV));
+			transform.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
+			outline.map(transform);
+			uint z = m_view->Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_item->xPos(), m_item->yPos(), m_item->width(), m_item->height(), strokeWidth(), fillColor().color, strokeColor().color);
+			PageItem* item = m_view->Doc->Items->at(z);
+			m_view->undoManager->setUndoEnabled(false);
+			item->setTextFlowMode(m_item->textFlowMode());
+			item->setSizeLocked(m_item->sizeLocked());
+			item->setLocked(m_item->locked());
+			item->NamedLStyle = m_item->NamedLStyle;
+			item->setItemName(m_item->itemName() + "+U" + QString::number(m_counter++));
+			item->PoLine = outline.copy();
+			if (!m_item->asPathText())
+				item->setRotation(m_item->rotation());
+			item->setFillColor(fillColor().color);
+			item->setFillShade(fillColor().shade);
+			item->setLineColor(strokeColor().color);
+			item->setLineShade(strokeColor().shade);
+			item->setLineWidth(strokeWidth());
+			m_view->Doc->adjustItemSize(item);
+			item->ContourLine = item->PoLine.copy();
+			item->ClipEdited = true;
+			item->FrameType = 3;
+			item->OldB2 = item->width();
+			item->OldH2 = item->height();
+			m_view->Doc->setRedrawBounding(item);
+			m_view->undoManager->setUndoEnabled(true);
+			m_group.append(m_view->Doc->Items->takeAt(z));
+		}
 	}
 	void drawLine(QPointF start, QPointF end)
 	{

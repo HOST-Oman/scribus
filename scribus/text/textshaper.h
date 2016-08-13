@@ -53,6 +53,7 @@ private:
 		QStringList features;
 	};
 
+//	QString ExpandToken(int base);
 	void buildText(int fromPos, int toPos, QVector<int>& smallCaps);
 	QList<TextRun> itemizeBiDi();
 	QList<TextRun> itemizeScripts(const QList<TextRun> &runs);
@@ -63,9 +64,9 @@ private:
 	ITextContext* m_context;
 	bool m_contextNeeded;
 	ITextSource& m_story;
+	int m_firstChar;
 	bool m_singlePar;
 	QString m_text;
-	int m_firstChar;
 	QMap<int, int> m_textMap;
 };
 

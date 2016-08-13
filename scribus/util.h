@@ -22,6 +22,7 @@ for which a new license (GPL+exception) is in place.
 #include <QString>
 #include <QStringList>
 #include <QVector>
+#include <QTransform>
 
 #include "pagestructs.h"
 #include "scribusapi.h"
@@ -132,6 +133,7 @@ void SCRIBUS_API parsePagesString(QString pages, std::vector<int>* pageNs, int s
 
 QString SCRIBUS_API readLinefromDataStream(QDataStream &s);
 void SCRIBUS_API setCurrentComboItem(QComboBox *box, QString text);
+void SCRIBUS_API removeComboItem(QComboBox *box, QString text);
 
 QString SCRIBUS_API readAdobeUniCodeString(QDataStream &s);
 QString SCRIBUS_API readAdobeUniCodeString16(QDataStream &s);
@@ -153,4 +155,5 @@ void SCRIBUS_API setWidgetBoldFont(QWidget* w, bool wantBold);
  * if exist then seprator and numbers are pre/append to name while it will be unique
 */
 void SCRIBUS_API getUniqueName(QString &name, QStringList list, QString separator = "", bool prepend = false);
+
 #endif

@@ -100,7 +100,13 @@ GuideManager::GuideManager(QWidget* parent) :
 	connect(lockCheck, SIGNAL(stateChanged(int)), this, SLOT(lockCheck_stateChanged(int)));
 
 	connect(horizontalModel, SIGNAL(valueChanged()), this, SLOT(horizontalModel_valueChanged()));
-	connect(verticalModel, SIGNAL(valueChanged()), this, SLOT(verticalModel_valueChanged()));
+        connect(verticalModel, SIGNAL(valueChanged()), this, SLOT(verticalModel_valueChanged()));
+}
+
+GuideManager::~GuideManager()
+{
+    delete horizontalView->itemDelegateForColumn(0);
+    delete verticalView->itemDelegateForColumn(0);
 }
 
 void GuideManager::setDoc(ScribusDoc* doc)

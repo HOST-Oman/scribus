@@ -22,16 +22,18 @@ matrix:
 
 before_install:
 # Linux
-- if [ $TRAVIS_OS_NAME == linux ]; then 
+- if [ $TRAVIS_OS_NAME == linux ]; then
+      sudo apt-add-repository ppa:beineri/opt-qt561-trusty -y;
       sudo apt-add-repository ppa:as-bahanta/raqm -y;
-      sudo apt-add-repository ppa:beineri/opt-qt56-trusty -y;
-      sudo apt-get update -qq; 
+      sudo apt-add-repository ppa:ricotz/testing -y;
+      sudo apt-get update -qq;
       sudo apt-get install -y cmake libboost-python-dev libcups2-dev libhunspell-dev
       libhyphen-dev liblcms2-dev libpodofo-dev libtiff-dev libxml2-dev
       python-all-dev zlib1g-dev qt56base qt56declarative
       qt56tools libgraphicsmagick++1-dev
       libopenscenegraph-dev libpoppler-dev libcairo2-dev libwpg-dev libmspub-dev
-      libcdr-dev libvisio-dev libharfbuzz-dev libharfbuzz-icu0;
+      libcdr-dev libvisio-dev libharfbuzz-dev libharfbuzz-icu0
+      coreutils binutils python-tk;
     fi
 # OSX
 # - if [ $TRAVIS_OS_NAME == osx ]; then brew --env && brew config && brew list; fi
@@ -60,8 +62,9 @@ script:
       else
         export NPROC=1;
       fi;
-    cmake . -DWANT_HUNSPELL=1 -DWITH_PODOFO=1 -DWANT_GRAPHICSMAGICK=1 -DWANT_DEBUG=0 -DWANT_SVNVERSION=0 -DWANT_GUI_LANG=en_US -DWANT_NOEXAMPLES=1 -DWANT_NOTEMPLATES=1;
+   CXX='g++ -std=c++11'  cmake . -DCMAKE_INSTALL_PREFIX=/usr -DWANT_HUNSPELL=1 -DWITH_PODOFO=1 -DWANT_GRAPHICSMAGICK=1 -DWANT_DEBUG=0 -DWANT_SVNVERSION=0 -DWANT_GUI_LANG=en_US;
     make -j"$NPROC";
+    bash -ex ./AppImage-package/bundle.sh;    
     fi
   
 

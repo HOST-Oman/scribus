@@ -179,7 +179,8 @@ SET(SCRIBUS_UI_SRC
 	ui/propertywidget_pathtextbase.ui
 	ui/propertywidget_textcolorbase.ui
 	ui/recoverdialog.ui
-	ui/propertywidget_opentypefontfeatures.ui
+	ui/propertywidget_fontfeaturesbase.ui
+	ui/smfontfeaturesbase.ui
 	ui/replacecolors.ui
 	ui/replaceonecolor.ui
 	ui/resourcemanagerbase.ui
@@ -461,8 +462,8 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/propertywidget_optmargins.h
 	ui/propertywidget_orphans.h
 	ui/propertywidget_pathtext.h
-       ui/propertywidget_textcolor.h
-       ui/propertywidget_opentypefontfeatures.h
+	ui/propertywidget_textcolor.h
+	ui/propertywidget_fontfeatures.h
 	ui/proptree.h
 	ui/query.h
 	ui/recoverdialog.h
@@ -498,6 +499,7 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/smcolorcombo.h
 	ui/smcstylewidget.h
 	ui/smdirectionselect.h
+	ui/smfontfeatures.h
 	ui/smtablestylewidget.h
 	ui/smfontcomboh.h
 	ui/smlinestyle.h
@@ -508,6 +510,7 @@ SET(SCRIBUS_MOC_CLASSES
 	ui/smscrspinbox.h
 	ui/smshadebutton.h
 	ui/smspinbox.h
+	ui/smlineedit.h
 	ui/smstyleimport.h
 	ui/smstyleselect.h
 	ui/smtablestyle.h
@@ -696,6 +699,7 @@ SET(SCRIBUS_SOURCES
 	imagedataloaders/scimgdataloader.cpp
 	imagedataloaders/scimgdataloader_gimp.cpp
 	imagedataloaders/scimgdataloader_jpeg.cpp
+	imagedataloaders/scimgdataloader_kra.cpp
 	imagedataloaders/scimgdataloader_ora.cpp
 	imagedataloaders/scimgdataloader_pdf.cpp
 	imagedataloaders/scimgdataloader_pgf.cpp
@@ -928,8 +932,8 @@ SET(SCRIBUS_SOURCES
 	ui/propertywidget_orphans.cpp
 	ui/propertywidget_pathtext.cpp
 	ui/propertywidget_textcolor.cpp
-       ui/propertywidget_opentypefontfeatures.cpp
-       ui/propertywidgetbase.cpp
+	ui/propertywidget_fontfeatures.cpp
+	ui/propertywidgetbase.cpp
 	ui/proptree.cpp
 	ui/query.cpp
 	ui/recoverdialog.cpp
@@ -968,6 +972,7 @@ SET(SCRIBUS_SOURCES
 	ui/smcolorcombo.cpp
 	ui/smcstylewidget.cpp
 	ui/smdirectionselect.cpp
+	ui/smfontfeatures.cpp
 	ui/smfontcomboh.cpp
 	ui/smlinestyle.cpp
 	ui/smlinestylewidget.cpp
@@ -978,6 +983,7 @@ SET(SCRIBUS_SOURCES
 	ui/smscrspinbox.cpp
 	ui/smshadebutton.cpp
 	ui/smspinbox.cpp
+	ui/smlineedit.cpp
 	ui/smstyleimport.cpp
 	ui/smstyleselect.cpp
 	ui/smtablestylewidget.cpp
@@ -1104,6 +1110,7 @@ INCLUDE_DIRECTORIES(
 	${CMAKE_CURRENT_BINARY_DIR}
 	${CMAKE_CURRENT_SOURCE_DIR}
 	${FREETYPE_INCLUDE_DIRS}
+	${HARFBUZZ_INCLUDE_DIRS}
 )
 
 IF (GMAGICK_FOUND)

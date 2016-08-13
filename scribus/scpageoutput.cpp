@@ -968,9 +968,9 @@ public:
 		m_painter->scale(h, v);
 	}
 
-	void drawGlyph(const GlyphLayout& gl)
+	void drawGlyph(const GlyphCluster& gc)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		if (gc.isControlGlyphs())
 			return;
 
 		m_painter->save();
@@ -981,44 +981,56 @@ public:
 		m_painter->setFillMode(1);
 
 		setupState();
-		m_painter->translate(0, -(fontSize() * gl.scaleV));
-		FPointArray outline = font().glyphOutline(gl.glyph);
-		double scaleH = gl.scaleH * fontSize() / 10.0;
-		double scaleV = gl.scaleV * fontSize() / 10.0;
-		m_painter->scale(scaleH, scaleV);
-		m_painter->setupPolygon(&outline, true);
-		if (outline.size() > 3)
-			m_painter->fillPath();
+		double current_x = 0.0;
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			m_painter->save();
+			m_painter->translate(gl.xoffset + current_x, -(fontSize() * gl.scaleV) + gl.yoffset);
+			FPointArray outline = font().glyphOutline(gl.glyph);
+			double scaleH = gc.scaleH() * fontSize() / 10.0;
+			double scaleV = gc.scaleV() * fontSize() / 10.0;
+			m_painter->scale(scaleH, scaleV);
+			m_painter->setupPolygon(&outline, true);
+			if (outline.size() > 3)
+				m_painter->fillPath();
+			m_painter->restore();
+			current_x += gl.xadvance;
+		}
 
 		m_painter->setFillMode(fm);
 		m_painter->setFillRule(fr);
 		m_painter->restore();
 	}
 
-	void drawGlyphOutline(const GlyphLayout& gl, bool fill)
+	void drawGlyphOutline(const GlyphCluster& gc, bool fill)
 	{
-		if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+		if (gc.isControlGlyphs())
 			return;
 
 		if (fill)
-			drawGlyph(gl);
+			drawGlyph(gc);
 
 		m_painter->save();
 		bool fr = m_painter->fillRule();
 		m_painter->setFillRule(false);
 
 		setupState();
-		m_painter->translate(0, -(fontSize() * gl.scaleV));
+		double current_x = 0.0;
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			m_painter->save();
+			m_painter->translate(gl.xoffset + current_x, -(fontSize() * gc.scaleV()) + gl.yoffset);
 
-		FPointArray outline = font().glyphOutline(gl.glyph);
-		double scaleH = gl.scaleH * fontSize() / 10.0;
-		double scaleV = gl.scaleV * fontSize() / 10.0;
-		m_painter->scale(scaleH, scaleV);
-		m_painter->setupPolygon(&outline, true);
-		if (outline.size() > 3)
-		{
-			m_painter->setLineWidth(strokeWidth());
-			m_painter->strokePath();
+			FPointArray outline = font().glyphOutline(gl.glyph);
+			double scaleH = gc.scaleH() * fontSize() / 10.0;
+			double scaleV = gc.scaleV() * fontSize() / 10.0;
+			m_painter->scale(scaleH, scaleV);
+			m_painter->setupPolygon(&outline, true);
+			if (outline.size() > 3)
+			{
+				m_painter->setLineWidth(strokeWidth());
+				m_painter->strokePath();
+			}
+			m_painter->restore();
+			current_x += gl.xadvance;
 		}
 
 		m_painter->setFillRule(fr);

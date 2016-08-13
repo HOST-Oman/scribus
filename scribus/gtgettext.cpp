@@ -32,7 +32,6 @@ for which a new license (GPL+exception) is in place.
 #include "selection.h"
 #include "ui/gtdialogs.h"
 #include "gtwriter.h"
-//Added by qt3to4:
 #include <QPixmap>
 
 // Constructor
@@ -150,6 +149,23 @@ void gtGetText::loadImporterPlugins()
 	// Create the Importer Extension to Plugin data qmap.
 	createMap();
 }  // void gtGetText::loadImporterPlugins()
+
+
+QStringList gtGetText::getSupportedTypes()
+{
+	QStringList result;
+	for (uint i = 0; i < m_importers.size(); ++i)
+	{
+		if (m_importers[i].fileEndings.count() != 0)
+		{
+			for (int j = 0; j < m_importers[i].fileEndings.count(); ++j)
+			{
+				result.append(m_importers[i].fileEndings[j].toLower());
+			}
+		}
+	}
+	return result;
+}
 
 // Creates the dialog for the user to import a file based on the supported file formats.
 ImportSetup gtGetText::run()

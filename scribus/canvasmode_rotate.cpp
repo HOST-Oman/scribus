@@ -153,6 +153,11 @@ void CanvasMode_Rotate::getNewItemPosition(PageItem* item, FPoint& pos, double& 
 		pos.setXY(item->xPos(), item->yPos());
 		rotation = newAngle;
 	}
+
+	while (rotation < 0)
+		rotation += 360.0;
+	while (rotation > 360)
+		rotation -= 360.0;
 }
 
 void CanvasMode_Rotate::activate(bool fromGesture)
@@ -224,7 +229,7 @@ void CanvasMode_Rotate::mousePressEvent(QMouseEvent *m)
 	if (GetItem(&currItem))
 	{
 		m_inItemRotation = true;
-		m_oldRotMode   = m_rotMode   = m_doc->RotMode();
+		m_oldRotMode   = m_rotMode   = m_doc->rotationMode();
 		m_oldRotCenter = m_rotCenter = m_view->RCenter;
 		if (m_doc->m_Selection->isMultipleSelection())
 		{
@@ -241,7 +246,7 @@ void CanvasMode_Rotate::mousePressEvent(QMouseEvent *m)
 					m_rotCenter = FPoint(gxR, gyR);
 					m_rotMode   = 0;
 				}
-				m_doc->RotMode  ( m_rotMode );
+				m_doc->setRotationMode  ( m_rotMode );
 				m_view->RCenter = m_rotCenter;
 			}
 			m_startAngle = xy2Deg(mousePointDoc.x() - m_view->RCenter.x(), mousePointDoc.y() - m_view->RCenter.y());
@@ -278,7 +283,7 @@ void CanvasMode_Rotate::mousePressEvent(QMouseEvent *m)
 						m_rotMode   = 1;
 					}	
 				}
-				m_doc->RotMode  ( m_rotMode );
+				m_doc->setRotationMode  ( m_rotMode );
 				m_view->RCenter = m_rotCenter;
 //			}
 			m_view->RCenter = m_rotCenter = FPoint(currItem->xPos()+ m_view->RCenter.x(), currItem->yPos()+ m_view->RCenter.y()); //?????
@@ -337,7 +342,7 @@ void CanvasMode_Rotate::mouseReleaseEvent(QMouseEvent *m)
 				m_view->updateContents();
 		}
 	}
-	m_doc->RotMode( m_oldRotMode );
+	m_doc->setRotationMode( m_oldRotMode );
 	m_view->RCenter = m_oldRotCenter;
 	if (!PrefsManager::instance()->appPrefs.uiPrefs.stickyTools)
 		m_view->requestMode(modeNormal);

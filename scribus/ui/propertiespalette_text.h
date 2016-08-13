@@ -22,13 +22,13 @@ for which a new license (GPL+exception) is in place.
 #include "scguardedptr.h"
 #include "sctextstruct.h"
 #include "sctreewidget.h"
-#include "ui/propertywidget_opentypefontfeatures.h"
 
 class PageItem;
 class PropertyWidget_Advanced;
 class PropertyWidget_Distance;
 class PropertyWidget_ParEffect;
 class PropertyWidget_Flop;
+class PropertyWidget_FontFeatures;
 class PropertyWidget_Hyphenation;
 class PropertyWidget_OptMargins;
 class PropertyWidget_Orphans;
@@ -131,8 +131,8 @@ protected:
 	PropertyWidget_Advanced* advancedWidgets;
 	QTreeWidgetItem* advancedWidgetsItem;
 
-	PropertyWidget_OpenTypeFontFeatures* opentypefontWidget;
-	QTreeWidgetItem* opentypefontWidgettsItem;
+	PropertyWidget_FontFeatures* fontfeaturesWidget;
+	QTreeWidgetItem* fontfeaturesWidgetItem;
 
 	PropertyWidget_OptMargins* optMargins;
 	QTreeWidgetItem* optMarginsItem;

@@ -810,6 +810,7 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 		QList<uint> chars;
 		QMap<uint, uint>::ConstIterator cit;
 		qDebug() << "writing cmap";
+		bool cmapHasData = false;
 		for(cit = cmap.cbegin(); cit != cmap.cend(); ++cit)
 		{
 			uint ch = cit.key();
@@ -817,6 +818,7 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 			{
 				qDebug() << "(" << QChar(cit.key()) << "," << cit.value() << ")";
 				chars.append(ch);
+				cmapHasData = true;
 			}
 //			qDebug() << QChar(ch) << QChar::requiresSurrogates(ch) << cit.value();
 		}
@@ -826,30 +828,32 @@ QByteArray extractFace(const QByteArray& coll, int faceIndex)
 		QList<quint16> endCodes;
 		QList<quint16> idDeltas;
 		QList<quint16> rangeOffsets;
-		
-		uint pos = 0;
-		do {
-			quint16 start = chars[pos];
-			quint16 delta = cmap[start] - start;
-			quint16 rangeOffset = 0;
-			quint16 end = start;
-			quint16 next;
-			++pos;
-			while (pos < (uint) chars.length() && (next = chars[pos]) == end+1)
-			{
-				end = next;
-				if (delta != (quint16)(cmap[chars[pos]] - next))
-				{
-					rangeOffset = 1; // will be changed later
-				}
+		if (cmapHasData)
+		{
+			uint pos = 0;
+			do {
+				quint16 start = chars[pos];
+				quint16 delta = cmap[start] - start;
+				quint16 rangeOffset = 0;
+				quint16 end = start;
+				quint16 next;
 				++pos;
+				while (pos < (uint) chars.length() && (next = chars[pos]) == end+1)
+				{
+					end = next;
+					if (delta != (quint16)(cmap[chars[pos]] - next))
+					{
+						rangeOffset = 1; // will be changed later
+					}
+					++pos;
+				}
+				startCodes.append(start);
+				endCodes.append(end);
+				idDeltas.append(delta);
+				rangeOffsets.append(rangeOffset);
 			}
-			startCodes.append(start);
-			endCodes.append(end);
-			idDeltas.append(delta);
-			rangeOffsets.append(rangeOffset);
+			while (pos < (uint) chars.length());
 		}
-		while (pos < (uint) chars.length());
 		
 		startCodes.append(0xFFFF);
 		endCodes.append(0xFFFF);

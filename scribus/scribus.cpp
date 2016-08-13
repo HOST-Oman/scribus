@@ -468,6 +468,7 @@ ScribusMainWindow::~ScribusMainWindow()
 	if (appModeHelper)
 		delete appModeHelper;
 	delete m_doc;
+	delete m_tocGenerator;
 }
 
 void ScribusMainWindow::addScToolBar(ScToolBar *tb, QString name)
@@ -683,7 +684,7 @@ void ScribusMainWindow::initPalettes()
 	// initializing style manager here too even it's not strictly a palette
 	m_styleManager = new StyleManager(this, "styleManager");
 	SMCharacterStyle *tmpCS = new SMCharacterStyle();
-	m_styleManager->addStyle(new SMParagraphStyle(tmpCS->tmpStyles()));
+	m_styleManager->addStyle(new SMParagraphStyle(tmpCS));
 	m_styleManager->addStyle(tmpCS);
 	m_styleManager->addStyle(new SMTableStyle());
 	m_styleManager->addStyle(new SMCellStyle());
@@ -1310,6 +1311,12 @@ void ScribusMainWindow::initStatusBar()
 
 void ScribusMainWindow::setStatusBarMousePosition(double xp, double yp)
 {
+	if (!HaveDoc)
+	{
+		mainWindowXPosDataLabel->clear();
+		mainWindowYPosDataLabel->clear();
+		return;
+	}
 	if (doc->Pages->count() == 0)
 		return;
 	double xn = xp;
@@ -2806,7 +2813,7 @@ void ScribusMainWindow::HaveNewSel()
 		break;
 	}
 	doc->CurrentSel = SelectedType;
-	propertiesPalette->xyzPal->basePointWidget->setCheckedId(doc->RotMode());
+	propertiesPalette->xyzPal->basePointWidget->setCheckedId(doc->rotationMode());
 
 	if (docSelectionCount != 0)
 	{
@@ -3121,11 +3128,11 @@ void ScribusMainWindow::importVectorFile()
 	}
 	allFormats += "*.sce *.SCE);;";
 	formats.append("Scribus Objects (*.sce *.SCE)");
-	qSort(formats);
+	formats.sort(Qt::CaseInsensitive);
 	allFormats += formats.join(";;");
 	PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
 	QString wdir = dirs->get("pastefile", ".");
-	CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdExistingFiles);
+	CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdExistingFiles | fdDisableOk);
 	QString fileName("");
 	if (dia.exec() == QDialog::Accepted)
 	{
@@ -3243,7 +3250,7 @@ bool ScribusMainWindow::slotFileOpen()
 	else
 		docDir = docContext->get("docsopen", ".");
 	QString formats(FileLoader::getLoadFilterString());
-	QString fileName(CFileDialog( docDir, tr("Open"), formats));
+	QString fileName(CFileDialog( docDir, tr("Open"), formats, "", fdDisableOk));
 	if (fileName.isEmpty()) // User cancelled
 		return false;
 	QFileInfo fi(fileName);
@@ -3864,7 +3871,7 @@ void ScribusMainWindow::slotGetContent()
 
 			QStringList fileNames;
 			fileNames.clear();
-			CustomFDialog *dia = new CustomFDialog(qApp->activeWindow(), docDir, tr("Open"), formatD, fdShowPreview | fdExistingFilesI);
+			CustomFDialog *dia = new CustomFDialog(qApp->activeWindow(), docDir, tr("Open"), formatD, fdShowPreview | fdExistingFilesI | fdDisableOk);
 			if (dia->exec() == QDialog::Accepted)
 				fileNames = dia->fileDialog->selectedFiles();
 			delete dia;
@@ -3920,6 +3927,20 @@ void ScribusMainWindow::slotGetContent()
 			symbolPalette->updateSymbolList();
 		}
 	}
+}
+
+void ScribusMainWindow::updateFromDrop()
+{
+	m_styleManager->setDoc(doc);
+	marksManager->setDoc(doc);
+	nsEditor->setDoc(doc);
+	inlinePalette->unsetDoc();
+	inlinePalette->setDoc(doc);
+	if (outlinePalette->isVisible())
+		outlinePalette->BuildTree();
+	propertiesPalette->updateColorList();
+	emit UpdateRequest(reqArrowStylesUpdate | reqLineStylesUpdate | reqStyleComboDocUpdate | reqInlinePalUpdate);
+	symbolPalette->updateSymbolList();
 }
 
 void ScribusMainWindow::slotGetContent2() // kk2006
@@ -4305,6 +4326,8 @@ bool ScribusMainWindow::DoFileClose()
 	updateLayerMenu();
 	updateTableMenuActions();
 	rebuildScrapbookMenu();
+	mainWindowXPosDataLabel->clear();
+	mainWindowYPosDataLabel->clear();
 	//not running view's togglePreview as we don't want to affect the doc settings.
 	scrActions["viewPreviewMode"]->setChecked(false);
 	appModeHelper->setPreviewMode(false);
@@ -6362,16 +6385,15 @@ void ScribusMainWindow::duplicateItem()
 	mdData.copyShiftGapV = doc->opToolPrefs().dispY * doc->unitRatio();
 
 	int oldItemCount = doc->Items->count();
+	doc->m_Selection->delaySignalsOn();
 	doc->itemSelection_MultipleDuplicate(mdData);
-
-	doc->m_Selection->blockSignals(true);
 	view->Deselect(true);
 	for (int i = oldItemCount; i < doc->Items->count(); ++i)
 	{
 		PageItem* item = doc->Items->at(i);
 		doc->m_Selection->addItem(item);
 	}
-	doc->m_Selection->blockSignals(false);
+	doc->m_Selection->delaySignalsOff();
 
 	if (trans)
 		trans.commit();
@@ -7306,10 +7328,14 @@ QStringList ScribusMainWindow::scrapbookNames()
 
 void ScribusMainWindow::updateLayerMenu()
 {
-	if (doc==NULL)
-		return;
 	bool b = layerMenu->blockSignals(true);
 	layerMenu->clear();
+	if (doc==NULL)
+	{
+		layerMenu->blockSignals(b);
+		return;
+	}
+
 	QStringList newNames;
 	doc->orderedLayerList(&newNames);
 	for (QStringList::Iterator it=newNames.begin(); it!=newNames.end(); ++it)
@@ -9676,10 +9702,10 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 		case MARKVariableTextType:
 			if (currItem == NULL)
 				//invoked from Marks Manager
-				editMDialog = (MarkInsert*) new MarkVariableText(mrk, this);
+				editMDialog = dynamic_cast<MarkInsert*>(new MarkVariableText(mrk, this));
 			else
 				//invoked from mark`s entry in text
-				editMDialog = (MarkInsert*) new MarkVariableText(doc->marksList(), this);
+				editMDialog = dynamic_cast<MarkInsert*>(new MarkVariableText(doc->marksList(), this));
 			editMDialog->setValues(mrk->label, mrk->getString());
 			break;
 		case MARK2ItemType:

@@ -214,6 +214,21 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 	{
 		case modeNormal:
 			{
+				bool editSearchReplace = false;
+				if (currItem != 0)
+				{
+					editSearchReplace |= currItem->isTextFrame();
+					editSearchReplace |= (currItem->itemText.length() > 0);
+					editSearchReplace |= (doc->m_Selection->count() == 1);
+				}
+				(*a_scrActions)["editSearchReplace"]->setEnabled(editSearchReplace);
+
+				(*a_scrActions)["editCut"]->setEnabled(currItem != 0);
+				(*a_scrActions)["editCopy"]->setEnabled(currItem != 0);
+				(*a_scrActions)["editClearContents"]->setEnabled(currItem != 0);
+				(*a_scrActions)["editPaste"]->setEnabled(ScMimeData::clipboardHasScribusData());
+				(*a_scrActions)["editTruncateContents"]->setEnabled(currItem != 0);
+
 				scmw->propertiesPalette->setGradientEditMode(false);
 				scmw->outlinePalette->setEnabled(true);
 			}
@@ -339,6 +354,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 					(*a_scrActions)["insertSampleText"]->setEnabled(true);
 					(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(true);
 					enableTextActions(true);
+					setTextEditMode(true);
 					a_actMgr->saveActionShortcutsPreEditMode();
 					// #11938: Paste is not correctly enabled in modeEditTable
 					if (ScMimeData::clipboardHasScribusData())
@@ -660,6 +676,9 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		case PageItem::Table:
 			(*a_scrActions)["editCut"]->setEnabled(true);
 			(*a_scrActions)["editCopy"]->setEnabled(true);
+			(*a_scrActions)["itemDelete"]->setEnabled(!inAnEditMode);
+			(*a_scrActions)["itemSendToPattern"]->setEnabled(!inAnEditMode);
+			(*a_scrActions)["itemSendToInline"]->setEnabled(!inAnEditMode);
 			(*a_scrActions)["toolsRotate"]->setEnabled(!inAnEditMode);
 			if (doc->appMode == modeEditTable)
 			{
@@ -845,9 +864,9 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			bool canAttachTextToPath = false;
 			PageItem* item1 = doc->m_Selection->itemAt(0);
 			PageItem* item2 = doc->m_Selection->itemAt(1);
-			if (!item1->asTextFrame() || !(item2->asPolygon() || item2->asPolyLine()))
+			if (!item1->asTextFrame() || !(item2->asPolygon() || item2->asPolyLine() || item2->asSpiral() || item2->asArc() || item2->asRegularPolygon()))
 				std::swap(item1, item2);
-			if (item1->asTextFrame() && (item2->asPolygon() || item2->asPolyLine()))
+			if (item1->asTextFrame() && (item2->asPolygon() || item2->asPolyLine() || item2->asSpiral() || item2->asArc() || item2->asRegularPolygon()))
 			{
 				canAttachTextToPath  = true;
 				canAttachTextToPath &= (item1->nextInChain() == 0);

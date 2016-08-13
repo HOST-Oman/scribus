@@ -40,12 +40,15 @@
      <item>
       <widget class="QLabel" name="label">
        <property name="text">
-        <string>Smalest Word</string>
+        <string>Smallest Word:</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QSpinBox" name="smallestWordSpinBox">
+       <property name="toolTip">
+        <string>Length of the smallest word to be hyphenated</string>
+       </property>
        <property name="minimum">
         <number>3</number>
        </property>
@@ -83,7 +86,12 @@
       </widget>
      </item>
      <item>
-      <widget class="QSpinBox" name="maxConsecutiveCountSpinBox"/>
+      <widget class="QSpinBox" name="maxConsecutiveCountSpinBox">
+       <property name="toolTip">
+        <string>Maximum number of Hyphenations following each other.
+A value of 0 means unlimited hyphenations.</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
@@ -97,7 +105,11 @@
       </widget>
      </item>
      <item>
-      <widget class="QLineEdit" name="hyphenCharLineEdit"/>
+      <widget class="QLineEdit" name="hyphenCharLineEdit">
+       <property name="toolTip">
+        <string>The character used for automatic hyphen. Can be empty.</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>

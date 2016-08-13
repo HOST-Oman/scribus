@@ -16,6 +16,7 @@
 #include "scribusdoc.h"
 #include "prefsmanager.h"
 #include "scribusapp.h"
+#include "util.h"
 
 ScreenPainter::ScreenPainter(ScPainter *p, PageItem *item)
 	: m_painter(p)
@@ -43,10 +44,10 @@ ScreenPainter::~ScreenPainter()
 	m_painter->restore();
 }
 
-void ScreenPainter::drawGlyph(const GlyphLayout& gl)
+void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 {
-	bool showControls = gl.glyph == 0 || (m_item->doc()->guidesPrefs().showControls &&
-			    (gl.glyph == font().char2CMap(' ') || gl.glyph >= ScFace::CONTROL_GLYPHS));
+	bool showControls = gc.isEmpty() || (m_item->doc()->guidesPrefs().showControls &&
+										 (gc.isSpace() || gc.isControlGlyphs()));
 #if CAIRO_HAS_FC_FONT
 	if (m_painter->fillMode() == 1 && m_painter->maskMode() <= 0 && !showControls)
 	{
@@ -80,10 +81,13 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 		cairo_set_font_face(cr, m_cairoFace);
 		cairo_set_font_size(cr, fontSize());
 
-		cairo_scale(cr, gl.scaleH, gl.scaleV);
-		cairo_glyph_t glyph = { gl.glyph, 0, 0 };
-		cairo_show_glyphs(cr, &glyph, 1);
-
+		double current_x = 0.0;
+		foreach (const GlyphLayout& gl, gc.glyphs()) {
+			cairo_scale(cr, gl.scaleH, gl.scaleV);
+			cairo_glyph_t glyph = { gl.glyph, gl.xoffset + current_x, gl.yoffset };
+			cairo_show_glyphs(cr, &glyph, 1);
+			current_x += gl.xadvance;
+		}
 		m_painter->restore();
 		return;
 	}
@@ -95,7 +99,8 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 	bool fr = m_painter->fillRule();
 	m_painter->setFillRule(false);
 
-	uint gid = gl.glyph;
+	//All ControlGlyphs have only one GlyphLayout
+	uint gid = gc.glyphs().first().glyph;
 	if (showControls)
 	{
 		bool stroke = false;
@@ -107,7 +112,7 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 		FPointArray outline;
 		if (gid == 0)
 		{
-			outline = font().glyphOutline(gl.glyph);
+			outline = font().glyphOutline(gc.glyphs().first().glyph);
 			if (outline.size() <= 3)
 			{
 				outline.clear();
@@ -118,43 +123,49 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 				outline.addQuadPoint(0,sz,0,sz,0,0,0,0);
 				stroke = true;
 			}
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.8);
+			chma4.translate(0, -fontSize() * gc.scaleV() * 0.8);
 		}
 		else if (gid == SpecialChars::TAB.unicode())
 		{
 			outline = m_item->doc()->symTab.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.5);
+			chma4.translate(gc.width() - fontSize() * 0.7, -fontSize() * gc.scaleV() * 0.5);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::COLBREAK.unicode())
 		{
 			outline = m_item->doc()->symNewCol.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.6);
+			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.6);
 		}
 		else if (gid == SpecialChars::FRAMEBREAK.unicode())
 		{
 			outline = m_item->doc()->symNewFrame.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.6);
+			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.6);
 		}
 		else if (gid == SpecialChars::PARSEP.unicode())
 		{
 			outline = m_item->doc()->symReturn.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.8);
+			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.8);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::LINEBREAK.unicode())
 		{
 			outline = m_item->doc()->symNewLine.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.4);
+			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.4);
+			if (gc.hasFlag(ScLayout_RightToLeft))
+				chma4.scale(-1, 1);
 		}
 		else if (gid == SpecialChars::NBSPACE.unicode() || gid == 32)
 		{
 			stroke = (gid == 32);
 			outline = m_item->doc()->symNonBreak.copy();
-			chma4.translate(0, -fontSize() * gl.scaleV * 0.4);
+			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV() * 0.4);
 		}
 		else if (gid == SpecialChars::NBHYPHEN.unicode())
 		{
 			outline = font().glyphOutline(font().hyphenGlyph(), fontSize());
-			chma4.translate(0, -fontSize() * gl.scaleV);
+			chma4.translate(gc.xoffset, -fontSize() * gc.scaleV());
 		}
 		else if (gid == SpecialChars::SHYPHEN.unicode())
 		{
@@ -177,20 +188,19 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 			outline.addQuadPoint(1, -9, 1, -9, 1, -10, 1, -10);
 			outline.addQuadPoint(1, -10, 1, -10, 0, -10, 0, -10);
 		}
-		chma.scale(gl.scaleH * fontSize() / 10.0, gl.scaleV * fontSize() / 10.0);
+		chma.scale(gc.scaleH() * fontSize() / 10.0, gc.scaleV() * fontSize() / 10.0);
 		outline.map(chma * chma4);
 		m_painter->setupPolygon(&outline, true);
 		QColor oldBrush = m_painter->brush();
-		// FIXME
-		/* p->setBrush( (flags & ScLayout_SuppressSpace) ? Qt::green
-				: PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);*/
+		m_painter->setBrush(gc.hasFlag(ScLayout_SuppressSpace) ? Qt::green
+															   : PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
 		m_painter->setBrush(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
 		if (stroke)
 		{
 			QColor tmp = m_painter->pen();
 			m_painter->setStrokeMode(1);
 			m_painter->setPen(m_painter->brush(), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-			m_painter->setLineWidth(fontSize() * gl.scaleV / 20.0);
+			m_painter->setLineWidth(fontSize() * gc.scaleV() / 20.0);
 			m_painter->strokePath();
 			m_painter->setPen(tmp, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		}
@@ -203,42 +213,49 @@ void ScreenPainter::drawGlyph(const GlyphLayout& gl)
 	}
 	else
 	{
-		m_painter->translate(0, -(fontSize() * gl.scaleV));
-		double scaleH = gl.scaleH * fontSize() / 10.0;
-		double scaleV = gl.scaleV * fontSize() / 10.0;
+		m_painter->translate(0, -(fontSize() * gc.scaleV()));
+		double scaleH = gc.scaleH() * fontSize() / 10.0;
+		double scaleV = gc.scaleV() * fontSize() / 10.0;
 		m_painter->scale(scaleH, scaleV);
-		FPointArray outline = font().glyphOutline(gid);
-		m_painter->setupPolygon(&outline, true);
-		if (outline.size() > 3)
-			m_painter->fillPath();
+		QVector<FPointArray> outlines = gc.glyphClusterOutline();
+		foreach (FPointArray outline, outlines) {
+			m_painter->setupPolygon(&outline, true);
+			if (outline.size() > 3)
+				m_painter->fillPath();
+		}
 	}
 	m_painter->setFillRule(fr);
 
 	m_painter->restore();
 }
 
-void ScreenPainter::drawGlyphOutline(const GlyphLayout& gl, bool fill)
+void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 {
 	if (fill)
-		drawGlyph(gl);
+		drawGlyph(gc);
 	m_painter->save();
 	bool fr = m_painter->fillRule();
 	m_painter->setFillRule(false);
 
 	setupState(false);
-	m_painter->translate(0, -(fontSize() * gl.scaleV));
-
-	FPointArray outline = font().glyphOutline(gl.glyph);
-	double scaleHv = gl.scaleH * fontSize() / 10.0;
-	double scaleVv = gl.scaleV * fontSize() / 10.0;
-	QTransform trans;
-	trans.scale(scaleHv, scaleVv);
-	outline.map(trans);
-	m_painter->setupPolygon(&outline, true);
-	if (outline.size() > 3)
-	{
-		m_painter->setLineWidth(strokeWidth());
-		m_painter->strokePath();
+	double current_x = 0.0;
+	foreach (const GlyphLayout& gl, gc.glyphs()) {
+		m_painter->save();
+		m_painter->translate(gl.xoffset + current_x, - (fontSize() * gl.scaleV) + gl.yoffset );
+		FPointArray outline = font().glyphOutline(gl.glyph);
+		double scaleHv = gl.scaleH * fontSize() / 10.0;
+		double scaleVv = gl.scaleV * fontSize() / 10.0;
+		QTransform trans;
+		trans.scale(scaleHv, scaleVv);
+		outline.map(trans);
+		m_painter->setupPolygon(&outline, true);
+		if (outline.size() > 3)
+		{
+			m_painter->setLineWidth(strokeWidth());
+			m_painter->strokePath();
+		}
+		m_painter->restore();
+		current_x += gl.xadvance;
 	}
 
 	m_painter->setFillRule(fr);
@@ -344,18 +361,19 @@ void ScreenPainter::restoreState()
 
 void ScreenPainter::setupState(bool rect)
 {
-	m_painter->setLineWidth(strokeWidth());
 	if (selected() && rect)
 	{
 		// we are drawing a selection rect
-		m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::Highlight));
-		m_painter->setPen(qApp->palette().color(QPalette::Active, QPalette::Highlight));
+		QColor color = qApp->palette().color(QPalette::Active, QPalette::Highlight);
+		m_painter->setBrush(color);
+		m_painter->setPen(color, strokeWidth(), Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
 	else if (selected())
 	{
 		// we are drawing selected text
-		m_painter->setBrush(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
-		m_painter->setPen(qApp->palette().color(QPalette::Active, QPalette::HighlightedText));
+		QColor color = qApp->palette().color(QPalette::Active, QPalette::HighlightedText);
+		m_painter->setBrush(color);
+		m_painter->setPen(color, strokeWidth(), Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
 	else
 	{
@@ -373,7 +391,7 @@ void ScreenPainter::setupState(bool rect)
 			m_strokeColor = strokeColor();
 		}
 		m_painter->setBrush(m_fillQColor);
-		m_painter->setPen(m_fillStrokeQColor, 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		m_painter->setPen(m_fillStrokeQColor, strokeWidth(), Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	}
 
 	m_painter->translate(x(), y());

@@ -97,6 +97,10 @@ void CanvasMode_EditTable::keyPressEvent(QKeyEvent* event)
 	// Handle some keys specific to this mode.
 	if (event->key() == Qt::Key_Escape)
 	{
+		// Deselect text in active frame.
+		PageItem_TextFrame* activeFrame = m_table->activeCell().textFrame();
+		activeFrame->itemText.deselectAll();
+		activeFrame->HasSel = false;
 		// Go back to normal mode.
 		m_view->requestMode(modeNormal);
 	}
@@ -197,6 +201,8 @@ void CanvasMode_EditTable::mouseMoveEvent(QMouseEvent* event)
 
 void CanvasMode_EditTable::mousePressEvent(QMouseEvent* event)
 {
+	PageItem_TextFrame* activeFrame;
+
 	event->accept();
 	QPointF canvasPoint = m_canvas->globalToCanvas(event->globalPos()).toQPointF();
 	double threshold = m_doc->guidesPrefs().grabRadius / m_canvas->scale();
@@ -236,9 +242,14 @@ void CanvasMode_EditTable::mousePressEvent(QMouseEvent* event)
 				updateCanvas(true);
 				break;
 			case TableHandle::None:
+				// Deselect text in active frame.
+				activeFrame = m_table->activeCell().textFrame();
+				activeFrame->itemText.deselectAll();
+				activeFrame->HasSel = false;
 				// Deselect the table and go back to normal mode.
 				m_view->Deselect(true);
 				m_view->requestMode(modeNormal);
+				m_view->canvasMode()->mousePressEvent(event);
 				break;
 			default:
 				qWarning("Unknown hit target");
@@ -334,11 +345,21 @@ void CanvasMode_EditTable::handleMouseDrag(QMouseEvent* event)
 		activeFrame->HasSel = false;
 		m_view->slotSetCurs(event->globalPos().x(), event->globalPos().y());
 
-		const int selectionStart = qMin(activeFrame->itemText.cursorPosition(), m_lastCursorPos);
-		const int selectionLength = qAbs(activeFrame->itemText.cursorPosition() - m_lastCursorPos);
+		PageItem_TextFrame* newActiveFrame = m_table->activeCell().textFrame();
+		if (activeFrame == newActiveFrame)
+		{
+			const int selectionStart = qMin(activeFrame->itemText.cursorPosition(), m_lastCursorPos);
+			const int selectionLength = qAbs(activeFrame->itemText.cursorPosition() - m_lastCursorPos);
 
-		activeFrame->itemText.select(selectionStart, selectionLength);
-		activeFrame->HasSel = (selectionLength > 0);
+			activeFrame->itemText.select(selectionStart, selectionLength);
+			activeFrame->HasSel = (selectionLength > 0);
+		}
+		else
+		{
+			m_lastCursorPos = -1;
+			m_cellSelectGesture->setup(m_table, activeCell);
+			m_view->startGesture(m_cellSelectGesture);
+		}
 	}
 	else
 	{
