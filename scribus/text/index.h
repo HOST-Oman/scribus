@@ -93,7 +93,7 @@ public:
 	uint insert(int pos);
 	
 	
-	/** remove a run, merging it with the following one */
+	/** remove a run, merging it with the preceding one */
 	void remove (uint idx);
 	
 	
