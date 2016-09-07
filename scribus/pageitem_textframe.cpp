@@ -1306,20 +1306,22 @@ void PageItem_TextFrame::layout()
 {
 //    qDebug()<<"==Layout==" << itemName() ;
 // 	printBacktrace(24);
-	if (BackBox != NULL && BackBox->invalid) {
+	if (BackBox != NULL) {
 //		qDebug("textframe: len=%d, going back", itemText.length());
-		// Why that invalid = false here? Calling prevInChain->layout() does
-		// not ensure that this box will be layouted
-		// invalid = false;
-		PageItem_TextFrame* prevInChain = dynamic_cast<PageItem_TextFrame*>(BackBox);
-		while (prevInChain && prevInChain->invalid)
+		PageItem_TextFrame* firstInvalid = NULL;
+		PageItem_TextFrame* prevInChain  = dynamic_cast<PageItem_TextFrame*>(BackBox);
+		while (prevInChain)
 		{
-			if (!prevInChain->BackBox || !prevInChain->BackBox->invalid)
-				break;
+			if (prevInChain->invalid)
+				firstInvalid = prevInChain;
 			prevInChain = dynamic_cast<PageItem_TextFrame*>(prevInChain->BackBox);
 		}
-		if (prevInChain && prevInChain->invalid)
-			prevInChain->layoutAll();
+		PageItem_TextFrame* nextInChain = firstInvalid;
+		while (nextInChain && (nextInChain != this))
+		{
+			nextInChain->layoutAll();
+			nextInChain = dynamic_cast<PageItem_TextFrame*>(nextInChain->NextBox);
+		}
 		// #9592 : warning, BackBox->layout() may not layout BackBox next box
 		if (!invalid)
 			return;
@@ -3023,13 +3025,6 @@ NoRoom:
 	
 	adjustParagraphEndings ();
 
-	PageItem_TextFrame * next = dynamic_cast<PageItem_TextFrame*>(NextBox);
-	if (next != NULL)
-	{
-		next->invalid = true;
-		next->firstChar = MaxChars;
-	}
-	
 	if (!isNoteFrame() && (!m_Doc->notesList().isEmpty() || m_Doc->notesChanged()))
 	{
 		UndoManager::instance()->setUndoEnabled(false);
@@ -3042,7 +3037,22 @@ NoRoom:
 		UndoManager::instance()->setUndoEnabled(true);
 	}
 
-
+	PageItem_TextFrame * next = dynamic_cast<PageItem_TextFrame*>(NextBox);
+	if (next != NULL)
+	{
+		if (itemText.cursorPosition() > signed(MaxChars))
+		{
+			int nCP = itemText.cursorPosition();
+			if (m_Doc->appMode == modeEdit)
+				next->itemText.setCursorPosition( qMax(nCP, signed(MaxChars)) );
+		}
+		while (next)
+		{
+			next->invalid   = true;
+			next->firstChar = MaxChars;
+			next = dynamic_cast<PageItem_TextFrame*>(next->NextBox);
+		}
+	}
 //	qDebug("textframe: len=%d, done relayout (no room %d)", itemText.length(), MaxChars);
 	itemText.blockSignals(false);
 }
