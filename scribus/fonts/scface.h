@@ -23,6 +23,7 @@ virtual:      dispatch to constituents, handle embedding (-)
 #include <QHash>
 #include <QMap>
 #include <QString>
+#include <QStringList>
 #include <utility>
 
 #include <ft2build.h>
