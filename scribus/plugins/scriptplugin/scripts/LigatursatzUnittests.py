@@ -382,6 +382,28 @@ class GermanLigatureSupportTestcase(unittest.TestCase):
         # test if
         self.assertTrue(my_pattern_set < my_word_character_set)
 
+    def test_get_word_characters_decompisition(self):
+        """get_word_characters() returns a string with characters. Some of these
+        characters can be precomposed Unicode characters, to they have
+        a canonical decomposition form. This test controls if the string
+        contains for each character that is contains, also its canonical
+        decomposition characters.
+        """
+        # get original word character set
+        my_original_word_character_set = set(
+            GermanLigatureSupport().get_word_characters())
+        # decomposed form
+        my_decomposed_string = unicodedata.normalize(
+            "NFD",
+            GermanLigatureSupport().get_word_characters())
+        # get combined original and decomposed character set
+        my_decomposed_word_character_set = set(
+            GermanLigatureSupport().get_word_characters() + \
+                my_decomposed_string)
+        # test if
+        self.assertEqual(
+            my_original_word_character_set,
+            my_decomposed_word_character_set)
 
 class InstructionProviderTestcase(unittest.TestCase):
     def test_throwsException(self):
@@ -534,17 +556,43 @@ class InstructionProviderTestcase(unittest.TestCase):
         # test if equal to what the documentation of
         # InstructionProvider.get_instructions() claims
         # to support as combining characters.
-        self.assertEqual(
-            my_combining_character_set,
-            set(u"šŠâÂäÄéÉóÓöÖüÜ\u030C\u0302\u0308\u0301"))
+        self.assertTrue(
+            my_combining_character_set <= \
+                set(u"šŠâÂäÄéÉóÓöÖüÜ\u030C\u0302\u0308\u0301"))
 
-    def test_normalization_example(self):
-        # Salatöl (with capital letter)
+    def test_normalization_example_1(self):
+        # Salatöl
         assert InstructionProvider().get_instructions(u"SALATÖL") == \
                [None, None, None, None, None, True, None]
         self.assertEqual(
             InstructionProvider().get_instructions(u"SALATO\u0308L"),
             [None, None, None, None, None, True, None, None])
+        self.assertEqual(
+            InstructionProvider().get_instructions(u"Salato\u0308L"),
+            [None, None, None, None, None, True, None, None])
+        self.assertEqual(
+            InstructionProvider().get_instructions(u"salato\u0308L"),
+            [None, None, None, None, None, True, None, None])
+        self.assertEqual(
+            InstructionProvider().get_instructions(u"Salat\u00ADo\u0308L"),
+            [None, None, None, None, None, None, True, None, None])
+
+    def test_normalization_example_2(self):
+        # Menükarte
+        assert InstructionProvider().get_instructions(u"MENÜKARTE") == \
+               [None, None, None, None, True, None, None, None, None]
+        self.assertEqual(
+            InstructionProvider().get_instructions(u"MENU\u0308KARTE"),
+            [None, None, None, None, None, True, None, None, None, None])
+        self.assertEqual(
+            InstructionProvider().get_instructions(u"Menu\u0308karte"),
+            [None, None, None, None, None, True, None, None, None, None])
+        self.assertEqual(
+            InstructionProvider().get_instructions(u"menu\u0308karte"),
+            [None, None, None, None, None, True, None, None, None, None])
+        self.assertEqual(
+            InstructionProvider().get_instructions(u"Menu\u0308\u00ADkarte"),
+            [None, None, None, None, None, None, True, None, None, None, None])
 
 
 class IsBmpScalarOnlyTestcase(unittest.TestCase):
