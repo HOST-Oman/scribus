@@ -128,6 +128,9 @@ public:
 	/// Same as render() but handles text selection, for rendering on screen.
 	virtual void render(ScreenPainter *p, ITextContext *ctx) const = 0;
 
+	/// Draw selection if the the box selected
+	virtual void drawSelection(ScreenPainter *p, ITextContext *ctx) const {}
+
 	/// Get natural ascent and decent.
 	virtual double naturalAsc() const { return m_naturalAscent; }
 	virtual double naturalDecent() const { return m_naturalDecent; }
@@ -171,6 +174,8 @@ public:
 
 	void render(TextLayoutPainter *p) const;
 	void render(ScreenPainter *p, ITextContext *ctx) const;
+	void drawSelection(ScreenPainter *p, ITextContext *ctx) const;
+
 
 	double naturalWidth() const { return m_naturalWidth; }
 	double naturalHeight() const { return m_naturalHeight; }
@@ -212,6 +217,7 @@ public:
 
 	void render(TextLayoutPainter *p) const;
 	void render(ScreenPainter *p, ITextContext *ctx) const;
+	void drawSelection(ScreenPainter *p, ITextContext *ctx) const;
 
 	double naturalWidth() const { return m_naturalWidth; }
 	double naturalHeight() const { return height(); }
@@ -223,7 +229,6 @@ public:
 
 protected:
 	virtual void drawBackGround(TextLayoutPainter *p) const;
-	virtual void drawSelection(ScreenPainter *p, ITextContext *ctx) const;
 	virtual void update();
 };
 
@@ -260,6 +265,8 @@ public:
 
 	void render(TextLayoutPainter *p) const;
 	void render(ScreenPainter *p, ITextContext *ctx) const;
+	void drawSelection(ScreenPainter *p, ITextContext *ctx) const;
+
 	GlyphCluster glyphRun() const { return m_glyphRun; }
 
 	const CharStyle& style() const { return m_glyphRun.style(); }

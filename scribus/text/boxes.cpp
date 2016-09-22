@@ -73,6 +73,17 @@ void GroupBox::render(ScreenPainter *p, ITextContext *ctx) const
 	p->restore();
 }
 
+void GroupBox::drawSelection(ScreenPainter *p, ITextContext *ctx) const
+{
+	p->save();
+	p->translate(x(), y());
+	foreach (const Box *box, boxes())
+	{
+		box->drawSelection(p, ctx);
+	}
+	p->restore();
+}
+
 void GroupBox::addBox(const Box* box)
 {
 	boxes().append(const_cast<Box*>(box));
@@ -200,49 +211,8 @@ void LineBox::render(ScreenPainter *p, ITextContext *ctx) const
 
 void LineBox::drawSelection(ScreenPainter *p, ITextContext *ctx) const
 {
-	const PageItem* item = ctx->getFrame();
-	int selectionFirst = -1;
-	int selectionLast = -1;
-	for (int i = firstChar(); i <= lastChar(); i++)
-	{
-		if (item->itemText.selected(i))
-		{
-			if (selectionFirst < 0)
-				selectionFirst = i;
-			selectionLast = i + 1;
-		}
-	}
-
-	if (selectionFirst >= 0 && selectionLast >= 0 && boxes().count() > 0)
-	{
-		qreal firstX, lastX;
-		firstX = positionToPoint(selectionFirst, item->itemText).x1() - x();
-		if (selectionLast > lastChar())
-		{
-			ParagraphStyle style = item->itemText.paragraphStyle(lastChar());
-			if (style.direction() == ParagraphStyle::RTL)
-				lastX = boxes().first()->x();
-			else
-				lastX = boxes().last()->x() + boxes().last()->width();
-		}
-		else
-		{
-			lastX = positionToPoint(selectionLast, item->itemText).x1() - x();
-		}
-
-		qreal selectionX = qMin(firstX, lastX);
-		qreal selectionW = qAbs(lastX - firstX);
-
-		bool s = p->selected();
-		double sw = p->strokeWidth();
-
-		p->setSelected(true);
-		p->setStrokeWidth(0);
-		p->drawRect(QRectF(selectionX, 0, selectionW, height()));
-
-		p->setSelected(s);
-		p->setStrokeWidth(sw);
-	}
+	foreach (const Box *box, boxes())
+		box->drawSelection(p, ctx);
 }
 
 void LineBox::drawBackGround(TextLayoutPainter *p) const
@@ -537,6 +507,52 @@ void GlyphBox::render(ScreenPainter *p, ITextContext *ctx) const
 		render(p);
 	}
 	p->setSelected(s);
+}
+
+void GlyphBox::drawSelection(ScreenPainter *p, ITextContext *ctx) const
+{
+	const PageItem* item = ctx->getFrame();
+	bool s = p->selected();
+	double sw = p->strokeWidth();
+
+	//let's deal with ligature such as ffi
+	int selectionFirst = -1;
+	int selectionLast = -1;
+	for (int i = firstChar(); i <= lastChar(); i++)
+	{
+		if (item->itemText.selected(i))
+		{
+			if (selectionFirst < 0)
+				selectionFirst = i;
+			selectionLast = i;
+		}
+	}
+
+	QRectF rect(x(), 0, width(), height());
+	p->setSelected(true);
+	p->setStrokeWidth(0);
+
+	if (((selectionFirst >= 0 && item->isSelected()) ||
+		 ((item->nextInChain() != 0 || item->prevInChain() != 0) && selectionFirst >= 0)) &&
+			(item->doc()->appMode == modeEdit || item->doc()->appMode == modeEditTable))
+	{
+		if (selectionFirst == firstChar() && selectionLast == lastChar())
+			p->drawRect(rect);
+		else
+		{
+			//now in a ligature just draw the selected part only
+			qreal firstX = positionToPoint(selectionFirst, item->itemText).x1();
+			qreal lastX = positionToPoint(selectionLast + 1, item->itemText).x1();
+			if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+				rect = QRectF(lastX, y(), firstX - lastX, height());
+			else
+				rect = QRectF(firstX, y(), lastX - firstX, height());
+			p->drawRect(rect);
+		}
+	}
+
+	p->setSelected(s);
+	p->setStrokeWidth(sw);
 }
 
 void GlyphBox::render(TextLayoutPainter *p) const
