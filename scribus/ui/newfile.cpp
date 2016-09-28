@@ -169,12 +169,7 @@ NewDoc::NewDoc( QWidget* parent, const QStringList& recentDocs, bool startUp, QS
 		connect(nftGui, SIGNAL(leaveOK()), this, SLOT(ExitOK()));
 		connect(recentDocListBox, SIGNAL(itemDoubleClicked(QListWidgetItem *)), this, SLOT(recentDocListBox_doubleClicked()));
 		connect(tabWidget, SIGNAL(currentChanged(int)), this, SLOT(adjustTitles(int)));
-        }
-}
-
-NewDoc::~NewDoc()
-{
-    delete fileDialog->iconProvider();
+	}
 }
 
 void NewDoc::createNewDocPage()

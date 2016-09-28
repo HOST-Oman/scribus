@@ -65,7 +65,7 @@ public:
 	} ActionSelected;
 
 	NewDoc( QWidget* parent, const QStringList& recentDocs, bool startUp = false, QString lang = "");
-	~NewDoc();
+	~NewDoc() {};
 	void createNewDocPage();
 	void createNewFromTempPage();
 	void createOpenDocPage();
