@@ -29,8 +29,9 @@ for which a new license (GPL+exception) is in place.
 #include <QString>
 #include <QTextCodec>
 
-
 #include <cstdlib>
+#include <vector>
+
 #include "scfonts.h"
 #include "fonts/ftface.h"
 #include "fonts/scface_ps.h"
@@ -62,9 +63,9 @@ for which a new license (GPL+exception) is in place.
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
 
-#include <hb.h>
-#include <hb-ot.h>
-#include <hb-ft.h>
+#include <harfbuzz/hb.h>
+#include <harfbuzz/hb-ot.h>
+#include <harfbuzz/hb-ft.h>
 
 #include "scpaths.h"
 #include "util_debug.h"
@@ -452,11 +453,11 @@ static QStringList getfontFeaturesFromTable(hb_tag_t table, hb_face_t *hb_face)
 	QStringList fontFeaturesList;
 	//get all supported Opentype Features
 	unsigned count = hb_ot_layout_table_get_feature_tags(hb_face, table, 0, NULL, NULL);
-	hb_tag_t features[count];
-	hb_ot_layout_table_get_feature_tags(hb_face, table, 0,  &count, features);
+	std::vector<hb_tag_t> features(count);
+	hb_ot_layout_table_get_feature_tags(hb_face, table, 0,  &count, features.data());
 	for (unsigned i = 0; i < count; ++i)
 	{
-		char feature[3] = {0};
+		char feature[4] = {0};
 		hb_tag_to_string(features[i], feature);
 		std::string strFeature(feature, 4);
 		fontFeaturesList.append(QString::fromStdString(strFeature));
