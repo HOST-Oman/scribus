@@ -187,11 +187,6 @@ public:
 	/// Remove the child at i.
 	virtual void removeBox(int i);
 
-	void childChanged()
-	{
-		update();
-	}
-
 protected:
 	double m_naturalWidth;
 	double m_naturalHeight;
