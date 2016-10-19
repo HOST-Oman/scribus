@@ -219,7 +219,7 @@ public:
 
 //	void justify(const ParagraphStyle& style);
 
-	void addBox(const Box* box);
+	void addBox(Box *box);
 	void removeBox(int i);
 
 protected:

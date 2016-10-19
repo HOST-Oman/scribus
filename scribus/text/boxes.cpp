@@ -276,10 +276,18 @@ void LineBox::drawBackGround(TextLayoutPainter *p) const
 	}
 }
 
-void LineBox::addBox(const Box* box)
+void LineBox::addBox(Box *box)
 {
-	m_boxes.append(const_cast<Box*>(box));
-	update();
+	m_boxes.append(box);
+	m_firstChar = qMin(m_firstChar, box->firstChar());
+	m_lastChar = qMax(m_lastChar, box->lastChar());
+
+	box->moveTo(m_naturalWidth, box->y());
+	m_naturalWidth += box->width();
+
+	m_naturalAscent = qMax(m_naturalAscent, box->naturalAsc());
+	m_naturalDecent = qMin(m_naturalDecent, box->naturalDecent());
+
 }
 
 void LineBox::removeBox(int i)
@@ -289,12 +297,13 @@ void LineBox::removeBox(int i)
 
 	boxes().removeAt(i);
 	update();
+
 }
 
 void LineBox::update()
 {
 	m_naturalWidth = m_naturalAscent = m_naturalDecent = 0;
-	foreach (Box* box, boxes()) {
+	for (const auto &box : boxes()) {
 		m_firstChar = qMin(m_firstChar, box->firstChar());
 		m_lastChar = qMax(m_lastChar, box->lastChar());
 
