@@ -1297,7 +1297,6 @@ void PageItem_TextFrame::layoutAll()
 		}
 		// relayout next frame
         qDebug("textframe: len=%d, going to next", itemText.length());
-		next->layoutAll();
 	}
 }
 
