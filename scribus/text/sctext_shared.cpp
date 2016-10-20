@@ -124,38 +124,38 @@ void ScText_Shared::replaceCharStyleContextInParagraph(int pos, const StyleConte
 			break;
 		value(i)->setContext(newContext);
 	}
-#ifndef NDEBUG // skip assertions if we aren't debugging
-	// we are done here but will do a sanity check:
-	// assert that all chars point to the following parstyle
-	QListIterator<ScText*> it( *this );
-	const StyleContext* lastContext = NULL;
-	while ( it.hasNext() ) {
-		ScText* elem = it.next();
-		assert( elem );
-		if ( elem->ch.isNull() ) 
-		{
-			// nothing, see code in removeParSep
-		}
-		else if (elem->ch == SpecialChars::PARSEP)
-		{
-			assert( elem->parstyle );
-			if ( lastContext )
-			{
-				assert( lastContext == elem->parstyle->charStyleContext() );
-			}
-			lastContext = NULL;
-		}
-		else if (lastContext == NULL)
-		{
-			lastContext = elem->context();
-		}
-		else 
-		{
-			assert( lastContext == elem->context() );
-		}
-	}
-	if ( lastContext )
-		assert( lastContext == trailingStyle.charStyleContext() );
-#endif
+//#ifndef NDEBUG // skip assertions if we aren't debugging
+//	// we are done here but will do a sanity check:
+//	// assert that all chars point to the following parstyle
+//	QListIterator<ScText*> it( *this );
+//	const StyleContext* lastContext = NULL;
+//	while ( it.hasNext() ) {
+//		ScText* elem = it.next();
+//		assert( elem );
+//		if ( elem->ch.isNull() )
+//		{
+//			// nothing, see code in removeParSep
+//		}
+//		else if (elem->ch == SpecialChars::PARSEP)
+//		{
+//			assert( elem->parstyle );
+//			if ( lastContext )
+//			{
+//				assert( lastContext == elem->parstyle->charStyleContext() );
+//			}
+//			lastContext = NULL;
+//		}
+//		else if (lastContext == NULL)
+//		{
+//			lastContext = elem->context();
+//		}
+//		else
+//		{
+//			assert( lastContext == elem->context() );
+//		}
+//	}
+//	if ( lastContext )
+//		assert( lastContext == trailingStyle.charStyleContext() );
+//#endif
 }
 
