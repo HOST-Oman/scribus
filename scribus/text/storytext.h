@@ -270,6 +270,8 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
  	/// call this if the shape of the paragraph changes (redos layout)
  	void invalidateLayout();
 
+	const QMap<int, Mark *>& marksPosMap() const{ return m_marksPosMap;}
+
 public slots:
 	/// call this if some logical style changes (redos shaping and layout)
  	void invalidateAll();
@@ -296,7 +298,7 @@ private:
 	ScribusDoc * m_doc; 
 	int m_selFirst, m_selLast;
 	ShapedTextCache* m_shapedTextCache;
-	
+	QMap<int, Mark *> m_marksPosMap;
 	static BreakIterator* m_graphemeIterator;
 	static BreakIterator* m_wordIterator;
 	static BreakIterator* m_sentenceIterator;
