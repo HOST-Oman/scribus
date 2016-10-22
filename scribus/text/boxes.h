@@ -178,7 +178,7 @@ public:
 
 
 	double naturalWidth() const { return m_naturalWidth; }
-	double naturalHeight() const { return m_naturalHeight; }
+	double naturalHeight() const;
 
 //	void justify(const ParagraphStyle& style);
 
