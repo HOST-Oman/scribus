@@ -789,9 +789,8 @@ void ObjectBox::render(TextLayoutPainter *p) const
 	double oldX = m_object->xPos();
 	double oldY = m_object->yPos();
 	bool oldEM = m_object->isEmbedded;
-	m_object->isEmbedded = false;
+	//m_item->isEmbedded = false; // #14311: fix discrepancy of display between 1.5.1 and 1.5.2+
 	const CharStyle& charStyle = style();
-
 	p->translate(x(), y() - ascent());
 	if (m_glyphRun.hasFlag(ScLayout_DropCap))
 		p->setScale(m_glyphRun.scaleH(), m_glyphRun.scaleV());
