@@ -96,6 +96,25 @@ void CanvasMode_FrameLinks::activate(bool fromGesture)
 	m_Mxp = m_Myp = -1;
 	m_Dxp = m_Dyp = -1;
 	m_frameResizeHandle = -1;
+	// if there are more than one text frames selected, link them and exit
+	if (m_doc->m_Selection->count() >= 2)
+	{
+		for(int i = 0; i < m_doc->m_Selection->count(); i++)
+		{
+			PageItem* item1 = m_doc->m_Selection->itemAt(i);
+			PageItem* item2 = m_doc->m_Selection->itemAt(i+1);
+			if ((item1 != NULL && item1->asTextFrame()) &&
+					(item2 != NULL && item2->asTextFrame()))
+			{
+				item1->link(item2);
+			}
+		}
+		// now exit and return to the normal mode
+		QKeyEvent *e = new QKeyEvent(QEvent::KeyRelease, Qt::Key_Escape, Qt::NoModifier);
+		commonkeyPressEvent_NormalNodeEdit(e);
+		delete e;
+		return;
+	}
 	setModeCursor();
 	if (fromGesture)
 	{
