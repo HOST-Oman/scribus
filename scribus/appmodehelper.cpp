@@ -533,8 +533,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["itemEditWeld"]->setEnabled(false);
 
 			(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
+			(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(false);
 			(*a_scrActions)["toolsEditContents"]->setEnabled(false);
 			(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(false);
@@ -574,8 +573,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["itemConvertToTextFrame"]->setEnabled(!inAnEditMode);
 			(*a_scrActions)["itemConvertToSymbolFrame"]->setEnabled(!inAnEditMode);
 			(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
+			(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(false);
 			(*a_scrActions)["toolsEditContents"]->setEnabled(currItem->ScaleType);
 			(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(false);
@@ -641,8 +639,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 				(*a_scrActions)["itemConvertToSymbolFrame"]->setEnabled(false);
 				(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(true);
 				(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(true);
-				(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(true);
-				(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(true);
+				(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(true);
 				// FIXME: once there's one itemtext per story, always enable editcontents
 				if ((currItem->prevInChain() != 0) && (currItem->itemText.length() == 0))
 					(*a_scrActions)["toolsEditContents"]->setEnabled(false);
@@ -653,8 +650,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			{
 				(*a_scrActions)["toolsEditContents"]->setEnabled(true);
 				(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
-				(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
-				(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
+				(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 			}
 //			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(!currItem->nextInChain());
 			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(true);
@@ -736,8 +732,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(true);
 			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(false);
 			(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
+			(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 			break;
 		default:
 			(*a_scrActions)["fileImportText"]->setEnabled(false);
@@ -819,8 +814,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["toolsEditContents"]->setEnabled(false);
 			(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(false);
 			(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
-			(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
+			(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(false);
 			(*a_scrActions)["toolsRotate"]->setEnabled(!inAnEditMode);
 			(*a_scrActions)["toolsCopyProperties"]->setEnabled(!inAnEditMode);
@@ -994,8 +988,7 @@ void AppModeHelper::setModeActionsPerMode(int newMode)
 	(*a_scrActions)["toolsEditWithStoryEditor"]->setChecked(newMode==modeStoryEditor);
 	(*a_scrActions)["toolsLinkTextFrame"]->setChecked(newMode==modeLinkFrames);
 	(*a_scrActions)["toolsUnlinkTextFrame"]->setChecked(newMode==modeUnlinkFrames);
-//	(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setChecked(newMode==modeUnlinkFrames);
-//	(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setChecked(newMode==modeUnlinkFrames);
+//	(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setChecked(newMode==modeUnlinkFrames);
 	(*a_scrActions)["toolsEyeDropper"]->setChecked(newMode==modeEyeDropper);
 	(*a_scrActions)["toolsMeasurements"]->setChecked(newMode==modeMeasurementTool);
 	(*a_scrActions)["toolsCopyProperties"]->setChecked(newMode==modeCopyProperties);
@@ -1117,8 +1110,7 @@ void AppModeHelper::setFrameEditMode(bool b)
 	(*a_scrActions)["toolsInsertRenderFrame"]->setEnabled(b2);
 	(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(b2);
 	(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(b2);
-	(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(b2);
-	(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(b2);
+	(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(b2);
 	(*a_scrActions)["toolsMeasurements"]->setEnabled(b2);
 	(*a_scrActions)["toolsCopyProperties"]->setEnabled(b2);
 	(*a_scrActions)["toolsEyeDropper"]->setEnabled(b2);
@@ -1639,8 +1631,7 @@ void AppModeHelper::mainWindowCloseLastDoc()
 	(*a_scrActions)["toolsRotate"]->setEnabled(false);
 	(*a_scrActions)["toolsSelect"]->setEnabled(false);
 	(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
-	(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
-	(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
+	(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 	(*a_scrActions)["toolsZoom"]->setEnabled(false);
 	(*a_scrActions)["viewFit100"]->setEnabled(false);
 	(*a_scrActions)["viewFit200"]->setEnabled(false);
@@ -1824,8 +1815,7 @@ void AppModeHelper::setStartupActionsEnabled(bool enabled)
 	(*a_scrActions)["toolsInsertTable"]->setEnabled(false);
 	(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(false);
 	(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
-	(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
-	(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
+	(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 	(*a_scrActions)["toolsMeasurements"]->setEnabled(false);
 	(*a_scrActions)["toolsCopyProperties"]->setEnabled(false);
 	(*a_scrActions)["toolsEyeDropper"]->setEnabled(false);
