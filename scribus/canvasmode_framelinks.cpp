@@ -72,29 +72,6 @@ void CanvasMode_FrameLinks::drawControls(QPainter* p)
 
 void CanvasMode_FrameLinks::enterEvent(QEvent *)
 {
-	if (m_doc->m_Selection->count() >= 2)
-	{
-		switch (m_doc->appMode)
-		{
-		case modeLinkFrames:
-			// if there are more than one text frames selected, link them and exit
-			for(int i = 0; i < m_doc->m_Selection->count(); i++)
-			{
-				PageItem* item1 = m_doc->m_Selection->itemAt(i);
-				PageItem* item2 = m_doc->m_Selection->itemAt(i+1);
-				if ((item1 != NULL && item1->asTextFrame()) &&
-						(item2 != NULL && item2->asTextFrame()))
-				{
-					item1->link(item2);
-				}
-			}
-			// now exit and return to the normal mode
-			QKeyEvent *e = new QKeyEvent(QEvent::KeyRelease, Qt::Key_Escape, Qt::NoModifier);
-			commonkeyPressEvent_NormalNodeEdit(e);
-			delete e;
-			return;
-		}
-	}
 	if (!m_canvas->m_viewMode.m_MouseButtonPressed)
 	{
 		setModeCursor();
@@ -109,6 +86,28 @@ void CanvasMode_FrameLinks::leaveEvent(QEvent *e)
 void CanvasMode_FrameLinks::activate(bool fromGesture)
 {
 //	qDebug() << "CanvasMode_FrameLinks::activate" << fromGesture;
+	if (m_doc->m_Selection->count() >= 2)
+	{
+		switch (m_doc->appMode)
+		{
+		case modeLinkFrames:
+			// if there are more than one text frames selected, link them and exit
+			for(int i = 0; i < m_doc->m_Selection->count(); i++)
+			{
+				PageItem* item1 = m_doc->m_Selection->itemAt(i);
+				PageItem* item2 = m_doc->m_Selection->itemAt(i+1);
+				if ((item1 != NULL && item1->asTextFrame()) &&
+						(item2 != NULL && item2->asTextFrame()) &&
+						item2 != item1->nextInChain())
+				{
+					item1->link(item2);
+				}
+			}
+			// now exit and return to the normal mode
+			m_view->requestMode(modeNormal);
+			return;
+		}
+	}
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
 	m_doc->DragP = false;

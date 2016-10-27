@@ -639,6 +639,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 				(*a_scrActions)["itemConvertToPolygon"]->setEnabled(false);
 				(*a_scrActions)["itemConvertToTextFrame"]->setEnabled(false);
 				(*a_scrActions)["itemConvertToSymbolFrame"]->setEnabled(false);
+				(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(true);
 				(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(true);
 				(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(true);
 				(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(true);
@@ -655,7 +656,9 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 				(*a_scrActions)["toolsUnlinkTextFrameWithTextCopy"]->setEnabled(false);
 				(*a_scrActions)["toolsUnlinkTextFrameWithTextCut"]->setEnabled(false);
 			}
-			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(!currItem->nextInChain());
+//			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(!currItem->nextInChain());
+			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(true);
+
 			//		if (doc->masterPageMode())
 			//			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(false);
 			if (doc->appMode == modeEdit)
