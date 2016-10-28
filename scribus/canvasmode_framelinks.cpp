@@ -194,6 +194,8 @@ void CanvasMode_FrameLinks::mousePressEvent(QMouseEvent *m)
 			currItem = m_doc->ElemToLink;
 			if (currItem==NULL)
 				break;
+			// #14334: delay selection signals so that (un)link actions get properly enabled/disabled
+			m_doc->m_Selection->delaySignalsOn();
 			SeleItem(m);
 			if (GetItem(&bb) && (bb->asTextFrame()))
 			{
@@ -285,10 +287,13 @@ void CanvasMode_FrameLinks::mousePressEvent(QMouseEvent *m)
 			}
 			else
 				m_doc->ElemToLink = NULL;
+			m_doc->m_Selection->delaySignalsOff();
 			break;
 		case modeUnlinkFrames:
 			if (m->button() != Qt::LeftButton)
 				break;
+			// #14334: delay selection signals so that (un)link actions get properly enabled/disabled
+			m_doc->m_Selection->delaySignalsOn();
 			SeleItem(m);
 			if (GetItem(&currItem) && (currItem->asTextFrame()))
 			{
@@ -299,6 +304,7 @@ void CanvasMode_FrameLinks::mousePressEvent(QMouseEvent *m)
 				// unlink calls PageItem::update				emit DocChanged();
 				// m_view->updateContents();
 			}
+			m_doc->m_Selection->delaySignalsOff();
 			break;
 	}
 }
