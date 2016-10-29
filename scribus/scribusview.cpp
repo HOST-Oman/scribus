@@ -3503,6 +3503,7 @@ bool ScribusView::eventFilter(QObject *obj, QEvent *event)
 			{
 				firstFrame->link(secondFrame);
 				firstFrame = NULL;
+				secondFrame->emitAllToGUI();
 			}
 			linkAfterDraw = false;
 		}
