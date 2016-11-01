@@ -1270,40 +1270,9 @@ void PageItem_TextFrame::adjustParagraphEndings ()
 		}
 	}
 }
-
-
-
-void PageItem_TextFrame::layoutAll()
-{
-	layout();
-	PageItem_TextFrame * next = dynamic_cast<PageItem_TextFrame*>(NextBox);
-	if (next != NULL)
-	{
-		next->invalid = true;
-		next->firstChar = MaxChars;
-		if (itemText.cursorPosition() > signed(MaxChars))
-		{
-			int nCP = itemText.cursorPosition();
-			//			CPos = MaxChars;
-			if (m_Doc->appMode == modeEdit)
-			{
-			//							OwnPage->Deselect(true);
-				next->itemText.setCursorPosition( qMax(nCP, signed(MaxChars)) );
-			//							Doc->currentPage = NextBox->OwnPage;
-			//							NextBox->OwnPage->SelectItemNr(NextBox->ItemNr);
-			//				qDebug("textframe: len=%d, leaving relayout in editmode && Tinput", itemText.length());
-				return;
-			}
-		}
-		// relayout next frame
-        qDebug("textframe: len=%d, going to next", itemText.length());
-	}
-}
-
-
 void PageItem_TextFrame::layout()
 {
-//    qDebug()<<"==Layout==" << itemName() ;
+//	qDebug()<<"==Layout==" << itemName() ;
 // 	printBacktrace(24);
 	if (BackBox != NULL) {
 //		qDebug("textframe: len=%d, going back", itemText.length());
@@ -1318,7 +1287,6 @@ void PageItem_TextFrame::layout()
 		PageItem_TextFrame* nextInChain = firstInvalid;
 		while (nextInChain && (nextInChain != this))
 		{
-			nextInChain->layoutAll();
 			nextInChain = dynamic_cast<PageItem_TextFrame*>(nextInChain->NextBox);
 		}
 		// #9592 : warning, BackBox->layout() may not layout BackBox next box
