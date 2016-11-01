@@ -1296,7 +1296,7 @@ public:	// Start public variables
 	int CompressionMethodIndex;
 	bool OverrideCompressionQuality;
 	int CompressionQualityIndex;
-	bool imageIsAvailable; ///< Flag to hiold image file availability
+	bool imageIsAvailable; ///< Flag to hold image file availability
 	int OrigW;
 	int OrigH;
 	double BBoxX; ///< Bounding Box-X
