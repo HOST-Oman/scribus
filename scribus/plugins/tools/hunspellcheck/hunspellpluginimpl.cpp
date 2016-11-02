@@ -122,6 +122,8 @@ bool HunspellPluginImpl::parseTextFrame(StoryText *iText)
 		wordStart = currPos;
 		int wordEnd = iText->endOfWord(wordStart);
 		QString word = iText->text(wordStart,wordEnd - wordStart);
+		word.remove(SpecialChars::ZWNJ);
+		word.remove(SpecialChars::SHYPHEN);
 		QString wordLang = iText->charStyle(wordStart).language();
 
 		if (wordLang.isEmpty())
