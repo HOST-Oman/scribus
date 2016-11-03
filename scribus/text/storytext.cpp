@@ -82,6 +82,7 @@ StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.
 {
 	d = other.d;
 	d->refs++;
+	m_text = other.m_text;
 	
 	if (m_doc) {
 		m_doc->paragraphStyles().connect(this, SLOT(invalidateAll()));
@@ -146,6 +147,7 @@ StoryText& StoryText::operator= (const StoryText & other)
 	
 	m_doc = other.m_doc; 
 	d = other.d;
+	m_text = other.m_text;
 	
 	if (m_doc) {
 		m_doc->paragraphStyles().connect(this, SLOT(invalidateAll()));
@@ -298,6 +300,7 @@ void StoryText::clear()
 
 	d->clear();
 	d->len = 0;
+	m_text.clear();
 	invalidateAll();
 }
 
@@ -410,7 +413,7 @@ void StoryText::insert(int pos, const StoryText& other, bool onlySelection)
 	int otherStart  = onlySelection? other.startOfSelection() : 0;
 	int otherEnd    = onlySelection? other.endOfSelection() : other.length();
 	int cstyleStart = otherStart;
-	for (int i=otherStart; i < otherEnd; ++i) {
+	for (int i = otherStart; i < otherEnd; ++i) {
 		if (other.charStyle(i) == cstyle 
 			&& other.text(i) != SpecialChars::OBJECT
 			&& other.text(i) != SpecialChars::PARSEP)
@@ -514,7 +517,7 @@ void StoryText::removeChars(int pos, uint len)
 	if (pos + static_cast<int>(len) > length())
 		len = length() - pos;
 
-	for ( int i=pos + static_cast<int>(len) - 1; i >= pos; --i )
+	for ( int i = pos + static_cast<int>(len) - 1; i >= pos; --i )
 	{
 		ScText *it = d->at(i);
 		if ((it->ch == SpecialChars::PARSEP))
@@ -540,6 +543,7 @@ void StoryText::removeChars(int pos, uint len)
 		m_selLast  = -1;
 	}
 	invalidate(pos, length());
+	m_text.remove(pos, len);
 }
 
 void StoryText::trim()
@@ -596,17 +600,20 @@ void StoryText::insertChars(int pos, QString txt, bool applyNeighbourStyle) //, 
 
 	for (int i = 0; i < txt.length(); ++i) {
 		ScText * item = new ScText(clone);
-		item->ch= txt.at(i);
+		QChar tmpch = txt.at(i);
+		item->ch = tmpch;
 		item->setContext(cStyleContext);
 		d->insert(pos + i, item);
 		d->len++;
 		if (item->ch == SpecialChars::PARSEP) {
 //			qDebug() << QString("new PARSEP %2 at %1").arg(pos).arg(paragraphStyle(pos).name());
 			insertParSep(pos + i);
+			tmpch = QLatin1Char('\n');
 		}
 		if (d->cursorPosition >= static_cast<uint>(pos + i)) {
 			d->cursorPosition += 1;
 		}
+		m_text += tmpch;
 	}
 
 	d->len = d->count();
@@ -659,10 +666,14 @@ void StoryText::insertCharsWithSoftHyphens(int pos, QString txt, bool applyNeigh
 			d->insert(index, item);
 			d->len++;
 			if (item->ch == SpecialChars::PARSEP)
+			{
 				insertParSep(index);
+				ch = QLatin1Char('\n');
+			}
 			if (d->cursorPosition >= static_cast<uint>(index))
 				d->cursorPosition += 1;
 			++inserted;
+			m_text += ch;
 		}
 	}
 
@@ -691,6 +702,9 @@ void StoryText::replaceChar(int pos, QChar ch)
 	}
 	
 	invalidate(pos, pos + 1);
+	if (ch == SpecialChars::PARSEP)
+		ch = QLatin1Char('\n');
+	m_text[pos] = ch;
 }
 
 int StoryText::replaceWord(int pos, QString newWord)
@@ -703,9 +717,9 @@ int StoryText::replaceWord(int pos, QString newWord)
 		else
 			break;
 	}
-	QString word=text(pos,eoWord-pos);
-	int lengthDiff=newWord.length()-word.length();
-	if (lengthDiff==0)
+	QString word = text(pos, eoWord - pos);
+	int lengthDiff = newWord.length() - word.length();
+	if (lengthDiff == 0)
 	{
 		for (int j = 0; j < word.length(); ++j)
 			replaceChar(pos+j, newWord[j]);
@@ -797,24 +811,7 @@ int StoryText::length() const
 
 QString StoryText::plainText() const
 {
-	if (length() <= 0)
-		return QString();
-
-	QChar   ch;
-	QString result;
-
-	int len = length();
-	result.reserve(len);
-
-	StoryText* that(const_cast<StoryText*>(this));
-	for (int i = 0; i < len; ++i) {
-		ch = that->d->at(i)->ch;
-		if (ch == SpecialChars::PARSEP)
-			ch = QLatin1Char('\n');
-		result += ch;
-	}
-
-	return result;
+	return m_text;
 }
 #if 0
 QChar StoryText::text() const
