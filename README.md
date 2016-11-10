@@ -18,8 +18,10 @@ Each build from Travis CI is available for download as an [AppImage](Http://appi
 
 Here is an Appimage 09-11-2016: [scribus-git217b3eb-glibc2.14-x86-64.appimage](https://transfer.sh/Wph00/scribus-git217b3eb-glibc2.14-x86-64.appimage)
 
+For Mac OS X :[Scribus15xCTLNightly-20161013.dmg] (https://sourceforge.net/projects/scribus/files/scribus-svn/CTL/Scribus15xCTLNightly-20161013.dmg/download)
+
 ## Contributing
-For Bugs and patches: please send them to the [Scribus Bugtracker](http://bugs.scribus.net) to be evaluated. If you do send a PR here, someone will either ask you to do the same or submit the PR as a patch to the bugtracker for you.
+Once you have made a change that you are happy with, contribute it back, we’ll be happy to integrate it! Just fork the repository and make a pull request.
 
 ## Links
 |Resource | Address |  
