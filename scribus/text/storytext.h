@@ -277,7 +277,7 @@ public slots:
  	void invalidateAll();
 
 signals:
-		void changed();
+	void changed(int firstItem, int endItem);
 
 private:
  	ScText * item(uint index);
