@@ -1287,6 +1287,7 @@ void PageItem_TextFrame::layout()
 		PageItem_TextFrame* nextInChain = firstInvalid;
 		while (nextInChain && (nextInChain != this))
 		{
+			nextInChain->layout();
 			nextInChain = dynamic_cast<PageItem_TextFrame*>(nextInChain->NextBox);
 		}
 		// #9592 : warning, BackBox->layout() may not layout BackBox next box
