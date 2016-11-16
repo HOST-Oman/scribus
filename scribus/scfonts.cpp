@@ -63,9 +63,9 @@ for which a new license (GPL+exception) is in place.
 #include FT_TRUETYPE_TAGS_H
 #include FT_TRUETYPE_TABLES_H
 
-#include <hb.h>
-#include <hb-ot.h>
-#include <hb-ft.h>
+#include <harfbuzz/hb.h>
+#include <harfbuzz/hb-ot.h>
+#include <harfbuzz/hb-ft.h>
 
 #include "scpaths.h"
 #include "util_debug.h"

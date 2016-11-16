@@ -202,7 +202,7 @@ void StoryText::moveCursorForward()
 	if (!it)
 		return;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	int pos = it->following(cursorPosition());
 	if (pos != BreakIterator::DONE)
 		setCursorPosition(pos);
@@ -214,7 +214,7 @@ void StoryText::moveCursorBackward()
 	if (!it)
 		return;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	int pos = it->preceding(cursorPosition());
 	if (pos != BreakIterator::DONE)
 		setCursorPosition(pos);
@@ -241,7 +241,7 @@ void StoryText::moveCursorWordLeft()
 	BreakIterator* it = getWordIterator();
 	if (!it)
 		return;
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	int pos = cursorPosition();
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
@@ -267,7 +267,7 @@ void StoryText::moveCursorWordRight()
 	if (!it)
 		return;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	int pos = cursorPosition();
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
@@ -1604,7 +1604,7 @@ int StoryText::nextWord(int pos)
 	if (!it)
 		return pos;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	pos = it->following(pos);
 	pos = it->next();
 	return pos;
@@ -1616,7 +1616,7 @@ int StoryText::prevWord(int pos)
 	if (!it)
 		return pos;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	pos = it->preceding(pos);
 	return pos;
 }
@@ -1627,7 +1627,7 @@ int StoryText::endOfWord(int pos) const
 	if (!it)
 		return pos;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	pos = it->following(pos);
 	return pos;
 }
@@ -1638,7 +1638,7 @@ int StoryText::endOfSentence(int pos) const
 	if (!it)
 		return pos;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	int end = it->following(pos);
 	return end;
 }
@@ -1649,7 +1649,7 @@ int StoryText::nextSentence(int pos)
 	if (!it)
 		return pos;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	pos = it->following(pos);
 	pos = it->next();
 	return pos;
@@ -1664,7 +1664,7 @@ int StoryText::prevSentence(int pos)
 	if (!it)
 		return pos;
 
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	pos = it->preceding(pos);
 	return pos;
 }
@@ -1724,7 +1724,7 @@ int StoryText::selectWord(int pos)
 	BreakIterator* it = getWordIterator();
 	if (!it)
 		return pos;
-	it->setText(plainText().utf16());
+	it->setText((const UChar*) plainText().utf16());
 	int start = it->preceding(pos + 1);
 	int end = it->next();
 	int wordLentgh = end - start;

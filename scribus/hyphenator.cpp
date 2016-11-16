@@ -152,7 +152,7 @@ void Hyphenator::slotHyphenate(PageItem* it)
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 
 	BreakIterator* bi = StoryText::getWordIterator();
-	bi->setText(text.utf16());
+	bi->setText((const UChar*) text.utf16());
 	int pos = bi->first();
 	while (pos != BreakIterator::DONE)
 	{

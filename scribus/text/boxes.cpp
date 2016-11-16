@@ -724,7 +724,7 @@ int GlyphBox::pointToPosition(QPointF coord,  const StoryText& story) const
 		int count = 0;
 		BreakIterator *it = StoryText::getGraphemeIterator();
 		QString text = story.text(firstChar(), lastChar() - firstChar() + 1);
-		it->setText(text.utf16());
+		it->setText((const UChar*) text.utf16());
 		while (it->next() != BreakIterator::DONE)
 			count++;
 
@@ -759,7 +759,7 @@ QLineF GlyphBox::positionToPoint(int pos, const StoryText& story) const
 		int index = 0;
 		BreakIterator *it = StoryText::getGraphemeIterator();
 		QString text = story.text(firstChar(), lastChar() - firstChar() + 1);
-		it->setText(text.utf16());
+		it->setText((const UChar*) text.utf16());
 		while (it->next() != BreakIterator::DONE)
 		{
 			count++;

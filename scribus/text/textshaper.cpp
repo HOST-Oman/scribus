@@ -1,8 +1,8 @@
 #include "textshaper.h"
 
-#include <hb.h>
-#include <hb-ft.h>
-#include <hb-icu.h>
+#include <harfbuzz/hb.h>
+#include <harfbuzz/hb-ft.h>
+#include <harfbuzz/hb-icu.h>
 #include <unicode/ubidi.h>
 
 #include "scrptrun.h"
@@ -49,7 +49,7 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi()
 	if (style.direction() == ParagraphStyle::RTL)
 		parLevel = UBIDI_RTL;
 
-	ubidi_setPara(obj, m_text.utf16(), m_text.length(), parLevel, NULL, &err);
+	ubidi_setPara(obj, (const UChar*) m_text.utf16(), m_text.length(), parLevel, NULL, &err);
 	if (U_SUCCESS(err))
 	{
 		int32_t count = ubidi_countRuns(obj, &err);
@@ -72,7 +72,7 @@ QList<TextShaper::TextRun> TextShaper::itemizeBiDi()
 QList<TextShaper::TextRun> TextShaper::itemizeScripts(const QList<TextRun> &runs)
 {
 	QList<TextRun> newRuns;
-	ScriptRun scriptrun(m_text.utf16(), m_text.length());
+	ScriptRun scriptrun((const UChar*) m_text.utf16(), m_text.length());
 
 	foreach (TextRun run, runs)
 	{
@@ -336,7 +336,7 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 	// FIXME-HOST: add some fallback code if the iterator failed
 	if (lineIt)
 	{
-		lineIt->setText(m_text.utf16());
+		lineIt->setText((const UChar*) m_text.utf16());
 		for (int32_t pos = lineIt->first(); pos != BreakIterator::DONE; pos = lineIt->next())
 			lineBreaks.append(pos);
 	}
@@ -360,7 +360,7 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 			if (charIt)
 			{
 				const QString text = m_text.mid(run.start, run.len);
-				charIt->setText(text.utf16());
+				charIt->setText((const UChar*) text.utf16());
 				int32_t pos = charIt->first();
 				while (pos != BreakIterator::DONE && pos < text.length())
 				{
