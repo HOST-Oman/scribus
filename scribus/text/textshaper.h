@@ -68,6 +68,8 @@ private:
 	bool m_singlePar;
 	QString m_text;
 	QMap<int, int> m_textMap;
+	QList<GlyphCluster> m_missingFacesList;
+
 };
 
 #endif // TEXTSHAPER_H

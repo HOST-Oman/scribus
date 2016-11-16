@@ -60,7 +60,6 @@ StoryText::StoryText(ScribusDoc * doc_) : m_doc(doc_)
 //	m_lastFrameItem = -1;
 //	m_magicX = 0.0;
 //	m_lastMagicPos = -1;
-	
 	d->len = 0;
 	invalidateAll();
 }
@@ -71,7 +70,6 @@ StoryText::StoryText() : m_doc(NULL)
 
 	m_selFirst = 0;
 	m_selLast = -1;
-	
 //	m_firstFrameItem = 0;
 //	m_lastFrameItem = -1;
 //	m_magicX = 0.0;
@@ -91,7 +89,6 @@ StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.
 	
 	m_selFirst = 0;
 	m_selLast = -1;
-	
 //	m_firstFrameItem = 0;
 //	m_lastFrameItem = -1;
 //	m_magicX = 0.0;
@@ -156,7 +153,6 @@ StoryText& StoryText::operator= (const StoryText & other)
 	
 	m_selFirst = 0;
 	m_selLast = -1;
-	
 //	m_firstFrameItem = 0;
 //	m_lastFrameItem = -1;
 
@@ -1931,6 +1927,36 @@ void StoryText::invalidateObject(const PageItem * embedded)
 
 void StoryText::invalidateLayout()
 {
+}
+
+void StoryText::setMissingFaces(QList<GlyphCluster> &missingFacesList)
+{
+	m_missingFacesList = missingFacesList;
+}
+
+QList<GlyphCluster> StoryText::missingFaces() const
+{
+	return m_missingFacesList;
+}
+
+void StoryText::setFallBackFont(const QString font)
+{
+	m_fallBackFont = font;
+}
+
+QString StoryText::fallBackFont() const
+{
+	return m_fallBackFont;
+}
+
+void StoryText::setFallBackFontSize(const double size)
+{
+	m_fallBackFontSize = size;
+}
+
+double StoryText::fallBackFontSize() const
+{
+	return m_fallBackFontSize;
 }
 
 void StoryText::invalidateAll()

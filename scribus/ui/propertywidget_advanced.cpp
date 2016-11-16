@@ -6,14 +6,15 @@ for which a new license (GPL+exception) is in place.
 */
 
 #include "propertywidget_advanced.h"
-
 #include "appmodes.h"
 #include "iconmanager.h"
 #include "pageitem_table.h"
+#include "prefsmanager.h"
 #include "scribus.h"
 #include "scribusdoc.h"
 #include "selection.h"
 #include "units.h"
+#include "util.h"
 
 PropertyWidget_Advanced::PropertyWidget_Advanced(QWidget* parent) : QFrame(parent)
 {
@@ -26,8 +27,6 @@ PropertyWidget_Advanced::PropertyWidget_Advanced(QWidget* parent) : QFrame(paren
 
 	setFrameStyle(QFrame::Box | QFrame::Plain);
 	setLineWidth(1);
-
-	layout()->setAlignment( Qt::AlignLeft );
 
 	textBase->setValue( 0 );
 	textBaseLabel->setPixmap(IconManager::instance()->loadPixmap("textbase.png"));
@@ -44,6 +43,11 @@ PropertyWidget_Advanced::PropertyWidget_Advanced(QWidget* parent) : QFrame(paren
 
 	minGlyphExtensionLabel->setBuddy(minGlyphExtSpinBox);
 	maxGlyphExtensionLabel->setBuddy(maxGlyphExtSpinBox);
+
+	fallBackFont->setMaximumSize(190, 30);
+	PrefsManager* prefsManager = PrefsManager::instance();
+	fontFallBackSize->setSuffix( unitGetSuffixFromIndex(SC_POINTS) );
+	fontFallBackSize->setValue(prefsManager->appPrefs.itemToolPrefs.textSize / 10.0);
 
 	languageChange();
 }
@@ -105,6 +109,7 @@ void PropertyWidget_Advanced::setCurrentItem(PageItem *item)
 	disconnectSignals();
 	configureWidgets();
 
+
 	if (m_item)
 	{
 		if (m_item->asTextFrame() || m_item->asPathText() || m_item->asTable())
@@ -128,6 +133,9 @@ void PropertyWidget_Advanced::connectSignals()
 	connect(normWordTrackingSpinBox, SIGNAL(valueChanged(double)), this, SLOT(handleNormWordTracking()) );
 	connect(minGlyphExtSpinBox     , SIGNAL(valueChanged(double)), this, SLOT(handleMinGlyphExtension()) );
 	connect(maxGlyphExtSpinBox     , SIGNAL(valueChanged(double)), this, SLOT(handleMaxGlyphExtension()) );
+	connect(fallBackFont			, SIGNAL(activated(const QString &)), this, SLOT(handleFontFallBack(const QString &)) );
+	connect(fontFallBackSize, SIGNAL(valueChanged(double)), this, SLOT(handleFontFallBackSize(double)));
+
 }
 
 void PropertyWidget_Advanced::disconnectSignals()
@@ -140,6 +148,8 @@ void PropertyWidget_Advanced::disconnectSignals()
 	disconnect(normWordTrackingSpinBox, SIGNAL(valueChanged(double)), this, SLOT(handleNormWordTracking()) );
 	disconnect(minGlyphExtSpinBox     , SIGNAL(valueChanged(double)), this, SLOT(handleMinGlyphExtension()) );
 	disconnect(maxGlyphExtSpinBox     , SIGNAL(valueChanged(double)), this, SLOT(handleMaxGlyphExtension()) );
+	disconnect(fallBackFont			, SIGNAL(activated(const QString &)), this, SLOT(handleFontFallBack(const QString &)) );
+	disconnect(fontFallBackSize		, SIGNAL(valueChanged(double)), this, SLOT(handleFontFallBackSize(double)));
 }
 
 void PropertyWidget_Advanced::configureWidgets(void)
@@ -195,6 +205,26 @@ void PropertyWidget_Advanced::showTracking(double e)
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	tracking->showValue(e / 10.0);
+}
+
+void PropertyWidget_Advanced::showFontFallBack(const QString &font)
+{
+	if (!m_ScMW || !m_item || m_ScMW->scriptIsRunning())
+		return;
+	if (m_item->itemText.fallBackFont().isEmpty())
+		setCurrentComboItem(fallBackFont, font);
+	else
+		setCurrentComboItem(fallBackFont, m_item->itemText.fallBackFont());
+}
+
+void PropertyWidget_Advanced::showFontFallBackSize(double s)
+{
+	if (!m_ScMW || !m_item || m_ScMW->scriptIsRunning())
+		return;
+	if (m_item->itemText.fallBackFontSize() != 0)
+		fontFallBackSize->showValue(m_item->itemText.fallBackFontSize());
+	else
+		fontFallBackSize->showValue(s / 10.0);
 }
 
 void PropertyWidget_Advanced::handleBaselineOffset()
@@ -325,6 +355,50 @@ void PropertyWidget_Advanced::handleTracking()
 	}
 }
 
+void PropertyWidget_Advanced::handleFontFallBack(const QString &font)
+{
+	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+	m_item->itemText.setFallBackFont(font);
+	if (m_missingfaceslist.isEmpty())
+		m_missingfaceslist = m_item->itemText.missingFaces();
+
+	if (!m_missingfaceslist.isEmpty())
+	{
+		CharStyle charStyle;
+		charStyle.setFont((*m_doc->AllFonts)[font]);
+
+		foreach (const GlyphCluster& textRun, m_missingfaceslist) {
+			m_item->itemText.applyCharStyle(textRun.firstChar(), textRun.lastChar() - textRun.firstChar() + 1, charStyle);
+		}
+
+		m_item->itemText.invalidateAll();
+		m_doc->changed();
+		m_doc->regionsChanged()->update(QRectF());
+	}
+
+}
+
+void PropertyWidget_Advanced::handleFontFallBackSize(double s)
+{
+	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning())
+		return;
+	m_item->itemText.setFallBackFontSize(s);
+	if (!m_missingfaceslist.isEmpty())
+	{
+		CharStyle charStyle;
+		charStyle.setFontSize(qRound(fontFallBackSize->value() * 10.0));
+
+		foreach (const GlyphCluster& textRun, m_missingfaceslist) {
+			m_item->itemText.applyCharStyle(textRun.firstChar(), textRun.lastChar() - textRun.firstChar() + 1, charStyle);
+		}
+
+		m_item->itemText.invalidateAll();
+		m_doc->changed();
+		m_doc->regionsChanged()->update(QRectF());
+	}
+}
+
 void PropertyWidget_Advanced::updateCharStyle(const CharStyle& charStyle)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
@@ -349,6 +423,8 @@ void PropertyWidget_Advanced::updateStyle(const ParagraphStyle& newCurrent)
 	showTextScaleV(charStyle.scaleV());
 	showTracking(charStyle.tracking());
 	showBaseLineOffset(charStyle.baselineOffset());
+	showFontFallBack(charStyle.font().family() + " " + charStyle.font().style());
+	showFontFallBackSize(charStyle.fontSize());
 
 	minWordTrackingSpinBox->showValue(newCurrent.minWordTracking() * 100.0);
 	normWordTrackingSpinBox->showValue(newCurrent.charStyle().wordTracking() * 100.0);

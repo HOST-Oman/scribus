@@ -10,6 +10,7 @@ for which a new license (GPL+exception) is in place.
 #include "ui_propertywidget_advancedbase.h"
 
 #include "propertywidgetbase.h"
+#include "text/glyphcluster.h"
 
 class CharStyle;
 class ParagraphStyle;
@@ -53,6 +54,8 @@ public slots:
 	void showTextScaleH(double e);
 	void showTextScaleV(double e);
 	void showTracking(double e);
+	void showFontFallBack(const QString& font);
+	void showFontFallBackSize(double s);
 
 	void updateCharStyle(const CharStyle& charStyle);
 	void updateStyle(const ParagraphStyle& newCurrent);
@@ -66,7 +69,10 @@ private slots:
 	void handleTextScaleH();
 	void handleTextScaleV();
 	void handleTracking();
-
+	void handleFontFallBack(const QString &font);
+	void handleFontFallBackSize(double s);
+private:
+	QList<GlyphCluster> m_missingfaceslist;
 };
 
 #endif

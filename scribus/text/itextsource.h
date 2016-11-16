@@ -14,6 +14,8 @@
 class CharStyle;
 class ParagraphStyle;
 class InlineFrame;
+class GlyphCluster;
+
 
 class SCRIBUS_API ITextSource {
 
@@ -41,6 +43,7 @@ public:
 	virtual InlineFrame object(int pos) const = 0;
 	virtual bool hasExpansionPoint(int pos) const = 0;
 	virtual ExpansionPoint expansionPoint(int pos) const = 0;
+        virtual void setMissingFaces(QList<GlyphCluster> &missingFacesList) = 0;
 	
 	virtual const ITextSource* parent() const { return NULL; }
 	virtual int parentPos() const { return 0; }
