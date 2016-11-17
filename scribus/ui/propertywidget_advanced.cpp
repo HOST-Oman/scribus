@@ -360,15 +360,15 @@ void PropertyWidget_Advanced::handleFontFallBack(const QString &font)
 	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	m_item->itemText.setFallBackFont(font);
-	if (m_missingfaceslist.isEmpty())
-		m_missingfaceslist = m_item->itemText.missingFaces();
+	if (m_missingfaceslist[m_item].isEmpty())
+		m_missingfaceslist[m_item] = m_item->itemText.missingFaces();
 
-	if (!m_missingfaceslist.isEmpty())
+	if (!m_missingfaceslist[m_item].isEmpty())
 	{
 		CharStyle charStyle;
 		charStyle.setFont((*m_doc->AllFonts)[font]);
 
-		foreach (const GlyphCluster& textRun, m_missingfaceslist) {
+		foreach (const GlyphCluster& textRun, m_missingfaceslist.value(m_item)) {
 			m_item->itemText.applyCharStyle(textRun.firstChar(), textRun.lastChar() - textRun.firstChar() + 1, charStyle);
 		}
 
@@ -384,12 +384,12 @@ void PropertyWidget_Advanced::handleFontFallBackSize(double s)
 	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	m_item->itemText.setFallBackFontSize(s);
-	if (!m_missingfaceslist.isEmpty())
+	if (!m_missingfaceslist[m_item].isEmpty())
 	{
 		CharStyle charStyle;
 		charStyle.setFontSize(qRound(fontFallBackSize->value() * 10.0));
 
-		foreach (const GlyphCluster& textRun, m_missingfaceslist) {
+		foreach (const GlyphCluster& textRun, m_missingfaceslist.value(m_item)) {
 			m_item->itemText.applyCharStyle(textRun.firstChar(), textRun.lastChar() - textRun.firstChar() + 1, charStyle);
 		}
 

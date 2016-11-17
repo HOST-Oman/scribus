@@ -72,7 +72,7 @@ private slots:
 	void handleFontFallBack(const QString &font);
 	void handleFontFallBackSize(double s);
 private:
-	QList<GlyphCluster> m_missingfaceslist;
+	QMap<PageItem*, QList<GlyphCluster>> m_missingfaceslist;
 };
 
 #endif
