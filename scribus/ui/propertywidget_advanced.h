@@ -72,7 +72,19 @@ private slots:
 	void handleFontFallBack(const QString &font);
 	void handleFontFallBackSize(double s);
 private:
-	QMap<PageItem*, QList<GlyphCluster>> m_missingfaceslist;
+	struct fallback{
+		fallback(QList<GlyphCluster> m, int s): missingfaces(m), size(s)
+		{
+		}
+		fallback() : size(0)
+		{
+		}
+
+		QList<GlyphCluster> missingfaces;
+		int size;
+	};
+
+	QMap<PageItem*, fallback> m_missingfaceslist;
 };
 
 #endif
