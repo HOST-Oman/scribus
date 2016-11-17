@@ -11,12 +11,13 @@ Scribus-CTL key features right now:
 - support OpenType Font Features.
 - allow customization of hyphenation character
 - add ability to link selected text frames directly 
-- Loading and render long docs are faster. 
+- Loading and render long docs are faster.
+- basic font fallback support.
 
 ## Download
 Each build from Travis CI is available for download as an [AppImage](Http://appimage.org) for 64-bit Linux. You can find the download link in the Travis CI [build log](https://travis-ci.org/HOST-Oman/scribus). Towords the end of the log file, look for a line with an URL that begins with with `https://transfer.sh/`. This is the download link. Download the AppImage, [make it executable](http://discourse.appimage.org/t/how-to-make-an-appimage-executable/80), and run. No root, no installation, does not touch any of the libaries on your system, can run alongside other versions you might already have.
 
-Here is an Appimage 09-11-2016: [scribus-git217b3eb-glibc2.14-x86-64.appimage](https://transfer.sh/Wph00/scribus-git217b3eb-glibc2.14-x86-64.appimage)
+Here is an Appimage 17-11-2016: [scribus-git1b56db3-glibc2.14-x86-64.appimage](https://transfer.sh/QrtW9/scribus-git1b56db3-glibc2.14-x86-64.appimage)
 
 For Mac OS X :[Scribus15xCTLNightly-20161013.dmg] (https://sourceforge.net/projects/scribus/files/scribus-svn/CTL/Scribus15xCTLNightly-20161013.dmg/download)
 
