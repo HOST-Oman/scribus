@@ -155,7 +155,7 @@ int LineBox::pointToPosition(QPointF coord, const StoryText &story) const
 			if (style.direction() == ParagraphStyle::RTL)
 			{
 				if (coord.x() < x())
-					position = lastChar() + 1;
+					position = lastChar();
 				else
 					position = firstChar();
 			}
@@ -164,7 +164,7 @@ int LineBox::pointToPosition(QPointF coord, const StoryText &story) const
 				if (coord.x() < x())
 					position = firstChar();
 				else
-					position = lastChar() + 1;
+					position = lastChar();
 			}
 		}
 	}
@@ -727,23 +727,33 @@ int GlyphBox::pointToPosition(QPointF coord,  const StoryText& story) const
 		it->setText((const UChar*) text.utf16());
 		while (it->next() != BreakIterator::DONE)
 			count++;
+		bool rtlLayout = m_glyphRun.hasFlag(ScLayout_RightToLeft);
 
 		double componentWidth = width() / count;
 		for (int i = 0; i < count; i++)
 		{
 			double componentX;
 			componentX = x() + (componentWidth * i);
-			if (m_glyphRun.hasFlag(ScLayout_RightToLeft))
+			if (rtlLayout)
 				componentX = x() + width() - (componentWidth * (i + 1));
 
-			if (coord.x() >= componentX && coord.x() <= componentX +componentWidth)
-				return firstChar() + i;
+			if ((coord.x() >= componentX && coord.x() <= componentX + componentWidth))
+			{
+				if (coord.x() <= componentX + componentWidth / 2.0)
+					return rtlLayout ? (firstChar() + i + 1) : (firstChar() + i);
+				return rtlLayout ? (firstChar() + i) : (firstChar() + i + 1);
+			}
 		}
 	}
 	else
 	{
 		if (coord.x() >= x() && coord.x() <= x() + width())
-			return firstChar();
+		{
+			bool rtlLayout = m_glyphRun.hasFlag(ScLayout_RightToLeft);
+			if (coord.x() <= x() + width() / 2.0)
+				return rtlLayout ? (firstChar() + 1) : firstChar();
+			return rtlLayout ? firstChar() : (firstChar() + 1);
+		}
 	}
 
 	return -1;
