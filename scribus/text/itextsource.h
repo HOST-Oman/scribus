@@ -44,6 +44,13 @@ public:
 	virtual bool hasExpansionPoint(int pos) const = 0;
 	virtual ExpansionPoint expansionPoint(int pos) const = 0;
         virtual void setMissingFaces(QList<GlyphCluster> &missingFacesList) = 0;
+
+        virtual bool hasMark(int pos, Mark* mrk = NULL) const = 0;
+        virtual Mark *mark(int pos) const = 0;
+        virtual void insertMark(Mark* Mark, int pos = -1) = 0;
+        virtual void applyCharStyle(int pos, uint len, const CharStyle& style) = 0;
+        virtual void removeChars(int pos, uint len) = 0;
+
 	
 	virtual const ITextSource* parent() const { return NULL; }
 	virtual int parentPos() const { return 0; }

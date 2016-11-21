@@ -164,7 +164,6 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 
 void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 {
-	m_firstChar = fromPos;
 	m_text = "";
 	
 	if (toPos > m_story.length() || toPos < 0)
@@ -180,17 +179,16 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 			if (ch == SpecialChars::PARSEP || ch == SpecialChars::LINEBREAK)
 				continue;
 		}
-		
-#if 0 // FIXME HOST: review this insanity
+		// check if there is a mark such as bulleted list or Numerated List, and update the story text
 		Mark* mark = m_story.mark(i);
 		if ((mark != NULL) && (m_story.hasMark(i)))
 		{
-			mark->OwnPage = m_item->OwnPage;
+			mark->OwnPage = m_context->getFrame()->OwnPage;
 			//itemPtr and itemName set to this frame only if mark type is different than MARK2ItemType
 			if (!mark->isType(MARK2ItemType))
 			{
-				mark->setItemPtr(m_item);
-				mark->setItemName(m_item->itemName());
+				mark->setItemPtr(const_cast <PageItem*>(m_context->getFrame()));
+				mark->setItemName(m_context->getFrame()->itemName());
 			}
 
 			//anchors and indexes has no visible inserts in text
@@ -203,14 +201,14 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 				TextNote* note = mark->getNotePtr();
 				if (note == NULL)
 					continue;
-				mark->setItemPtr(m_item);
+				mark->setItemPtr(const_cast <PageItem*>(m_context->getFrame()));
 				NotesStyle* nStyle = note->notesStyle();
 				Q_ASSERT(nStyle != NULL);
 				CharStyle currStyle(m_story.charStyle(i));
 				QString chsName = nStyle->marksChStyle();
 				if (!chsName.isEmpty())
 				{
-					CharStyle marksStyle(m_item->doc()->charStyle(chsName));
+					CharStyle marksStyle(m_context->getFrame()->doc()->charStyle(chsName));
 					if (!currStyle.equiv(marksStyle))
 					{
 						currStyle.setParent(chsName);
@@ -260,7 +258,7 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 				else if (style.hasNum() && mark->getString().isEmpty())
 				{
 					mark->setString("?");
-					m_item->doc()->flag_Renumber = true;
+					m_context->getFrame()->doc()->flag_Renumber = true;
 				}
 			}
 		}
@@ -269,9 +267,9 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 		{
 			m_story.removeChars(i, 1);
 			i--;
+			toPos--;
 			continue;
 		}
-#endif
 		if (m_story.hasExpansionPoint(i))
 		{
 			m_contextNeeded = true;
