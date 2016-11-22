@@ -208,3 +208,30 @@ bool SpecialChars::isCJK(uint ch)
 	else
 		return false;
 }
+
+bool SpecialChars::isIgnorableCodePoint(uint ch)
+{
+	// based on list of Default_Ignorable_Code_Point in Unicode 9
+	if ( (ch == 0x00AD)					  || //SOFT HYPHEN
+		 (ch == 0x034F)					  || //COMBINING GRAPHEME JOINER
+		 (ch == 0x061C)					  || //ARABIC LETTER MARK
+		 (ch == 0x115F) || (ch == 0x1160) || //HANGUL CHOSEONG FILLER..HANGUL JUNGSEONG FILLER
+		 (ch == 0x17B4) || (ch == 0x17B5) || //KHMER VOWEL INHERENT AQ..KHMER VOWEL INHERENT AA
+		 (ch >= 0x180B && ch <= 0x180D)	  || //MONGOLIAN FREE VARIATION SELECTOR ONE..MONGOLIAN FREE VARIATION SELECTOR THREE
+		 (ch == 0x180E)					  || // MONGOLIAN VOWEL SEPARATOR
+		 (ch >= 0x200B && ch <= 0x200F)   || //ZERO WIDTH SPACE..RIGHT-TO-LEFT MARK
+		 (ch >= 0x202A && ch <= 0x202E)   || //LEFT-TO-RIGHT EMBEDDING..RIGHT-TO-LEFT OVERRIDE
+		 (ch >= 0x2060 && ch <= 0x2064)   || //WORD JOINER..INVISIBLE PLUS
+		 (ch >= 0x2066 && ch <= 0x206F)   || //LEFT-TO-RIGHT ISOLATE..NOMINAL DIGIT SHAPES
+		 (ch == 0x3164)					  || //HANGUL FILLER
+		 (ch >= 0xFE00 && ch <= 0xFE0F)   || //VARIATION SELECTOR-1..VARIATION SELECTOR-16
+		 (ch == 0xFEFF)					  || //ZERO WIDTH NO-BREAK SPACE
+		 (ch == 0xFFA0)					  || //HALFWIDTH HANGUL FILLER
+		 (ch >= 0x1BCA0 && ch <= 0x1BCA3) || //SHORTHAND FORMAT LETTER OVERLAP..SHORTHAND FORMAT UP STEP
+		 (ch >= 0x1D173 && ch <= 0x1D17A) || //MUSICAL SYMBOL BEGIN BEAM..MUSICAL SYMBOL END PHRASE
+		 (ch == 0xE0001)					 //LANGUAGE TAG
+			)
+		return true;
+	else
+		return false;
+}

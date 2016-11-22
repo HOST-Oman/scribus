@@ -708,7 +708,7 @@ int StoryText::replaceWord(int pos, QString newWord)
 	int eoWord=pos;
 	while(eoWord < length())
 	{
-		if (text(eoWord).isLetterOrNumber() || text(eoWord) == SpecialChars::ZWNJ || text(eoWord) == SpecialChars::SHYPHEN)
+		if (text(eoWord).isLetterOrNumber() || SpecialChars::isIgnorableCodePoint(text(eoWord).unicode()))
 			++eoWord;
 		else
 			break;
