@@ -866,7 +866,7 @@ void PrefsManager::convert12Preferences()
 {
 	// Import 1.2 font search path prefs
 	QFile fontPrefsFile12(QDir::toNativeSeparators(m_prefsLocation+"/scribusfont.rc"));
-	if (fontPrefsFile12.open(QIODevice::ReadOnly))
+	if (fontPrefsFile12.exists() && fontPrefsFile12.open(QIODevice::ReadOnly))
 	{
 		PrefsContext *pc = prefsFile->getContext("Fonts");
 		PrefsTable *fontPrefs = pc->getTable("ExtraFontDirs");
@@ -920,9 +920,7 @@ void PrefsManager::setupMainWindow(ScribusMainWindow* mw)
 		appPrefs.verifierPrefs.curCheckProfile = CommonStrings::PostScript;
 	}
 	if (!appPrefs.uiPrefs.mainWinState.isEmpty())
-	{
 		mw->restoreState(appPrefs.uiPrefs.mainWinState);
-	}
 }
 
 void PrefsManager::ReadPrefsXML()
@@ -933,7 +931,7 @@ void PrefsManager::ReadPrefsXML()
 		if (userprefsContext)
 		{
 			appPrefs.uiPrefs.language = userprefsContext->get("gui_language","");
-			appPrefs.uiPrefs.mainWinState = QByteArray::fromBase64(userprefsContext->get("mainwinstate","").toLatin1());
+			appPrefs.uiPrefs.mainWinState = QByteArray::fromHex(userprefsContext->get("mainwinstate","").toLatin1());
 			appPrefs.uiPrefs.tabbedPalettes.clear();
 			PrefsTable *tabsTable = userprefsContext->getTable("tabbedPalettes");
 			PrefsTable *actTabsTable = userprefsContext->getTable("activeTabs");
@@ -1003,7 +1001,7 @@ void PrefsManager::SavePrefsXML()
 		if (userprefsContext)
 		{
 			userprefsContext->set("gui_language", appPrefs.uiPrefs.language);
-			userprefsContext->set("mainwinstate", QString::fromLatin1(appPrefs.uiPrefs.mainWinState.toBase64()));
+			userprefsContext->set("mainwinstate", QString::fromLatin1(appPrefs.uiPrefs.mainWinState.toHex()));
 			if (!appPrefs.uiPrefs.tabbedPalettes.isEmpty())
 			{
 				int maxCols = 0;
