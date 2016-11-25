@@ -2178,8 +2178,8 @@ void PageItem_TextFrame::layout()
 						}
 					}
 					current.xPos -= (legacy ? 1.0 : 0.0);
-					current.glyphs[currentIndex].extraWidth += (current.xPos - tabs.xPos);
 					GlyphLayout& firstGlyph = current.glyphs[currentIndex].glyphs().first();
+					firstGlyph.xadvance = (current.xPos + wide - tabs.xPos) / firstGlyph.scaleH;
 					tabs.tabGlyph = &firstGlyph;
 				}
 			}
