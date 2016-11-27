@@ -181,6 +181,7 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 		}
 		// check if there is a mark such as bulleted list or Numerated List, and update the story text
 		Mark* mark = m_story.mark(i);
+#if 0
 		if ((mark != NULL) && (m_story.hasMark(i)))
 		{
 			mark->OwnPage = m_context->getFrame()->OwnPage;
@@ -239,7 +240,7 @@ void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 				}
 			}
 		}
-
+#endif
 		bool bullet = false;
 		if (i == 0 || m_story.text(i - 1) == SpecialChars::PARSEP)
 		{
