@@ -540,6 +540,7 @@ void StoryText::removeChars(int pos, uint len)
 	}
 	invalidate(pos, length());
 	m_text.remove(pos, len);
+	m_marksPosMap.clear();
 }
 
 void StoryText::trim()
