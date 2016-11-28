@@ -199,104 +199,6 @@ void PropertyWidget_ParEffect::enableParEffect(bool enable)
 	}
 }
 
-void PropertyWidget_ParEffect::insertMarks(PageItem *item)
-{
-	for (int index = 0; index < item->itemText.length(); ++index)
-	{
-		Mark* mark = item->itemText.mark(index);
-		if ((mark != NULL) && (item->itemText.hasMark(index)))
-		{
-			mark->OwnPage = item->OwnPage;
-			//itemPtr and itemName set to this frame only if mark type is different than MARK2ItemType
-			if (!mark->isType(MARK2ItemType))
-			{
-				mark->setItemPtr(item);
-				mark->setItemName(item->itemName());
-			}
-
-			//anchors and indexes has no visible inserts in text
-			if (mark->isType(MARKAnchorType) || mark->isType(MARKIndexType))
-				continue;
-
-			//set note marker charstyle
-			if (mark->isNoteType())
-			{
-				TextNote* note = mark->getNotePtr();
-				if (note == NULL)
-					continue;
-				mark->setItemPtr(item);
-				NotesStyle* nStyle = note->notesStyle();
-				Q_ASSERT(nStyle != NULL);
-				QString chsName = nStyle->marksChStyle();
-				CharStyle currStyle(item->itemText.charStyle(index));
-				if (!chsName.isEmpty())
-				{
-					CharStyle marksStyle(item->doc()->charStyle(chsName));
-					if (!currStyle.equiv(marksStyle))
-					{
-						currStyle.setParent(chsName);
-						item->itemText.applyCharStyle(index, 1, currStyle);
-					}
-				}
-
-				StyleFlag s(item->itemText.charStyle(index).effects());
-				if (mark->isType(MARKNoteMasterType))
-				{
-					if (nStyle->isSuperscriptInMaster())
-						s |= ScStyle_Superscript;
-					else
-						s &= ~ScStyle_Superscript;
-				}
-				else
-				{
-					if (nStyle->isSuperscriptInNote())
-						s |= ScStyle_Superscript;
-					else
-						s &= ~ScStyle_Superscript;
-				}
-				if (s != item->itemText.charStyle(index).effects())
-				{
-					CharStyle haveSuperscript;
-					haveSuperscript.setFeatures(s.featureList());
-					item->itemText.applyCharStyle(index, 1, haveSuperscript);
-				}
-			}
-		}
-
-		bool bullet = false;
-		if (index == 0 || item->itemText.text(index - 1) == SpecialChars::PARSEP)
-		{
-			const ParagraphStyle& style = item->itemText.paragraphStyle(index);
-			if (style.hasBullet() || style.hasNum())
-			{
-				bullet = true;
-				if (mark == NULL || !mark->isType(MARKBullNumType))
-				{
-					item->itemText.insertMark(new BulNumMark(), index);
-					index--;
-					continue;
-				}
-				if (style.hasBullet())
-					mark->setString(style.bulletStr());
-				else if (style.hasNum() && mark->getString().isEmpty())
-				{
-					mark->setString("?");
-					item->doc()->flag_Renumber = true;
-				}
-			}
-		}
-
-		if (!bullet && mark && mark->isType(MARKBullNumType))
-		{
-			item->itemText.removeChars(index, 1);
-			index--;
-			continue;
-		}
-
-	}
-
-}
-
 void PropertyWidget_ParEffect::updateStyle(const ParagraphStyle& newPStyle)
 {
 	if (peCombo->currentIndex() && !newPStyle.hasBullet() && !newPStyle.hasDropCap() && !newPStyle.hasNum())
@@ -490,9 +392,6 @@ void PropertyWidget_ParEffect::handleParEffectUse()
 	newStyle.setParEffectOffset(peOffset->value() / m_unitRatio);
 	newStyle.setParEffectIndent(peIndent->isChecked());
 	handleChanges(m_item, newStyle);
-	insertMarks(m_item);
-	m_doc->updateNumbers();
-
 }
 
 void PropertyWidget_ParEffect::handleBulletStr(QString bulStr)

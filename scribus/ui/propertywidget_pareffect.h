@@ -75,7 +75,6 @@ private:
 	void enableBullet(bool);
 	void enableNum(bool);
 	void enableParEffect(bool);
-	void insertMarks(PageItem* item);
 	void fillBulletStrEditCombo()
 	{
 		bulletStrEdit->clear();

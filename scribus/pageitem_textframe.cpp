@@ -1447,6 +1447,8 @@ void PageItem_TextFrame::layout()
 			desc = -cstyle.font().descent(chs / 10.0);
 			current.yPos = m_textDistanceMargins.top() + lineCorr;
 //			qDebug() << QString("first line at y=%1").arg(current.yPos);
+			if (style.hasBullet() || style.hasNum())
+				updateBulletsNum();
 		}
 		else // empty itemText:
 		{
@@ -4674,6 +4676,104 @@ bool PageItem_TextFrame::checkKeyIsShortcut(QKeyEvent *k)
 		}
 	}
 	return ret;
+
+}
+
+void PageItem_TextFrame::updateBulletsNum()
+{
+	for (int index = 0; index < itemText.length(); ++index)
+	{
+		Mark* mark = itemText.mark(index);
+		if ((mark != NULL) && (itemText.hasMark(index)))
+		{
+			mark->OwnPage = this->OwnPage;
+			//itemPtr and itemName set to this frame only if mark type is different than MARK2ItemType
+			if (!mark->isType(MARK2ItemType))
+			{
+				mark->setItemPtr(this);
+				mark->setItemName(itemName());
+			}
+
+			//anchors and indexes has no visible inserts in text
+			if (mark->isType(MARKAnchorType) || mark->isType(MARKIndexType))
+				continue;
+
+			//set note marker charstyle
+			if (mark->isNoteType())
+			{
+				TextNote* note = mark->getNotePtr();
+				if (note == NULL)
+					continue;
+				mark->setItemPtr(this);
+				NotesStyle* nStyle = note->notesStyle();
+				Q_ASSERT(nStyle != NULL);
+				QString chsName = nStyle->marksChStyle();
+				CharStyle currStyle(itemText.charStyle(index));
+				if (!chsName.isEmpty())
+				{
+					CharStyle marksStyle(m_Doc->charStyle(chsName));
+					if (!currStyle.equiv(marksStyle))
+					{
+						currStyle.setParent(chsName);
+						itemText.applyCharStyle(index, 1, currStyle);
+					}
+				}
+
+				StyleFlag s(itemText.charStyle(index).effects());
+				if (mark->isType(MARKNoteMasterType))
+				{
+					if (nStyle->isSuperscriptInMaster())
+						s |= ScStyle_Superscript;
+					else
+						s &= ~ScStyle_Superscript;
+				}
+				else
+				{
+					if (nStyle->isSuperscriptInNote())
+						s |= ScStyle_Superscript;
+					else
+						s &= ~ScStyle_Superscript;
+				}
+				if (s != itemText.charStyle(index).effects())
+				{
+					CharStyle haveSuperscript;
+					haveSuperscript.setFeatures(s.featureList());
+					itemText.applyCharStyle(index, 1, haveSuperscript);
+				}
+			}
+		}
+
+		bool bullet = false;
+		if (index == 0 || itemText.text(index - 1) == SpecialChars::PARSEP)
+		{
+			const ParagraphStyle& style = itemText.paragraphStyle(index);
+			if (style.hasBullet() || style.hasNum())
+			{
+				bullet = true;
+				if (mark == NULL || !mark->isType(MARKBullNumType))
+				{
+					itemText.insertMark(new BulNumMark(), index);
+					index--;
+					continue;
+				}
+				if (style.hasBullet())
+					mark->setString(style.bulletStr());
+				else if (style.hasNum() && mark->getString().isEmpty())
+				{
+					mark->setString("?");
+				}
+			}
+		}
+
+		if (!bullet && mark && mark->isType(MARKBullNumType))
+		{
+			itemText.removeChars(index, 1);
+			index--;
+			continue;
+		}
+
+	}
+	m_Doc->updateNumbers();
 
 }
 

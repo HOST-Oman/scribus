@@ -116,6 +116,7 @@ private:
 	QMap<QString,StoryText> m_shadows;
 	bool checkKeyIsShortcut(QKeyEvent *k);
 	QRectF m_origAnnotPos;
+	void updateBulletsNum();
 	
 private slots:
 	void slotInvalidateLayout(int firstItem, int endItem);
