@@ -16638,79 +16638,71 @@ bool ScribusDoc::updateLocalNums(StoryText& itemText)
 	QList<Numeration> m_nums;
 	QList<int> m_counters;
 	bool needUpdate = false;
-	const QMap<int, Mark *>& marksPosMap = itemText.marksPosMap();
-	if (!marksPosMap.isEmpty())
+	for (int pos = 0; pos < itemText.length(); ++pos)
 	{
-		QMap<int, Mark *>::const_iterator itr = marksPosMap.cbegin();
-		while (itr != marksPosMap.cend())
+		if (pos != 0 && itemText.text(pos-1) != SpecialChars::PARSEP)
+			continue;
+		Mark* mark = itemText.mark(pos);
+		if (mark != NULL && mark->isType(MARKBullNumType) && itemText.paragraphStyle(pos).hasNum())
 		{
-			int pos = itr.key();
-			Mark* mark = itr.value();
-
-			if (mark != NULL && mark->isType(MARKBullNumType) && itemText.paragraphStyle(pos).hasNum())
+			ParagraphStyle style = itemText.paragraphStyle(pos);
+			if (style.numName() == "<local block>")
 			{
-				ParagraphStyle style = itemText.paragraphStyle(pos);
-				if (style.numName() == "<local block>")
+				int level = style.numLevel();
+				while (m_counters.count() < (level + 1))
 				{
-					int level = style.numLevel();
-					while (m_counters.count() < (level + 1))
-					{
-						m_counters.append(0);
-						Numeration num((NumFormat) style.numFormat());
-						m_nums.append(num);
-					}
-					Numeration num = m_nums.at(level);
-					num.prefix = style.numPrefix();
-					num.suffix = style.numSuffix();
-					num.start = style.numStart();
-					num.numFormat = (NumFormat) style.numFormat();
-					m_nums.replace(level, num);
-					int count = m_counters.at(level);
-					bool reset = false;
-					if (pos == 0)
-						reset = true;
-					else if (pos > 0)
-					{
-						ParagraphStyle prevStyle;
-						prevStyle = itemText.paragraphStyle(pos -1);
-						reset = !prevStyle.hasNum()
-								|| prevStyle.numName() != "<local block>"
-								|| prevStyle.numLevel() < level
-								|| prevStyle.numFormat() != style.numFormat();
-					}
-					if ((level == 0) && (style.numFormat() != (int) num.numFormat))
-					{
-						reset = true;
-						m_counters.clear();
-						m_counters.append(0);
-						m_nums.clear();
-						m_nums.append(num);
-					}
-					if (reset)
-						count = style.numStart();
-					else
-						count++;
-					m_counters.replace(level, count);
-					//m_nums.insert(level, num);
-					QString result;
-					for (int i=0; i <= level; ++i)
-					{
-						result.append(m_nums.at(i).prefix);
-						result.append(getStringFromNum(m_nums.at(i).numFormat, m_counters.at(i)));
-						result.append(m_nums.at(i).suffix);
-					}
-					if (mark->getString() != result)
-					{
-						mark->setString(result);
-						needUpdate = true;
-					}
+					m_counters.append(0);
+					Numeration num((NumFormat) style.numFormat());
+					m_nums.append(num);
+				}
+				Numeration num = m_nums.at(level);
+				num.prefix = style.numPrefix();
+				num.suffix = style.numSuffix();
+				num.start = style.numStart();
+				num.numFormat = (NumFormat) style.numFormat();
+				m_nums.replace(level, num);
+				int count = m_counters.at(level);
+				bool reset = false;
+				if (pos == 0)
+					reset = true;
+				else if (pos > 0)
+				{
+					ParagraphStyle prevStyle;
+					prevStyle = itemText.paragraphStyle(pos -1);
+					reset = !prevStyle.hasNum()
+							|| prevStyle.numName() != "<local block>"
+							|| prevStyle.numLevel() < level
+							|| prevStyle.numFormat() != style.numFormat();
+				}
+				if ((level == 0) && (style.numFormat() != (int) num.numFormat))
+				{
+					reset = true;
+					m_counters.clear();
+					m_counters.append(0);
+					m_nums.clear();
+					m_nums.append(num);
+				}
+				if (reset)
+					count = style.numStart();
+				else
+					count++;
+				m_counters.replace(level, count);
+				//m_nums.insert(level, num);
+				QString result;
+				for (int i=0; i <= level; ++i)
+				{
+					result.append(m_nums.at(i).prefix);
+					result.append(getStringFromNum(m_nums.at(i).numFormat, m_counters.at(i)));
+					result.append(m_nums.at(i).suffix);
+				}
+				if (mark->getString() != result)
+				{
+					mark->setString(result);
+					needUpdate = true;
 				}
 			}
-
-			++itr;
 		}
 	}
-
 	return needUpdate;
 }
 
@@ -16829,8 +16821,7 @@ void ScribusDoc::updateNumbers(bool updateNumerations)
 	}
 
 	//update local numbering
-	const auto docitems = DocItems;
-	for(const auto &item : docitems)
+	foreach (PageItem* item, DocItems)
 	{
 		if (item->itemText.length() > 0)
 		{

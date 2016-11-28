@@ -540,7 +540,6 @@ void StoryText::removeChars(int pos, uint len)
 	}
 	invalidate(pos, length());
 	m_text.remove(pos, len);
-	m_marksPosMap.clear();
 }
 
 void StoryText::trim()
@@ -785,7 +784,6 @@ void StoryText::insertMark(Mark* Mark, int pos)
 		pos = d->cursorPosition;
 
 	insertChars(pos, SpecialChars::OBJECT, false);
-	m_marksPosMap.insert(pos, Mark);
 	const_cast<StoryText *>(this)->d->at(pos)->mark = Mark;
 }
 
@@ -1032,7 +1030,6 @@ void StoryText::replaceMark(int pos, Mark* mrk)
     assert(pos >= 0);
     assert(pos < length());
 
-	m_marksPosMap[pos] = mrk;
     this->d->at(pos)->mark = mrk;
 }
 
