@@ -2493,14 +2493,6 @@ void PageItem_TextFrame::layout()
 				current.xPos += style.parEffectOffset();
 				current.glyphs[currentIndex].extraWidth += style.parEffectOffset();
 
-//				if (style.hasNum())
-//				{
-//					Mark* mark = itemText.mark(current.glyphs[currentIndex].firstChar() + 1);
-//					if ((mark != NULL) && (itemText.hasMark(current.glyphs[currentIndex].firstChar() + 1)))
-//						current.glyphs[currentIndex].extraWidth += style.parEffectOffset();
-//				}
-
-
 				if (DropCmode)
 				{
 					DropCmode = false;
