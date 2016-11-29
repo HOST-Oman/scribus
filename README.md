@@ -17,7 +17,7 @@ Scribus-CTL key features right now:
 ## Download
 Each build from Travis CI is available for download as an [AppImage](Http://appimage.org) for 64-bit Linux. You can find the download link in the Travis CI [build log](https://travis-ci.org/HOST-Oman/scribus). Towords the end of the log file, look for a line with an URL that begins with with `https://transfer.sh/`. This is the download link. Download the AppImage, [make it executable](http://discourse.appimage.org/t/how-to-make-an-appimage-executable/80), and run. No root, no installation, does not touch any of the libaries on your system, can run alongside other versions you might already have.
 
-Here is an Appimage 28-11-2016: [scribus-git-glibc2.14-x86-64.appimage](https://transfer.sh/3vZfF/scribus-git58f2c29-glibc2.14-x86-64.appimage)
+Here is an Appimage 29-11-2016: [scribus-git-glibc2.14-x86-64.appimage](https://transfer.sh/255xZ/scribus-git8402842-glibc2.14-x86-64.appimage)
 
 For Mac OS X :[Scribus15xCTLNightly-20161013.dmg] (https://sourceforge.net/projects/scribus/files/scribus-svn/CTL/Scribus15xCTLNightly-20161013.dmg/download)
 
