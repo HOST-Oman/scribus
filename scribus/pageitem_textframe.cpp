@@ -1447,14 +1447,16 @@ void PageItem_TextFrame::layout()
 			desc = -cstyle.font().descent(chs / 10.0);
 			current.yPos = m_textDistanceMargins.top() + lineCorr;
 //			qDebug() << QString("first line at y=%1").arg(current.yPos);
-			if (style.hasBullet() || style.hasNum())
-				updateBulletsNum();
+
 		}
 		else // empty itemText:
 		{
 			desc = -itemText.defaultStyle().charStyle().font().descent(itemText.defaultStyle().charStyle().fontSize() / 10.0);
 			current.yPos = itemText.defaultStyle().lineSpacing() + m_textDistanceMargins.top() + lineCorr - desc;
 		}
+
+		updateBulletsNum();
+
 		current.startLine(0);
 
 		outs = false;
@@ -2490,6 +2492,15 @@ void PageItem_TextFrame::layout()
 			{
 				current.xPos += style.parEffectOffset();
 				current.glyphs[currentIndex].extraWidth += style.parEffectOffset();
+
+//				if (style.hasNum())
+//				{
+//					Mark* mark = itemText.mark(current.glyphs[currentIndex].firstChar() + 1);
+//					if ((mark != NULL) && (itemText.hasMark(current.glyphs[currentIndex].firstChar() + 1)))
+//						current.glyphs[currentIndex].extraWidth += style.parEffectOffset();
+//				}
+
+
 				if (DropCmode)
 				{
 					DropCmode = false;
