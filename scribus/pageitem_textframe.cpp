@@ -2491,6 +2491,19 @@ void PageItem_TextFrame::layout()
 			if ((DropCmode || BulNumMode) && !outs)
 			{
 				current.xPos += style.parEffectOffset();
+
+
+				if (style.hasNum())
+				{
+					// make sure that Offset inserted only after the suffix
+					// loop over previous current.glyphs and set their extraWidth to 0.0
+					for (int i = 0; i < current.glyphs.size(); i++)
+					{
+						if (i != currentIndex)
+							current.glyphs[i].extraWidth = 0.0;
+					}
+				}
+				// set the offset for Drop Cap, Bullet & Number List
 				current.glyphs[currentIndex].extraWidth += style.parEffectOffset();
 
 				if (DropCmode)
