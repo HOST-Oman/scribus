@@ -240,9 +240,8 @@ bool SpecialChars::isCJKImplicitNotNeeded(uint ch)
 {
 	if ( (ch == TAB.unicode())					|| //Tab
 		 (ch == NBSPACE.unicode())				|| //Non-breaking space
-		 (ch >= 0x2000 && ch <= 0x206F)			 //General Punctuation
-
-			)
+		 (ch >= 0x2000 && ch <= 0x206F)			   //General Punctuation
+		 )
 		return true;
 	else
 		return false;
