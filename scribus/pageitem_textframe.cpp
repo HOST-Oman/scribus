@@ -1454,7 +1454,7 @@ void PageItem_TextFrame::layout()
 			desc = -itemText.defaultStyle().charStyle().font().descent(itemText.defaultStyle().charStyle().fontSize() / 10.0);
 			current.yPos = itemText.defaultStyle().lineSpacing() + m_textDistanceMargins.top() + lineCorr - desc;
 		}
-
+		// update Bullet & number list if any.
 		updateBulletsNum();
 
 		current.startLine(0);
