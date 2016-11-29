@@ -79,6 +79,7 @@ public:
 
 	static bool isCJK(uint ch);
 	static bool isIgnorableCodePoint(uint ch);
+	static bool isCJKImplicitNotNeeded(uint ch);
 };
 
 #endif
