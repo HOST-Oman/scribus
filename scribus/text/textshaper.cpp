@@ -501,9 +501,7 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 				int nextStat = SpecialChars::getCJKAttr(m_story.text(lastChar + 1));
 				if (currStat != 0)
 				{	// current char is CJK
-					if (nextStat == 0
-							&& !SpecialChars::isBreakingSpace(m_story.text(lastChar + 1))
-							&& SpecialChars::isCJKImplicitNotNeeded(m_story.text(lastChar +1).unicode())) {
+					if (nextStat == 0 && !SpecialChars::isBreakingSpace(m_story.text(lastChar + 1))) {
 						switch(currStat & SpecialChars::CJK_CHAR_MASK) {
 						case SpecialChars::CJK_KANJI:
 						case SpecialChars::CJK_KANA:
@@ -551,9 +549,7 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 						}
 					}
 				} else {	// current char is not CJK
-					if (nextStat != 0
-							&& !SpecialChars::isBreakingSpace(m_story.text(lastChar))
-							&& SpecialChars::isCJKImplicitNotNeeded(m_story.text(lastChar).unicode())) {
+					if (nextStat != 0 && !SpecialChars::isBreakingSpace(m_story.text(lastChar))) {
 						switch(nextStat & SpecialChars::CJK_CHAR_MASK) {
 						case SpecialChars::CJK_KANJI:
 						case SpecialChars::CJK_KANA:
