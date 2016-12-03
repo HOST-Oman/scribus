@@ -40,9 +40,11 @@ FT_Library FtFace::m_library = NULL;
    unicode emulate: spaces, hyphen, ligatures?, diacritics?
  *****/
 
-FtFace::FtFace(QString fam, QString sty, QString vari, QString scname, 
+FtFace::FtFace(QString fam, QString sty, QString vari, QString scname,
 			   QString psname, QString path, int face, QStringList features)
-: ScFaceData(), m_face(NULL)
+
+: ScFaceData(), m_face(NULL), m_isBold(false), m_isItalic(false)
+
 {
 	family = fam;
 	style = sty;
