@@ -60,6 +60,7 @@ typedef struct {
 QString getStringFromNum(NumFormat format, int num, QChar leadingChar='0', int charsLen=0);
 //convert passed num to string with custom chars
 QString getAsterixStringFromNum(int num, QString asterix, QChar leadingChar='_', int charsLen=0);
-QStringList getFormatListTr();
+//return numeration name from type
+QStringList getFormatList();
 
 #endif // NUMERATION_H
