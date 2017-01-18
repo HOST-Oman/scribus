@@ -292,8 +292,6 @@ private:
  	ScText * item(uint index);
  	const ScText * item(uint index) const;
 	void fixSurrogateSelection();
-	// storage for palin text
-	QString m_text;
 
 //public:
 //	ScText * item_p(uint index) { return item(index); }
