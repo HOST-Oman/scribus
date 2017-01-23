@@ -307,7 +307,7 @@ ScribusMainWindow::ScribusMainWindow()
 #ifdef Q_OS_MAC
 	//commenting this out until this is resolved :https://bugreports.qt.io/browse/QTBUG-44565
 	//ScQApp->setAttribute(Qt::AA_DontShowIconsInMenus);
-	//noIcon = IconManager::instance()->loadPixmap("noicon.xpm");
+	//noIcon = IconManager::instance()->loadPixmap("noicon.png");
 #endif
 }
 
@@ -1638,7 +1638,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 	{
 		if ((doc->appMode == modeMagnifier) && (kk == Qt::Key_Shift))
 		{
-			view->setCursor(IconManager::instance()->loadCursor("LupeZm.xpm"));
+			view->setCursor(IconManager::instance()->loadCursor("lupezm.png"));
 			return;
 		}
 	}
@@ -1870,7 +1870,7 @@ void ScribusMainWindow::keyReleaseEvent(QKeyEvent *k)
 	if (HaveDoc)
 	{
 		if (doc->appMode == modeMagnifier)
-			view->setCursor(IconManager::instance()->loadCursor("LupeZ.xpm"));
+			view->setCursor(IconManager::instance()->loadCursor("lupez.png"));
 	}
 	if (k->isAutoRepeat() || !m__arrowKeyDown)
 		return;
@@ -3173,7 +3173,7 @@ void ScribusMainWindow::importVectorFile()
 		md->setUrls(urls);
 		QDrag* dr = new QDrag(this);
 		dr->setMimeData(md);
-		const QPixmap& dragCursor = IconManager::instance()->loadPixmap("DragPix.xpm");
+		const QPixmap& dragCursor = IconManager::instance()->loadPixmap("dragpix.png");
 		dr->setPixmap(dragCursor);
 		dr->exec();
 	}
