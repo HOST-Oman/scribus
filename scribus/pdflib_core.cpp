@@ -141,11 +141,11 @@ public:
 
 	void drawGlyph(const GlyphCluster& gc)
 	{
+		if (gc.isControlGlyphs() || gc.isEmpty())
+			return;
+
 		double current_x = 0.0;
 		foreach (const GlyphLayout& gl, gc.glyphs()) {
-			if (gc.isControlGlyphs() || gc.isEmpty())
-				return;
-
 			PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
 			QByteArray StrokeColor;
 			QByteArray FillColor;
