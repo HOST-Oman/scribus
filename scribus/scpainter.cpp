@@ -2045,7 +2045,42 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 	}
 
 	cairo_show_glyphs(m_cr, cairoGlyphs.data(), cairoGlyphs.count());
+#else
+	cairo_select_font_face(m_cr, m_font.family().toLatin1(), m_font.isItalic() ? CAIRO_FONT_SLANT_ITALIC : CAIRO_FONT_SLANT_NORMAL, m_font.isBold() ? CAIRO_FONT_WEIGHT_BOLD : CAIRO_FONT_WEIGHT_NORMAL);
+	cairo_set_font_size(m_cr, m_fontSize);
+	cairo_font_extents (m_cr, &extentsF);
+	QStringList textList = text.split("\n");
+	for (int a = 0; a < textList.count(); ++a)
+	{
+		cairo_text_extents (m_cr, textList[a].toUtf8(), &extents);
+		if (align == 0)
+			x = qMin(area.center().x() - (extents.width / 2.0 + extents.x_bearing), x);
+		ww = qMax(ww, extents.width);
+	}
+	hh = extentsF.height * textList.count();
+	if ((align == 0) || (align == 1))
+		y = area.center().y() - ((extentsF.height * textList.count()) / 2.0);
+	if (filled)
+	{
+		m_fill.getRgbF(&r, &g, &b);
+		cairo_set_source_rgba( m_cr, r, g, b, m_fill_trans );
+		cairo_new_path( m_cr );
+		cairo_rectangle(m_cr, x, y, ww, hh);
+		cairo_fill( m_cr );
+	}
+	cairo_new_path( m_cr );
+	y += extentsF.ascent;
+	cairo_move_to (m_cr, x, y);
+	m_stroke.getRgbF(&r, &g, &b);
+	cairo_set_source_rgba( m_cr, r, g, b, m_stroke_trans );
+	for (int a = 0; a < textList.count(); ++a)
+	{
+		cairo_show_text (m_cr, textList[a].toUtf8());
+		y += extentsF.height;
+		cairo_move_to (m_cr, x, y);
+	}
 #endif
+
 
 }
 
