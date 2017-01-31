@@ -56,7 +56,7 @@ before_install:
 
 script:
   - if [ $TRAVIS_OS_NAME == linux ]; then
-      source /opt/qt57/bin/qt57-env.sh;
+      source /opt/qt58/bin/qt58-env.sh;
       if [[ $CC == gcc ]]; then
         export NPROC=8;
       else
