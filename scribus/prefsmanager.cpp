@@ -306,7 +306,7 @@ void PrefsManager::initDefaults()
 	appPrefs.scrapbookPrefs.writePreviews = true;
 	appPrefs.scrapbookPrefs.numScrapbookCopies = 10;
 	appPrefs.displayPrefs.marginColored = false;
-	appPrefs.docSetupPrefs.language = "en_GB";
+	appPrefs.docSetupPrefs.language = ScQApp->currGUILanguage();
 	appPrefs.docSetupPrefs.pageSize = LocaleManager::instance()->pageSizeForLocale(ScQApp->currGUILanguage());
 	appPrefs.docSetupPrefs.pageOrientation = 0;
 	PageSize defaultPageSize(appPrefs.docSetupPrefs.pageSize);
