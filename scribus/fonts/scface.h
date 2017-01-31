@@ -96,7 +96,8 @@ public:
 		qreal bbox_width;
 		qreal bbox_ascent;
 		qreal bbox_descent;
-		GlyphData() : Outlines(), x(0), y(0), bbox_width(1), bbox_ascent(1), bbox_descent(0) {}
+		bool broken;
+		GlyphData() : Outlines(), x(0), y(0), bbox_width(1), bbox_ascent(1), bbox_descent(0),  broken(true) {}
 	};
 
     
@@ -191,6 +192,8 @@ public:
 		virtual void RawData(QByteArray & /*bb*/)      const {}
 		virtual FT_Face ftFace() const { return 0; }
 		virtual void* hbFont();
+		virtual bool isItalic() const { return false; }
+		virtual bool isBold()   const { return false; }
 
 		virtual bool isCIDKeyed() const { return isCIDFont; }
 		virtual bool hasNames() const { return hasGlyphNames; }
@@ -350,6 +353,9 @@ public:
 	qreal underlinePos(qreal sz=1.0)    const;
 	qreal strokeWidth(qreal sz=1.0)     const;
 	qreal maxAdvanceWidth(qreal sz=1.0) const;
+
+	bool isItalic() const;
+	bool isBold()   const;
 
 	/// deprecated
 	QString stemV(qreal sz=1.0)    const { return fontDictionary(sz)["/StemV"]; }

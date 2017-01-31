@@ -257,6 +257,22 @@ const ScFace& ScFace::none()
 	return NONE; 
 }
 
+bool ScFace::isItalic() const
+{
+	if (m_m->status == ScFace::UNKNOWN) {
+		m_m->load();
+	}
+	return m_m->isItalic();
+}
+
+bool ScFace::isBold() const
+{
+	if (m_m->status == ScFace::UNKNOWN) {
+		m_m->load();
+	}
+	return m_m->isBold();
+}
+
 bool ScFace::isSymbolic() const
 {
 	if (m_m->status == ScFace::UNKNOWN) {

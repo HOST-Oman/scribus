@@ -43,7 +43,7 @@ FT_Library FtFace::m_library = NULL;
 FtFace::FtFace(QString fam, QString sty, QString vari, QString scname,
 			   QString psname, QString path, int face, QStringList features)
 
-: ScFaceData(), m_face(NULL)
+: ScFaceData(), m_face(NULL), m_isBold(false), m_isItalic(false)
 
 {
 	family = fam;
@@ -129,7 +129,8 @@ void FtFace::load() const
 	            QString::number(m_face->bbox.xMax / m_uniEM * 1000) + " " + 
 	            QString::number(m_face->bbox.yMax / m_uniEM * 1000);
 	m_italicAngle  = "0";
-
+	m_isItalic = (m_face->style_flags == 1 || m_face->style_flags == 3);
+	m_isBold   = (m_face->style_flags == 2 || m_face->style_flags == 3);
 //FIXME:	FT_Set_Charmap(m_face, m_face->charmaps[m_encoding]);
 	setBestEncoding(m_face);
 	
@@ -189,7 +190,6 @@ void FtFace::loadGlyph(ScFace::gid_type gl) const
 	if (m_glyphWidth.contains(gl))
 		return;
 
-	bool broken = true;
 	ScFace::GlyphData GRec;
 	FT_Face face = ftFace();
 	if (FT_Load_Glyph( face, gl, FT_LOAD_NO_SCALE | FT_LOAD_NO_BITMAP ))
@@ -221,14 +221,14 @@ void FtFace::loadGlyph(ScFace::gid_type gl) const
 			GRec.Outlines = outlines;
 			GRec.x = x;
 			GRec.y = y;
-			broken = false;
+			GRec.broken = false;
 		}
 		else {
 			m_glyphWidth[gl] = 1;
 		}
 	}
 	m_glyphOutline[gl] = GRec;
-	if (broken && status < ScFace::BROKENGLYPHS)
+	if (GRec.broken && status < ScFace::BROKENGLYPHS)
 		status = ScFace::BROKENGLYPHS;
 }
 

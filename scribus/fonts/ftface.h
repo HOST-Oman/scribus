@@ -76,6 +76,8 @@ struct SCRIBUS_API FtFace : public ScFace::ScFaceData
 	QString pdfFontBBoxAsString()    const { return m_pdfFontBBox; }
 	QString italicAngleAsString()    const { return m_italicAngle; }
 
+	bool isItalic() const { return m_isItalic; }
+	bool isBold()   const { return m_isBold; }
 
 //FIXME	QMap<QString,QString> fontDictionary(qreal sz=1.0)      const;
 
@@ -97,7 +99,8 @@ protected:
 	mutable FT_Face m_face;
 
 	static FT_Library m_library;
-
+	mutable bool m_isBold;
+	mutable bool m_isItalic;
 	mutable QString m_pdfAscent;
 	mutable QString m_pdfCapHeight;
 	mutable QString m_pdfDescender;
