@@ -37,13 +37,13 @@ for which a new license (GPL+exception) is in place.
 #include <QList>
 
 
-class MissignGlyphsPainter: public TextLayoutPainter
+class MissingGlyphsPainter: public TextLayoutPainter
 {
 	errorCodes& m_itemError;
 	const TextLayout& m_textLayout;
 
 public:
-	MissignGlyphsPainter(errorCodes& itemError, const TextLayout& textLayout)
+	MissingGlyphsPainter(errorCodes& itemError, const TextLayout& textLayout)
 		: m_itemError(itemError)
 		, m_textLayout(textLayout)
 	{ }
@@ -380,7 +380,9 @@ void DocumentChecker::checkItems(ScribusDoc *currDoc, struct CheckerPrefs checke
 
 				if (checkerSettings.checkGlyphs)
 				{
-					MissignGlyphsPainter p(itemError, currItem->textLayout);
+					if (currItem->invalid)
+						currItem->layout();
+					MissingGlyphsPainter p(itemError, currItem->textLayout);
 					currItem->textLayout.render(&p);
 				}
 			}
@@ -622,7 +624,9 @@ void DocumentChecker::checkItems(ScribusDoc *currDoc, struct CheckerPrefs checke
 				}
 				if (checkerSettings.checkGlyphs)
 				{
-					MissignGlyphsPainter p(itemError, currItem->textLayout);
+					if (currItem->invalid)
+						currItem->layout();
+					MissingGlyphsPainter p(itemError, currItem->textLayout);
 					currItem->textLayout.render(&p);
 				}
 			}
