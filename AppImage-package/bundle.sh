@@ -20,11 +20,16 @@ cd $HOME/$APP/
 wget -q https://github.com/probonopd/AppImages/raw/master/functions.sh -O ./functions.sh
 . ./functions.sh
 
+URLS=$(apt-get install -qq --reinstall --print-uris  python-tk | cut -d "'" -f 2)
+wget $URLS
+
 cd $APP.AppDir
 
 ########################################################################
 # Copy desktop and icon file to AppDir for AppRun to pick them up
 ########################################################################
+
+find ../*.deb -exec dpkg -x {} . \;
 
 get_apprun
 
