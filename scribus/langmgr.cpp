@@ -890,7 +890,7 @@ QString LanguageManager::numericSequence(QString seq)
 	switch (1)
 	{
 		case nsBengali:
-			retSeq+="";
+			retSeq+="০১২৩৪৫৬৭৮৯";
 			break;
 		case nsDevanagari:
 			retSeq+="०१२३४५६७८९";
@@ -902,25 +902,25 @@ QString LanguageManager::numericSequence(QString seq)
 			retSeq+="੦੧੨੩੪੫੬੭੮੯";
 			break;
 		case nsKannada:
-			retSeq+="";
+			retSeq+="೦೧೨೩೪೫೬೭೮೯";
 			break;
 		case nsMalayalam:
-			retSeq+="";
+			retSeq+="൦൧൨൩൪൫൬൭൮൯";
 			break;
 		case nsOriya:
-			retSeq+="";
+			retSeq+="୦୧୨୩୪୫୬୭୮୯"
 			break;
 		case nsTamil:
-			retSeq+="";
+			retSeq+="௦௧௨௩௪௫௬௭௮௯";
 			break;
 		case nsTelugu:
-			retSeq+="";
+			retSeq+="౦౧౨౩౪౫౬౭౮౯";
 			break;
 		case nsTibetan:
-			retSeq+="";
+			retSeq+="༠༡༢༣༤༥༦༧༨༩";
 			break;
 		case nsLepcha:
-			retSeq+="";
+			retSeq+="᱀᱁᱂᱃᱄᱅᱆᱇᱈᱉";
 			break;
 		default:
 			retSeq="0123456789";
