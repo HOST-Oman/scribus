@@ -70,6 +70,7 @@ PagePalette_Pages::PagePalette_Pages(QWidget* parent) : QWidget(parent)
 	connect(masterPageList, SIGNAL(thumbnailChanged()), this, SLOT(rebuildMasters()));
 	connect(masterPageList, SIGNAL(DelMaster(QString)), this, SLOT(deleteMasterPage(QString)));
 
+	connect(pageLayout, SIGNAL(selectBinding(int))     , this, SLOT(handleBinging(int)));
 	connect(pageLayout, SIGNAL(selectedLayout(int ))   , this, SLOT(handlePageLayout(int )));
 	connect(pageLayout, SIGNAL(selectedFirstPage(int )), this, SLOT(handleFirstPage(int )));
 	connect(pageView  , SIGNAL(Click(int, int, int))   , this, SLOT(pageView_gotoPage(int, int, int)));
@@ -162,6 +163,15 @@ void PagePalette_Pages::enablePalette(const bool enabled)
 	pageView->setEnabled(enabled);
 	masterPageList->setEnabled(enabled);
 	pageLayout->setEnabled(enabled);
+}
+
+void PagePalette_Pages::handleBinging(int bind)
+{
+	currView->Doc->setBinding(bind);
+	currView->reformPages();
+	currView->DrawNew();
+	currView->GotoPage(currView->Doc->currentPageNumber());
+	rebuildPages();
 }
 
 void PagePalette_Pages::handlePageLayout(int layout)

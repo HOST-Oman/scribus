@@ -2117,6 +2117,7 @@ void ScribusMainWindow::startUpDialog()
 		{
 			int facingPages = dia->choosenLayout();
 			int firstPage = dia->firstPage->currentIndex();
+			int bind = dia->bind->currentIndex();
 			docSet = dia->startDocSetup->isChecked();
 			double topMargin = dia->marginGroup->top();
 			double bottomMargin = dia->marginGroup->bottom();
@@ -2141,11 +2142,13 @@ void ScribusMainWindow::startUpDialog()
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
 			HaveNewDoc();
+			doc->setBinding(bind);
 			doc->reformPages(true);
 			// Don's disturb user with "save?" dialog just after new doc
 			// doc changing should be rewritten maybe... maybe later...
 			doc->setModified(false);
 			updateActiveWindowCaption(doc->DocName);
+
 		}
 		else if (dia->tabSelected() == NewDoc::NewFromTemplateTab)
 		{
@@ -2199,6 +2202,7 @@ bool ScribusMainWindow::slotFileNew()
 	{
 		int facingPages = dia->choosenLayout();
 		int firstPage = dia->firstPage->currentIndex();
+		int bind = dia->bind->currentIndex();
 		docSet = dia->startDocSetup->isChecked();
 		double topMargin = dia->marginGroup->top();
 		double bottomMargin = dia->marginGroup->bottom();
@@ -2232,6 +2236,7 @@ bool ScribusMainWindow::slotFileNew()
 			doc->setModified(false);
 			updateActiveWindowCaption(doc->DocName);
 		}
+		doc->setBinding(bind);
 	}
 	delete dia;
 	if (docSet)

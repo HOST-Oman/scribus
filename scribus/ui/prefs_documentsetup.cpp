@@ -57,6 +57,7 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 	layoutFirstPageIsComboBox->addItem(" ");
 	layoutFirstPageIsComboBox->setCurrentIndex(0);
 	layoutFirstPageIsComboBox->setEnabled(false);
+//	bind->setCurrentIndex(m_doc->pageBiding());
 
 	pageWidthSpinBox->setMaximum(16777215);
 	pageHeightSpinBox->setMaximum(16777215);
@@ -70,6 +71,7 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 	connect(pageUnitsComboBox, SIGNAL(activated(int)), this, SLOT(unitChange()));
 	connect(undoCheckBox, SIGNAL(toggled(bool)), this, SLOT(slotUndo(bool)));
 	connect(changeAutoDir, SIGNAL(clicked()), this, SLOT(changeAutoDocDir()));
+//	connect(bind, SIGNAL(activated(int)), this, SLOT(binding(int)));
 }
 
 Prefs_DocumentSetup::~Prefs_DocumentSetup()
@@ -150,6 +152,7 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	pageWidthSpinBox->setValue(pageW * unitRatio);
 	pageHeightSpinBox->setValue(pageH * unitRatio);
 	pageSets=prefsData->pageSets;
+	bind->setCurrentIndex(prefsData->docSetupPrefs.binding);
 	if (prefsData->docSetupPrefs.pagePositioning < 2)
 	{
 		threeFoldRadioButton->hide();
@@ -221,6 +224,7 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 	prefsData->docSetupPrefs.pagePositioning=pageLayoutButtonGroup->checkedId();
 	prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage=layoutFirstPageIsComboBox->currentIndex();
 
+	prefsData->docSetupPrefs.binding = bind->currentIndex();
 	prefsData->docSetupPrefs.margins=marginsWidget->margins();
 	prefsData->docSetupPrefs.bleeds=bleedsWidget->margins();
 	prefsData->docSetupPrefs.saveCompressed=saveCompressedCheckBox->isChecked();
@@ -309,6 +313,16 @@ void Prefs_DocumentSetup::pageLayoutChanged(int i)
 	marginsWidget->setFacingPages(!(i == singlePage));
 	//layoutFirstPageIsComboBox->setCurrentIndex(pageSets[pageLayoutButtonGroup->checkedId()].FirstPage);
 }
+
+//void Prefs_DocumentSetup::binding(int x)
+//{
+
+//	if (!m_doc){}
+//	else {
+//	m_doc->setBinding(x);
+//	m_doc->reformPages();
+//	}
+//}
 
 void Prefs_DocumentSetup::setPageWidth(double w)
 {

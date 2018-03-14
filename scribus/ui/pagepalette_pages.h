@@ -50,6 +50,7 @@ public slots:
 	void markPage(uint nr);
 	void selMasterPage();
 	void languageChange();
+	void handleBinging(int);
 
 private slots:
 	void pageView_applyMasterPage(QString masterpageName, int pageIndex);

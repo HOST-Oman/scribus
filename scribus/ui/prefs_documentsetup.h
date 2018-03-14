@@ -12,9 +12,9 @@ for which a new license (GPL+exception) is in place.
 #include "prefs_pane.h"
 #include "scribusapi.h"
 #include "scribusstructs.h"
+//#include "scribusdoc.h"
 
 class ScribusDoc;
-
 class SCRIBUS_API Prefs_DocumentSetup : public Prefs_Pane, Ui::Prefs_DocumentSetup
 {
 	Q_OBJECT
@@ -30,6 +30,7 @@ class SCRIBUS_API Prefs_DocumentSetup : public Prefs_Pane, Ui::Prefs_DocumentSet
 	public slots:
 		void languageChange();
 		void pageLayoutChanged(int);
+//		void binding(int);
 
 	protected slots:
 		void setPageWidth(double);

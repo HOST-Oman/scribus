@@ -6266,155 +6266,305 @@ struct oldPageVar
 // without running this monster
 void ScribusDoc::reformPages(bool moveObjects)
 {
+//	 m_binding = m_docPrefsData.docSetupPrefs.binding;
 	QMap<uint, oldPageVar> pageTable;
 	struct oldPageVar oldPg;
 	int counter = pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].FirstPage;
 	int rowcounter = 0;
 	double maxYPos=0.0, maxXPos=0.0;
-	double currentXPos=m_docPrefsData.displayPrefs.scratch.left(), currentYPos=m_docPrefsData.displayPrefs.scratch.top(), lastYPos=Pages->at(0)->initialHeight();
-//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
-	currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
-
-	lastYPos = Pages->at(0)->initialHeight();
-	ScPage* page;
-	int docPageCount=Pages->count();
-	for (int i = 0; i < docPageCount; ++i)
+	if(m_docPrefsData.docSetupPrefs.binding == 1)
 	{
-		page = Pages->at(i);
-		oldPg.oldXO = page->xOffset();
-		oldPg.oldYO = page->yOffset();
-		oldPg.newPg = i;
-		pageTable.insert(page->pageNr(), oldPg);
-		page->setPageNr(i);
-		if (masterPageMode())
+		double currentXPos=m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth, currentYPos=m_docPrefsData.displayPrefs.scratch.top(), lastYPos=Pages->at(0)->initialHeight();
+		//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
+		currentXPos -= (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
+
+		lastYPos = Pages->at(0)->initialHeight();
+		ScPage* page;
+		int docPageCount=Pages->count();
+		for (int i = 0; i < docPageCount; ++i)
 		{
-			page->setXOffset(m_docPrefsData.displayPrefs.scratch.left());
-			page->setYOffset(m_docPrefsData.displayPrefs.scratch.top());
-			if (page->LeftPg == 0)
+			page = Pages->at(i);
+			oldPg.oldXO = page->xOffset();
+			oldPg.oldYO = page->yOffset();
+			oldPg.newPg = i;
+			pageTable.insert(page->pageNr(), oldPg);
+			page->setPageNr(i);
+			if (masterPageMode())
 			{
-				page->Margins.setRight(page->initialMargins.right());
-				page->Margins.setLeft(page->initialMargins.left());
-			}
-			else if ((page->LeftPg > 1) && (page->LeftPg < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns))
-			{
-				page->Margins.setLeft(page->initialMargins.left());
-				page->Margins.setRight(page->initialMargins.left());
-			}
-			else
-			{
-				page->Margins.setLeft(page->initialMargins.right());
-				page->Margins.setRight(page->initialMargins.left());
-			}
-		}
-		else
-		{
-			page->setWidth(page->initialWidth());
-			page->setHeight(page->initialHeight());
-			page->setXOffset(currentXPos);
-			page->setYOffset(currentYPos);
-			if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
-			{
-				currentXPos += page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
-				lastYPos = qMax(lastYPos, page->height());
-				if (counter == 0)
+				page->setXOffset(m_docPrefsData.displayPrefs.scratch.left());
+				page->setYOffset(m_docPrefsData.displayPrefs.scratch.top());
+				if (page->LeftPg == 0)
 				{
-					page->Margins.setLeft(page->initialMargins.right());
-					page->Margins.setRight(page->initialMargins.left());
+					page->Margins.setRight(page->initialMargins.right());
+					page->Margins.setLeft(page->initialMargins.left());
 				}
-				else
+				else if ((page->LeftPg > 1) && (page->LeftPg < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns))
 				{
 					page->Margins.setLeft(page->initialMargins.left());
 					page->Margins.setRight(page->initialMargins.left());
 				}
-			}
-			else
-			{
-				currentXPos = m_docPrefsData.displayPrefs.scratch.left();
-				if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
-					currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
 				else
-					currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
-				lastYPos = 0;
-				page->Margins.setRight(page->initialMargins.right());
-				page->Margins.setLeft(page->initialMargins.left());
-			}
-			counter++;
-			if (counter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
-			{
-				counter = 0;
-				rowcounter++;
-				if (rowcounter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Rows-1)
-					rowcounter = 0;
-			}
-		}
-		page->Margins.setTop(page->initialMargins.top());
-		page->Margins.setBottom(page->initialMargins.bottom());
-		maxXPos = qMax(maxXPos, page->xOffset()+page->width()+m_docPrefsData.displayPrefs.scratch.right());
-		maxYPos = qMax(maxYPos, page->yOffset()+page->height()+m_docPrefsData.displayPrefs.scratch.bottom());
-	}
-	if (!isLoading())
-	{
-		m_undoManager->setUndoEnabled(false);
-		this->beginUpdate();
-		int docItemsCount = Items->count();
-		for (int ite = 0; ite < docItemsCount; ++ite)
-		{
-			PageItem *item = Items->at(ite);
-			if (item->OwnPage < 0)
-			{
-				if (item->isGroup())
-					GroupOnPage(item);
-				else
-					item->OwnPage = OnPage(item);
-			}
-			else if (moveObjects)
-			{
-				oldPg = pageTable[item->OwnPage];
-				item->moveBy(-oldPg.oldXO + Pages->at(oldPg.newPg)->xOffset(), -oldPg.oldYO + Pages->at(oldPg.newPg)->yOffset());
-				item->OwnPage = static_cast<int>(oldPg.newPg);
-				if (item->isGroup())
 				{
-					QList<PageItem*> groupItems = item->groupItemList;
-					while (groupItems.count() > 0)
-					{
-						PageItem* groupItem = groupItems.takeAt(0);
-						if (groupItem->isGroup())
-							groupItems += groupItem->groupItemList;
-						if (groupItem->OwnPage < 0)
-							continue;
-						oldPg = pageTable[groupItem->OwnPage];
-						groupItem->OwnPage = static_cast<int>(oldPg.newPg);
-					}
+					page->Margins.setLeft(page->initialMargins.right());
+					page->Margins.setRight(page->initialMargins.left());
 				}
 			}
 			else
 			{
-				if (item->isGroup())
-					GroupOnPage(item);
+				page->setWidth(page->initialWidth());
+				page->setHeight(page->initialHeight());
+				page->setXOffset(currentXPos);
+				page->setYOffset(currentYPos);
+				if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
+				{
+					currentXPos -= page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
+					lastYPos = qMax(lastYPos, page->height());
+					if (counter == 0)
+					{
+						page->Margins.setLeft(page->initialMargins.left());
+						page->Margins.setRight(page->initialMargins.right());
+					}
+					else
+					{
+						page->Margins.setLeft(page->initialMargins.right());
+						page->Margins.setRight(page->initialMargins.right());
+					}
+				}
 				else
-					item->OwnPage = OnPage(item);
+				{
+					currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
+					if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
+						currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+					else
+						currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
+					lastYPos = 0;
+					page->Margins.setRight(page->initialMargins.right());
+					page->Margins.setLeft(page->initialMargins.left());
+				}
+				counter++;
+				if (counter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
+				{
+					counter = 0;
+					rowcounter++;
+					if (rowcounter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Rows-1)
+						rowcounter = 0;
+				}
 			}
-			item->setRedrawBounding();
+			page->Margins.setTop(page->initialMargins.top());
+			page->Margins.setBottom(page->initialMargins.bottom());
+			maxXPos = qMax(maxXPos, page->xOffset()+page->width()+m_docPrefsData.displayPrefs.scratch.right());
+			maxYPos = qMax(maxYPos, page->yOffset()+page->height()+m_docPrefsData.displayPrefs.scratch.bottom());
 		}
-		this->endUpdate();
-		m_undoManager->setUndoEnabled(true);
-	}
+		if (!isLoading())
+		{
+			m_undoManager->setUndoEnabled(false);
+			this->beginUpdate();
+			int docItemsCount = Items->count();
+			for (int ite = 0; ite < docItemsCount; ++ite)
+			{
+				PageItem *item = Items->at(ite);
+				if (item->OwnPage < 0)
+				{
+					if (item->isGroup())
+						GroupOnPage(item);
+					else
+						item->OwnPage = OnPage(item);
+				}
+				else if (moveObjects)
+				{
+					oldPg = pageTable[item->OwnPage];
+					item->moveBy(-oldPg.oldXO + Pages->at(oldPg.newPg)->xOffset(), -oldPg.oldYO + Pages->at(oldPg.newPg)->yOffset());
+					item->OwnPage = static_cast<int>(oldPg.newPg);
+					if (item->isGroup())
+					{
+						QList<PageItem*> groupItems = item->groupItemList;
+						while (groupItems.count() > 0)
+						{
+							PageItem* groupItem = groupItems.takeAt(0);
+							if (groupItem->isGroup())
+								groupItems += groupItem->groupItemList;
+							if (groupItem->OwnPage < 0)
+								continue;
+							oldPg = pageTable[groupItem->OwnPage];
+							groupItem->OwnPage = static_cast<int>(oldPg.newPg);
+						}
+					}
+				}
+				else
+				{
+					if (item->isGroup())
+						GroupOnPage(item);
+					else
+						item->OwnPage = OnPage(item);
+				}
+				item->setRedrawBounding();
+			}
+			this->endUpdate();
+			m_undoManager->setUndoEnabled(true);
+		}
 
-	if (isLoading() && is12doc)
-		return;
-	if (!isLoading())
-	{
-		updateMarks(true);
-		FPoint minPoint, maxPoint;
-		canvasMinMax(minPoint, maxPoint);
-		FPoint maxSize(qMax(maxXPos, maxPoint.x()+m_docPrefsData.displayPrefs.scratch.right()), qMax(maxYPos, maxPoint.y()+m_docPrefsData.displayPrefs.scratch.bottom()));
-		adjustCanvas(FPoint(qMin(0.0, minPoint.x()-m_docPrefsData.displayPrefs.scratch.left()),qMin(0.0, minPoint.y()-m_docPrefsData.displayPrefs.scratch.top())), maxSize, true);
-		changed();
-	}
-	else
-	{
-		FPoint maxSize(maxXPos, maxYPos);
-		adjustCanvas(FPoint(0, 0), maxSize);
+		if (isLoading() && is12doc)
+			return;
+		if (!isLoading())
+		{
+			updateMarks(true);
+			FPoint minPoint, maxPoint;
+			canvasMinMax(minPoint, maxPoint);
+			FPoint maxSize(qMax(maxXPos, maxPoint.x()+m_docPrefsData.displayPrefs.scratch.right()), qMax(maxYPos, maxPoint.y()+m_docPrefsData.displayPrefs.scratch.bottom()));
+			adjustCanvas(FPoint(qMin(0.0, minPoint.x()-m_docPrefsData.displayPrefs.scratch.left()),qMin(0.0, minPoint.y()-m_docPrefsData.displayPrefs.scratch.top())), maxSize, true);
+			changed();
+		}
+		else
+		{
+			FPoint maxSize(maxXPos, maxYPos);
+			adjustCanvas(FPoint(0, 0), maxSize);
+		}}
+	else{
+		double currentXPos=m_docPrefsData.displayPrefs.scratch.left(), currentYPos=m_docPrefsData.displayPrefs.scratch.top(), lastYPos=Pages->at(0)->initialHeight();
+		//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
+		currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
+
+		lastYPos = Pages->at(0)->initialHeight();
+		ScPage* page;
+		int docPageCount=Pages->count();
+		for (int i = 0; i < docPageCount; ++i)
+		{
+			page = Pages->at(i);
+			oldPg.oldXO = page->xOffset();
+			oldPg.oldYO = page->yOffset();
+			oldPg.newPg = i;
+			pageTable.insert(page->pageNr(), oldPg);
+			page->setPageNr(i);
+			if (masterPageMode())
+			{
+				page->setXOffset(m_docPrefsData.displayPrefs.scratch.left());
+				page->setYOffset(m_docPrefsData.displayPrefs.scratch.top());
+				if (page->LeftPg == 0)
+				{
+					page->Margins.setRight(page->initialMargins.right());
+					page->Margins.setLeft(page->initialMargins.left());
+				}
+				else if ((page->LeftPg > 1) && (page->LeftPg < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns))
+				{
+					page->Margins.setLeft(page->initialMargins.left());
+					page->Margins.setRight(page->initialMargins.left());
+				}
+				else
+				{
+					page->Margins.setLeft(page->initialMargins.right());
+					page->Margins.setRight(page->initialMargins.left());
+				}
+			}
+			else
+			{
+				page->setWidth(page->initialWidth());
+				page->setHeight(page->initialHeight());
+				page->setXOffset(currentXPos);
+				page->setYOffset(currentYPos);
+				if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
+				{
+					currentXPos += page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
+					lastYPos = qMax(lastYPos, page->height());
+					if (counter == 0)
+					{
+						page->Margins.setLeft(page->initialMargins.right());
+						page->Margins.setRight(page->initialMargins.left());
+					}
+					else
+					{
+						page->Margins.setLeft(page->initialMargins.left());
+						page->Margins.setRight(page->initialMargins.left());
+					}
+				}
+				else
+				{
+					currentXPos = m_docPrefsData.displayPrefs.scratch.left();
+					if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
+						currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+					else
+						currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
+					lastYPos = 0;
+					page->Margins.setRight(page->initialMargins.right());
+					page->Margins.setLeft(page->initialMargins.left());
+				}
+				counter++;
+				if (counter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
+				{
+					counter = 0;
+					rowcounter++;
+					if (rowcounter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Rows-1)
+						rowcounter = 0;
+				}
+			}
+			page->Margins.setTop(page->initialMargins.top());
+			page->Margins.setBottom(page->initialMargins.bottom());
+			maxXPos = qMax(maxXPos, page->xOffset()+page->width()+m_docPrefsData.displayPrefs.scratch.right());
+			maxYPos = qMax(maxYPos, page->yOffset()+page->height()+m_docPrefsData.displayPrefs.scratch.bottom());
+		}
+		if (!isLoading())
+		{
+			m_undoManager->setUndoEnabled(false);
+			this->beginUpdate();
+			int docItemsCount = Items->count();
+			for (int ite = 0; ite < docItemsCount; ++ite)
+			{
+				PageItem *item = Items->at(ite);
+				if (item->OwnPage < 0)
+				{
+					if (item->isGroup())
+						GroupOnPage(item);
+					else
+						item->OwnPage = OnPage(item);
+				}
+				else if (moveObjects)
+				{
+					oldPg = pageTable[item->OwnPage];
+					item->moveBy(-oldPg.oldXO + Pages->at(oldPg.newPg)->xOffset(), -oldPg.oldYO + Pages->at(oldPg.newPg)->yOffset());
+					item->OwnPage = static_cast<int>(oldPg.newPg);
+					if (item->isGroup())
+					{
+						QList<PageItem*> groupItems = item->groupItemList;
+						while (groupItems.count() > 0)
+						{
+							PageItem* groupItem = groupItems.takeAt(0);
+							if (groupItem->isGroup())
+								groupItems += groupItem->groupItemList;
+							if (groupItem->OwnPage < 0)
+								continue;
+							oldPg = pageTable[groupItem->OwnPage];
+							groupItem->OwnPage = static_cast<int>(oldPg.newPg);
+						}
+					}
+				}
+				else
+				{
+					if (item->isGroup())
+						GroupOnPage(item);
+					else
+						item->OwnPage = OnPage(item);
+				}
+				item->setRedrawBounding();
+			}
+			this->endUpdate();
+			m_undoManager->setUndoEnabled(true);
+		}
+
+		if (isLoading() && is12doc)
+			return;
+		if (!isLoading())
+		{
+			updateMarks(true);
+			FPoint minPoint, maxPoint;
+			canvasMinMax(minPoint, maxPoint);
+			FPoint maxSize(qMax(maxXPos, maxPoint.x()+m_docPrefsData.displayPrefs.scratch.right()), qMax(maxYPos, maxPoint.y()+m_docPrefsData.displayPrefs.scratch.bottom()));
+			adjustCanvas(FPoint(qMin(0.0, minPoint.x()-m_docPrefsData.displayPrefs.scratch.left()),qMin(0.0, minPoint.y()-m_docPrefsData.displayPrefs.scratch.top())), maxSize, true);
+			changed();
+		}
+		else
+		{
+			FPoint maxSize(maxXPos, maxYPos);
+			adjustCanvas(FPoint(0, 0), maxSize);
+		}
 	}
 }
 

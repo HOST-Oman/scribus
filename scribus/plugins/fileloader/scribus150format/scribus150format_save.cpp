@@ -225,6 +225,7 @@ bool Scribus150Format::saveFile(const QString & fileName, const FileFormat & /* 
 	docu.writeAttribute("BleedRight"  , m_Doc->bleeds()->right());
 	docu.writeAttribute("BleedBottom" , m_Doc->bleeds()->bottom());
 	docu.writeAttribute("ORIENTATION" , m_Doc->pageOrientation());
+	docu.writeAttribute("PAGEBINDING" , m_Doc->pageBiding());
 	docu.writeAttribute("PAGESIZE"    , m_Doc->pageSize());
 	docu.writeAttribute("FIRSTNUM"    , m_Doc->FirstPnum);
 	docu.writeAttribute("BOOK"        , m_Doc->pagePositioning());

@@ -51,6 +51,8 @@ public:
 	QLabel* layoutLabel1;
 	ScComboBox* firstPage;
 	QList<PageSet> pageSets;
+	QLabel* layoutLable2;
+	ScComboBox* bind;
 
 public slots:
 	void itemSelected(QListWidgetItem* ic);
@@ -59,6 +61,7 @@ public slots:
 signals:
 	void selectedLayout(int);
 	void selectedFirstPage(int);
+	void selectBinding(int);
 
 private:
 	void itemSelectedPost(int chosen);
