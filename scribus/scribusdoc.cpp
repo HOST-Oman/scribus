@@ -6338,8 +6338,8 @@ void ScribusDoc::reformPages(bool moveObjects)
 					else
 						currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
 					lastYPos = 0;
-					page->Margins.setRight(page->initialMargins.right());
-					page->Margins.setLeft(page->initialMargins.left());
+					page->Margins.setRight(page->initialMargins.left());
+					page->Margins.setLeft(page->initialMargins.right());
 				}
 				counter++;
 				if (counter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
