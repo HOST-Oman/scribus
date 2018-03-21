@@ -416,6 +416,8 @@ set(SCRIBUS_MOC_CLASSES
 	ui/pageselector.h
 	ui/patternpropsdialog.h
 	ui/pdfexportdialog.h
+	ui/pdfversioncombo.h
+	ui/pdfversionmodel.h
 	ui/picsearch.h
 	ui/picsearchoptions.h
 	ui/picstatus.h
@@ -787,11 +789,19 @@ set(SCRIBUS_SOURCES
 	imagedataloaders/scimgdataloader_qt.cpp
 	imagedataloaders/scimgdataloader_tiff.cpp
 	imagedataloaders/scimgdataloader_wpg.cpp
+	palettes/cxfcolor.cpp
+	palettes/cxfcolorspecification.cpp
+	palettes/cxfdocument.cpp
+	palettes/cxfobject.cpp
+	palettes/cxfmeasurementspec.cpp
+	palettes/cxftristimulusspec.cpp
+	palettes/cxfutils.cpp
 	palettes/paletteloader.cpp
 	palettes/paletteloader_adobe_acb.cpp
 	palettes/paletteloader_adobe_aco.cpp
 	palettes/paletteloader_adobe_ase.cpp
 	palettes/paletteloader_autocad_acb.cpp
+	palettes/paletteloader_cxf.cpp
 	palettes/paletteloader_ps.cpp
 	palettes/paletteloader_sk1.cpp
 	palettes/paletteloader_swatchbook.cpp
@@ -902,6 +912,8 @@ set(SCRIBUS_SOURCES
 	ui/pageselector.cpp
 	ui/patternpropsdialog.cpp
 	ui/pdfexportdialog.cpp
+	ui/pdfversioncombo.cpp
+	ui/pdfversionmodel.cpp
 	ui/picsearch.cpp
 	ui/picsearchoptions.cpp
 	ui/picstatus.cpp
