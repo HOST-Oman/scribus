@@ -1832,12 +1832,6 @@ public:
 	void SubmitForm();
 	void ImportData();
 	void ResetFormFields();
-
-//private:
-//	int m_binding;
-//public:
-//	void setBinding(int bind){m_binding = bind;}
-//	void getBinding(){return m_binding;}
 };
 
 Q_DECLARE_METATYPE(ScribusDoc*);

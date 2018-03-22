@@ -30,7 +30,6 @@ class SCRIBUS_API Prefs_DocumentSetup : public Prefs_Pane, Ui::Prefs_DocumentSet
 	public slots:
 		void languageChange();
 		void pageLayoutChanged(int);
-//		void binding(int);
 
 	protected slots:
 		void setPageWidth(double);
