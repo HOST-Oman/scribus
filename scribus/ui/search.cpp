@@ -30,14 +30,16 @@ for which a new license (GPL+exception) is in place.
 #include "prefsmanager.h"
 #include "scpage.h"
 #include "scribus.h"
+#include "scribusview.h"
 #include "scrspinbox.h"
+#include "selection.h"
 #include "shadebutton.h"
 #include "styleselect.h"
 #include "ui/storyeditor.h"
 #include "util.h"
 #include "util_text.h"
 
-SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, bool mode )
+SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, bool mode, bool SearchCur )
 	: QDialog( parent ),
 	matchesFound(0)
 {
@@ -46,6 +48,32 @@ SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, b
 	m_notFound = false;
 	m_itemMode = mode;
 	m_firstMatchPosition = -1;
+	m_SearchCurrent = SearchCur;
+
+	// Mapping between page number and text frames
+	QList<PageItem*> TFItems; //list of text frames
+	PageItem* tempPageItem; //temporary page item
+	for (int i = 0; i < m_doc->DocPages.count(); i++)
+	{
+		for (int j = 0; j < m_doc->Items->count(); j++)
+		{
+			tempPageItem = m_doc->Items->at(j);
+			//check if item is text frame and in the same page, add it to the map
+			if (tempPageItem->isTextFrame() && i == tempPageItem->OwnPage)
+			{
+				tempPageItem->itemText.deselectAll();
+				tempPageItem->HasSel = false;
+				TFItems.append(tempPageItem);
+			}
+		}
+		if (!TFItems.empty())
+			ItemsPageNum.insert(i,TFItems);
+
+		TFItems.clear();
+	}
+	//for chain text start form the first letter in the chain
+	if (m_item->itemText.cursorPosition() == 0)
+		m_item->itemText.setCursorPosition(m_item->firstInFrame());
 
 	setModal(true);
 	setWindowTitle( tr( "Search/Replace" ) );
@@ -261,6 +289,10 @@ SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, b
 	if (mode)
 		Word->setEnabled(false);
 	OptsLayout->addWidget( Word );
+	SearchCurrent = new QCheckBox ( tr ("Current Selected Text Frame") , this);
+		OptsLayout -> addWidget(SearchCurrent);
+		if (mode)
+			SearchCurrent->setEnabled(false);
 	CaseIgnore = new QCheckBox( tr( "&Ignore Case, Diacritics and Kashida" ), this );
 	if (mode)
 		CaseIgnore->setEnabled(false);
@@ -377,14 +409,10 @@ void SearchReplace::slotSearch()
 
 void SearchReplace::slotDoSearch()
 {
-	int maxChar = m_item->itemText.length() - 1;
+	int maxChar = m_item->maxCharsInFrame() - 1;
 	DoReplace->setEnabled(false);
 	AllReplace->setEnabled(false);
-	if (m_itemMode)
-	{
-		m_item->itemText.deselectAll();
-		m_item->HasSel = false;
-	}
+
 	QString fCol = "";
 	QString sCol = "";
 	QString sFont = "";
@@ -437,11 +465,18 @@ void SearchReplace::slotDoSearch()
 	int a, textLen(0);
 	if (m_itemMode)
 	{
+		m_item->itemText.deselectAll();
+		m_item->HasSel = false;
+		m_doc->m_Selection->clear();
+		m_item->setSelected(true);
+		maxChar = m_item->maxCharsInFrame() - 1;
+		as = m_item->itemText.cursorPosition();
+		m_replStart = as;
 		Qt::CaseSensitivity cs = Qt::CaseSensitive;
 		if (CaseIgnore->isChecked())
 			cs = Qt::CaseInsensitive;
 
-		for (a = as; a < m_item->itemText.length(); ++a)
+		for (a = as; a < m_item->maxCharsInFrame(); ++a)
 		{
 			found = true;
 			if (SText->isChecked())
@@ -510,6 +545,17 @@ void SearchReplace::slotDoSearch()
 			{
 				m_item->itemText.select(a, textLen);
 				m_item->HasSel = true;
+				m_doc->DoDrawing = true;
+				m_item->update();
+
+				//move scroll bar to the selected element
+				QTransform itemTrans = m_item->getTransform();
+				double xOffset=0.0, yOffset=0.0;
+				xOffset = m_item->width() / 2.0;
+				yOffset = m_item->height() / 2.0;
+				QPointF point = itemTrans.map(QPointF(xOffset, yOffset));
+				m_doc->view()->SetCCPo(point.x(), point.y());
+
 				if (rep)
 				{
 					DoReplace->setEnabled(true);
@@ -533,15 +579,68 @@ void SearchReplace::slotDoSearch()
 				}
 			}
 		}
-		if ((!found) || (a == m_item->itemText.length()))
+		if ((!found) || (a >= maxChar+1))
 		{
 			m_doc->DoDrawing = true;
 			m_item->update();
+			m_item->setSelected(false);
 			DoReplace->setEnabled(false);
 			AllReplace->setEnabled(false);
-			ScMessageBox::information(this, tr("Search/Replace"), tr("Search finished"));
-			m_item->itemText.setCursorPosition(0);
 			m_notFound = false;
+
+			if (SearchCurrent->isChecked())
+			{
+				ScMessageBox::information(this, tr("Search/Replace"), tr("Search finished"));
+				m_item->itemText.setCursorPosition(m_item->firstInFrame());
+			}
+			else
+			{
+				//update m_item to the next text frame
+				QList<int> pageKeys = ItemsPageNum.keys();
+				int pageKeysIndex = pageKeys.indexOf(m_item->OwnPage); //index for pages
+
+				for (int i = 0; i < ItemsPageNum.value(pageKeys.at(pageKeysIndex)).count(); i++)
+				{
+					if (m_item == ItemsPageNum.value(pageKeys.at(pageKeysIndex)).at(i))
+					{
+						//go to next item in the same page
+						if (!ItemsPageNum.value(pageKeys.at(pageKeysIndex)).endsWith(m_item))
+						{
+							m_item = ItemsPageNum.value(pageKeys.at(pageKeysIndex)).at(i + 1);
+							m_item->itemText.setCursorPosition(m_item->firstInFrame());
+							slotDoSearch();
+							break;
+						}
+						else // if the text frame was the last item in the page
+						{
+							pageKeysIndex ++;//increase index
+							if (pageKeysIndex >= pageKeys.count()) //if the last page search finished
+							{
+								if (ScMessageBox::question(this, tr( "Search/Replace" ),
+														   tr("You reached the end of the document.\nDo you want to start from beginning?"),
+														   QMessageBox::Ok | QMessageBox::Cancel,
+														   QMessageBox::NoButton,	// GUI default
+														   QMessageBox::Ok)	// batch default
+										== QMessageBox::Ok)
+								{
+									m_item = ItemsPageNum.value(pageKeys.first()).first();
+									m_item->itemText.setCursorPosition(m_item->firstInFrame());
+									slotDoSearch();
+								}
+								break;
+							}
+							else
+							{
+								m_item = ItemsPageNum.value(pageKeys.at(pageKeysIndex)).first();
+								m_item->itemText.setCursorPosition(m_item->firstInFrame());
+								slotDoSearch();
+								break;
+							}
+						}
+					}
+				}
+				SearchCurrent->setEnabled(false);
+			}
 		}
 	}
 	else if (m_doc->scMW()->CurrStED != NULL)
@@ -686,6 +785,8 @@ void SearchReplace::slotReplace()
 {
 //	if (m_itemMode)
 //		m_doc->view()->slotDoCurs(false);
+	m_doc->m_Selection->clear();
+	m_doc->m_Selection->addItem(m_item);
 	slotDoReplace();
 	if (m_itemMode)
 	{
@@ -700,12 +801,11 @@ void SearchReplace::slotDoReplace()
 	{
 		QString repl, sear;
 		int cs, cx;
-		int textLen = 0;
+		int textLen = m_item->itemText.lengthOfSelection();
 		if (RText->isChecked())
 		{
 			repl = RTextVal->text();
 			sear = STextVal->text();
-			textLen = m_item->itemText.lengthOfSelection();
 			if (textLen == repl.length())
 			{
 				for (cs = 0; cs < textLen; ++cs)
@@ -727,12 +827,12 @@ void SearchReplace::slotDoReplace()
 					m_item->itemText.removeChars(m_replStart+cs, textLen - cs);
 				}
 			}
+		}
+		if (repl.length() > 0)
+		{
 			m_item->itemText.deselectAll();
-			if (repl.length() > 0)
-			{
-				m_item->itemText.select(m_replStart, repl.length());
-				m_item->itemText.setCursorPosition(m_replStart + repl.length());
-			}
+			m_item->itemText.select(m_replStart, repl.length());
+			m_item->itemText.setCursorPosition(m_replStart + repl.length());
 		}
 		if (RStyle->isChecked())
 		{
@@ -867,6 +967,11 @@ void SearchReplace::enableTxSearch()
 	bool setter = SText->isChecked();
 	STextVal->setEnabled(setter);
 	Word->setEnabled(setter);
+	if (m_doc->m_Selection->count() == 1 && m_SearchCurrent)
+			SearchCurrent->setEnabled(setter);
+		else
+			SearchCurrent->setEnabled(false);
+
 	CaseIgnore->setEnabled(setter);
 	if (setter)
 		STextVal->setFocus();

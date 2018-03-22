@@ -215,11 +215,20 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 		case modeNormal:
 			{
 				bool editSearchReplace = false;
-				if (currItem != 0)
+				//enable search if at least one text frame is in the document
+				if (doc->Items->count() != 0)
 				{
-					editSearchReplace |= currItem->isTextFrame();
-					editSearchReplace |= (currItem->itemText.length() > 0);
-					editSearchReplace |= (doc->m_Selection->count() == 1);
+					for (int i = 0; i < doc->Items->count(); i++)
+					{
+						if (doc->Items->at(i)->isTextFrame())
+						{
+							if (doc->Items->at(i)->itemText.length() > 0)
+							{
+								editSearchReplace = true;
+								break;
+							}
+						}
+					}
 				}
 				(*a_scrActions)["editSearchReplace"]->setEnabled(editSearchReplace);
 
@@ -526,7 +535,23 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["editCut"]->setEnabled(false);
 			(*a_scrActions)["editCopy"]->setEnabled(false);
 			(*a_scrActions)["editCopyContents"]->setEnabled(false);
-			(*a_scrActions)["editSearchReplace"]->setEnabled(false);
+			if (doc->Items->count() != 0)
+			{
+				for (int i = 0; i < doc->Items->count(); i++)
+				{
+					if (doc->Items->at(i)->isTextFrame())
+					{
+						if (doc->Items->at(i)->itemText.length() > 0)
+						{
+							(*a_scrActions)["editSearchReplace"]->setEnabled(true);
+							break;
+						}
+					}
+				}
+			}
+			else
+				(*a_scrActions)["editSearchReplace"]->setEnabled(false);
+
 			(*a_scrActions)["extrasHyphenateText"]->setEnabled(false);
 			(*a_scrActions)["extrasDeHyphenateText"]->setEnabled(false);
 

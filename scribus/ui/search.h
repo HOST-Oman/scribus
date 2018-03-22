@@ -8,6 +8,7 @@ for which a new license (GPL+exception) is in place.
 #define SEARCHREPLACE_H
 
 #include <QDialog>
+#include <QMap>
 class QVBoxLayout;
 class QHBoxLayout;
 class QGridLayout;
@@ -33,7 +34,7 @@ class SCRIBUS_API SearchReplace : public QDialog
 	Q_OBJECT
 
 public:
-	SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, bool mode = true );
+	SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, bool mode = true, bool CurSelected = true );
 	~SearchReplace() {};
 	virtual void slotDoSearch();
 	virtual void slotDoReplace();
@@ -84,6 +85,7 @@ public:
 	StyleSelect* SEffVal;
 	StyleSelect* REffVal;
 	QCheckBox* Word;
+	QCheckBox* SearchCurrent;
 	QCheckBox* CaseIgnore;
 	QPushButton* DoSearch;
 	QPushButton* DoReplace;
@@ -133,6 +135,7 @@ protected:
 	bool m_notFound;
 	bool m_itemMode;
 
+	bool m_SearchCurrent; // for search current selected text frame
 	QVBoxLayout* SearchReplaceLayout;
 	QHBoxLayout* SelLayout;
 	QGridLayout* SearchLayout;
@@ -145,7 +148,8 @@ protected:
 	/// Number of matches found thus far in a search
 	int matchesFound;
 	int m_firstMatchPosition;
-
+	// to map each item to a page number
+	QMap<int, QList<PageItem*>> ItemsPageNum;
 };
 
 #endif // SEARCHREPLACE_H

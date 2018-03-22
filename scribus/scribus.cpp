@@ -8503,10 +8503,74 @@ void ScribusMainWindow::EditTabs()
 
 void ScribusMainWindow::SearchText()
 {
-	PageItem *currItem = doc->m_Selection->itemAt(0);
+	PageItem *currItem = NULL;
+	bool SearchCur = false;
+	bool flag = false;
+
+	/*
+	 * The currItem is selected based on:
+	 * 1- first text frame selected.
+	 * if not
+	 *	select first text frame in current page.
+	 * if not
+	 *	got to next page and select the first text frame
+	 * if you reach the end of the document
+	 *	start from the first page.
+	 */
+	if (doc->Items->count() == 0)
+		return;
+	else if (doc->m_Selection->count() > 0)
+	{
+		//start searching from the selected text frame
+		for (int i = 0 ; i < doc->m_Selection->count(); i++)
+			if (doc->m_Selection->itemAt(i)->isTextFrame() && doc->m_Selection->itemAt(i)->itemText.length() > 0 )
+			{
+				flag = true;
+				currItem = doc->m_Selection->itemAt(i);
+				if (doc->m_Selection->count() == 1)
+					SearchCur = true;
+				break;
+			}
+	}
+	// if no text frame selected
+	if (!flag)
+	{
+		int i = 0;
+		int j = 0;
+		//find current page index
+		for (i = 0; i < doc->Items->count(); i++)
+		{
+			if (doc->Items->at(i)->OwnPage >= doc->currentPageNumber())
+				break;
+		}
+		j = i;
+		//start from current page  till the end of the document
+		for (i = j; i < doc->Items->count(); i++)
+		{
+			if (doc->Items->at(i)->isTextFrame() && doc->Items->at(i)->itemText.length() > 0)
+			{
+				flag= true;
+				currItem = doc->Items->at(i);
+				break;
+			}
+		}
+		//if reached the end of the document start from beggining
+		if (!flag)
+			for (i = 0; i < j; i++)
+			{
+				if (doc->Items->at(i)->isTextFrame() && doc->Items->at(i)->itemText.length() > 0)
+				{
+					currItem = doc->Items->at(i);
+					break;
+				}
+			}
+	}
+
+	doc->m_Selection->addItem(currItem);
+	//PageItem *currItem = doc->m_Selection->itemAt(0);
 	view->requestMode(modeEdit);
-	currItem->itemText.setCursorPosition(0);
-	SearchReplace* dia = new SearchReplace(this, doc, currItem);
+	currItem->itemText.setCursorPosition(currItem->firstInFrame());
+	SearchReplace* dia = new SearchReplace(this, doc, currItem, true , SearchCur);
 	connect(dia, SIGNAL(NewFont(const QString&)), this, SLOT(SetNewFont(const QString&)));
 	connect(dia, SIGNAL(NewAbs(int)), this, SLOT(setAlignmentValue(int)));
 	dia->exec();
