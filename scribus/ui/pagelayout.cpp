@@ -78,6 +78,11 @@ PageLayouts::PageLayouts(QWidget* parent)  : QGroupBox( parent )
 	layoutsCombo = new ScComboBox( this );
 	layoutGroupLayout->addWidget( layoutsCombo );
 
+	layoutLable2 = new QLabel( this );
+	layoutGroupLayout->addWidget( layoutLable2 );
+	bind = new ScComboBox( this );
+	layoutGroupLayout->addWidget( bind );
+
 	layoutLabel1 = new QLabel( this );
 	layoutGroupLayout->addWidget( layoutLabel1 );
 	firstPage = new ScComboBox( this );
@@ -87,6 +92,7 @@ PageLayouts::PageLayouts(QWidget* parent)  : QGroupBox( parent )
 
 	connect(layoutsCombo, SIGNAL(activated(int)), this, SLOT(itemSelected(int)));
 	connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
+	connect(bind, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
 }
 
 PageLayouts::PageLayouts(QWidget* parent, QList<PageSet> pSets, bool mode)  : QGroupBox( parent )
@@ -106,6 +112,10 @@ PageLayouts::PageLayouts(QWidget* parent, QList<PageSet> pSets, bool mode)  : QG
 		layoutsCombo = new ScComboBox( this );
 		layoutGroupLayout->addWidget( layoutsCombo );
 	}
+	layoutLable2 = new QLabel( this );
+	layoutGroupLayout->addWidget( layoutLable2 );
+	bind = new ScComboBox( this );
+	layoutGroupLayout->addWidget( bind );
 	layoutLabel1 = new QLabel( this );
 	layoutGroupLayout->addWidget( layoutLabel1 );
 	firstPage = new ScComboBox( this );
@@ -158,6 +168,10 @@ void PageLayouts::selectItem(uint nr)
 	disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	if (nr > 0)
 	{
+		bind->setEnabled(true);
+		bind->clear();
+		bind->addItem(tr("Left To Right"));
+		bind->addItem(tr("Right To Left"));
 		firstPage->setEnabled(true);
 		firstPage->clear();
 		QStringList::Iterator pNames;
@@ -168,6 +182,8 @@ void PageLayouts::selectItem(uint nr)
 	}
 	else
 	{
+		bind->clear();
+		bind->setEnabled(false);
 		firstPage->clear();
 		firstPage->addItem(" ");
 		firstPage->setEnabled(false);
@@ -293,6 +309,8 @@ void PageLayouts::languageChange()
 		firstPage->setCurrentIndex(currFirstPageIndex);
 		connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	}
+	layoutLable2->setText( tr( "Binding Direction: " ));
+	bind->setCurrentIndex(bind->currentIndex());
 	layoutLabel1->setText( tr( "First Page is:" ) );
 
 	QString layoutText( tr( "Number of pages to show side-by-side on the canvas. Often used for allowing items to be placed across page spreads." ) );

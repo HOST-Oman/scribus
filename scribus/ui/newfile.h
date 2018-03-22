@@ -75,6 +75,8 @@ public:
 	QFrame* newDocFrame;
 	PageLayoutsWidget* layoutsView;
 	QLabel* layoutLabel1;
+	QLabel* layoutLabel2;
+	ScComboBox* bind;
 	ScComboBox* firstPage;
 	QGroupBox* pageSizeGroupBox;
 	MarginWidget* marginGroup;
@@ -151,7 +153,6 @@ public slots:
 	void gotoDesktopDirectory();
 	void gotoHomeDirectory();
 	void openFileDialogFileClicked(const QString &path);
-
 protected:
 	QVBoxLayout* TabbedNewDocLayout;
 	QHBoxLayout* Layout1;

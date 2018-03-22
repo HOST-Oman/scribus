@@ -171,6 +171,7 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 			break;
 	}
 	setupPageSets();
+	bind->setCurrentIndex(prefsData->docSetupPrefs.binding);
 
 	layoutFirstPageIsComboBox->setCurrentIndex(prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage);
 
@@ -221,6 +222,7 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 	prefsData->docSetupPrefs.pagePositioning=pageLayoutButtonGroup->checkedId();
 	prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage=layoutFirstPageIsComboBox->currentIndex();
 
+	prefsData->docSetupPrefs.binding = bind->currentIndex();
 	prefsData->docSetupPrefs.margins=marginsWidget->margins();
 	prefsData->docSetupPrefs.bleeds=bleedsWidget->margins();
 	prefsData->docSetupPrefs.saveCompressed=saveCompressedCheckBox->isChecked();
@@ -246,8 +248,13 @@ void Prefs_DocumentSetup::setupPageSets()
 	int i=layoutFirstPageIsComboBox->currentIndex();
 	int currIndex=pageLayoutButtonGroup->checkedId()<0?0:pageLayoutButtonGroup->checkedId();
 	layoutFirstPageIsComboBox->clear();
+	bind->clear();
 	if (currIndex>0 && currIndex<pageSets.count())
 	{
+		bind->setEnabled(true);
+		bind->addItem(tr("Left To Right"));
+		bind->addItem(tr("Right To Left"));
+//		bind->setCurrentIndex(PrefsManager.);
 		layoutFirstPageIsComboBox->setEnabled(true);
 		for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
 			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
@@ -255,6 +262,8 @@ void Prefs_DocumentSetup::setupPageSets()
 	}
 	else
 	{
+		bind->clear();
+		bind->setEnabled(false);
 		layoutFirstPageIsComboBox->addItem(" ");
 		layoutFirstPageIsComboBox->setCurrentIndex(0);
 		layoutFirstPageIsComboBox->setEnabled(false);

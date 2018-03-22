@@ -290,6 +290,13 @@ void NewDoc::createNewDocPage()
 	pageCountLabel->setBuddy(pageCountSpinBox);
 	optionsGroupBoxLayout->addRow( pageCountLabel, pageCountSpinBox);
 
+	layoutLabel2 = new QLabel( optionsGroupBox );
+	layoutLabel2->setText( tr( "Binding Direction:" ) );
+	bind = new ScComboBox( optionsGroupBox );
+	bind->clear();
+	bind->setCurrentIndex(prefsManager->appPrefs.docSetupPrefs.binding);
+	optionsGroupBoxLayout->addRow( layoutLabel2, bind );
+
 	layoutLabel1 = new QLabel( optionsGroupBox );
 	layoutLabel1->setText( tr( "First Page is:" ) );
 	firstPage = new ScComboBox( optionsGroupBox );
@@ -464,12 +471,19 @@ void NewDoc::selectItem(uint nr)
 		{
 			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames)));
 		}
+		bind->setEnabled(true);
+		bind->addItem(tr("Left To Right"));
+		bind->addItem(tr("Right To Left"));
+
+
 	}
 	else
 	{
 		firstPage->clear();
 		firstPage->addItem(" ");
 		firstPage->setEnabled(false);
+		bind->clear();
+		bind->setEnabled(false);
 	}
 	layoutsView->setCurrentRow(nr);
 	layoutsView->item(nr)->setSelected(true);
