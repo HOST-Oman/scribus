@@ -3,7 +3,7 @@ Scribus - Open Source Desktop Publishing
 [![Build Status](https://travis-ci.org/scribusproject/scribus.svg?branch=master)](https://travis-ci.org/scribusproject/scribus) [![Coverity Scan Build Status](https://scan.coverity.com/projects/216/badge.svg)](https://scan.coverity.com/projects/scribus)
 
 ## Status
-This README.md file is geared toward the Scribus github repository which serves as a mirror for the Scribus Subversion repository `svn://scribus.net/trunk/Scribus`. The Scribus development team prefer svn over git. This mirror is updated manually.
+Here we implement features that we love to see it in upstream version of Scribus because we use Scribus 1.5 in production mainly in typesetting Arabic books. 
 
 Complex text layout features available right now:
 - support RTL languages (Arabic, Persian, Urdu, Hebrew).
@@ -13,20 +13,17 @@ Complex text layout features available right now:
 - support OpenType Font Features.
 - allow customization of hyphenation character
 - add ability to link selected text frames directly 
-- Loading and render long docs are faster. 
+- Support RTL binding layout.
+
+General Features:
+- Search \ replace all text frames
+
+## Testing
+If you want just test the new features, please use the latest appimage (For Linux only) file [here](https://transfer.sh/cyqCf/Scribus-git5ee3d28-glibc2.14.glibc2.14-x86_64.AppImage)
+
 
 ## Contributing
-For Bugs and patches: please send them to the [Scribus Bugtracker](http://bugs.scribus.net) to be evaluated. If you do send a PR here, someone will either ask you to do the same or submit the PR as a patch to the bugtracker for you.
+Just fork & send your Pull Request here.
 
-## Links
-|Resource | Address |  
-|:---------|:---------|  
-|Website |http://www.scribus.net |  
-|Wiki | http://wiki.scribus.net |  
-|List | http://lists.scribus.net |  
-|Forums | http://forums.scribus.net | 
-|WebSVN | http://scribus.net/websvn |
-|SVN | svn://scribus.net/trunk/Scribus |  
-|IRC | irc://scribus@chat.freenode.net |  
-
-
+## Help us
+Most work done here by internships. Unfortunately, we don't have a sustainable income to give a small intensive to the students. If you want to help, please contact the maintainer: Fahad.alsaidi@gmail.com
