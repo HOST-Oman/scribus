@@ -237,7 +237,6 @@ void PagePalette_Pages::rebuildPages()
 	pageLayout->updateLayoutSelector(currView->Doc->pageSets());
 	pageLayout->selectItem(currView->Doc->pagePositioning());
 	pageLayout->firstPage->setCurrentIndex(currView->Doc->pageSets()[currView->Doc->pagePositioning()].FirstPage);
-	pageLayout->bind->setCurrentIndex(currView->Doc->pageBiding());
 	pageView->MaxC = currView->Doc->DocPages.count()-1;
 	int counter = currView->Doc->pageSets()[currView->Doc->pagePositioning()].FirstPage;
 	int cols = currView->Doc->pageSets()[currView->Doc->pagePositioning()].Columns;
