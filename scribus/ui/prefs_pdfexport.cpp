@@ -214,8 +214,8 @@ void Prefs_PDFExport::languageChange()
 
 	i = pageBindingComboBox->currentIndex();
 	pageBindingComboBox->clear();
-	pageBindingComboBox->addItem( tr("Left Margin"));
-	pageBindingComboBox->addItem( tr("Right Margin"));
+	pageBindingComboBox->addItem( tr("Left To Right"));
+	pageBindingComboBox->addItem( tr("Right To Lef"));
 	pageBindingComboBox->setCurrentIndex(i);
 
 	i = outputIntentionComboBox->currentIndex();

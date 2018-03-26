@@ -168,22 +168,16 @@ void PageLayouts::selectItem(uint nr)
 	disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	if (nr > 0)
 	{
-		bind->setEnabled(true);
-		bind->clear();
-		bind->addItem(tr("Left To Right"));
-		bind->addItem(tr("Right To Left"));
 		firstPage->setEnabled(true);
 		firstPage->clear();
 		QStringList::Iterator pNames;
 		for(pNames = pageSets[nr].pageNames.begin(); pNames != pageSets[nr].pageNames.end(); ++pNames )
 		{
-			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames)));
+			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), bind->currentIndex()));
 		}
 	}
 	else
 	{
-		bind->clear();
-		bind->setEnabled(false);
 		firstPage->clear();
 		firstPage->addItem(" ");
 		firstPage->setEnabled(false);
@@ -212,7 +206,7 @@ void PageLayouts::itemSelectedPost(int chosen)
 		QStringList::Iterator pNames;
 		for(pNames = pageSets[chosen].pageNames.begin(); pNames != pageSets[chosen].pageNames.end(); ++pNames )
 		{
-			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames)));
+			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), bind->currentIndex()));
 		}
 	}
 	else
@@ -304,13 +298,14 @@ void PageLayouts::languageChange()
 		if (currIndex>=0 && currIndex<pageSets.count())
 			for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
 			{
-				firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames)));
+				firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), bind->currentIndex()));
 			}
 		firstPage->setCurrentIndex(currFirstPageIndex);
 		connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	}
 	layoutLable2->setText( tr( "Binding Direction: " ));
-	bind->setCurrentIndex(bind->currentIndex());
+	bind->addItem(tr("Left To Right"));
+	bind->addItem(tr("Right To Left"));
 	layoutLabel1->setText( tr( "First Page is:" ) );
 
 	QString layoutText( tr( "Number of pages to show side-by-side on the canvas. Often used for allowing items to be placed across page spreads." ) );

@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>657</width>
-    <height>549</height>
+    <height>609</height>
    </rect>
   </property>
   <property name="currentIndex">
@@ -238,12 +238,12 @@
            </property>
            <item>
             <property name="text">
-             <string>Left Margin</string>
+             <string>Left To Right</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Right Margin</string>
+             <string>Right To Left</string>
             </property>
            </item>
           </widget>

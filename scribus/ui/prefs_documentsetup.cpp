@@ -150,6 +150,7 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	pageWidthSpinBox->setValue(pageW * unitRatio);
 	pageHeightSpinBox->setValue(pageH * unitRatio);
 	pageSets=prefsData->pageSets;
+	bind->setCurrentIndex(prefsData->docSetupPrefs.binding);
 	if (prefsData->docSetupPrefs.pagePositioning < 2)
 	{
 		threeFoldRadioButton->hide();
@@ -171,7 +172,6 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 			break;
 	}
 	setupPageSets();
-	bind->setCurrentIndex(prefsData->docSetupPrefs.binding);
 
 	layoutFirstPageIsComboBox->setCurrentIndex(prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage);
 
@@ -248,22 +248,24 @@ void Prefs_DocumentSetup::setupPageSets()
 	int i=layoutFirstPageIsComboBox->currentIndex();
 	int currIndex=pageLayoutButtonGroup->checkedId()<0?0:pageLayoutButtonGroup->checkedId();
 	layoutFirstPageIsComboBox->clear();
-	bind->clear();
 	if (currIndex>0 && currIndex<pageSets.count())
 	{
-		bind->setEnabled(true);
-		bind->addItem(tr("Left To Right"));
-		bind->addItem(tr("Right To Left"));
-//		bind->setCurrentIndex(PrefsManager.);
 		layoutFirstPageIsComboBox->setEnabled(true);
-		for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
-			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
-		layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
+		if ( bind->currentIndex() == 0){
+			for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
+				layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
+			layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
+		}
+		else
+		{
+			layoutFirstPageIsComboBox->addItem("Right Page");
+			layoutFirstPageIsComboBox->addItem("Left Page");
+
+			layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
+		}
 	}
 	else
 	{
-		bind->clear();
-		bind->setEnabled(false);
 		layoutFirstPageIsComboBox->addItem(" ");
 		layoutFirstPageIsComboBox->setCurrentIndex(0);
 		layoutFirstPageIsComboBox->setEnabled(false);

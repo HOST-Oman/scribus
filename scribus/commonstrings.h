@@ -64,7 +64,7 @@ public:
 	 * @param untrString "untranslated" string
 	 * @return translated string
 	 */
-	static const QString& translatePageSetLocString(const QString &untrString);
+	static const QString& translatePageSetLocString(const QString &untrString, int biding = 0);
 	/**
 	 * \brief Return the untranslated Page Set string if given the translated one
 	 * @param trString translated string

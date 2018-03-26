@@ -293,9 +293,10 @@ void NewDoc::createNewDocPage()
 	layoutLabel2 = new QLabel( optionsGroupBox );
 	layoutLabel2->setText( tr( "Binding Direction:" ) );
 	bind = new ScComboBox( optionsGroupBox );
-	bind->clear();
-	bind->setCurrentIndex(prefsManager->appPrefs.docSetupPrefs.binding);
 	optionsGroupBoxLayout->addRow( layoutLabel2, bind );
+	bind->addItem(tr("Left To Right"));
+	bind->addItem(tr("Right To Left"));
+	bind->setCurrentIndex(prefsManager->appPrefs.docSetupPrefs.binding);
 
 	layoutLabel1 = new QLabel( optionsGroupBox );
 	layoutLabel1->setText( tr( "First Page is:" ) );
@@ -469,21 +470,14 @@ void NewDoc::selectItem(uint nr)
 		QStringList::Iterator pNames;
 		for(pNames = prefsManager->appPrefs.pageSets[nr].pageNames.begin(); pNames != prefsManager->appPrefs.pageSets[nr].pageNames.end(); ++pNames )
 		{
-			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames)));
+			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), bind->currentIndex()));
 		}
-		bind->setEnabled(true);
-		bind->addItem(tr("Left To Right"));
-		bind->addItem(tr("Right To Left"));
-
-
 	}
 	else
 	{
 		firstPage->clear();
 		firstPage->addItem(" ");
 		firstPage->setEnabled(false);
-		bind->clear();
-		bind->setEnabled(false);
 	}
 	layoutsView->setCurrentRow(nr);
 	layoutsView->item(nr)->setSelected(true);
