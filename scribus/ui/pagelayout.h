@@ -45,6 +45,7 @@ public:
 
 	void updateLayoutSelector(QList<PageSet> pSets);
 	void selectFirstP(int nr);
+	void selectPagebind(int x = 0);
 	void selectItem(uint nr);
 	PageListWidget* layoutsView;
 	ScComboBox* layoutsCombo;
@@ -52,7 +53,7 @@ public:
 	ScComboBox* firstPage;
 	QList<PageSet> pageSets;
 	QLabel* layoutLable2;
-	ScComboBox* bind;
+	ScComboBox* binding;
 
 public slots:
 	void itemSelected(QListWidgetItem* ic);

@@ -60,6 +60,7 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 
 	pageWidthSpinBox->setMaximum(16777215);
 	pageHeightSpinBox->setMaximum(16777215);
+	bind->setCurrentIndex(PrefsManager::instance()->appPrefs.docSetupPrefs.binding);
 	languageChange();
 
 	connect(pageSizeComboBox, SIGNAL(activated(const QString &)), this, SLOT(setPageSize()));
@@ -258,9 +259,8 @@ void Prefs_DocumentSetup::setupPageSets()
 		}
 		else
 		{
-			layoutFirstPageIsComboBox->addItem("Right Page");
 			layoutFirstPageIsComboBox->addItem("Left Page");
-
+			layoutFirstPageIsComboBox->addItem("Right Page");
 			layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
 		}
 	}

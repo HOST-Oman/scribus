@@ -16831,12 +16831,13 @@ bool ScribusDoc::updateLocalNums(StoryText& itemText)
 				m_counters.replace(level, count);
 				//m_nums.insert(level, num);
 				QString result;
+				result.append(style.numPrefix());
 				for (int i=0; i <= level; ++i)
 				{
-					result.append(m_nums.at(i).prefix);
 					result.append(getStringFromNum(m_nums.at(i).numFormat, m_counters.at(i)));
-					result.append(m_nums.at(i).suffix);
+					result.append(".");
 				}
+				result.append(style.numSuffix());
 				if (mark->getString() != result)
 				{
 					mark->setString(result);
