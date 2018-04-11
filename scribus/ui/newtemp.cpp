@@ -56,7 +56,7 @@ NewTm::NewTm( QWidget* parent, QString text, QString titel, ScribusDoc *doc, con
 		for(pNames = pageSet[doc->pagePositioning()].pageNames.begin(); pNames != pageSet[doc->pagePositioning()].pageNames.end(); ++pNames )
 		{
 			//Links->insertItem((*pNames));
-			Links->addItem(CommonStrings::translatePageSetLocString((*pNames)));
+			Links->addItem(CommonStrings::translatePageSetLocString((*pNames), doc->pageBinding()));
 		}
 		if (doc->currentPage()->LeftPg == 1)
 			Links->setCurrentIndex(0);

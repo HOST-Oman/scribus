@@ -2116,8 +2116,8 @@ void ScribusMainWindow::startUpDialog()
 		if (dia->tabSelected() == NewDoc::NewDocumentTab)
 		{
 			int facingPages = dia->choosenLayout();
-			int firstPage = dia->firstPage->currentIndex();
 			int bind = dia->bind->currentIndex();
+			int firstPage = dia->firstPage->currentIndex();
 			docSet = dia->startDocSetup->isChecked();
 			double topMargin = dia->marginGroup->top();
 			double bottomMargin = dia->marginGroup->bottom();
@@ -2138,7 +2138,9 @@ void ScribusMainWindow::startUpDialog()
 				PageSize ps2(dia->pageSizeComboBox->currentText());
 				pagesize = ps2.name();
 			}
-			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset(), bind);
+			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance,
+					  numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage,
+					  orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset(), bind);
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
 			HaveNewDoc();
@@ -2263,6 +2265,7 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 	QString newDocName( tr("Document")+"-"+QString::number(m_DocNr));
 	ScribusDoc *tempDoc = new ScribusDoc();
 	tempDoc->setBinding(binding);
+	tempDoc->setPageSetFirstPage(pageArrangement,firstPageLocation);
 	if (requiresGUI)
 		doc=tempDoc;
 	tempDoc->setLoading(true);
@@ -5494,7 +5497,7 @@ void ScribusMainWindow::duplicateToMasterPage()
 		QList<PageSet> pageSet(doc->pageSets());
 		for(QStringList::Iterator pNames = pageSet[doc->pagePositioning()].pageNames.begin(); pNames != pageSet[doc->pagePositioning()].pageNames.end(); ++pNames )
 		{
-			locationEntries << CommonStrings::translatePageSetLocString(*pNames);
+			locationEntries << CommonStrings::translatePageSetLocString(*pNames, doc->pageBinding());
 		}
 		pageLocationIndex=doc->columnOfPage(doc->currentPageNumber());
 		pageLocationCount=locationEntries.count();

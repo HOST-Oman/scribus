@@ -299,7 +299,12 @@ void PageLayouts::languageChange()
 		}
 		layoutsCombo->setCurrentIndex(currIndex);
 		connect(layoutsCombo, SIGNAL(activated(int)), this, SLOT(itemSelected(int)));
-
+		disconnect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
+		layoutLable2->setText( tr( "Binding Direction: " ));
+		binding->addItem(tr("Left To Right"));
+		binding->addItem(tr("Right To Left"));
+		binding->setCurrentIndex(binding->currentIndex());
+		connect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
 		disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 		int currFirstPageIndex=firstPage->currentIndex();
 		firstPage->clear();
@@ -311,11 +316,6 @@ void PageLayouts::languageChange()
 		firstPage->setCurrentIndex(currFirstPageIndex);
 		connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	}
-	layoutLable2->setText( tr( "Binding Direction: " ));
-	binding->addItem(tr("Left To Right"));
-	binding->addItem(tr("Right To Left"));
-	binding->setCurrentIndex(binding->currentIndex());
-	connect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
 	layoutLabel1->setText( tr( "First Page is:" ) );
 
 	QString layoutText( tr( "Number of pages to show side-by-side on the canvas. Often used for allowing items to be placed across page spreads." ) );

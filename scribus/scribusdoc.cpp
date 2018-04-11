@@ -6274,21 +6274,31 @@ void ScribusDoc::reformPages(bool moveObjects)
 	double maxYPos=0.0, maxXPos=0.0, currentXPos = 0.0, currentYPos = 0.0, lastYPos = 0.0;
 	if (m_docPrefsData.docSetupPrefs.binding == 1)
 	{
-		currentXPos=m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
-		currentYPos=m_docPrefsData.displayPrefs.scratch.top();
-		lastYPos=Pages->at(0)->initialHeight();
-		//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
-		currentXPos -= (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
+		if (counter == 0)
+		{
+			currentXPos=m_docPrefsData.displayPrefs.scratch.left() /*+ m_docPrefsData.docSetupPrefs.pageWidth*/;
+			currentYPos=m_docPrefsData.displayPrefs.scratch.top();
+			lastYPos = Pages->at(0)->initialHeight();
+			//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
+			currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * 1;
+		}
+		if (counter == 1)
+		{
+			currentXPos=m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
+			currentYPos=m_docPrefsData.displayPrefs.scratch.top();
+			lastYPos = currentYPos;
+			//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
+			currentXPos -= (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * 0;
+		}
 	}
 	else
 	{
 		currentXPos = m_docPrefsData.displayPrefs.scratch.left();
 		currentYPos=m_docPrefsData.displayPrefs.scratch.top();
-		lastYPos=Pages->at(0)->initialHeight();
+		lastYPos = Pages->at(0)->initialHeight();
 		//      currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
 		currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
 	}
-	lastYPos = Pages->at(0)->initialHeight();
 	ScPage* page;
 	int docPageCount=Pages->count();
 	for (int i = 0; i < docPageCount; ++i)
@@ -6369,8 +6379,25 @@ void ScribusDoc::reformPages(bool moveObjects)
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
 				else
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left();
+
+
 				if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
-					currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+				{
+					if (m_docPrefsData.docSetupPrefs.binding == 1)
+					{
+						if (counter == 0)
+						{
+//							currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+						}
+						if (counter == 1)
+						{
+							currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+						}
+					}
+					else
+						currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+				}
+
 				else
 					currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
 				lastYPos = 0;
