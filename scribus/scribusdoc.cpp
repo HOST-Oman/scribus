@@ -6266,7 +6266,6 @@ struct oldPageVar
 // without running this monster
 void ScribusDoc::reformPages(bool moveObjects)
 {
-	//	 m_binding = m_docPrefsData.docSetupPrefs.binding;
 	QMap<uint, oldPageVar> pageTable;
 	struct oldPageVar oldPg;
 	int counter = pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].FirstPage;
@@ -6274,22 +6273,11 @@ void ScribusDoc::reformPages(bool moveObjects)
 	double maxYPos=0.0, maxXPos=0.0, currentXPos = 0.0, currentYPos = 0.0, lastYPos = 0.0;
 	if (m_docPrefsData.docSetupPrefs.binding == 1)
 	{
-		if (counter == 0)
-		{
-			currentXPos=m_docPrefsData.displayPrefs.scratch.left() /*+ m_docPrefsData.docSetupPrefs.pageWidth*/;
-			currentYPos=m_docPrefsData.displayPrefs.scratch.top();
-			lastYPos = Pages->at(0)->initialHeight();
-			//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
-			currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * 1;
-		}
-		if (counter == 1)
-		{
-			currentXPos=m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
-			currentYPos=m_docPrefsData.displayPrefs.scratch.top();
-			lastYPos = currentYPos;
-			//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
-			currentXPos -= (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * 0;
-		}
+		currentXPos=m_docPrefsData.displayPrefs.scratch.left();
+		currentYPos=m_docPrefsData.displayPrefs.scratch.top();
+		lastYPos = Pages->at(0)->initialHeight();
+		//	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
+		currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
 		ScPage* page;
 		int docPageCount=Pages->count();
 		for (int i = 0; i < docPageCount; ++i)
@@ -6326,42 +6314,60 @@ void ScribusDoc::reformPages(bool moveObjects)
 				page->setHeight(page->initialHeight());
 				page->setXOffset(currentXPos);
 				page->setYOffset(currentYPos);
-				if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
+// I couldent solve first page position with reight binding so I use this temperory conditions until I can do better
+				if(pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns == 2)
 				{
-					currentXPos -= page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
-					lastYPos = qMax(lastYPos, page->height());
-					if (counter == 0)
+					if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
 					{
-						page->Margins.setLeft(page->initialMargins.left());
-						page->Margins.setRight(page->initialMargins.right());
+						currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
+						if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
+							currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+						else
+							currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
+						page->Margins.setRight(page->initialMargins.left());
+						page->Margins.setLeft(page->initialMargins.right());
+
 					}
 					else
 					{
-						page->Margins.setLeft(page->initialMargins.right());
+						currentXPos -= (page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal);
+						lastYPos = qMax(lastYPos, page->height());
+						lastYPos = 0;
+
+						page->Margins.setLeft(page->initialMargins.left());
 						page->Margins.setRight(page->initialMargins.right());
+
+
 					}
 				}
 				else
 				{
-					currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
-
-					if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
+					if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
 					{
+						currentXPos -= page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
+						lastYPos = qMax(lastYPos, page->height());
 						if (counter == 0)
 						{
-							currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+							page->Margins.setLeft(page->initialMargins.right());
+							page->Margins.setRight(page->initialMargins.left());
 						}
-						if (counter == 1)
+						else
 						{
-							currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+							page->Margins.setLeft(page->initialMargins.left());
+							page->Margins.setRight(page->initialMargins.left());
 						}
 					}
-
 					else
-						currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
-					lastYPos = 0;
-					page->Margins.setRight(page->initialMargins.left());
-					page->Margins.setLeft(page->initialMargins.right());
+					{
+						currentXPos = m_docPrefsData.displayPrefs.scratch.left();
+						if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
+							currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
+						else
+							currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
+						lastYPos = 0;
+						page->Margins.setRight(page->initialMargins.right());
+						page->Margins.setLeft(page->initialMargins.left());
+					}
 				}
 				counter++;
 				if (counter > pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
@@ -16897,12 +16903,12 @@ bool ScribusDoc::updateLocalNums(StoryText& itemText)
 				m_counters.replace(level, count);
 				//m_nums.insert(level, num);
 				QString result;
-				result.append(style.numPrefix());
 				for (int i=0; i <= level; ++i)
 				{
+					result.append(m_nums.at(i).prefix);
 					result.append(getStringFromNum(m_nums.at(i).numFormat, m_counters.at(i)));
-					result.append(".");
-				}
+					result.append(m_nums.at(i).suffix);
+}
 				result.append(style.numSuffix());
 				if (mark->getString() != result)
 				{

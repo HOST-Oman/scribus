@@ -176,12 +176,22 @@ void PageLayouts::selectItem(uint nr)
 	disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	if (nr > 0)
 	{
-		firstPage->setEnabled(true);
-		firstPage->clear();
-		QStringList::Iterator pNames;
-		for(pNames = pageSets[nr].pageNames.begin(); pNames != pageSets[nr].pageNames.end(); ++pNames )
+		if (binding->currentIndex() == 1 && pageSets[nr].Columns > 2)
 		{
-			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), binding->currentIndex()));
+			firstPage->clear();
+			firstPage->addItem("Right Page");
+			firstPage->setEnabled(false);
+		}
+		else
+		{
+
+			firstPage->setEnabled(true);
+			firstPage->clear();
+			QStringList::Iterator pNames;
+			for(pNames = pageSets[nr].pageNames.begin(); pNames != pageSets[nr].pageNames.end(); ++pNames )
+			{
+				firstPage->addItem(CommonStrings::translatePageSetLocString(*pNames));
+			}
 		}
 	}
 	else
@@ -209,12 +219,21 @@ void PageLayouts::itemSelectedPost(int chosen)
 	disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	if (chosen > 0)
 	{
-		firstPage->setEnabled(true);
-		firstPage->clear();
-		QStringList::Iterator pNames;
-		for(pNames = pageSets[chosen].pageNames.begin(); pNames != pageSets[chosen].pageNames.end(); ++pNames )
+		if (binding->currentIndex() == 1 && pageSets[chosen].Columns > 2)
 		{
-			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), binding->currentIndex()));
+			firstPage->clear();
+			firstPage->addItem("Right Page");
+			firstPage->setEnabled(false);
+		}
+		else
+		{
+			firstPage->setEnabled(true);
+			firstPage->clear();
+			QStringList::Iterator pNames;
+			for(pNames = pageSets[chosen].pageNames.begin(); pNames != pageSets[chosen].pageNames.end(); ++pNames )
+			{
+				firstPage->addItem(CommonStrings::translatePageSetLocString(*pNames));
+			}
 		}
 	}
 	else
@@ -309,9 +328,18 @@ void PageLayouts::languageChange()
 		int currFirstPageIndex=firstPage->currentIndex();
 		firstPage->clear();
 		if (currIndex>=0 && currIndex<pageSets.count())
-			for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
+			if (binding->currentIndex() == 1 && pageSets[currIndex].Columns > 2)
 			{
-				firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), binding->currentIndex()));
+				firstPage->addItem("Right Page");
+				firstPage->setEnabled(false);
+			}
+			else
+			{
+				firstPage->setEnabled(true);
+				for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
+				{
+					firstPage->addItem(CommonStrings::translatePageSetLocString(*pNames));
+				}
 			}
 		firstPage->setCurrentIndex(currFirstPageIndex);
 		connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));

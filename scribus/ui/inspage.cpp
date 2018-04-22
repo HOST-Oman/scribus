@@ -209,7 +209,7 @@ InsPage::InsPage( QWidget* parent, ScribusDoc* currentDoc, int currentPage, int 
 					setCurrentComboItem(pageData, CommonStrings::trMasterPageNormalRight);
 			}
 			QString transLabel = currentDoc->pageSets()[currentDoc->pagePositioning()].pageNames[mp];
-			QLabel* pageLabel = new QLabel(CommonStrings::translatePageSetLocString(transLabel, currentDoc->pageBinding()), masterPageGroup);
+			QLabel* pageLabel = new QLabel(CommonStrings::translatePageSetLocString(transLabel), masterPageGroup);
 			pageLabel->setBuddy(pageData);
 			masterPageLayout->addWidget(pageLabel, row, 0 );
 			masterPageLayout->addWidget(pageData, row, 1);

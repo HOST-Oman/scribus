@@ -217,34 +217,18 @@ const QString& CommonStrings::translatePageSetString(const QString &untrString)
 	return untrString;
 }
 
-const QString& CommonStrings::translatePageSetLocString(const QString &untrString, int biding)
+const QString& CommonStrings::translatePageSetLocString(const QString &untrString)
 {
-//	if (biding == 0)
-//	{
-		if (untrString==pageLocLeft)
-			return trPageLocLeft;
-		if (untrString==pageLocMiddle)
-			return trPageLocMiddle;
-		if (untrString==pageLocMiddleLeft)
-			return trPageLocMiddleLeft;
-		if (untrString==pageLocMiddleRight)
-			return trPageLocMiddleRight;
-		if (untrString==pageLocRight)
-			return trPageLocRight;
-//	}
-//	else
-//	{
-//		if (untrString==pageLocLeft)
-//			return trPageLocRight;
-//		if (untrString==pageLocMiddle)
-//			return trPageLocMiddle;
-//		if (untrString==pageLocMiddleLeft)
-//			return trPageLocMiddleRight;
-//		if (untrString==pageLocMiddleRight)
-//			return trPageLocMiddleLeft;
-//		if (untrString==pageLocRight)
-//			return trPageLocLeft;
-//	}
+	if (untrString==pageLocLeft)
+		return trPageLocLeft;
+	if (untrString==pageLocMiddle)
+		return trPageLocMiddle;
+	if (untrString==pageLocMiddleLeft)
+		return trPageLocMiddleLeft;
+	if (untrString==pageLocMiddleRight)
+		return trPageLocMiddleRight;
+	if (untrString==pageLocRight)
+		return trPageLocRight;
 	return untrString;
 }
 

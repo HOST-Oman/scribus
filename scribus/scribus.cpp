@@ -2140,7 +2140,7 @@ void ScribusMainWindow::startUpDialog()
 			}
 			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance,
 					  numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage,
-					  orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset(), bind);
+					  orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset());
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
 			HaveNewDoc();
@@ -2226,8 +2226,7 @@ bool ScribusMainWindow::slotFileNew()
 			pagesize = ps2.name();
 		}
 		if (doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages,
-					  dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset(),
-					  bind))
+					  dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset()))
 		{
 			doc->setBinding(bind);
 			doc->setPageSetFirstPage(facingPages, firstPage);
@@ -2255,7 +2254,7 @@ ScribusDoc *ScribusMainWindow::newDoc(double width, double height, double topMar
 	return doFileNew(width, height, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, columnCount, autoTextFrames, pageArrangement, unitIndex, firstPageLocation, orientation, firstPageNumber, defaultPageSize, requiresGUI, pageCount, showView, marginPreset);
 }
 
-ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, const QString& defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset, int binding)
+ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, const QString& defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset)
 {
 	if (HaveDoc)
 		outlinePalette->buildReopenVals();
@@ -2264,8 +2263,6 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 	DocPagesSetup pagesSetup(pageArrangement, firstPageLocation, firstPageNumber, orientation, autoTextFrames, columnDistance, columnCount);
 	QString newDocName( tr("Document")+"-"+QString::number(m_DocNr));
 	ScribusDoc *tempDoc = new ScribusDoc();
-	tempDoc->setBinding(binding);
-	tempDoc->setPageSetFirstPage(pageArrangement,firstPageLocation);
 	if (requiresGUI)
 		doc=tempDoc;
 	tempDoc->setLoading(true);
@@ -5497,7 +5494,7 @@ void ScribusMainWindow::duplicateToMasterPage()
 		QList<PageSet> pageSet(doc->pageSets());
 		for(QStringList::Iterator pNames = pageSet[doc->pagePositioning()].pageNames.begin(); pNames != pageSet[doc->pagePositioning()].pageNames.end(); ++pNames )
 		{
-			locationEntries << CommonStrings::translatePageSetLocString(*pNames, doc->pageBinding());
+			locationEntries << CommonStrings::translatePageSetLocString(*pNames);
 		}
 		pageLocationIndex=doc->columnOfPage(doc->currentPageNumber());
 		pageLocationCount=locationEntries.count();
