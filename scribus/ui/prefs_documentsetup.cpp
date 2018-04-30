@@ -60,6 +60,7 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 
 	pageWidthSpinBox->setMaximum(16777215);
 	pageHeightSpinBox->setMaximum(16777215);
+	bind->setCurrentIndex(PrefsManager::instance()->appPrefs.docSetupPrefs.binding);
 	languageChange();
 
 	connect(pageSizeComboBox, SIGNAL(activated(const QString &)), this, SLOT(setPageSize()));
@@ -250,18 +251,18 @@ void Prefs_DocumentSetup::setupPageSets()
 	layoutFirstPageIsComboBox->clear();
 	if (currIndex>0 && currIndex<pageSets.count())
 	{
-		layoutFirstPageIsComboBox->setEnabled(true);
-		if ( bind->currentIndex() == 0){
-			for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
-				layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
-			layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
+		if(bind->currentIndex() == 1 && pageSets[currIndex].Columns > 2)
+		{
+			layoutFirstPageIsComboBox->clear();
+			layoutFirstPageIsComboBox->addItem("Right Page");
+			layoutFirstPageIsComboBox->setEnabled(false);
 		}
 		else
 		{
-			layoutFirstPageIsComboBox->addItem("Right Page");
-			layoutFirstPageIsComboBox->addItem("Left Page");
-
-			layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
+		layoutFirstPageIsComboBox->setEnabled(true);
+		for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
+			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
+		layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
 		}
 	}
 	else

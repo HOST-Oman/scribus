@@ -99,7 +99,7 @@ PagePropertiesDialog::PagePropertiesDialog( QWidget* parent, ScribusDoc* doc ) :
 		for(pNames = pageSet[doc->pagePositioning()].pageNames.begin(); pNames != pageSet[doc->pagePositioning()].pageNames.end(); ++pNames )
 		{
 			//Links->insertItem((*pNames));
-			Links->addItem(CommonStrings::translatePageSetLocString((*pNames)));
+			Links->addItem(CommonStrings::translatePageSetLocString(*pNames));
 		}
 		Links->setEditable(false);
 		dsGroupBox7Layout->addWidget( Links, 4, 2, 1, 2 );

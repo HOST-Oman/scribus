@@ -80,8 +80,8 @@ PageLayouts::PageLayouts(QWidget* parent)  : QGroupBox( parent )
 
 	layoutLable2 = new QLabel( this );
 	layoutGroupLayout->addWidget( layoutLable2 );
-	bind = new ScComboBox( this );
-	layoutGroupLayout->addWidget( bind );
+	binding = new ScComboBox( this );
+	layoutGroupLayout->addWidget( binding );
 
 	layoutLabel1 = new QLabel( this );
 	layoutGroupLayout->addWidget( layoutLabel1 );
@@ -92,7 +92,7 @@ PageLayouts::PageLayouts(QWidget* parent)  : QGroupBox( parent )
 
 	connect(layoutsCombo, SIGNAL(activated(int)), this, SLOT(itemSelected(int)));
 	connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
-	connect(bind, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
+	connect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
 }
 
 PageLayouts::PageLayouts(QWidget* parent, QList<PageSet> pSets, bool mode)  : QGroupBox( parent )
@@ -114,8 +114,8 @@ PageLayouts::PageLayouts(QWidget* parent, QList<PageSet> pSets, bool mode)  : QG
 	}
 	layoutLable2 = new QLabel( this );
 	layoutGroupLayout->addWidget( layoutLable2 );
-	bind = new ScComboBox( this );
-	layoutGroupLayout->addWidget( bind );
+	binding = new ScComboBox( this );
+	layoutGroupLayout->addWidget( binding );
 	layoutLabel1 = new QLabel( this );
 	layoutGroupLayout->addWidget( layoutLabel1 );
 	firstPage = new ScComboBox( this );
@@ -128,6 +128,7 @@ PageLayouts::PageLayouts(QWidget* parent, QList<PageSet> pSets, bool mode)  : QG
 	else
 		connect(layoutsCombo, SIGNAL(activated(int)), this, SLOT(itemSelected(int)));
 	connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
+	connect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
 }
 
 void PageLayouts::updateLayoutSelector(QList<PageSet> pSets)
@@ -159,6 +160,13 @@ void PageLayouts::selectFirstP(int nr)
 	connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 }
 
+void PageLayouts::selectPagebind(int x)
+{
+	disconnect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
+	binding->setCurrentIndex(x);
+	connect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
+}
+
 void PageLayouts::selectItem(uint nr)
 {
 	if (modus)
@@ -168,12 +176,22 @@ void PageLayouts::selectItem(uint nr)
 	disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	if (nr > 0)
 	{
-		firstPage->setEnabled(true);
-		firstPage->clear();
-		QStringList::Iterator pNames;
-		for(pNames = pageSets[nr].pageNames.begin(); pNames != pageSets[nr].pageNames.end(); ++pNames )
+		if (binding->currentIndex() == 1 && pageSets[nr].Columns > 2)
 		{
-			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), bind->currentIndex()));
+			firstPage->clear();
+			firstPage->addItem("Right Page");
+			firstPage->setEnabled(false);
+		}
+		else
+		{
+
+			firstPage->setEnabled(true);
+			firstPage->clear();
+			QStringList::Iterator pNames;
+			for(pNames = pageSets[nr].pageNames.begin(); pNames != pageSets[nr].pageNames.end(); ++pNames )
+			{
+				firstPage->addItem(CommonStrings::translatePageSetLocString(*pNames));
+			}
 		}
 	}
 	else
@@ -201,12 +219,21 @@ void PageLayouts::itemSelectedPost(int chosen)
 	disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	if (chosen > 0)
 	{
-		firstPage->setEnabled(true);
-		firstPage->clear();
-		QStringList::Iterator pNames;
-		for(pNames = pageSets[chosen].pageNames.begin(); pNames != pageSets[chosen].pageNames.end(); ++pNames )
+		if (binding->currentIndex() == 1 && pageSets[chosen].Columns > 2)
 		{
-			firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), bind->currentIndex()));
+			firstPage->clear();
+			firstPage->addItem("Right Page");
+			firstPage->setEnabled(false);
+		}
+		else
+		{
+			firstPage->setEnabled(true);
+			firstPage->clear();
+			QStringList::Iterator pNames;
+			for(pNames = pageSets[chosen].pageNames.begin(); pNames != pageSets[chosen].pageNames.end(); ++pNames )
+			{
+				firstPage->addItem(CommonStrings::translatePageSetLocString(*pNames));
+			}
 		}
 	}
 	else
@@ -291,21 +318,32 @@ void PageLayouts::languageChange()
 		}
 		layoutsCombo->setCurrentIndex(currIndex);
 		connect(layoutsCombo, SIGNAL(activated(int)), this, SLOT(itemSelected(int)));
-
+		disconnect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
+		layoutLable2->setText( tr( "Binding Direction: " ));
+		binding->addItem(tr("Left To Right"));
+		binding->addItem(tr("Right To Left"));
+		binding->setCurrentIndex(binding->currentIndex());
+		connect(binding, SIGNAL(activated(int)), this, SIGNAL(selectBinding(int)));
 		disconnect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 		int currFirstPageIndex=firstPage->currentIndex();
 		firstPage->clear();
 		if (currIndex>=0 && currIndex<pageSets.count())
-			for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
+			if (binding->currentIndex() == 1 && pageSets[currIndex].Columns > 2)
 			{
-				firstPage->addItem(CommonStrings::translatePageSetLocString((*pNames), bind->currentIndex()));
+				firstPage->addItem("Right Page");
+				firstPage->setEnabled(false);
+			}
+			else
+			{
+				firstPage->setEnabled(true);
+				for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
+				{
+					firstPage->addItem(CommonStrings::translatePageSetLocString(*pNames));
+				}
 			}
 		firstPage->setCurrentIndex(currFirstPageIndex);
 		connect(firstPage, SIGNAL(activated(int)), this, SIGNAL(selectedFirstPage(int)));
 	}
-	layoutLable2->setText( tr( "Binding Direction: " ));
-	bind->addItem(tr("Left To Right"));
-	bind->addItem(tr("Right To Left"));
 	layoutLabel1->setText( tr( "First Page is:" ) );
 
 	QString layoutText( tr( "Number of pages to show side-by-side on the canvas. Often used for allowing items to be placed across page spreads." ) );

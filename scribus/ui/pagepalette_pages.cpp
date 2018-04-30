@@ -70,7 +70,7 @@ PagePalette_Pages::PagePalette_Pages(QWidget* parent) : QWidget(parent)
 	connect(masterPageList, SIGNAL(thumbnailChanged()), this, SLOT(rebuildMasters()));
 	connect(masterPageList, SIGNAL(DelMaster(QString)), this, SLOT(deleteMasterPage(QString)));
 
-	connect(pageLayout, SIGNAL(selectBinding(int))     , this, SLOT(handleBinging(int)));
+	connect(pageLayout, SIGNAL(selectBinding(int))     , this, SLOT(handleBinding(int)));
 	connect(pageLayout, SIGNAL(selectedLayout(int ))   , this, SLOT(handlePageLayout(int )));
 	connect(pageLayout, SIGNAL(selectedFirstPage(int )), this, SLOT(handleFirstPage(int )));
 	connect(pageView  , SIGNAL(Click(int, int, int))   , this, SLOT(pageView_gotoPage(int, int, int)));
@@ -165,8 +165,9 @@ void PagePalette_Pages::enablePalette(const bool enabled)
 	pageLayout->setEnabled(enabled);
 }
 
-void PagePalette_Pages::handleBinging(int bind)
+void PagePalette_Pages::handleBinding(int bind)
 {
+	pageLayout->selectPagebind(currView->Doc->pageBinding());
 	currView->Doc->setBinding(bind);
 	currView->reformPages();
 	currView->DrawNew();
@@ -225,6 +226,7 @@ void PagePalette_Pages::rebuildPages()
 	QString str;
 	disconnect(pageLayout, SIGNAL(selectedLayout(int )), this, SLOT(handlePageLayout(int )));
 	disconnect(pageLayout, SIGNAL(selectedFirstPage(int )), this, SLOT(handleFirstPage(int )));
+	disconnect(pageLayout, SIGNAL(selectBinding(int)), this, SLOT(handleBinding(int)));
 	pageView->clearContents();
 	pageView->setRowCount(1);
 	pageView->setColumnCount(1);
@@ -232,11 +234,13 @@ void PagePalette_Pages::rebuildPages()
 	{
 		connect(pageLayout, SIGNAL(selectedLayout(int )), this, SLOT(handlePageLayout(int )));
 		connect(pageLayout, SIGNAL(selectedFirstPage(int )), this, SLOT(handleFirstPage(int )));
+		connect(pageLayout, SIGNAL(selectBinding(int)), this, SLOT(handleBinding(int)));
 		return;
 	}
 	pageLayout->updateLayoutSelector(currView->Doc->pageSets());
 	pageLayout->selectItem(currView->Doc->pagePositioning());
 	pageLayout->firstPage->setCurrentIndex(currView->Doc->pageSets()[currView->Doc->pagePositioning()].FirstPage);
+	pageLayout->binding->setCurrentIndex(currView->Doc->pageBinding());
 	pageView->MaxC = currView->Doc->DocPages.count()-1;
 	int counter = currView->Doc->pageSets()[currView->Doc->pagePositioning()].FirstPage;
 	int cols = currView->Doc->pageSets()[currView->Doc->pagePositioning()].Columns;
@@ -318,6 +322,7 @@ void PagePalette_Pages::rebuildPages()
 		markPage(currView->Doc->currentPageNumber());
 	connect(pageLayout, SIGNAL(selectedLayout(int )), this, SLOT(handlePageLayout(int )));
 	connect(pageLayout, SIGNAL(selectedFirstPage(int )), this, SLOT(handleFirstPage(int )));
+	connect(pageLayout, SIGNAL(selectBinding(int)), this, SLOT(handleBinding(int)));
 }
 
 void PagePalette_Pages::Rebuild()

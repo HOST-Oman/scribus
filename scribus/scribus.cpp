@@ -2116,8 +2116,8 @@ void ScribusMainWindow::startUpDialog()
 		if (dia->tabSelected() == NewDoc::NewDocumentTab)
 		{
 			int facingPages = dia->choosenLayout();
-			int firstPage = dia->firstPage->currentIndex();
 			int bind = dia->bind->currentIndex();
+			int firstPage = dia->firstPage->currentIndex();
 			docSet = dia->startDocSetup->isChecked();
 			double topMargin = dia->marginGroup->top();
 			double bottomMargin = dia->marginGroup->bottom();
@@ -2138,7 +2138,9 @@ void ScribusMainWindow::startUpDialog()
 				PageSize ps2(dia->pageSizeComboBox->currentText());
 				pagesize = ps2.name();
 			}
-			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset());
+			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance,
+					  numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage,
+					  orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset());
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
 			HaveNewDoc();
@@ -2223,8 +2225,10 @@ bool ScribusMainWindow::slotFileNew()
 			PageSize ps2(dia->pageSizeComboBox->currentText());
 			pagesize = ps2.name();
 		}
-		if (doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset()))
+		if (doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages,
+					  dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->getMarginPreset()))
 		{
+			doc->setBinding(bind);
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
 			m_mainWindowStatusLabel->setText( tr("Ready"));
