@@ -264,7 +264,6 @@ void Prefs_DocumentSetup::setupPageSets()
 			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
 		layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
 		}
-
 	}
 	else
 	{

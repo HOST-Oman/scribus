@@ -16908,8 +16908,8 @@ bool ScribusDoc::updateLocalNums(StoryText& itemText)
 					result.append(m_nums.at(i).prefix);
 					result.append(getStringFromNum(m_nums.at(i).numFormat, m_counters.at(i)));
 					result.append(m_nums.at(i).suffix);
-}
-				result.append(style.numSuffix());
+				}
+
 				if (mark->getString() != result)
 				{
 					mark->setString(result);
