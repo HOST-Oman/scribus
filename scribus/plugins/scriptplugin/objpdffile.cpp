@@ -15,8 +15,8 @@ for which a new license (GPL+exception) is in place.
 #include "ui/bookmarkpalette.h"
 
 #include <QFileInfo>
+#include <QImage>
 #include <QList>
-#include <QPixmap>
 #include <vector>
 
 // these functions are located at utils.cpp
@@ -1480,14 +1480,17 @@ static PyObject *PDFfile_save(PDFfile *self)
 			pdfOptions.UseProfiles2 = false;
 		}
 	}
-	QMap<int,QPixmap> thumbs;
+
+	QMap<int, QImage> thumbs;
+	PageToPixmapFlags pixmapFlags = Pixmap_DontReloadImages | Pixmap_DrawWhiteBackground;
 	for (uint ap = 0; ap < pageNs.size(); ++ap)
 	{
-		QPixmap pm(10,10);
+		QImage thumb(10, 10, QImage::Format_ARGB32_Premultiplied );
 		if (pdfOptions.Thumbnails)
-			pm = QPixmap::fromImage(ScCore->primaryMainWindow()->view->PageToPixmap(pageNs[ap]-1, 100));
-		thumbs.insert(pageNs[ap], pm);
+			thumb = ScCore->primaryMainWindow()->view->PageToPixmap(pageNs[ap]-1, 100, pixmapFlags);
+		thumbs.insert(pageNs[ap], thumb);
 	}
+
 	ReOrderText(ScCore->primaryMainWindow()->doc, ScCore->primaryMainWindow()->view);
 
 	MarginStruct optBleeds(pdfOptions.bleeds);

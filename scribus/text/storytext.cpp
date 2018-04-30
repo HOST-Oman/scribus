@@ -57,11 +57,6 @@ StoryText::StoryText(ScribusDoc * doc_) : m_doc(doc_)
 	
 	m_shapedTextCache = new ShapedTextCache();
 	
-//	m_firstFrameItem = 0;
-//	m_lastFrameItem = -1;
-//	m_magicX = 0.0;
-//	m_lastMagicPos = -1;
-	
 	d->len = 0;
 	invalidateAll();
 }
@@ -73,10 +68,6 @@ StoryText::StoryText() : m_doc(NULL)
 	m_selFirst = 0;
 	m_selLast = -1;
 	m_shapedTextCache = NULL;
-//	m_firstFrameItem = 0;
-//	m_lastFrameItem = -1;
-//	m_magicX = 0.0;
-//	m_lastMagicPos = -1;
 }
 
 StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.m_doc)
@@ -93,10 +84,6 @@ StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.
 	m_selFirst = 0;
 	m_selLast = -1;
 	m_shapedTextCache = NULL;
-//	m_firstFrameItem = 0;
-//	m_lastFrameItem = -1;
-//	m_magicX = 0.0;
-//	m_lastMagicPos = -1;
 
 	invalidateLayout();
 }
@@ -171,9 +158,6 @@ StoryText& StoryText::operator= (const StoryText & other)
 	
 	m_selFirst = 0;
 	m_selLast = -1;
-	
-//	m_firstFrameItem = 0;
-//	m_lastFrameItem = -1;
 
 	invalidateLayout();
 	return *this;
@@ -261,13 +245,16 @@ void StoryText::moveCursorWordLeft()
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
 		pos = it->following(pos);
-		if (pos < length() && text(pos).isSpace())
-			pos += 1;
+		if (pos != BreakIterator::DONE)
+		{
+			while (pos < length() && text(pos).isSpace())
+				pos += 1;
+		}
 	}
 	else
 	{
 		pos = cursorPosition();
-		if (pos > 0 && text(pos - 1).isSpace())
+		while (pos > 0 && text(pos - 1).isSpace())
 			pos -= 1;
 		pos = it->preceding(pos);
 	}
@@ -287,15 +274,18 @@ void StoryText::moveCursorWordRight()
 	if (paragraphStyle().direction() == ParagraphStyle::RTL)
 	{
 		pos = cursorPosition();
-		if (pos > 0 && text(pos - 1).isSpace())
+		while (pos > 0 && text(pos - 1).isSpace())
 			pos -= 1;
 		pos = it->preceding(pos);
 	}
 	else
 	{
 		pos = it->following(pos);
-		if (pos < length() && text(pos).isSpace())
-			pos += 1;
+		if (pos != BreakIterator::DONE)
+		{
+			while (pos < length() && text(pos).isSpace())
+				pos += 1;
+		}
 	}
 
 	if (pos != BreakIterator::DONE)
@@ -306,9 +296,6 @@ void StoryText::clear()
 {
 	m_selFirst = 0;
 	m_selLast = -1;
-
-//	m_firstFrameItem = 0;
-//	m_lastFrameItem = -1;
 	
 	d->defaultStyle.erase();
 	d->trailingStyle.erase();

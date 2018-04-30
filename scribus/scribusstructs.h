@@ -312,7 +312,7 @@ struct AlignObjs
 	double y2;
 	double width;
 	double height;
-	QList<PageItem*> Objects;
+	PageItem* Object;
 };
 
 /*! \brief Human readable orientations */
@@ -330,7 +330,8 @@ enum PageToPixmapFlag {
 	Pixmap_NoFlags = 0,
 	Pixmap_DrawFrame = 1 << 0,
 	Pixmap_DrawBackground = 1 << 1,
-	Pixmap_DontReloadImages = 1 << 2,
+	Pixmap_DrawWhiteBackground = 1 << 2,
+	Pixmap_DontReloadImages = 1 << 3,
 };
 
 Q_DECLARE_FLAGS(PageToPixmapFlags, PageToPixmapFlag);

@@ -325,6 +325,7 @@
     <ClInclude Include="..\..\..\scribus\imagedataloaders\scimgdataloader_ora.h" />
     <moc Include="..\..\..\scribus\selectionrubberband.h" />
     <ClInclude Include="..\..\..\scribus\nodeeditcontext.h" />
+    <ClInclude Include="..\..\..\scribus\pageitemiterator.h" />
     <ClInclude Include="..\..\..\scribus\palettes\cxfcolor.h" />
     <ClInclude Include="..\..\..\scribus\palettes\cxfcolorspecification.h" />
     <ClInclude Include="..\..\..\scribus\palettes\cxfdocument.h" />
@@ -603,6 +604,7 @@
     <moc Include="..\..\..\scribus\ui\fontembeddingmodel.h" />
     <moc Include="..\..\..\scribus\ui\pdfversioncombo.h" />
     <moc Include="..\..\..\scribus\ui\pdfversionmodel.h" />
+    <moc Include="..\..\..\scribus\ui\cxfimportdialog.h" />
     <ClInclude Include="..\..\..\scribus\ui\propertywidgetbase.h" />
     <moc Include="..\..\..\scribus\pslib.h" />
     <moc Include="..\..\..\scribus\ui\query.h" />
@@ -860,6 +862,7 @@
     <ClCompile Include="..\..\..\scribus\imagedataloaders\scimgdataloader_kra.cpp" />
     <ClCompile Include="..\..\..\scribus\marks.cpp" />
     <ClCompile Include="..\..\..\scribus\nodeeditcontext.cpp" />
+    <ClCompile Include="..\..\..\scribus\pageitemiterator.cpp" />
     <ClCompile Include="..\..\..\scribus\palettes\cxfcolor.cpp" />
     <ClCompile Include="..\..\..\scribus\palettes\cxfcolorspecification.cpp" />
     <ClCompile Include="..\..\..\scribus\palettes\cxfdocument.cpp" />
@@ -980,6 +983,7 @@
     <ClCompile Include="..\..\..\scribus\ui\cupsoptions.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\curvewidget.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\customfdialog.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\cxfimportdialog.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\dasheditor.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\dcolor.cpp" />
     <ClCompile Include="..\..\..\scribus\deferredtask.cpp" />
@@ -1534,6 +1538,7 @@
     <uic Include="..\..\..\scribus\ui\colorsandfillsbase.ui" />
     <uic Include="..\..\..\scribus\ui\copypagetomasterpage.ui" />
     <uic Include="..\..\..\scribus\ui\createrange.ui" />
+    <uic Include="..\..\..\scribus\ui\cxfimportdialogbase.ui" />
     <uic Include="..\..\..\scribus\ui\downloadspalettebase.ui" />
     <uic Include="..\..\..\scribus\ui\gradientaddedit.ui" />
     <uic Include="..\..\..\scribus\ui\gradienteditor.ui" />
