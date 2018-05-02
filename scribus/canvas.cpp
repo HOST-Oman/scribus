@@ -1467,7 +1467,7 @@ void Canvas::DrawPageItems(ScPainter *painter, ScLayer& layer, QRect clip, bool 
 	//then we must be sure that text frames are valid and all notes frames are created before we start drawing
 	if (!notesFramesPass && !m_doc->notesList().isEmpty())
 	{
-		for (QList<PageItem*>::iterator it = m_doc->Items->begin(); it != m_doc->Items->end(); ++it)
+		for (auto it = m_doc->Items->begin(); it != m_doc->Items->end(); ++it)
 		{
 			PageItem* currItem = *it;
 			if ( !currItem->isTextFrame()
@@ -2596,7 +2596,8 @@ void Canvas::setupEditHRuler(PageItem * item, bool forceAndReset)
 			+ item->currentStyle().rightMargin()	* 9.0
 			+ (item->imageFlippedH() ? 32.32 : 13.13);
 	
-	foreach(const ParagraphStyle::TabRecord& tabrec, item->currentStyle().tabValues())
+	const ParagraphStyle& currParaStyle = item->currentStyle();
+	for (const ParagraphStyle::TabRecord& tabrec : currParaStyle.tabValues())
 	{
 		controlHash += tabrec.tabPosition;
 	}

@@ -148,7 +148,8 @@ public:
 			return;
 			
 		double current_x = 0.0;
-		foreach (const GlyphLayout& gl, gc.glyphs()) {
+		for (const GlyphLayout& gl : gc.glyphs())
+		{
 			PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
 			QByteArray StrokeColor;
 			QByteArray FillColor;
@@ -250,7 +251,8 @@ public:
 			return;
 
 		double current_x = 0.0;
-		foreach (const GlyphLayout& gl, gc.glyphs()) {
+		for (const GlyphLayout& gl : gc.glyphs())
+		{
 			PdfFont pdfFont = m_pdf->UsedFontsP[font().replacementName()];
 			QByteArray StrokeColor;
 			QByteArray FillColor;
@@ -1386,18 +1388,18 @@ static QByteArray sanitizeFontName(QString fn)
 	return Pdf::toPdfDocEncoding(fn.replace( QRegExp("[\\s\\/\\{\\[\\]\\}\\<\\>\\(\\)\\%]"), "_" ));
 }
 
-static QList<Pdf::Resource> asColorSpace(QList<PdfICCD> iccCSlist)
+static QList<Pdf::Resource> asColorSpace(const QList<PdfICCD>& iccCSlist)
 {
 	QList<Pdf::Resource> result;
-	foreach (const Pdf::Resource& r, iccCSlist)
+	for (const Pdf::Resource& r : iccCSlist)
 		result.append(r);
 	return result;
 }
 
-static QList<Pdf::Resource> asColorSpace(QList<PdfSpotC> spotMapValues)
+static QList<Pdf::Resource> asColorSpace(const QList<PdfSpotC>& spotMapValues)
 {
 	QList<Pdf::Resource> result;
-	foreach (const Pdf::Resource& r, spotMapValues)
+	for (const Pdf::Resource& r : spotMapValues)
 		result.append(r);
 	return result;
 }
@@ -5393,7 +5395,7 @@ QByteArray PDFLibCore::paintBorder(const TableBorder& border, const QPointF& sta
 	tmp += "q\n";
 	QPointF lineStart, lineEnd;
 	QVector<double> DashValues;
-	foreach (const TableBorderLine& line, border.borderLines())
+	for (const TableBorderLine& line : border.borderLines())
 	{
 		if (line.color() == CommonStrings::None)
 			continue;
@@ -8627,8 +8629,7 @@ bool PDFLibCore::PDF_3DAnnotation(PageItem *ite, uint)
 	PageItem_OSGFrame *osgframe = ite->asOSGFrame();
 	QList<uint> viewList;
 	PdfId viewObj = 0;
-	QHash<QString, PageItem_OSGFrame::viewDefinition>::iterator itv;
-	for (itv = osgframe->viewMap.begin(); itv != osgframe->viewMap.end(); ++itv)
+	for (auto itv = osgframe->viewMap.begin(); itv != osgframe->viewMap.end(); ++itv)
 	{
 		PdfId viewObjL = writer.newObject();
 		viewList.append(viewObjL);
@@ -11489,7 +11490,7 @@ void PDFLibCore::PDF_Error(const QString& errorMsg)
 		qDebug("%s", errorMsg.toLocal8Bit().data());
 }
 
-void PDFLibCore::PDF_Error_WriteFailure(void)
+void PDFLibCore::PDF_Error_WriteFailure()
 {
 	PDF_Error( tr("A write error occurred, please check available disk space") );
 }
@@ -11509,7 +11510,7 @@ void PDFLibCore::PDF_Error_MaskLoadFailure(const QString& fileName)
 	PDF_Error( tr("Failed to load an image mask : %1").arg(fileName) );
 }
 
-void PDFLibCore::PDF_Error_InsufficientMemory(void)
+void PDFLibCore::PDF_Error_InsufficientMemory()
 {
 	PDF_Error( tr("Insufficient memory for processing an image"));
 }

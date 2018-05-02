@@ -7,19 +7,21 @@ for which a new license (GPL+exception) is in place.
 #ifndef SLAOUTPUT_H
 #define SLAOUTPUT_H
 
-#include <QString>
-#include <QTextStream>
-#include <QSizeF>
 #include <QBuffer>
 #include <QColor>
 #include <QBrush>
-#include <QPen>
-#include <QImage>
-#include <QList>
-#include <QTransform>
-#include <QStack>
 #include <QDebug>
+#include <QImage>
+#include <QPen>
+#include <QList>
+#include <QSizeF>
+#include <QStack>
+#include <QString>
+#include <QTextStream>
+#include <QTransform>
+
 #include "fpointarray.h"
+#include "importpdfconfig.h"
 #include "pageitem.h"
 #include "scribusdoc.h"
 #include "scribusview.h"
@@ -61,9 +63,9 @@ public:
 	// Destructor.
 	virtual ~LinkSubmitForm();
 	// Was the LinkImportData created successfully?
-	virtual GBool isOk() { return fileName != NULL; }
+	virtual GBool isOk() POPPLER_CONST { return fileName != NULL; }
 	// Accessors.
-	virtual LinkActionKind getKind() { return actionUnknown; }
+	virtual LinkActionKind getKind() POPPLER_CONST { return actionUnknown; }
 	GooString *getFileName() { return fileName; }
 	int getFlags() { return m_flags; }
 private:
@@ -83,9 +85,9 @@ public:
 	// Destructor.
 	virtual ~LinkImportData();
 	// Was the LinkImportData created successfully?
-	virtual GBool isOk() { return fileName != NULL; }
+	virtual GBool isOk() POPPLER_CONST { return fileName != NULL; }
 	// Accessors.
-	virtual LinkActionKind getKind() { return actionUnknown; }
+	virtual LinkActionKind getKind() POPPLER_CONST { return actionUnknown; }
 	GooString *getFileName() { return fileName; }
 private:
 	GooString *fileName;		// file name
@@ -98,7 +100,7 @@ class SplashOutFontFileID: public SplashFontFileID
 {
 public:
 
-	SplashOutFontFileID(Ref *rA) { r = *rA; }
+	SplashOutFontFileID(const Ref *rA) { r = *rA; }
 	~SplashOutFontFileID() {}
 	GBool matches(SplashFontFileID *id)
 	{
@@ -146,6 +148,7 @@ class SlaOutputDev : public OutputDev
 public:
 	SlaOutputDev(ScribusDoc* doc, QList<PageItem*> *Elements, QStringList *importedColors, int flags);
 	virtual ~SlaOutputDev();
+
 	LinkAction* SC_getAction(AnnotWidget *ano);
 	LinkAction* SC_getAdditionalAction(const char *key, AnnotWidget *ano);
 	static GBool annotations_callback(Annot *annota, void *user_data);
@@ -261,12 +264,12 @@ public:
 private:
 	void getPenState(GfxState *state);
 	QString getColor(GfxColorSpace *color_space, GfxColor *color, int *shade);
-	QString getAnnotationColor(AnnotColor *color);
+	QString getAnnotationColor(const AnnotColor *color);
 	QString convertPath(GfxPath *path);
 	int getBlendMode(GfxState *state);
 	void applyMask(PageItem *ite);
 	void pushGroup(QString maskName = "", GBool forSoftMask = gFalse, GBool alpha = gFalse, bool inverted = false);
-	QString UnicodeParsedString(GooString *s1);
+	QString UnicodeParsedString(POPPLER_CONST GooString *s1);
 	bool checkClip();
 	bool pathIsClosed;
 	QString CurrColorFill;

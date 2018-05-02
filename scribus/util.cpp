@@ -455,13 +455,13 @@ void ReOrderText(ScribusDoc *currentDoc, ScribusView *view)
 	QImage pgPix(10, 10, QImage::Format_ARGB32_Premultiplied);
 	QRect rd; // = QRect(0,0,9,9);
 	ScPainter *painter = new ScPainter(&pgPix, pgPix.width(), pgPix.height());
-	for (QList<PageItem*>::iterator it = currentDoc->MasterItems.begin(); it != currentDoc->MasterItems.end(); ++it)
+	for (auto it = currentDoc->MasterItems.begin(); it != currentDoc->MasterItems.end(); ++it)
 	{
 		PageItem* currItem = *it;
 		if (currItem->itemType() == PageItem::PathText)
 			currItem->DrawObj(painter, rd);
 	}
-	for (QList<PageItem*>::iterator it = currentDoc->Items->begin(); it != currentDoc->Items->end(); ++it)
+	for (auto it = currentDoc->Items->begin(); it != currentDoc->Items->end(); ++it)
 	{
 		PageItem* currItem = *it;
 		currItem->layout();
@@ -1144,7 +1144,7 @@ bool convertOldTable(ScribusDoc *m_Doc, PageItem* gItem, QList<PageItem*> &gpL, 
 		m_Doc->FrameItems.remove(ind);
 		m_Doc->FrameItems.insert(ind, currItem);
 	}
-	if (groupStackT != NULL)
+	if (groupStackT != nullptr)
 	{
 		if (groupStackT->count() > 0)
 		{
