@@ -337,7 +337,7 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 	m_doc->setPage(100, 100, 0, 0, 0, 0, 0, 0, false, false);
 	m_doc->addPage(0);
 	m_doc->setGUI(false, this, 0);
-	CurrStED = NULL;
+	CurrStED = nullptr;
 	QString scribusTitle(tr("Scribus") + " " + QString(VERSION));
 #if defined(HAVE_SVNVERSION) && defined(SVNVERSION)
 	if (QString(VERSION).contains("svn", Qt::CaseInsensitive))
@@ -536,8 +536,8 @@ void ScribusMainWindow::setStyleSheet()
 void ScribusMainWindow::initDefaultValues()
 {
 	HaveDoc = false;
-	view = NULL;
-	doc = NULL;
+	view = nullptr;
+	doc = nullptr;
 	m_DocNr = 1;
 	m_PrinterUsed = false;
 	PDef.Pname = "";
@@ -588,7 +588,7 @@ void ScribusMainWindow::initKeyboardShortcuts()
 {
 	for( QMap<QString, QPointer<ScrAction> >::Iterator it = scrActions.begin(); it!=scrActions.end(); ++it )
 	{
-		if ((ScrAction*)(it.value())!=NULL)
+		if ((ScrAction*)(it.value())!=nullptr)
 		{
 			QString accelerator = it.value()->shortcut().toString();
 			m_prefsManager->setKeyEntry(it.key(), it.value()->cleanMenuText(), accelerator,0);
@@ -1498,7 +1498,7 @@ void ScribusMainWindow::setTBvals(PageItem *currItem)
 		{
 			Mark* mark = item->itemText.mark(item->itemText.cursorPosition());
 			scrActions["editMark"]->setEnabled(true);
-			if ((mark->isType(MARKNoteMasterType) || mark->isType(MARKNoteFrameType)) && (mark->getNotePtr() != NULL))
+			if ((mark->isType(MARKNoteMasterType) || mark->isType(MARKNoteFrameType)) && (mark->getNotePtr() != nullptr))
 				nsEditor->setNotesStyle(mark->getNotePtr()->notesStyle());
 		}
 		else
@@ -1522,7 +1522,7 @@ void ScribusMainWindow::specialActionKeyEvent(int unicodevalue)
 			currItem = selItem->asTable()->activeCell().textFrame();
 		else
 			currItem = selItem->asTextFrame();
-		if (currItem!=NULL)
+		if (currItem!=nullptr)
 		{
 			if (unicodevalue!=-1)
 			{
@@ -1653,7 +1653,7 @@ QVariant ScribusMainWindow::inputMethodQuery ( Qt::InputMethodQuery query ) cons
 void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 {
 	QList<QMdiSubWindow *> windows;
-	QMdiSubWindow* w = NULL;
+	QMdiSubWindow* w = nullptr;
 	int kk = k->key();
 	if (HaveDoc)
 	{
@@ -1727,7 +1727,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 		doc->leaveDrag = false;
 		view->stopAllDrags();
 		doc->SubMode = -1;
-		doc->ElemToLink = NULL;
+		doc->ElemToLink = nullptr;
 		slotSelect();
 		if (doc->m_Selection->isEmpty())
 			HaveNewSel();
@@ -1742,7 +1742,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 		//Show our context menu
 		if (actionManager->compareKeySeqToShortcut(kk, buttonModifiers, "viewShowContextMenu"))
 		{
-			ContextMenu* cmen=NULL;
+			ContextMenu* cmen=nullptr;
 			if (doc->m_Selection->isEmpty())
 			{
 				//CB We should be able to get this calculated by the canvas.... it is already in m_canvas->globalToCanvas(m->globalPos());
@@ -1935,7 +1935,7 @@ void ScribusMainWindow::closeEvent(QCloseEvent *ce)
 	//Do not quit if Preferences or new doc window is open
 	PreferencesDialog *prefsDialog = findChild<PreferencesDialog *>(QString::fromLocal8Bit("PreferencesDialog"));
 	NewDoc *newDocWin = findChild<NewDoc *>(QString::fromLocal8Bit("NewDocumentWindow"));
-	if (prefsDialog!=NULL || newDocWin!=NULL)
+	if (prefsDialog!=nullptr || newDocWin!=nullptr)
 	{
 		ce->ignore();
 		return;
@@ -1981,7 +1981,7 @@ void ScribusMainWindow::closeEvent(QCloseEvent *ce)
 		{
 			currentTab.activeTab = bar->currentIndex();
 			QObject *obj = (QObject*)bar->tabData(ii).toULongLong();
-			if (obj != NULL)
+			if (obj != nullptr)
 				currentTab.palettes.append(obj->objectName());
 		}
 		if (!currentTab.palettes.isEmpty())
@@ -2330,7 +2330,7 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 		qwsp = mdiArea;
 	ScribusWin* w = new ScribusWin(qwsp, tempDoc);
 	w->setMainWindow(this);
-	if (requiresGUI && view!=NULL)
+	if (requiresGUI && view!=nullptr)
 	{
 		actionManager->disconnectNewViewActions();
 		disconnect(view, SIGNAL(signalGuideInformation(int, qreal)), alignDistributePalette, SLOT(setGuide(int, qreal)));
@@ -2379,7 +2379,7 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 			w->show();
 		tempView->show();
 		// Seems to fix crash on loading
-		ActWin = NULL;
+		ActWin = nullptr;
 		newActWin(w->getSubWin());
 	}
 	if (requiresGUI)
@@ -2505,13 +2505,13 @@ void ScribusMainWindow::extrasMenuAboutToShow()
 
 void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 {
-	if (w == NULL)
+	if (w == nullptr)
 	{
 		if (mdiArea->subWindowList().count() == 0)
-			ActWin = NULL;
+			ActWin = nullptr;
 		return;
 	}
-	if (w->widget() == NULL)
+	if (w->widget() == nullptr)
 		return;
 	ScribusWin* scw = dynamic_cast<ScribusWin *>(w->widget());
 	if (!scw)
@@ -2524,9 +2524,9 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 	if (scw == ActWin)
 		return;
 	ActWin = scw;
-	if (ActWin->doc() == NULL)
+	if (ActWin->doc() == nullptr)
 		return;
-	if (doc != NULL)
+	if (doc != nullptr)
 	{
 		if (doc->appMode == modeEditClip)
 			view->requestMode(submodeEndNodeEdit);
@@ -2534,7 +2534,7 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 			outlinePalette->buildReopenVals();
 	}
 	docCheckerPalette->clearErrorList();
-	if (HaveDoc && (doc != NULL) && doc->hasGUI())
+	if (HaveDoc && (doc != nullptr) && doc->hasGUI())
 	{
 		disconnect(m_undoManager, SIGNAL(undoRedoBegin()), doc, SLOT(undoRedoBegin()));
 		disconnect(m_undoManager, SIGNAL(undoRedoDone()) , doc, SLOT(undoRedoDone()));
@@ -2554,7 +2554,7 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 	}
 	doc = ActWin->doc();
 	m_undoManager->switchStack(doc->DocName);
-	if ((doc != NULL) && doc->hasGUI())
+	if ((doc != nullptr) && doc->hasGUI())
 	{
 		connect(m_undoManager, SIGNAL(undoRedoBegin()), doc, SLOT(undoRedoBegin()));
 		connect(m_undoManager, SIGNAL(undoRedoDone()) , doc, SLOT(undoRedoDone()));
@@ -2585,7 +2585,7 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 		connect(pageSelector, SIGNAL(GotoPage(int)), this, SLOT(setCurrentPage(int)));
 		pageSelector->setEnabled(true);
 	}
-	if (view!=NULL)
+	if (view!=nullptr)
 	{
 		actionManager->disconnectNewViewActions();
 		disconnect(view, SIGNAL(signalGuideInformation(int, qreal)), alignDistributePalette, SLOT(setGuide(int, qreal)));
@@ -2777,17 +2777,17 @@ void ScribusMainWindow::HaveNewDoc()
 
 void ScribusMainWindow::HaveNewSel()
 {
-	if (doc == NULL)
+	if (doc == nullptr)
 		return;
 	int SelectedType = -1;
-	PageItem *currItem = NULL;
+	PageItem *currItem = nullptr;
 	const int docSelectionCount = doc->m_Selection->count();
 	if (docSelectionCount > 0)
 	{
 		currItem = doc->m_Selection->itemAt(0);
 		SelectedType = currItem->itemType();
 	}
-	assert (docSelectionCount == 0 || currItem != NULL); // help coverity analysis
+	assert (docSelectionCount == 0 || currItem != nullptr); // help coverity analysis
 
 	setStatusBarTextSelectedItemInfo();
 
@@ -2802,7 +2802,7 @@ void ScribusMainWindow::HaveNewSel()
 	switch (SelectedType)
 	{
 	case -1: // None
-		outlinePalette->slotShowSelect(doc->currentPageNumber(), NULL);
+		outlinePalette->slotShowSelect(doc->currentPageNumber(), nullptr);
 		propertiesPalette->setGradientEditMode(false);
 		break;
 	case PageItem::TextFrame: //Text Frame
@@ -3478,7 +3478,7 @@ bool ScribusMainWindow::loadDoc(QString fileName)
 		outlinePalette->buildReopenVals();
 	bool ret = false;
 	QList<QMdiSubWindow *> windows = mdiArea->subWindowList();
-	ScribusWin* ActWinOld = NULL;
+	ScribusWin* ActWinOld = nullptr;
 	if (windows.count() != 0)
 	{
 		ActWinOld = ActWin;
@@ -3549,7 +3549,7 @@ bool ScribusMainWindow::loadDoc(QString fileName)
 		if (docFontDir3.exists())
 			m_prefsManager->appPrefs.fontPrefs.AvailFonts.AddScalableFonts(fi.absolutePath()+"/Document fonts", FName);
 		m_prefsManager->appPrefs.fontPrefs.AvailFonts.updateFontMap();
-		if (view != NULL)
+		if (view != nullptr)
 		{
 			actionManager->disconnectNewViewActions();
 			disconnect(view, SIGNAL(signalGuideInformation(int, qreal)), alignDistributePalette, SLOT(setGuide(int, qreal)));
@@ -3588,16 +3588,16 @@ bool ScribusMainWindow::loadDoc(QString fileName)
 			view->close();
 			delete fileLoader;
 			delete doc;
-			doc=NULL;
+			doc=nullptr;
 			mdiArea->removeSubWindow(w->getSubWin());
 			delete w;
-			view=NULL;
-			doc=NULL;
+			view=nullptr;
+			doc=nullptr;
 			setScriptRunning(false);
 			qApp->restoreOverrideCursor();
 			m_mainWindowStatusLabel->setText("");
 			mainWindowProgressBar->reset();
-			ActWin = NULL;
+			ActWin = nullptr;
 			if (windows.count() != 0)
 			{
 				newActWin(ActWinOld->getSubWin());
@@ -3808,7 +3808,7 @@ bool ScribusMainWindow::loadDoc(QString fileName)
 		for (auto iti = doc->Items->begin(); iti != doc->Items->end(); ++iti)
 		{
 			PageItem* ite = *iti;
-			if((ite->nextInChain() == NULL) && !ite->isNoteFrame())  //do not layout notes frames
+			if((ite->nextInChain() == nullptr) && !ite->isNoteFrame())  //do not layout notes frames
 				ite->layout();
 		}
 		if (!doc->marksList().isEmpty())
@@ -3821,7 +3821,7 @@ bool ScribusMainWindow::loadDoc(QString fileName)
 		{
 			PageItem *ite = itf.value();
 //			qDebug() << QString("load F: %1 %2 %3").arg(azz).arg((uint)ite).arg(ite->itemType());
-			if(ite->nextInChain() == NULL)
+			if(ite->nextInChain() == nullptr)
 				ite->layout();
 		}
 		/*qDebug("Time elapsed: %d ms", t.elapsed());*/
@@ -3848,7 +3848,7 @@ bool ScribusMainWindow::loadDoc(QString fileName)
 			w->show();
 		view->show();
 		// Seems to fix crash on loading
-		ActWin = NULL;
+		ActWin = nullptr;
 		newActWin(w->getSubWin());
 		doc->updateNumbers(true);
 		emit UpdateRequest(reqNumUpdate);
@@ -4332,7 +4332,7 @@ bool ScribusMainWindow::DoFileClose()
 	bookmarkPalette->BView->First = 1;
 	bookmarkPalette->BView->Last = 0;
 	outlinePalette->unsetDoc();
-	alignDistributePalette->setDoc(NULL);
+	alignDistributePalette->setDoc(nullptr);
 	//>>
 
 	if ((mdiArea->subWindowList().isEmpty()) || (mdiArea->subWindowList().count() == 1))
@@ -4356,9 +4356,9 @@ bool ScribusMainWindow::DoFileClose()
 		plugin->unsetDoc();
 	}
 	view->close();
-	//CB Yes, we are setting it to NULL without deleting it. ActWin(ScribusWin) owns the view
+	//CB Yes, we are setting it to nullptr without deleting it. ActWin(ScribusWin) owns the view
 	//due to it being the central widget and will delete it at the correct moment from its own pointer.
-	view = NULL;
+	view = nullptr;
 	doc->setLoading(true);
 	guidePalette->setDoc(0);
 	charPalette->setDoc(0);
@@ -4370,8 +4370,8 @@ bool ScribusMainWindow::DoFileClose()
 	docCheckerPalette->buildErrorList(0);
 	HaveDoc--;
 	delete doc;
-	doc = NULL;
-	ActWin = NULL;
+	doc = nullptr;
+	ActWin = nullptr;
 	if ( HaveDoc == 0 )
 	{
 		QString prefsDocDir( PrefsManager::instance()->documentDir() );
@@ -4526,7 +4526,7 @@ bool ScribusMainWindow::doPrint(PrintOptions &options, QString& error)
 	}
 	ScCore->fileWatcher->forceScan();
 	ScCore->fileWatcher->stop();
-	ScPrintEngine* prnEngine = NULL;
+	ScPrintEngine* prnEngine = nullptr;
 #if defined(_WIN32)
 	SHORT shiftState = GetKeyState( VK_SHIFT );
 	bool  forceGDI = ( shiftState & 0x8000 ) ? true : false;
@@ -4640,7 +4640,7 @@ void ScribusMainWindow::slotEditCut()
 		for (int i=0; i < doc->m_Selection->count(); ++i)
 		{
 			PageItem* frame = doc->m_Selection->itemAt(i);
-			if (frame->asTextFrame() && frame->prevInChain() == NULL)
+			if (frame->asTextFrame() && frame->prevInChain() == nullptr)
 				frame->clearContents();
 		}
 		doc->itemSelection_DeleteItem();
@@ -4745,7 +4745,7 @@ void ScribusMainWindow::slotEditPaste()
 			currItem = selItem->asTable()->activeCell().textFrame();
 		else
 			currItem = selItem->asTextFrame();
-		assert(currItem != NULL);
+		assert(currItem != nullptr);
 		if (currItem->HasSel)
 		{
 			//removing marks and notes from selected text
@@ -4881,7 +4881,7 @@ void ScribusMainWindow::slotEditPaste()
 			double x0 = (view->contentsX() / view->scale()) + ((view->visibleWidth() / 2.0) / view->scale());
 			double y0 = (view->contentsY() / view->scale()) + ((view->visibleHeight() / 2.0) / view->scale());
 			PageItem *retObj = getVectorFileFromData(doc, bitsBits, ext, x0, y0);
-			if (retObj != NULL)
+			if (retObj != nullptr)
 			{
 				double x = (view->contentsX() / view->scale()) + ((view->visibleWidth() / 2.0) / view->scale()) - (retObj->width() / 2.0);
 				double y = (view->contentsY() / view->scale()) + ((view->visibleHeight() / 2.0) / view->scale()) - (retObj->height() / 2.0);
@@ -5012,7 +5012,7 @@ void ScribusMainWindow::slotEditPaste()
 			double x0 = (view->contentsX() / view->scale()) + ((view->visibleWidth() / 2.0) / view->scale());
 			double y0 = (view->contentsY() / view->scale()) + ((view->visibleHeight() / 2.0) / view->scale());
 			PageItem *retObj = getVectorFileFromData(doc, bitsBits, ext, x0, y0);
-			if (retObj != NULL)
+			if (retObj != nullptr)
 			{
 				double x = (view->contentsX() / view->scale()) + ((view->visibleWidth() / 2.0) / view->scale()) - (retObj->width() / 2.0);
 				double y = (view->contentsY() / view->scale()) + ((view->visibleHeight() / 2.0) / view->scale()) - (retObj->height() / 2.0);
@@ -5171,7 +5171,7 @@ void ScribusMainWindow::deselectAll()
 			doc->view()->requestMode(modeNormal);
 		}
 	}
-	else if (view != NULL)
+	else if (view != nullptr)
 		view->Deselect(true);
 }
 
@@ -5183,7 +5183,7 @@ void ScribusMainWindow::ClipChange()
 	bool hasExternalData = ScMimeData::clipboardHasKnownData();
 	if (HaveDoc && !doc->m_Selection->isEmpty())
 	{
-		PageItem *currItem = NULL;
+		PageItem *currItem = nullptr;
 		currItem = doc->m_Selection->itemAt(0);
 		textFrameEditMode  = ((doc->appMode == modeEdit) && (currItem->asTextFrame()));
 		tableEditMode = ((doc->appMode == modeEditTable) && (currItem->asTable()));
@@ -5262,7 +5262,7 @@ void ScribusMainWindow::slotResourceManager()
 		resourceManager=new ResourceManager(this);
 		resourceManager->exec();
 		resourceManager->deleteLater();
-		resourceManager=NULL;
+		resourceManager=nullptr;
 	}
 }
 
@@ -5359,7 +5359,7 @@ void ScribusMainWindow::addNewPages(int wo, int where, int numPages, double heig
 		ss->set("WHERE", where);
 		ss->set("COUNT", numPages);
 		ss->set("MASTER_PAGE_MODE",  doc->masterPageMode());
-		if (basedOn != NULL)
+		if (basedOn != nullptr)
 			ss->set("BASED", basedOn->join("|"));
 		else
 		{
@@ -5383,7 +5383,7 @@ void ScribusMainWindow::addNewPages(int wo, int where, int numPages, double heig
 	m_undoManager->setUndoEnabled(false);
 
 	QStringList base;
-	if (basedOn != NULL)
+	if (basedOn != nullptr)
 	{
 		base = *basedOn;
 		// #10211 case when restoring page deletion, basedOn contains only masterpage name
@@ -5880,7 +5880,7 @@ void ScribusMainWindow::toggleRulerMode()
 	if (doc->m_Selection->count()==1)
 	{
 		PageItem* currItem=doc->m_Selection->itemAt(0);
-		if (currItem!=NULL)
+		if (currItem!=nullptr)
 			currItem->emitAllToGUI();
 	}
 	//TODO emit from selection, handle group widths
@@ -6161,7 +6161,7 @@ void ScribusMainWindow::deletePage(int from, int to)
 	assert( from <= to );
 	assert( to <= static_cast<int>(doc->Pages->count()) );
 	int oldPg = doc->currentPageNumber();
-	guidePalette->setDoc(NULL);
+	guidePalette->setDoc(nullptr);
 	if (UndoManager::undoEnabled())
 		activeTransaction = m_undoManager->beginTransaction(doc->DocName, Um::IDocument,
 														  (from - to == 0) ? Um::DeletePage : Um::DeletePages, "",
@@ -6849,7 +6849,7 @@ int ScribusMainWindow::ShowSubs()
 				for (int ii = 0; ii < bar->count(); ii++)
 				{
 					QObject *obj = (QObject*)bar->tabData(ii).toULongLong();
-					if (obj != NULL)
+					if (obj != nullptr)
 					{
 						if (obj->objectName() == container->objectName())
 						{
@@ -6882,7 +6882,7 @@ int ScribusMainWindow::ShowSubs()
 				for (int ii = 0; ii < bar->count(); ii++)
 				{
 					QObject *obj = (QObject*)bar->tabData(ii).toULongLong();
-					if (obj != NULL)
+					if (obj != nullptr)
 					{
 						if (obj->objectName() == container->objectName())
 						{
@@ -7038,7 +7038,7 @@ bool ScribusMainWindow::DoSaveAsEps(QString fn, QString& error)
 	options.markOffset = 0.0;
 	options.bleeds.set(0, 0, 0, 0);
 	PSLib *pslib = new PSLib(options, false, m_prefsManager->appPrefs.fontPrefs.AvailFonts, ReallyUsed, usedColors, false, true);
-	if (pslib != NULL)
+	if (pslib != nullptr)
 	{
 		qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 		if (pslib->PS_set_file(fn))
@@ -7366,8 +7366,8 @@ void ScribusMainWindow::RestoreBookMarks()
 	if (doc->BookMarks.count() == 0)
 		return;
 	BookMItem* ip;
-	BookMItem* ip2 = NULL;
-	BookMItem* ip3 = NULL;
+	BookMItem* ip2 = nullptr;
+	BookMItem* ip3 = nullptr;
 	BookMItem *ite = new BookMItem(bookmarkPalette->BView, &(*it2));
 	bookmarkPalette->BView->NrItems++;
 	++it2;
@@ -7427,7 +7427,7 @@ void ScribusMainWindow::updateLayerMenu()
 {
 	bool b = layerMenu->blockSignals(true);
 	layerMenu->clear();
-	if (doc==NULL)
+	if (doc==nullptr)
 	{
 		layerMenu->blockSignals(b);
 		return;
@@ -7646,7 +7646,7 @@ void ScribusMainWindow::editInlineStart(int id)
 	if (doc->m_Selection->count() == 1)
 		doc->currentEditedTextframe = doc->m_Selection->itemAt(0);
 	else
-		doc->currentEditedTextframe = NULL;
+		doc->currentEditedTextframe = nullptr;
 	view->Deselect(true);
 	m_storedPageNum = doc->currentPageNumber();
 	m_storedViewXCoor = view->contentsX();
@@ -7687,9 +7687,9 @@ void ScribusMainWindow::editInlineEnd()
 	doc->setCurrentPage(doc->DocPages.at(m_storedPageNum));
 	view->setContentsPos(static_cast<int>(m_storedViewXCoor * m_storedViewScale), static_cast<int>(m_storedViewYCoor * m_storedViewScale));
 	doc->invalidateAll();
-//	if (doc->currentEditedTextframe != NULL)
+//	if (doc->currentEditedTextframe != nullptr)
 //		doc->currentEditedTextframe->invalidateLayout();
-	doc->currentEditedTextframe = NULL;
+	doc->currentEditedTextframe = nullptr;
 	view->DrawNew();
 	pagePalette->Rebuild();
 	propertiesPalette->unsetItem();
@@ -8106,16 +8106,16 @@ QString ScribusMainWindow::CFileDialog(QString workingDirectory, QString dialogC
 		dia->setExtension(f.suffix());
 		dia->setZipExtension(f.suffix() + ".gz");
 		dia->setSelection(defaultFilename);
-		if (useCompression != NULL && dia->SaveZip != NULL)
+		if (useCompression != nullptr && dia->SaveZip != nullptr)
 			dia->SaveZip->setChecked(*useCompression);
 	}
 	if (optionFlags & fdDirectoriesOnly)
 	{
-		if (useCompression != NULL && dia->SaveZip != NULL)
+		if (useCompression != nullptr && dia->SaveZip != nullptr)
 			dia->SaveZip->setChecked(*useCompression);
-		if (useFonts != NULL)
+		if (useFonts != nullptr)
 			dia->WithFonts->setChecked(*useFonts);
-		if (useProfiles != NULL)
+		if (useProfiles != nullptr)
 			dia->WithProfiles->setChecked(*useProfiles);
 	}
 	QString retval("");
@@ -8133,11 +8133,11 @@ QString ScribusMainWindow::CFileDialog(QString workingDirectory, QString dialogC
 		}
 		else
 		{
-			if (useCompression != NULL && dia->SaveZip != NULL)
+			if (useCompression != nullptr && dia->SaveZip != nullptr)
 				*useCompression = dia->SaveZip->isChecked();
-			if (useFonts != NULL)
+			if (useFonts != nullptr)
 				*useFonts = dia->WithFonts->isChecked();
-			if (useProfiles != NULL)
+			if (useProfiles != nullptr)
 				*useProfiles = dia->WithProfiles->isChecked();
 		}
 		this->repaint();
@@ -8674,7 +8674,7 @@ void ScribusMainWindow::getImageInfo()
 		return;
 
 	PageItem *pageItem = doc->m_Selection->itemAt(0);
-	if (pageItem == NULL)
+	if (pageItem == nullptr)
 		return;
 	if (pageItem->itemType() == PageItem::ImageFrame)
 	{
@@ -8690,7 +8690,7 @@ void ScribusMainWindow::objectAttributes()
 		return;
 
 	PageItem *pageItem = doc->m_Selection->itemAt(0);
-	if (pageItem == NULL)
+	if (pageItem == nullptr)
 		return;
 	PageItemAttributes *pageItemAttrs = new PageItemAttributes( this );
 	pageItemAttrs->setup(pageItem->getObjectAttributes(), &doc->itemAttributes());
@@ -8743,16 +8743,16 @@ void ScribusMainWindow::languageChange()
 	LanguageManager::instance()->languageChange();
 	qApp->setLayoutDirection(QLocale(ScCore->getGuiLanguage()).textDirection());
 	//Update actions
-	if (actionManager!=NULL)
+	if (actionManager!=nullptr)
 	{
 		actionManager->languageChange();
 		ScCore->pluginManager->languageChange();
 		initKeyboardShortcuts();
 	}
 	//Update menu texts
-	if (scrMenuMgr!=NULL && !scrMenuMgr->empty())
+	if (scrMenuMgr!=nullptr && !scrMenuMgr->empty())
 		scrMenuMgr->languageChange();
-	if (m_undoManager!=NULL)
+	if (m_undoManager!=nullptr)
 		m_undoManager->languageChange();
 	statusBarLanguageChange();
 	viewToolBar->languageChange();
@@ -8933,8 +8933,8 @@ void ScribusMainWindow::dropEvent ( QDropEvent * e)
 
 void ScribusMainWindow::slotEditCopyContents()
 {
-	PageItem *currItem = NULL;
-	if (!HaveDoc || (currItem = doc->m_Selection->itemAt(0)) == NULL)
+	PageItem *currItem = nullptr;
+	if (!HaveDoc || (currItem = doc->m_Selection->itemAt(0)) == nullptr)
 		return;
 	if (currItem->itemType() != PageItem::ImageFrame)
 		return;
@@ -8962,8 +8962,8 @@ void ScribusMainWindow::slotEditPasteContents(int absolute)
 {
 	if (!HaveDoc || contentsBuffer.contentsFileName.isEmpty())
 		return;
-	PageItem *currItem = NULL;
-	if ((currItem = doc->m_Selection->itemAt(0)) == NULL)
+	PageItem *currItem = nullptr;
+	if ((currItem = doc->m_Selection->itemAt(0)) == nullptr)
 		return;
 	if (contentsBuffer.sourceType != PageItem::ImageFrame || currItem->itemType() != PageItem::ImageFrame)
 		return;
@@ -9439,11 +9439,11 @@ void ScribusMainWindow::manageColorsAndFills()
 				delete s_doc;
 			}
 			m_prefsManager->setColorSetName(dia->getColorSetName());
-			doc = NULL;
+			doc = nullptr;
 		}
 	}
 	if (!HaveDoc)
-		doc = NULL;
+		doc = nullptr;
 	delete dia;
 	m_undoManager->setUndoEnabled(true);
 }
@@ -9506,7 +9506,7 @@ void ScribusMainWindow::insertMark(MarkType mType)
 		//inserting mark replace some selected text
 		currItem->asTextFrame()->deleteSelectedTextFromFrame();
 	}
-	ScItemsState* is = NULL;
+	ScItemsState* is = nullptr;
 	if (insertMarkDialog(currItem->asTextFrame(), mType, is))
 	{
 		Mark* mrk = currItem->itemText.mark(currItem->itemText.cursorPosition() -1);
@@ -9522,7 +9522,7 @@ void ScribusMainWindow::insertMark(MarkType mType)
 			nsEditor->setNotesStyle(mrk->getNotePtr()->notesStyle());
 		}
 		doc->changed();
-		if (is != NULL)
+		if (is != nullptr)
 			is->set("label", mrk->label);
 		view->updatesOn(true);
 		view->DrawNew();
@@ -9601,7 +9601,7 @@ void ScribusMainWindow::slotInsertMarkNote()
 			label += " in " + currItem->firstInChain()->itemName();
 		else if (nStyle->range() == NSRframe)
 			label += " in frame" + currItem->itemName();
-		if (doc->getMark(label + "_1", MARKNoteMasterType) != NULL)
+		if (doc->getMark(label + "_1", MARKNoteMasterType) != nullptr)
 			getUniqueName(label,doc->marksLabelsList(MARKNoteMasterType), "_"); //FIX ME here user should be warned that inserted mark`s label was changed
 		else
 			label = label + "_1";
@@ -9646,7 +9646,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 		//avoid inserting in master pages other marks than Variable Text
 		return false;
 	
-	MarkInsert* insertMDialog = NULL;
+	MarkInsert* insertMDialog = nullptr;
 	switch (mrkType)
 	{
 	case MARKAnchorType:
@@ -9659,7 +9659,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 		insertMDialog = (MarkInsert*) new Mark2Item(this);
 		break;
 	case MARK2MarkType:
-		insertMDialog = (MarkInsert*) new Mark2Mark(doc->marksList(), NULL, this);
+		insertMDialog = (MarkInsert*) new Mark2Mark(doc->marksList(), nullptr, this);
 		break;
 	case MARKNoteMasterType:
 		insertMDialog = (MarkInsert*) new MarkNote(doc->m_docNotesStylesList, this);
@@ -9669,7 +9669,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 	default:
 		break;
 	}
-	if (insertMDialog == NULL)
+	if (insertMDialog == nullptr)
 	{
 		qDebug() << "Dialog not implemented for such marks type " << mrkType;
 		return false;
@@ -9679,13 +9679,13 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 	insertMDialog->setWindowTitle(tr("Insert new ") + insertMDialog->windowTitle());
 	if (insertMDialog->exec())
 	{
-		Mark* mrk = NULL;
+		Mark* mrk = nullptr;
 		Mark oldMark;
 		MarkData markdata;
-		if (currItem != NULL)
+		if (currItem != nullptr)
 			markdata.itemName = currItem->itemName();
 		QString label = "", text = "";
-		NotesStyle* NStyle = NULL;
+		NotesStyle* NStyle = nullptr;
 		bool insertExistedMark = false;
 		switch (mrkType)
 		{
@@ -9698,7 +9698,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 			break;
 		case MARKVariableTextType:
 			mrk = insertMDialog->values(label, text);
-			if ((mrk == NULL) && (text.isEmpty()))
+			if ((mrk == nullptr) && (text.isEmpty()))
 				return false; //FIX ME here user should be warned that inserting of mark fails and why
 			if (label.isEmpty())
 				label = tr("Mark with <%1> variable text").arg(text);
@@ -9706,7 +9706,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 			break;
 		case MARK2ItemType:
 			insertMDialog->values(label, markdata.itemPtr);
-			if (markdata.itemPtr == NULL)
+			if (markdata.itemPtr == nullptr)
 				return false; //FIX ME here user should be warned that inserting of mark fails and why
 			if (label.isEmpty())
 				label = tr("Mark to %1 item").arg(markdata.itemPtr->itemName());
@@ -9716,7 +9716,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 			//gets pointer to referenced mark
 			Mark* mrkPtr;
 			insertMDialog->values(label, mrkPtr);
-			if (mrkPtr == NULL)
+			if (mrkPtr == nullptr)
 				return false; //FIX ME here user should be warned that inserting of mark fails and why
 			if (label.isEmpty())
 				label = tr("Mark to %1 mark").arg(mrkPtr->label);
@@ -9727,7 +9727,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 		case MARKNoteMasterType:
 			//gets pointer to chosen notes style
 			NStyle = insertMDialog->values();
-			if (NStyle == NULL)
+			if (NStyle == nullptr)
 				return false;
 
 			markdata.notePtr = doc->newNote(NStyle);
@@ -9748,12 +9748,12 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 				return false;
 			break;
 		}
-		if (mrk == NULL)
+		if (mrk == nullptr)
 		{
 			//check if label for new mark can be used as is
 			if (mrkType == MARKNoteMasterType)
 			{
-				if (doc->getMark(label + "_1", mrkType) != NULL)
+				if (doc->getMark(label + "_1", mrkType) != nullptr)
 					getUniqueName(label,doc->marksLabelsList(mrkType), "_"); //FIX ME here user should be warned that inserted mark`s label was changed
 				else
 					label = label + "_1";
@@ -9840,7 +9840,7 @@ bool ScribusMainWindow::insertMarkDialog(PageItem_TextFrame* currItem, MarkType 
 
 bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 {
-	MarkInsert* editMDialog = NULL;
+	MarkInsert* editMDialog = nullptr;
 	switch (mrk->getType())
 	{
 		case MARKAnchorType:
@@ -9848,7 +9848,7 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 			editMDialog->setValues(mrk->label);
 			break;
 		case MARKVariableTextType:
-			if (currItem == NULL)
+			if (currItem == nullptr)
 				//invoked from Marks Manager
 				editMDialog = dynamic_cast<MarkInsert*>(new MarkVariableText(mrk, this));
 			else
@@ -9875,7 +9875,7 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 				//invoking editing note mark from master text
 				//so we go to edit note
 				TextNote* note = mrk->getNotePtr();
-				if (note == NULL)
+				if (note == nullptr)
 				{
 					qFatal("ScribusMainWindow::editMarkDlg - found note master mark with null pointer to note");
 					return false;
@@ -9889,7 +9889,7 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 				//invoking editing mark from note frame
 				//so we go to master text
 				TextNote* note = mrk->getNotePtr();
-				if (note == NULL)
+				if (note == nullptr)
 				{
 					qFatal("ScribusMainWindow::editMarkDlg - found note frame mark with null pointer to note");
 					return false;
@@ -9904,7 +9904,8 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 		default:
 			break;
 	}
-	if (editMDialog == NULL) return false;
+	if (editMDialog == nullptr)
+		return false;
 
 	bool docWasChanged = false;
 
@@ -9912,9 +9913,9 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 	if (editMDialog->exec())
 	{
 		Mark oldMark = *mrk;
-		Mark* Mrk = NULL;
+		Mark* Mrk = nullptr;
 		MarkData markdata;
-		if (currItem != NULL)
+		if (currItem != nullptr)
 			markdata.itemName = currItem->itemName();
 		QString label, text;
 		QString oldStr = mrk->getString();
@@ -9940,7 +9941,7 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 					return false; //FIX ME here user should be warned that editing of mark fails and why
 				if (label.isEmpty())
 					label = tr("Mark with <%1> variable text").arg(text);
-				if (Mrk != NULL)
+				if (Mrk != nullptr)
 				{
 					if (Mrk != mrk)
 					{
@@ -9974,7 +9975,7 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 				break;
 			case MARK2ItemType:
 				editMDialog->values(label, markdata.itemPtr);
-				if (markdata.itemPtr == NULL)
+				if (markdata.itemPtr == nullptr)
 					return false; //FIX ME here user should be warned that inserting of mark fails and why
 				if (label.isEmpty())
 					label = tr("Mark to %1 item").arg(markdata.itemPtr->itemName());
@@ -9993,9 +9994,9 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 			case MARK2MarkType:
 				{
 					//gets pointer to referenced mark
-					Mark* mrkPtr = NULL;
+					Mark* mrkPtr = nullptr;
 					editMDialog->values(label, mrkPtr);
-					if (mrkPtr == NULL)
+					if (mrkPtr == nullptr)
 						return false; //FIX ME here user should be warned that inserting of mark fails and why
 					if (label.isEmpty())
 						label = tr("Mark to %1 mark").arg(mrkPtr->label);
@@ -10023,13 +10024,13 @@ bool ScribusMainWindow::editMarkDlg(Mark *mrk, PageItem_TextFrame* currItem)
 		}
 		if (UndoManager::undoEnabled())
 		{
-			ScItemsState* is = NULL;
+			ScItemsState* is = nullptr;
 			if (newMark || replaceMark)
 				is = new ScItemsState(UndoManager::InsertMark);
 			else
 				is = new ScItemsState(UndoManager::EditMark);
 			is->set("ETEA", mrk->label);
-			if (currItem != NULL)
+			if (currItem != nullptr)
 			{
 				is->set("at", currItem->itemText.cursorPosition()-1);
 				if (currItem->isNoteFrame())

@@ -154,7 +154,7 @@ bool Scribus150Format::fileSupported(QIODevice* /* file */, const QString & file
 QIODevice* Scribus150Format::slaReader(const QString & fileName)
 {
 	if (!fileSupported(0, fileName))
-		return NULL;
+		return nullptr;
 
 	QIODevice* ioDevice = 0;
 	if (fileName.right(2) == "gz")
@@ -165,7 +165,7 @@ QIODevice* Scribus150Format::slaReader(const QString & fileName)
 		if (!compressor->open(QIODevice::ReadOnly))
 		{
 			delete compressor;
-			return NULL;
+			return nullptr;
 		}
 		ioDevice = compressor;
 	}
@@ -175,7 +175,7 @@ QIODevice* Scribus150Format::slaReader(const QString & fileName)
 		if (!ioDevice->open(QIODevice::ReadOnly))
 		{
 			delete ioDevice;
-			return NULL;
+			return nullptr;
 		}
 	}
 	return ioDevice;
@@ -446,7 +446,7 @@ bool Scribus150Format::loadElements(const QString & data, QString fileDir, int t
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem   = LinkID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -550,7 +550,7 @@ bool Scribus150Format::loadElements(const QString & data, QString fileDir, int t
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = WeldID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -634,7 +634,7 @@ bool Scribus150Format::loadElements(const QString & data, QString fileDir, int t
 		}
 		bool converted = false;
 		if (isTableIt)
-			converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, NULL);
+			converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, nullptr);
 		if (!converted)
 			gItem->groupItemList = gpL;
 	}
@@ -945,7 +945,7 @@ bool Scribus150Format::loadPalette(const QString & fileName)
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = LinkID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -1049,7 +1049,7 @@ bool Scribus150Format::loadPalette(const QString & fileName)
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = WeldID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -1157,7 +1157,7 @@ bool Scribus150Format::loadPalette(const QString & fileName)
 			}
 			bool converted = false;
 			if (isTableIt)
-				converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, NULL);
+				converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, nullptr);
 			if (!converted)
 				gItem->groupItemList = gpL;
 		}
@@ -1628,7 +1628,7 @@ bool Scribus150Format::loadFile(const QString & fileName, const FileFormat & /* 
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = LinkID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -1732,7 +1732,7 @@ bool Scribus150Format::loadFile(const QString & fileName, const FileFormat & /* 
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = WeldID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -1874,7 +1874,7 @@ bool Scribus150Format::loadFile(const QString & fileName, const FileFormat & /* 
 			}
 			bool converted = false;
 			if (isTableIt)
-				converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, NULL);
+				converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, nullptr);
 			if (!converted)
 				gItem->groupItemList = gpL;
 		}
@@ -2167,7 +2167,7 @@ void Scribus150Format::readGuideSettings(ScribusDoc* doc, ScXmlStreamAttributes&
 	doc->guidesPrefs().rulerMode    = attrs.valueAsBool("rulerMode", true);
 	doc->guidesPrefs().rulersShown  = attrs.valueAsBool("showrulers", true);
 	doc->guidesPrefs().showBleed    = attrs.valueAsBool("showBleed", true);
-	m_Doc->drawAsPreview		    = attrs.valueAsBool("previewMode", false);
+	m_Doc->drawAsPreview		    = false /*attrs.valueAsBool("previewMode", false)*/;
 	if (attrs.hasAttribute("MARGC"))
 		doc->guidesPrefs().marginColor  = QColor(attrs.valueAsString("MARGC"));
 	if (attrs.hasAttribute("MINORC"))
@@ -3134,7 +3134,7 @@ bool Scribus150Format::readMultiline(multiLine& ml, ScXmlStreamReader& reader)
 bool Scribus150Format::readBookMark(ScribusDoc::BookMa& bookmark, int& elem, ScXmlStreamAttributes& attrs)
 {
 	elem = attrs.valueAsInt("Element");
-	bookmark.PageObject = NULL;
+	bookmark.PageObject = nullptr;
 	bookmark.Title  = attrs.valueAsString("Title");
 	bookmark.Text   = attrs.valueAsString("Text");
 	bookmark.Aktion = attrs.valueAsString("Aktion");
@@ -3473,7 +3473,7 @@ bool Scribus150Format::readNotes(ScribusDoc* doc, ScXmlStreamReader& reader)
 		if (reader.isStartElement() && reader.name() == "Note")
 		{
 			ScXmlStreamAttributes attrs = reader.scAttributes();
-			TextNote* note = m_Doc->newNote(NULL);
+			TextNote* note = m_Doc->newNote(nullptr);
 			note->setSaxedText(attrs.valueAsString("Text"));
 			//temporaly insert names of master mark and notes style into maps with note pointer
 			//will be resolved to pointers by updateNames2Ptr() after all will read
@@ -3521,7 +3521,7 @@ bool Scribus150Format::readMarks(ScribusDoc* doc, ScXmlStreamReader& reader)
 					QString mark2Label = attrs.valueAsString("MARKlabel");
 					MarkType mark2Type = (MarkType) attrs.valueAsInt("MARKtype");
 					Mark* mark2 = doc->getMark(mark2Label, mark2Type);
-					if (mark2 != NULL) //mark is not defined yet, insert into temp list for update to pointers later
+					if (mark2 != nullptr) //mark is not defined yet, insert into temp list for update to pointers later
 						mark->setMark(mark2);
 					else
 					{
@@ -4088,7 +4088,7 @@ bool Scribus150Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, It
 			{
 				QString l = tAtt.valueAsString("label");
 				MarkType t = (MarkType) tAtt.valueAsInt("type");
-				Mark* mark = NULL;
+				Mark* mark = nullptr;
 				if (m_Doc->isLoading())
 				{
 					mark = m_Doc->getMark(l, t);
@@ -4101,7 +4101,7 @@ bool Scribus150Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, It
 					{
 						//create copy of mark
 						Mark* oldMark = m_Doc->getMark(l, t);
-						if (oldMark == NULL)
+						if (oldMark == nullptr)
 						{
 							qWarning() << "wrong copy of oldMark";
 							mark = m_Doc->newMark();
@@ -4124,7 +4124,7 @@ bool Scribus150Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, It
 						}
 					}
 				}
-				if (mark == NULL)
+				if (mark == nullptr)
 					qDebug() << "Undefinied mark label ["<< l << "] type " << t;
 				else
 				{
@@ -4139,7 +4139,7 @@ bool Scribus150Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, It
 		if (tName == "WeldEntry")
 		{
 			PageItem::WeldingInfo wInf;
-			wInf.weldItem = NULL;
+			wInf.weldItem = nullptr;
 			wInf.weldPoint = FPoint(tAtt.valueAsDouble("WX", 0.0), tAtt.valueAsDouble("WY", 0.0));
 			wInf.weldID = tAtt.valueAsInt("Target", 0);
 			newItem->weldList.append(wInf);
@@ -4357,7 +4357,7 @@ bool Scribus150Format::readPattern(ScribusDoc* doc, ScXmlStreamReader& reader, c
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = LinkID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -4397,7 +4397,7 @@ bool Scribus150Format::readPattern(ScribusDoc* doc, ScXmlStreamReader& reader, c
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = WeldID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -4584,7 +4584,7 @@ bool Scribus150Format::readStoryText(ScribusDoc *doc, ScXmlStreamReader& reader,
 		{
 			QString l = tAtt.valueAsString("label");
 			MarkType t = (MarkType) tAtt.valueAsInt("type");
-			Mark* mark = NULL;
+			Mark* mark = nullptr;
 			if (m_Doc->isLoading())
 			{
 				mark = m_Doc->getMark(l, t);
@@ -4597,7 +4597,7 @@ bool Scribus150Format::readStoryText(ScribusDoc *doc, ScXmlStreamReader& reader,
 				{
 					//create copy of mark
 					Mark* oldMark = m_Doc->getMark(l, t);
-					if (oldMark == NULL)
+					if (oldMark == nullptr)
 					{
 						qWarning() << "wrong copy of oldMark";
 						mark = m_Doc->newMark();
@@ -4620,7 +4620,7 @@ bool Scribus150Format::readStoryText(ScribusDoc *doc, ScXmlStreamReader& reader,
 					}
 				}
 			}
-			if (mark == NULL)
+			if (mark == nullptr)
 				qDebug() << "Undefinied mark label ["<< l << "] type " << t;
 			else
 			{
@@ -4809,7 +4809,7 @@ PageItem* Scribus150Format::pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& at
 	if (Pcolor2.isEmpty())
 		Pcolor2 = CommonStrings::None;
 	QColor tmpc;
-	PageItem *currItem=NULL;
+	PageItem *currItem=nullptr;
 	QString tmp, clPath;
 	switch (pt)
 	{
@@ -5976,7 +5976,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 	struct ScribusDoc::BookMa bok;
 	QMap<int, ScribusDoc::BookMa> bookmarks;
 
-	ScPage* newPage = NULL;
+	ScPage* newPage = nullptr;
 	
 	QMap<int,PageItem*> TableID;
 	QList<PageItem*> TableItems;
@@ -6128,7 +6128,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 		}
 		if (tagName == "STYLE")
 		{
-			getStyle(vg, reader, NULL, m_Doc, true);
+			getStyle(vg, reader, nullptr, m_Doc, true);
 		}
 		if (((tagName == "PAGE") || (tagName == "MASTERPAGE")) && (attrs.valueAsInt("NUM") == pageNumber))
 		{
@@ -6136,7 +6136,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 				continue;
 			a = m_Doc->currentPage()->pageNr();
 			newPage = m_Doc->Pages->at(a);
-			SimpleState *ss = NULL;
+			SimpleState *ss = nullptr;
 			if (UndoManager::undoEnabled())
 			{
 				ss = new SimpleState(Um::ChangePageAttrs, "", Um::ICreate);
@@ -6385,7 +6385,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = LinkID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -6443,7 +6443,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 				{
 					PageItem::WeldingInfo wInf = ta->weldList.at(i);
 					ta->weldList[i].weldItem = WeldID.value(wInf.weldID, 0);
-					if (ta->weldList[i].weldItem == NULL)
+					if (ta->weldList[i].weldItem == nullptr)
 						ta->weldList.removeAt(i--);
 				}
 			}
@@ -6551,7 +6551,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 			}
 			bool converted = false;
 			if (isTableIt)
-				converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, NULL);
+				converted = convertOldTable(m_Doc, gItem, gpL, &groupStackF, nullptr);
 			if (!converted)
 				gItem->groupItemList = gpL;
 		}
@@ -6870,7 +6870,7 @@ void Scribus150Format::updateNames2Ptr() //after document load - items pointers 
 			QString label2 = mark2map.begin().key();
 			MarkType type2 = mark2map.begin().value();
 			Mark* mark2 = m_Doc->getMark(label2, type2);
-			if (mark2 != NULL)
+			if (mark2 != nullptr)
 			{
 				mark->setMark(mark2);
 			}
@@ -6893,16 +6893,16 @@ void Scribus150Format::updateNames2Ptr() //after document load - items pointers 
 		{
 			NoteFrameData eF = notesFramesData.at(i);
 			NotesStyle* NS = m_Doc->getNotesStyle(eF.NSname);
-			if (NS != NULL)
+			if (NS != nullptr)
 			{
 				PageItem* item = LinkID.value(eF.myID);
-				if ((item != NULL) && item->isNoteFrame())
+				if ((item != nullptr) && item->isNoteFrame())
 				{
 					item->asNoteFrame()->setNS(NS);
 					if (NS->isEndNotes())
 					{
 						if (eF.NSrange == NSRdocument)
-							m_Doc->setEndNoteFrame(item->asNoteFrame(), (void*) NULL);
+							m_Doc->setEndNoteFrame(item->asNoteFrame(), (void*) nullptr);
 						else if (eF.NSrange == NSRpage)
 							m_Doc->setEndNoteFrame(item->asNoteFrame(), (void*) m_Doc->DocPages.at(eF.index));
 						else if (eF.NSrange == NSRsection)
@@ -6913,7 +6913,7 @@ void Scribus150Format::updateNames2Ptr() //after document load - items pointers 
 					else
 					{
 						PageItem* master = LinkID.value(eF.itemID);
-						if (master != NULL)
+						if (master != nullptr)
 						{
 							item->asNoteFrame()->setMaster(master);
 							master->asTextFrame()->setNoteFrame(item->asNoteFrame());
@@ -6945,10 +6945,10 @@ void Scribus150Format::updateNames2Ptr() //after document load - items pointers 
 		for (it = notesMasterMarks.begin(); it != end; ++it)
 		{
 			TextNote* note = it.value();
-			assert(note != NULL);
+			assert(note != nullptr);
 			QString mrkLabel = it.key();
 			Mark* mrk = m_Doc->getMark(mrkLabel, MARKNoteMasterType);
-			if (mrk == NULL)
+			if (mrk == nullptr)
 			{
 				qWarning() << "Scribus150Format::updateNames2Ptr() : cannot find master mark ("<<mrkLabel <<") for note - note will be deleted";
 				m_Doc->deleteNote(note);
@@ -6966,12 +6966,12 @@ void Scribus150Format::updateNames2Ptr() //after document load - items pointers 
 		for (auto it = notesNSets.begin(); it != end; ++it)
 		{
 			TextNote* note = it.key();
-			assert(note != NULL);
+			assert(note != nullptr);
 			QString nsLabel = it.value();
 			NotesStyle* ns = m_Doc->getNotesStyle(nsLabel);
-			if (ns != NULL)
+			if (ns != nullptr)
 				note->setNotesStyle(ns);
-			if (note->notesStyle() == NULL)
+			if (note->notesStyle() == nullptr)
 			{
 				qWarning() << "Scribus150Format::updateNames2Ptr()  : cannot find notes style ("<<nsLabel <<") for note - note will be deleted";
 				m_Doc->deleteNote(note);

@@ -202,7 +202,7 @@ public:
 
 
 
-ScribusDoc::ScribusDoc() : UndoObject( tr("Document")), Observable<ScribusDoc>(NULL),
+ScribusDoc::ScribusDoc() : UndoObject( tr("Document")), Observable<ScribusDoc>(nullptr),
 	m_hasGUI(false),
 	m_docFilePermissions(QFileDevice::ReadOwner|QFileDevice::WriteOwner),
 	m_appPrefsData(PrefsManager::instance()->appPrefs),
@@ -2183,7 +2183,7 @@ void ScribusDoc::restore(UndoState* state, bool isUndo)
 			{
 				if (is->get("MARK") == "new")
 				{
-					if (currItem == NULL)
+					if (currItem == nullptr)
 					{
 						qDebug() << "Wrong inItem in undo step for mark";
 						return;
@@ -2283,7 +2283,7 @@ void ScribusDoc::restore(UndoState* state, bool isUndo)
 				else if (is->get("MARK") == "delNonUnique")
 				{
 					//used if deleting non-unique marks by MarksManager
-					eraseMark(mrk, true, NULL, true);
+					eraseMark(mrk, true, nullptr, true);
 				}
 				else
 				{
@@ -2623,7 +2623,7 @@ ScPage* ScribusDoc::addPage(const int pageIndex, const QString& masterPageName, 
 {
 	assert(masterPageMode()==false);
 	ScPage* addedPage = new ScPage(m_docPrefsData.displayPrefs.scratch.left(), DocPages.count()*(m_docPrefsData.docSetupPrefs.pageHeight+m_docPrefsData.displayPrefs.scratch.bottom()+m_docPrefsData.displayPrefs.scratch.top())+m_docPrefsData.displayPrefs.scratch.top(), m_docPrefsData.docSetupPrefs.pageWidth, m_docPrefsData.docSetupPrefs.pageHeight);
-	assert(addedPage!=NULL);
+	assert(addedPage!=nullptr);
 	addedPage->setDocument(this);
 	addedPage->Margins.setTop(m_docPrefsData.docSetupPrefs.margins.top());
 	addedPage->Margins.setBottom(m_docPrefsData.docSetupPrefs.margins.bottom());
@@ -2633,7 +2633,7 @@ ScPage* ScribusDoc::addPage(const int pageIndex, const QString& masterPageName, 
 	addedPage->setOrientation(m_docPrefsData.docSetupPrefs.pageOrientation);
 	addedPage->marginPreset = m_docPrefsData.docSetupPrefs.marginPreset;
 	DocPages.insert(pageIndex, addedPage);
-	assert(DocPages.at(pageIndex)!=NULL);
+	assert(DocPages.at(pageIndex)!=nullptr);
 	setCurrentPage(addedPage);
 	if (!masterPageName.isEmpty())
 		applyMasterPage(masterPageName, pageIndex);
@@ -4505,106 +4505,36 @@ void ScribusDoc::checkItemForFonts(PageItem *it, QMap<QString, QMap<uint, FPoint
 	UsedGlyphsPainter p(Really);
 	it->textLayout.render(&p);
 
-	// Process page numbers and page count special characters
-	int start = it->isTextFrame() ? it->firstInFrame() : 0;
-	int stop  = it->isTextFrame() ? it->lastInFrame() + 1 : it->itemText.length();
-	for (int e = start; e < stop; ++e)
+	// Process page numbers and page count special characters on master pages
+	if (!it->OnMasterPage.isEmpty())
 	{
-		const ScFace& font = it->itemText.charStyle(e).font();
-		double fontSize = it->itemText.charStyle(e).fontSize();
-		QString fontName = font.replacementName();
-		if (!Really.contains(fontName) )
-		{
-			if (!fontName.isEmpty())
-				Really.insert(fontName, QMap<uint, FPointArray>());
-		}
-		uint chr = it->itemText.text(e).unicode();
-		if ((chr != SpecialChars::PAGENUMBER ) && (chr != SpecialChars::PAGECOUNT))
-			continue;
+		bool hasPageNumbers = false;
 
-		QStringList txtList;
-		QString pageNumberText; //Our page number collection string
-		if (chr == SpecialChars::PAGENUMBER)
+		int start = it->isTextFrame() ? it->firstInFrame() : 0;
+		int stop = it->isTextFrame() ? it->lastInFrame() + 1 : it->itemText.length();
+		for (int e = start; e < stop; ++e)
 		{
-			if (e > 0 && it->itemText.text(e-1) == SpecialChars::PAGENUMBER)
-				pageNumberText = SpecialChars::ZWNBSPACE;
-			else if (lc!=0) //If not on a master page just get the page number for the page and the text
+			uint chr = it->itemText.text(e).unicode();
+			if ((chr == SpecialChars::PAGENUMBER) || (chr == SpecialChars::PAGECOUNT))
 			{
-				pageNumberText = QString("%1").arg(getSectionPageNumberForPageIndex(it->OwnPage),
-								getSectionPageNumberWidthForPageIndex(it->OwnPage),
-								getSectionPageNumberFillCharForPageIndex(it->OwnPage));
-				txtList.append(pageNumberText);
-			}
-			else
-			{
-				//Else, for a page number in a text frame on a master page we must scan
-				//all pages to see which ones use this page and get their page numbers.
-				//We only add each character of the pages' page number text if its nothing
-				//already in the pageNumberText variable. No need to add glyphs twice.
-				QString newText;
-				uint docPageCount = DocPages.count();
-				for (uint a = 0; a < docPageCount; ++a)
-				{
-					if (DocPages.at(a)->MPageNam == it->OnMasterPage)
-					{
-						newText = QString("%1").arg(getSectionPageNumberForPageIndex(a),
-										getSectionPageNumberWidthForPageIndex(a),
-										getSectionPageNumberFillCharForPageIndex(a));
-						txtList.append(newText);
-					}
-				}
-			}
-		}
-		else //ch == SpecialChars::PAGECOUNT
-		{
-			if (lc != 0)
-			{
-				int key = getSectionKeyForPageIndex(it->OwnPage);
-				if (key == -1)
-					pageNumberText = "";
-				else
-					pageNumberText = QString("%1").arg(getStringFromSequence(m_docPrefsData.docSectionMap[key].type, m_docPrefsData.docSectionMap[key].toindex - m_docPrefsData.docSectionMap[key].fromindex + 1));
-				txtList.append(pageNumberText);
-			}
-			else
-			{
-				QString newText;
-				int docPageCount = DocPages.count();
-				for (int a = 0; a < docPageCount; ++a)
-				{
-					if (DocPages.at(a)->MPageNam == it->OnMasterPage)
-					{
-						int key = getSectionKeyForPageIndex(a);
-						if (key == -1)
-							newText = "";
-						else
-							newText = QString("%1").arg(getStringFromSequence(m_docPrefsData.docSectionMap[key].type, m_docPrefsData.docSectionMap[key].toindex - m_docPrefsData.docSectionMap[key].fromindex + 1));
-						txtList.append(newText);
-					}
-				}
+				hasPageNumbers = true;
+				break;
 			}
 		}
 
-		//Now scan and add any glyphs used in page numbers
-		for (int a = 0; a < txtList.count(); ++a)
+		if (hasPageNumbers)
 		{
-			CharStyle style(font, fontSize);
-			StoryText story;
-			story.insertChars(txtList[a]);
-			story.setCharStyle(0, txtList[a].count(), style);
-
-			TextShaper textShaper(story, 0);
-			const QList<GlyphCluster> glyphRuns = textShaper.shape(0, story.length()).glyphs();
-
-			for (const GlyphCluster &run : glyphRuns)
+			it->savedOwnPage = it->OwnPage;
+			int docPageCount = DocPages.count();
+			for (int i = 0; i < docPageCount; ++i)
 			{
-				for (const GlyphLayout &gl : run.glyphs())
-				{
-					FPointArray outline(font.glyphOutline(gl.glyph));
-					if (!fontName.isEmpty())
-						Really[fontName].insert(gl.glyph, outline);
-				}
+				it->OwnPage = i;
+				it->invalid = true;
+				it->layout();
+				it->textLayout.render(&p);
 			}
+			it->OwnPage = it->savedOwnPage;
+			it->invalid = true;
 		}
 	}
 
@@ -9359,7 +9289,7 @@ void ScribusDoc::itemSelection_EraseParagraphStyle(Selection* customSelection)
 		{
 			ParagraphStyle newStyle;
 			//for notes frames apply style from master frame
-			if (currItem->isNoteFrame() && (currItem->asNoteFrame()->masterFrame() != NULL))
+			if (currItem->isNoteFrame() && (currItem->asNoteFrame()->masterFrame() != nullptr))
 			{
 				newStyle.setParent(currItem->asNoteFrame()->masterFrame()->itemText.defaultStyle().parent());
 				newStyle.applyStyle(currItem->asNoteFrame()->masterFrame()->currentStyle());
@@ -9384,7 +9314,7 @@ void ScribusDoc::itemSelection_EraseParagraphStyle(Selection* customSelection)
 			currItem->updatePolyClip();
 		if (currItem->isNoteFrame())
 			currItem->asNoteFrame()->updateNotesText();
-		else if (currItem->isTextFrame() && currItem->asTextFrame()->hasNoteFrame(NULL, true))
+		else if (currItem->isTextFrame() && currItem->asTextFrame()->hasNoteFrame(nullptr, true))
 			setNotesChanged(true);
 	}
 	if (activeTransaction)
@@ -9542,7 +9472,7 @@ void ScribusDoc::itemSelection_ApplyParagraphStyle(const ParagraphStyle & newSty
 			currItem->updatePolyClip();
 		if (currItem->isNoteFrame())
 			currItem->asNoteFrame()->updateNotesText();
-		else if (currItem->isTextFrame() && currItem->asTextFrame()->hasNoteFrame(NULL, true))
+		else if (currItem->isTextFrame() && currItem->asTextFrame()->hasNoteFrame(nullptr, true))
 			setNotesChanged(true);
 		currItem->invalidateLayout();
 	}
@@ -14093,7 +14023,7 @@ void ScribusDoc::getClosestGuides(double xin, double yin, double *xout, double *
 {
 	*GxM = -1;
 	*GyM = -1;
-	ScPage* page = (refPage == NULL) ? currentPage() : refPage;
+	ScPage* page = (refPage == nullptr) ? currentPage() : refPage;
 	QMap<double, uint> tmpGuidesSel;
 	Guides tmpGuides = page->guides.horizontals(GuideManagerCore::Standard);
 	Guides::iterator it;
