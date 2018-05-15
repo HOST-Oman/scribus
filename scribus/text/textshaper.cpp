@@ -472,6 +472,10 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 			{
 				GlyphLayout gl;
 				gl.glyph = glyphs[i].codepoint;
+
+                if (gl.glyph == 0)
+                    m_missingFacesList.append(run);
+
 				if (gl.glyph == 0 ||
 				    (ch == SpecialChars::LINEBREAK || ch == SpecialChars::PARSEP ||
 				     ch == SpecialChars::FRAMEBREAK || ch == SpecialChars::COLBREAK))
@@ -640,6 +644,7 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 
 	m_textMap.clear();
 	m_text = "";
+    m_story.setMissingFaces(m_missingFacesList);
 	result.needsContext(m_contextNeeded);
 	return result;
 }

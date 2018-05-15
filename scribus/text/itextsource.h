@@ -51,6 +51,7 @@ public:
 	
 	virtual const ITextSource* parent() const { return nullptr; }
 	virtual int parentPos() const { return 0; }
+    virtual void setMissingFaces(QList<GlyphCluster> &missingFacesList) = 0;
 	
 	const ITextSource* original() const
     {

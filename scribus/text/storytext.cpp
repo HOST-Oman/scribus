@@ -2002,6 +2002,35 @@ void StoryText::invalidate(int firstItem, int endItem)
 		emit changed(firstItem, endItem);
 }
 
+void StoryText::setMissingFaces(QList<GlyphCluster> &missingFacesList)
+{
+    m_missingFacesList = missingFacesList;
+}
+
+QList<GlyphCluster> StoryText::missingFaces() const
+{
+    return m_missingFacesList;
+}
+
+void StoryText::setFallBackFont(const QString font)
+{
+    m_fallBackFont = font;
+}
+
+QString StoryText::fallBackFont() const
+{
+    return m_fallBackFont;
+}
+
+void StoryText::setFallBackFontSize(const double size)
+{
+    m_fallBackFontSize = size;
+}
+
+double StoryText::fallBackFontSize() const
+{
+    return m_fallBackFontSize;
+}
 
 // physical view
 

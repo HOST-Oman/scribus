@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>239</width>
-    <height>155</height>
+    <width>252</width>
+    <height>269</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -227,6 +227,27 @@
      </property>
     </widget>
    </item>
+   <item row="6" column="0" colspan="2">
+    <widget class="QLabel" name="fontFallBackLabel">
+     <property name="text">
+      <string>Font Fallback</string>
+     </property>
+    </widget>
+   </item>
+   <item row="7" column="0" colspan="3">
+    <widget class="FontCombo" name="fallBackFont" native="true">
+     <property name="toolTip">
+      <string>Set Fallback Font fot the Text Frame</string>
+     </property>
+    </widget>
+   </item>
+   <item row="8" column="0" colspan="3">
+    <widget class="ScrSpinBox" name="fontFallBackSize">
+     <property name="toolTip">
+      <string>Set Font Size for font Fallback</string>
+     </property>
+    </widget>
+   </item>
   </layout>
  </widget>
  <customwidgets>
@@ -234,6 +255,11 @@
    <class>ScrSpinBox</class>
    <extends>QDoubleSpinBox</extends>
    <header>ui/scrspinbox.h</header>
+  </customwidget>
+  <customwidget>
+   <class>FontCombo</class>
+   <extends>QWidget</extends>
+   <header>ui/fontcombo.h</header>
   </customwidget>
  </customwidgets>
  <resources/>

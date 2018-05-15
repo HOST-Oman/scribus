@@ -36,6 +36,7 @@ pageitem.cpp  -  description
 #include "marks.h"
 #include "text/frect.h"
 #include "text/specialchars.h"
+#include "text/glyphcluster.h"
 #include "sctextstruct.h"
 #include "style.h"
 #include "styles/charstyle.h"
@@ -268,6 +269,16 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
  	/// call this if the shape of the paragraph changes (redos layout)
  	void invalidateLayout();
 
+    // return all missing faces ( glyhp.id == 0)
+    QList<GlyphCluster> missingFaces() const;
+    void setMissingFaces(QList<GlyphCluster> &missingFacesList);
+    // return the fallback font for this story text
+    QString fallBackFont() const;
+    void setFallBackFont(const QString font);
+    // return the size of the size of the fallback font
+    void setFallBackFontSize(const double size);
+    double fallBackFontSize() const;
+
 public slots:
 	/// call this if some logical style changes (redos shaping and layout)
  	void invalidateAll();
@@ -309,6 +320,9 @@ private:
 // 	uint layouterVersion;
  	/// is true after layout() has been exercised
 // 	bool layouterValid;
+    QList<GlyphCluster> m_missingFacesList;
+    QString m_fallBackFont;
+    double m_fallBackFontSize = 0;
  };
 
 
