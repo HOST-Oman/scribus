@@ -165,6 +165,7 @@ PyObject *scribus_setcolorcmyk(PyObject* /* self */, PyObject* args)
 		}
 		(*colorList)[col].setCmykColor(c, m, y, k);
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -203,6 +204,7 @@ PyObject *scribus_setcolorcmykfloat(PyObject* /* self */, PyObject* args)
 		}
 		(*colorList)[col].setCmykColorF(c, m, y, k);
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -237,6 +239,7 @@ PyObject *scribus_setcolorrgb(PyObject* /* self */, PyObject* args)
 		}
 		(*colorList)[col].setRgbColor(r, g, b);
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -274,6 +277,7 @@ PyObject *scribus_setcolorrgbfloat(PyObject* /* self */, PyObject* args)
 		}
 		(*colorList)[col].setRgbColorF(r, g, b);
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -311,6 +315,7 @@ PyObject *scribus_setcolorlab(PyObject* /* self */, PyObject* args)
 		}
 		(*colorList)[col].setLabColor(L, a, b);
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -350,6 +355,7 @@ PyObject *scribus_newcolorcmyk(PyObject* /* self */, PyObject* args)
 			// silently changing colours in newColour?
 			(*colorList)[col].setCmykColor(c, m, y, k);
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -400,6 +406,7 @@ PyObject *scribus_newcolorcmykfloat(PyObject* /* self */, PyObject* args)
 			(*colorList)[col].setCmykColorF(c, m, y, k);
 		}
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -434,6 +441,7 @@ PyObject *scribus_newcolorrgb(PyObject* /* self */, PyObject* args)
 			// silently changing colours in newColour?
 			(*colorList)[col].setRgbColor(r, g, b);
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -483,6 +491,7 @@ PyObject *scribus_newcolorrgbfloat(PyObject* /* self */, PyObject* args)
 			(*colorList)[col].setRgbColorF(r, g, b);
 		}
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -532,6 +541,7 @@ PyObject *scribus_newcolorlab(PyObject* /* self */, PyObject* args)
 			(*colorList)[col].setLabColor(L, a, b);
 		}
 	}
+
 	Py_RETURN_NONE;
 }
 
@@ -550,9 +560,10 @@ PyObject *scribus_delcolor(PyObject* /* self */, PyObject* args)
 	QString rep = QString::fromUtf8(Repl);
 	if (ScCore->primaryMainWindow()->HaveDoc)
 	{
-		if (ScCore->primaryMainWindow()->doc->PageColors.contains(col) && (ScCore->primaryMainWindow()->doc->PageColors.contains(rep) || (rep == CommonStrings::None)))
+		ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+		if (currentDoc->PageColors.contains(col) && (currentDoc->PageColors.contains(rep) || (rep == CommonStrings::None)))
 		{
-			ScCore->primaryMainWindow()->doc->PageColors.remove(col);
+			currentDoc->PageColors.remove(col);
 			ReplaceColor(col, rep);
 		}
 		else
@@ -572,8 +583,7 @@ PyObject *scribus_delcolor(PyObject* /* self */, PyObject* args)
 			return nullptr;
 		}
 	}
-// 	Py_INCREF(Py_None);
-// 	return Py_None;
+
 	Py_RETURN_NONE;
 }
 
@@ -584,7 +594,7 @@ PyObject *scribus_replcolor(PyObject* /* self */, PyObject* args)
 	//FIXME: this should definitely use keyword arguments
 	if (!PyArg_ParseTuple(args, "es|es", "utf-8", &Name, "utf-8", &Repl))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	if (strcmp(Name, "") == 0)
 	{
@@ -600,8 +610,7 @@ PyObject *scribus_replcolor(PyObject* /* self */, PyObject* args)
 		PyErr_SetString(NotFoundError, QObject::tr("Color not found.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-// 	Py_INCREF(Py_None);
-// 	return Py_None;
+
 	Py_RETURN_NONE;
 }
 
@@ -611,7 +620,7 @@ PyObject *scribus_isspotcolor(PyObject * /*self*/, PyObject* args)
 	
 	if (!PyArg_ParseTuple(args, "es", "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	if (strcmp(Name, "") == 0)
 	{
@@ -620,14 +629,9 @@ PyObject *scribus_isspotcolor(PyObject * /*self*/, PyObject* args)
 	}
 	QString col = QString::fromUtf8(Name);
 	if (ScCore->primaryMainWindow()->doc->PageColors.contains(col))
-	{
 		return PyBool_FromLong(static_cast<long>(ScCore->primaryMainWindow()->doc->PageColors[col].isSpotColor()));
-	}
-	else
-	{
-		PyErr_SetString(NotFoundError, QObject::tr("Color not found.","python error").toLocal8Bit().constData());
-		return nullptr;
-	}
+	PyErr_SetString(NotFoundError, QObject::tr("Color not found.","python error").toLocal8Bit().constData());
+	return nullptr;
 // 	Py_RETURN_NONE;
 }
 
@@ -638,7 +642,7 @@ PyObject *scribus_setspotcolor(PyObject * /*self*/, PyObject* args)
 
 	if (!PyArg_ParseTuple(args, "esi", "utf-8", &Name, &enable))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	if (strcmp(Name, "") == 0)
 	{

@@ -104,7 +104,7 @@ void gtAction::setProgressInfoDone()
 	m_ScMW->mainWindowProgressBar->setMaximum(1);
 }
 
-void gtAction::setInfo(QString infoText)
+void gtAction::setInfo(const QString& infoText)
 {
 	m_ScMW->setStatusBarInfoText(infoText);
 }
@@ -123,10 +123,10 @@ void gtAction::writeUnstyled(const QString& text, bool isNote)
 		{
 			if (UndoManager::undoEnabled())
 				activeTransaction = m_undoManager->beginTransaction(Um::Selection, Um::IGroup, Um::ImportText, "", Um::IDelete);
-			if (m_it->nextInChain() != 0)
+			if (m_it->nextInChain() != nullptr)
 			{
 				PageItem *nextItem = m_it->nextInChain();
-				while (nextItem != 0)
+				while (nextItem != nullptr)
 				{
 					nextItem->itemText.selectAll();
 					nextItem->asTextFrame()->deleteSelectedTextFromFrame();
@@ -227,10 +227,10 @@ void gtAction::write(const QString& text, gtStyle *style, bool isNote)
 	{
 		if (!m_doAppend)
 		{
-			if (m_it->nextInChain() != 0)
+			if (m_it->nextInChain() != nullptr)
 			{
 				PageItem *nextItem = m_it->nextInChain();
-				while (nextItem != 0)
+				while (nextItem != nullptr)
 				{
 					nextItem->itemText.clear();
 					nextItem = nextItem->nextInChain();
@@ -356,8 +356,7 @@ void gtAction::write(const QString& text, gtStyle *style, bool isNote)
 			m_noteStory = nullptr;
 			return;
 		}
-		else
-			story->insertChars(pos, QString(ch));
+		story->insertChars(pos, QString(ch));
 		if (ch == SpecialChars::PARSEP) 
 		{
 			if (paraStyle.hasName())
@@ -743,7 +742,7 @@ ScFace gtAction::validateFont(gtFont* font)
 			{
 				if (!m_prefsManager->appPrefs.fontPrefs.GFontSub.contains(font->getName()))
 				{
-					MissingFont *dia = new MissingFont(0, useFont, m_textFrame->doc());
+					MissingFont *dia = new MissingFont(nullptr, useFont, m_textFrame->doc());
 					dia->exec();
 					useFont = dia->getReplacementFont();
 					m_prefsManager->appPrefs.fontPrefs.GFontSub[font->getName()] = useFont;

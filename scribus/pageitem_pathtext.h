@@ -35,7 +35,7 @@ class SCRIBUS_API PageItem_PathText : public PageItem
 	Q_OBJECT
 
 public:
-	PageItem_PathText(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_PathText(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	PageItem_PathText(const PageItem & p) : PageItem(p) {}
 	~PageItem_PathText() {};
 	
@@ -45,7 +45,7 @@ public:
 	virtual void layout();
 	virtual bool createInfoGroup(QFrame *, QGridLayout *);
 	virtual void applicableActions(QStringList& actionList);
-	virtual QString infoDescription();
+	virtual QString infoDescription() const;
 
 	virtual void getVisualBoundingRect(double *x1, double *y1, double *x2, double *y2) const;
 

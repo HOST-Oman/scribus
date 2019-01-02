@@ -98,7 +98,7 @@ void CanvasMode_FrameLinks::activate(bool fromGesture)
 				PageItem* item2 = m_doc->m_Selection->itemAt(i+1);
 				if ((item1 != nullptr && item1->asTextFrame()) &&
 					(item2 != nullptr && item2->asTextFrame()) &&
-				     item1->testLinkCandidate(item2))
+				     item1->canBeLinkedTo(item2))
 				{
 					item1->link(item2);
 				}
@@ -297,7 +297,7 @@ void CanvasMode_FrameLinks::mousePressEvent(QMouseEvent *m)
 			SeleItem(m);
 			if (GetItem(&currItem) && (currItem->asTextFrame()))
 			{
-				if (currItem->prevInChain() != 0)
+				if (currItem->prevInChain() != nullptr)
 				{
 					currItem->prevInChain()->unlink();
 				}
@@ -329,7 +329,7 @@ void CanvasMode_FrameLinks::mouseReleaseEvent(QMouseEvent *m)
 	if ((m_doc->appMode == modeLinkFrames) || (m_doc->appMode == modeUnlinkFrames))
 	{
 		m_view->updateContents();
-		if (!PrefsManager::instance()->appPrefs.uiPrefs.stickyTools || m_doc->ElemToLink == 0)
+		if (!PrefsManager::instance()->appPrefs.uiPrefs.stickyTools || m_doc->ElemToLink == nullptr)
 			m_view->requestMode(submodePaintingDone);
 		return;
 	}
@@ -513,7 +513,7 @@ void CanvasMode_FrameLinks::createContextMenu(PageItem* currItem, double mx, dou
 	m_view->setObjectUndoMode();
 	m_Mxp = mx;
 	m_Myp = my;
-	if(currItem!=nullptr)
+	if (currItem!=nullptr)
 	{
 		cmen = new ContextMenu(*(m_doc->m_Selection), m_ScMW, m_doc);
 		cmen->exec(QCursor::pos());

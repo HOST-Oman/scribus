@@ -11,14 +11,14 @@ for which a new license (GPL+exception) is in place.
 #include "scimgdataloader_ora.h"
 #include "util_formats.h"
 
-ScImgDataLoader_ORA::ScImgDataLoader_ORA(void) : ScImgDataLoader(),
+ScImgDataLoader_ORA::ScImgDataLoader_ORA() :
 	m_inSubLayer(0),
 	m_layerCount(0)
 {
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_ORA::initSupportedFormatList(void)
+void ScImgDataLoader_ORA::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	m_supportedFormats.append("ora");
@@ -63,7 +63,7 @@ bool ScImgDataLoader_ORA::loadPicture(const QString& fn, int /*page*/, int /*res
 					if (uz->read("stack.xml", f))
 					{
 						QDomDocument designMapDom;
-						if(designMapDom.setContent(f))
+						if (designMapDom.setContent(f))
 						{
 							QDomElement docElem = designMapDom.documentElement();
 							m_imageInfoRecord.exifInfo.height = docElem.attribute("h", "0").toInt();
@@ -91,7 +91,7 @@ bool ScImgDataLoader_ORA::loadPicture(const QString& fn, int /*page*/, int /*res
 			if (uz->read("stack.xml", f))
 			{
 				QDomDocument designMapDom;
-				if(designMapDom.setContent(f))
+				if (designMapDom.setContent(f))
 				{
 					m_inSubLayer = 0;
 					m_layerCount = 0;
@@ -110,7 +110,7 @@ bool ScImgDataLoader_ORA::loadPicture(const QString& fn, int /*page*/, int /*res
 					m_image.fill( qRgba(0, 0, 0, 0) );
 					ScPainter *painter = new ScPainter(&m_image, m_image.width(), m_image.height(), 1, 0);
 					painter->setZoomFactor(1);
-					for(QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
+					for (QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
 					{
 						if (drawPag.tagName() == "stack")
 						{
@@ -137,7 +137,7 @@ bool ScImgDataLoader_ORA::loadPicture(const QString& fn, int /*page*/, int /*res
 
 void ScImgDataLoader_ORA::parseStackXML(QDomElement &elem, ScPainter* painter, ScZipHandler *uz)
 {
-	for(QDomElement lay = elem.lastChildElement(); !lay.isNull(); lay = lay.previousSiblingElement())
+	for (QDomElement lay = elem.lastChildElement(); !lay.isNull(); lay = lay.previousSiblingElement())
 	{
 		if (lay.tagName() == "layer")
 		{
@@ -239,7 +239,7 @@ void ScImgDataLoader_ORA::parseStackXML(QDomElement &elem, ScPainter* painter, S
 	}
 }
 
-int ScImgDataLoader_ORA::blendModeToInt(QString compositeOp)
+int ScImgDataLoader_ORA::blendModeToInt(const QString& compositeOp)
 {
 	int ret = 0;
 	if (compositeOp == "svg:darken")
@@ -315,7 +315,7 @@ int ScImgDataLoader_ORA::blendModeToInt(QString compositeOp)
 	return ret;
 }
 
-QString ScImgDataLoader_ORA::blendModeToString(QString compositeOp)
+QString ScImgDataLoader_ORA::blendModeToString(const QString& compositeOp)
 {
 	QString ret = compositeOp;
 	if (compositeOp == "svg:darken")

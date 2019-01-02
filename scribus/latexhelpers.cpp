@@ -35,7 +35,7 @@ copyright            : Scribus Team
 LatexHighlighter::LatexHighlighter(QTextDocument *document)
 	: QSyntaxHighlighter(document)
 {
-	m_rules = 0;
+	m_rules = nullptr;
 }
 
 void LatexHighlighter::highlightBlock(const QString &text)
@@ -88,8 +88,7 @@ QString LatexConfigParser::absoluteFilename(QString fn)
 	QFileInfo fi(fn);
 	if (!fi.exists())
 		return configBase() + fn;
-	else
-		return fn;
+	return fn;
 }
 
 //TODO: Pass this information to LatexEditor, so the second parser can be removed
@@ -101,7 +100,7 @@ bool LatexConfigParser::parseConfigFile(QString fn)
 	QFile f(fn);
 	if (!f.open(QIODevice::ReadOnly))
 	{
-		ScMessageBox::critical(0, QObject::tr("Error"), "<qt>" + 
+		ScMessageBox::critical(nullptr, QObject::tr("Error"), "<qt>" +
 				QObject::tr("Opening the configfile %1 failed! %2").arg(
 						fn, f.errorString())
 				+ "</qt>");
@@ -127,9 +126,7 @@ bool LatexConfigParser::parseConfigFile(QString fn)
 	if (xml.hasError())
 		formatError(xml.errorString());
 	f.close();
-	if (!m_error.isEmpty())
-		return false;
-	return true;
+	return m_error.isEmpty();
 }
 
 void LatexConfigParser::parseElements()
@@ -166,7 +163,7 @@ void LatexConfigParser::parseElements()
 	}
 }
 
-void LatexConfigParser::formatError(QString message)
+void LatexConfigParser::formatError(const QString& message)
 {
 	QString new_error = QString::number(xml.lineNumber()) + ":" + 
 			QString::number(xml.columnNumber()) + ":" + message;
@@ -308,8 +305,7 @@ QString LatexConfigParser::executable() const
 	QString command = PrefsManager::instance()->latexCommands()[fileName];
 	if (command.isEmpty())
 		return m_executable;
-	else
-		return command;
+	return command;
 }
 
 QString I18nXmlStreamReader::readI18nText(bool unindent)
@@ -324,77 +320,92 @@ QString I18nXmlStreamReader::readI18nText(bool unindent)
 	while (!atEnd()) {
 		readNext();
 		if (isWhitespace() || isComment()) continue;
-		if (isStartElement() && name() == startTag) {
+		if (isStartElement() && name() == startTag)
+		{
 			raiseError("Invalid nested elements.");
 			return "Error";
 		}
-		if (isEndElement() && name() == startTag) {
-			if (!unindent) {
+		if (isEndElement() && name() == startTag)
+		{
+			if (!unindent)
 				return result.trimmed();
-			} else {
-				QStringList splitted = result.split("\n");
-				int i;
-				int minspaces = 0xffff;
-				/* NOTE: First line contains no leading whitespace so we start at 1 */
-				for (i = 1; i < splitted.size(); i++) {
-					if (splitted[i].trimmed().isEmpty()) continue;
-					int spaces;
-					QString tmp = splitted[i];
-					for (spaces = 0; spaces < tmp.length(); spaces++) {
-						if (!tmp[spaces].isSpace()) break;
-					}
-					if (spaces < minspaces) minspaces = spaces;
+			QStringList splitted = result.split("\n");
+			int i;
+			int minspaces = 0xffff;
+			/* NOTE: First line contains no leading whitespace so we start at 1 */
+			for (i = 1; i < splitted.size(); i++) {
+				if (splitted[i].trimmed().isEmpty()) continue;
+				int spaces;
+				QString tmp = splitted[i];
+				for (spaces = 0; spaces < tmp.length(); spaces++) {
+					if (!tmp[spaces].isSpace()) break;
 				}
-				for (i = 1; i < splitted.size(); i++) {
-					splitted[i] = splitted[i].mid(minspaces);
-				}
-				return splitted.join("\n").trimmed();
+				if (spaces < minspaces) minspaces = spaces;
 			}
+			for (i = 1; i < splitted.size(); i++) {
+				splitted[i] = splitted[i].mid(minspaces);
+			}
+			return splitted.join("\n").trimmed();
 		}
-		if (i18n) {
-			if (isEndElement()) {
-				if (name() == "i18n") {
+		if (i18n)
+		{
+			if (isEndElement())
+			{
+				if (name() == "i18n")
+				{
 					i18n = false;
-				} else {
+				}
+				else
+				{
 					raiseError("Invalid end element "+ name().toString());
 				}
 				continue;
 			}
-			if (!isStartElement()) {
+			if (!isStartElement())
+			{
 				raiseError("Unexpected data!");
 			}
-			if (name() == language) {
+			if (name() == language)
+			{
 				matchquality = 2; //Perfect match
 				result = readElementText();
-			} else if (language.startsWith(name().toString()) && matchquality <= 1) {
+			}
+			else if (language.startsWith(name().toString()) && matchquality <= 1)
+			{
 				matchquality = 1; //Only beginning part matches
 				result = readElementText();
-			} else if (result.isEmpty()) {
+			}
+			else if (result.isEmpty())
+			{
 				matchquality = 0;
 				result = readElementText();
-			} else {
+			}
+			else
+			{
 				readElementText(); //Ignore the text
 			}
-		} else {
-			if (isStartElement()) {
-				if (name() == "i18n") {
+		}
+		else
+		{
+			if (isStartElement())
+			{
+				if (name() == "i18n")
+				{
 					i18n = true;
 					continue;
-				} else {
-					raiseError("Tag " + name().toString() +
-							"found, but \"i18n\" or string data expected.");
-					continue;
 				}
-			} else if (isCharacters()) {
-				result = result + text().toString();
+				raiseError("Tag " + name().toString() + "found, but \"i18n\" or string data expected.");
+				continue;
 			}
+			if (isCharacters())
+				result = result + text().toString();
 		}
 	}
 	raiseError("Unexpected end of XML file");
 	return result;
 }
 
-LatexConfigCache* LatexConfigCache::m_instance = 0;
+LatexConfigCache* LatexConfigCache::m_instance = nullptr;
 
 LatexConfigCache* LatexConfigCache::instance()
 {
@@ -403,7 +414,7 @@ LatexConfigCache* LatexConfigCache::instance()
 	return m_instance;
 }
 
-LatexConfigParser* LatexConfigCache::parser(QString filename, bool warnOnError)
+LatexConfigParser* LatexConfigCache::parser(const QString& filename, bool warnOnError)
 {
 	if (m_parsers.contains(filename))
 	{
@@ -420,7 +431,7 @@ LatexConfigParser* LatexConfigCache::parser(QString filename, bool warnOnError)
 }
 
 
-void LatexConfigCache::createParser(QString filename, bool warnOnError)
+void LatexConfigCache::createParser(const QString& filename, bool warnOnError)
 {
 	LatexConfigParser *parser = new LatexConfigParser();
 	bool hasError = !parser->parseConfigFile(filename);
@@ -428,7 +439,7 @@ void LatexConfigCache::createParser(QString filename, bool warnOnError)
 	m_error[filename] = hasError;
 	if (hasError)
 	{
-		ScMessageBox::critical(0, QObject::tr("Error"), "<qt>" + 
+		ScMessageBox::critical(nullptr, QObject::tr("Error"), "<qt>" +
 				QObject::tr("Parsing the configfile %1 failed! Depending on the type of the error "
 						"render frames might not work correctly!\n%2").arg(
 						filename, parser->error())
@@ -436,7 +447,7 @@ void LatexConfigCache::createParser(QString filename, bool warnOnError)
 	}
 }
 
-bool LatexConfigCache::hasError(QString filename)
+bool LatexConfigCache::hasError(const QString& filename)
 {
 	if (!m_error.contains(filename))
 		return true;
@@ -463,9 +474,10 @@ QStringList LatexConfigCache::defaultConfigs()
 
 QMap<QString, QString> LatexConfigCache::defaultCommands()
 {
-	QStringList configFiles = PrefsManager::instance()->latexConfigs();
 	QMap<QString, QString> configCmds;
-	foreach (const QString& configFile, configFiles)
+
+	const QStringList configFiles = PrefsManager::instance()->latexConfigs();
+	for (const QString& configFile : configFiles)
 	{
 		LatexConfigParser *config = LatexConfigCache::instance()->parser(configFile);
 		configCmds.insert(configFile, config->executable());

@@ -57,7 +57,7 @@ void flattenpath_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-FlattenPathPlugin::FlattenPathPlugin() : ScActionPlugin()
+FlattenPathPlugin::FlattenPathPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -113,10 +113,10 @@ void FlattenPathPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool FlattenPathPlugin::run(ScribusDoc* doc, QString)
+bool FlattenPathPlugin::run(ScribusDoc* doc, const QString&)
 {
 	ScribusDoc* currDoc = doc;
-	if (currDoc == 0)
+	if (currDoc == nullptr)
 		currDoc = ScCore->primaryMainWindow()->doc;
 	if (currDoc->m_Selection->count() > 0)
 	{

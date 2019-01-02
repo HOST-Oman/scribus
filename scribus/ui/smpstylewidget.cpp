@@ -24,13 +24,13 @@ static bool isEqual(double a, double b)
 }
 
 
-SMPStyleWidget::SMPStyleWidget(ScribusDoc* doc, StyleSet<CharStyle> *cstyles) : QWidget(),
+SMPStyleWidget::SMPStyleWidget(ScribusDoc* doc, StyleSet<CharStyle> *cstyles) :
 	m_hasParent(false),
 	m_parentDC(false),
 	m_parentBul(false),
 	m_parentNum(false),
 	m_Doc(doc),
-	m_currPStyle(0)
+	m_currPStyle(nullptr)
 {
 	m_cstyles = cstyles;
 
@@ -198,7 +198,8 @@ void SMPStyleWidget::fillNumFormatCombo()
 void SMPStyleWidget::fillNumerationsCombo()
 {
 	QStringList numNames;
-	foreach (const QString& numName, m_Doc->numerations.keys())
+	const auto numerationKeys = m_Doc->numerations.keys();
+	foreach (const QString& numName, numerationKeys)
 		numNames.append(numName);
 	numNames.sort();
 	numComboBox->clear();
@@ -537,8 +538,7 @@ void SMPStyleWidget::showColors(const QList<ParagraphStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->backgroundShade();
+		d = cstyles[i]->backgroundShade();
 	}
 	if (d == -30000)
 	{
@@ -557,8 +557,7 @@ void SMPStyleWidget::showColors(const QList<ParagraphStyle*> &cstyles)
 			s = emptyString;
 			break;
 		}
-		else
-			s = cstyles[i]->backgroundColor();
+		s = cstyles[i]->backgroundColor();
 	}
 	if (s.isEmpty())
 	{
@@ -585,8 +584,7 @@ void SMPStyleWidget::showLineSpacing(QList<ParagraphStyle*> &pstyles)
 			tmpLP = -1;
 			break;
 		}
-		else
-			tmpLP = pstyles[i]->lineSpacingMode();
+		tmpLP = pstyles[i]->lineSpacingMode();
 	}
 
 	if (tmpLP == -1)
@@ -606,8 +604,7 @@ void SMPStyleWidget::showLineSpacing(QList<ParagraphStyle*> &pstyles)
 			tmpLS = -1.0;
 			break;
 		}
-		else
-			tmpLS = pstyles[i]->lineSpacing();
+		tmpLS = pstyles[i]->lineSpacing();
 	}
 	lineSpacing->setEnabled(true);
 	if (tmpLS < 0)
@@ -627,8 +624,7 @@ void SMPStyleWidget::showSpaceAB(QList<ParagraphStyle*> &pstyles, int unitIndex)
 			tmpA = -1.2;
 			break;
 		}
-		else
-			tmpA = pstyles[i]->gapBefore();
+		tmpA = pstyles[i]->gapBefore();
 	}
 
 	if (tmpA < 0)
@@ -674,8 +670,7 @@ void SMPStyleWidget::showDropCap(QList<ParagraphStyle*> &pstyles, QList<CharStyl
 			lines = -1;
 			break;
 		}
-		else
-			lines = pstyles[i]->dropCapLines();
+		lines = pstyles[i]->dropCapLines();
 	}
 	if (lines == -1)
 		dropCapLines->clear();
@@ -711,8 +706,7 @@ void SMPStyleWidget::showBullet(QList<ParagraphStyle *> &pstyles, QList<CharStyl
 			chStr.clear();
 			break;
 		}
-		else
-			chStr = pstyles[i]->bulletStr();
+		chStr = pstyles[i]->bulletStr();
 	}
 	bulletStrEdit->setEditText(chStr);
 
@@ -731,8 +725,7 @@ void SMPStyleWidget::showNumeration(QList<ParagraphStyle *> &pstyles, QList<Char
 			prefix.clear();
 			break;
 		}
-		else
-			prefix = pstyles[i]->numPrefix();
+		prefix = pstyles[i]->numPrefix();
 	}
 	numPrefix->setText(prefix);
 	
@@ -744,8 +737,7 @@ void SMPStyleWidget::showNumeration(QList<ParagraphStyle *> &pstyles, QList<Char
 			suffix.clear();
 			break;
 		}
-		else
-			suffix = pstyles[i]->numSuffix();
+		suffix = pstyles[i]->numSuffix();
 	}
 	numSuffix->setText(suffix);
 
@@ -756,7 +748,7 @@ void SMPStyleWidget::showNumeration(QList<ParagraphStyle *> &pstyles, QList<Char
 
 void SMPStyleWidget::showAlignment(QList<ParagraphStyle*> &pstyles)
 {
-	if(pstyles.isEmpty())
+	if (pstyles.isEmpty())
 	{
 		qDebug()<<"Warning showAlignment called with an empty list of styles";
 		return;
@@ -780,7 +772,7 @@ void SMPStyleWidget::showAlignment(QList<ParagraphStyle*> &pstyles)
 
 void SMPStyleWidget::showDirection(QList<ParagraphStyle*> &pstyles)
 {
-	if(pstyles.isEmpty())
+	if (pstyles.isEmpty())
 	{
 		qDebug()<<"Warning showDirection called with an empty list of styles";
 		return;
@@ -804,7 +796,7 @@ void SMPStyleWidget::showDirection(QList<ParagraphStyle*> &pstyles)
 
 void SMPStyleWidget::showOpticalMargin(QList< ParagraphStyle * > & pstyles)
 {
-	if(pstyles.isEmpty())
+	if (pstyles.isEmpty())
 	{
 		qDebug()<<"Warning showOpticalMargin called with an empty list of styles";
 		return;
@@ -834,7 +826,7 @@ void SMPStyleWidget::showOpticalMargin(QList< ParagraphStyle * > & pstyles)
 
 void SMPStyleWidget::showMinSpace(QList< ParagraphStyle * > & pstyles)
 {
-	if(pstyles.isEmpty())
+	if (pstyles.isEmpty())
 	{
 		qDebug()<<"Warning showMinSpace called with an empty list of styles";
 		return;
@@ -854,7 +846,7 @@ void SMPStyleWidget::showMinSpace(QList< ParagraphStyle * > & pstyles)
 
 void SMPStyleWidget::showMinGlyphExt(QList< ParagraphStyle * > & pstyles)
 {
-	if(pstyles.isEmpty())
+	if (pstyles.isEmpty())
 	{
 		qDebug()<<"Warning showMinGlyphExt called with an empty list of styles";
 		return;
@@ -874,7 +866,7 @@ void SMPStyleWidget::showMinGlyphExt(QList< ParagraphStyle * > & pstyles)
 
 void SMPStyleWidget::showMaxGlyphExt(QList< ParagraphStyle * > & pstyles)
 {
-	if(pstyles.isEmpty())
+	if (pstyles.isEmpty())
 	{
 		qDebug()<<"Warning showMaxGlyphExt called with an empty list of styles";
 		return;
@@ -895,7 +887,7 @@ void SMPStyleWidget::showMaxGlyphExt(QList< ParagraphStyle * > & pstyles)
 void SMPStyleWidget::showConsecutiveLines(QList<ParagraphStyle *> &pstyles)
 {
 
-	if(pstyles.isEmpty())
+	if (pstyles.isEmpty())
 	{
 		qDebug()<<"Warning showConsecutiveLines called with an empty list of styles";
 		return;
@@ -937,8 +929,7 @@ void SMPStyleWidget::showTabs(QList<ParagraphStyle*> &pstyles, int unitIndex)
 			l = -4000.0;
 			break;
 		}
-		else
-			l = pstyles[i]->leftMargin();
+		l = pstyles[i]->leftMargin();
 	}
 	if (l < -3800.0)
 	{
@@ -956,8 +947,7 @@ void SMPStyleWidget::showTabs(QList<ParagraphStyle*> &pstyles, int unitIndex)
 			l = -4000.0;
 			break;
 		}
-		else
-			l = pstyles[i]->firstIndent();
+		l = pstyles[i]->firstIndent();
 	}
 	if (l < -3800.0)
 	{
@@ -975,8 +965,7 @@ void SMPStyleWidget::showTabs(QList<ParagraphStyle*> &pstyles, int unitIndex)
 			l = -4000.0;
 			break;
 		}
-		else
-			l = pstyles[i]->rightMargin();
+		l = pstyles[i]->rightMargin();
 	}
 	if (l < -3800.0)
 	{
@@ -1034,11 +1023,11 @@ void SMPStyleWidget::setOpticalMargins(int o, bool inhO, const ParagraphStyle *p
 
 	if (parent==nullptr)
 	{
-		if(om == ParagraphStyle::OM_Default)
+		if (om == ParagraphStyle::OM_Default)
 			optMarginRadioBoth->setChecked(true);
-		else if(om == ParagraphStyle::OM_LeftHangingPunct)
+		else if (om == ParagraphStyle::OM_LeftHangingPunct)
 			optMarginRadioLeft->setChecked(true);
-		else if(om == ParagraphStyle::OM_RightHangingPunct)
+		else if (om == ParagraphStyle::OM_RightHangingPunct)
 			optMarginRadioRight->setChecked(true);
 		else
 			optMarginRadioNone->setChecked(true);
@@ -1047,13 +1036,13 @@ void SMPStyleWidget::setOpticalMargins(int o, bool inhO, const ParagraphStyle *p
 	{
 		optMarginParentButton->setVisible(!inhO);
 
-		if(om == ParagraphStyle::OM_Default)
+		if (om == ParagraphStyle::OM_Default)
 			optMarginRadioBoth->setChecked(true,
 				(parent->opticalMargins() == ParagraphStyle::OM_Default));
-		else if(om == ParagraphStyle::OM_LeftHangingPunct)
+		else if (om == ParagraphStyle::OM_LeftHangingPunct)
 			optMarginRadioLeft->setChecked(true,
 				(parent->opticalMargins() == ParagraphStyle::OM_LeftHangingPunct));
-		else if(om == ParagraphStyle::OM_RightHangingPunct)
+		else if (om == ParagraphStyle::OM_RightHangingPunct)
 			optMarginRadioRight->setChecked(true,
 				(parent->opticalMargins() == ParagraphStyle::OM_RightHangingPunct));
 		else

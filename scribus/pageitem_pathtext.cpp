@@ -53,7 +53,7 @@ for which a new license (GPL+exception) is in place.
 
 using namespace std;
 
-PageItem_PathText::PageItem_PathText(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
+PageItem_PathText::PageItem_PathText(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline)
 	: PageItem(pa, PageItem::PathText, x, y, w, h, w2, fill, outline)
 {
 	firstChar = 0;
@@ -109,7 +109,7 @@ void PageItem_PathText::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 						gradientStrokeVal = "";
 					if (!(gradientStrokeVal.isEmpty()) && (m_Doc->docGradients.contains(gradientStrokeVal)))
 						stroke_gradient = m_Doc->docGradients[gradientStrokeVal];
-					if (stroke_gradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+					if (stroke_gradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 					{
 						if (lineColor() != CommonStrings::None)
 						{
@@ -380,7 +380,7 @@ void PageItem_PathText::applicableActions(QStringList & actionList)
 	actionList << "itemConvertToOutlines";
 }
 
-QString PageItem_PathText::infoDescription()
+QString PageItem_PathText::infoDescription() const
 {
 	return QString();
 }

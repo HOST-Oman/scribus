@@ -40,7 +40,7 @@ for which a new license (GPL+exception) is in place.
 PropTreeItemDelegate::PropTreeItemDelegate(PropTreeWidget *parent) : QItemDelegate(parent)
 {
 	m_parent = parent;
-	m_edit = 0;
+	m_edit = nullptr;
 }
 
 void PropTreeItemDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const
@@ -117,7 +117,7 @@ QWidget *PropTreeItemDelegate::createEditor(QWidget *parent, const QStyleOptionV
 	QWidget *edito = nullptr;
 	PropTreeItem* item = (PropTreeItem*) m_parent->indexToItem(index);
 	if (!item)
-		return 0;
+		return nullptr;
 
 	if (item->m_type == PropTreeItem::IntSpinBox)
 	{
@@ -168,7 +168,7 @@ QWidget *PropTreeItemDelegate::createEditor(QWidget *parent, const QStyleOptionV
 		connect(editor, SIGNAL(activated(QString)), item, SIGNAL(valueChanged(QString)));
 	}
 	else
-		edito = 0;
+		edito = nullptr;
 	m_edit = edito;
 	if (item && m_edit)
 		emit item->editStarted();
@@ -278,7 +278,7 @@ QSize PropTreeItemDelegate::sizeHint(const QStyleOptionViewItem &opt, const QMod
 	return sz;
 }
 
-PropTreeItem::PropTreeItem(QTreeWidget *parent, int typ, QString title) : QObject(parent), QTreeWidgetItem(parent),
+PropTreeItem::PropTreeItem(QTreeWidget *parent, int typ, const QString& title) : QObject(parent), QTreeWidgetItem(parent),
 	m_type(typ),
 	m_unit(0),
 	m_decimals(0),
@@ -297,7 +297,7 @@ PropTreeItem::PropTreeItem(QTreeWidget *parent, int typ, QString title) : QObjec
 		setFlags(Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
 }
 
-PropTreeItem::PropTreeItem(PropTreeItem *parent, int typ, QString title) : QObject(parent), QTreeWidgetItem(parent)
+PropTreeItem::PropTreeItem(PropTreeItem *parent, int typ, const QString& title) : QObject(parent), QTreeWidgetItem(parent)
 {
 	setText(0, title);
 	m_type = typ;
@@ -371,7 +371,7 @@ void PropTreeItem::setBoolValue(bool value)
 	setData(1, Qt::DisplayRole, value);
 }
 
-void PropTreeItem::setStringValue(QString value)
+void PropTreeItem::setStringValue(const QString& value)
 {
 	setData(1, Qt::UserRole, value);
 	setData(1, Qt::DisplayRole, value);
@@ -389,7 +389,7 @@ void PropTreeItem::setUnitValue(int unit)
 		setDoubleValue(oldVal * newUnitRatio);
 	}
 	else
-		setData(1, Qt::DisplayRole, QString("%1 %2").arg(data(1, Qt::UserRole).toString()).arg(unitGetSuffixFromIndex(m_unit)));
+		setData(1, Qt::DisplayRole, QString("%1 %2").arg(data(1, Qt::UserRole).toString(), unitGetSuffixFromIndex(m_unit)));
 }
 
 void PropTreeItem::setDecimalsValue(int unit)
@@ -398,10 +398,10 @@ void PropTreeItem::setDecimalsValue(int unit)
 	if (m_type == DoubleSpinBox)
 		setData(1, Qt::DisplayRole, QString("%1 %2").arg(data(1, Qt::UserRole).toDouble(), 0, 'f', unit).arg(unitGetSuffixFromIndex(m_unit)));
 	else
-		setData(1, Qt::DisplayRole, QString("%1 %2").arg(data(1, Qt::UserRole).toString()).arg(unitGetSuffixFromIndex(m_unit)));
+		setData(1, Qt::DisplayRole, QString("%1 %2").arg(data(1, Qt::UserRole).toString(), unitGetSuffixFromIndex(m_unit)));
 }
 
-void PropTreeItem::setComboStrings(QStringList value)
+void PropTreeItem::setComboStrings(const QStringList& value)
 {
 	setData(1, Qt::UserRole + 1, value);
 }
@@ -418,7 +418,7 @@ void PropTreeItem::setMinMaxValues(double min, double max)
 	m_fmax = max;
 }
 
-void PropTreeItem::setColorList(ColorList colors)
+void PropTreeItem::setColorList(const ColorList& colors)
 {
 	m_colors = colors;
 }
@@ -452,25 +452,25 @@ void PropTreeWidget::handleMousePress(QTreeWidgetItem *item)
 void PropTreeWidget::mousePressEvent(QMouseEvent *event)
 {
 	QTreeWidgetItem *item = itemAt(event->pos());
-	if (item)
+	if (!item)
 	{
-		if (item->flags() & Qt::ItemIsEditable)
-		{
-			if ((event->button() == Qt::LeftButton) && (header()->logicalIndexAt(event->pos().x()) == 1))
-				QTreeWidget::mousePressEvent(event);
-			else
-				event->ignore();
-		}
-		else
-			QTreeWidget::mousePressEvent(event);
-	}
-	else
 		QTreeWidget::mousePressEvent(event);
+		return;
+	}
+	if (!(item->flags() & Qt::ItemIsEditable))
+	{
+		QTreeWidget::mousePressEvent(event);
+		return;
+	}
+	if ((event->button() == Qt::LeftButton) && (header()->logicalIndexAt(event->pos().x()) == 1))
+		QTreeWidget::mousePressEvent(event);
+	else
+		event->ignore();
 }
 
 PropTreeItem* PropTreeWidget::indexToItem(const QModelIndex &index)
 {
-	return (PropTreeItem*)itemFromIndex(index);
+	return dynamic_cast<PropTreeItem*>(itemFromIndex(index));
 }
 
 void PropTreeWidget::drawRow(QPainter *painter, const QStyleOptionViewItem &option, const QModelIndex &index) const

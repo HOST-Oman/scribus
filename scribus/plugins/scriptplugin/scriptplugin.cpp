@@ -98,7 +98,7 @@ int scriptplugin_getPluginAPIVersion()
 
 ScPlugin* scriptplugin_getPlugin()
 {
-	scripterCore=0;
+	scripterCore=nullptr;
 	ScriptPlugin* plug = new ScriptPlugin();
 	Q_CHECK_PTR(plug);
 	return plug;
@@ -111,7 +111,7 @@ void scriptplugin_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-ScriptPlugin::ScriptPlugin() : ScPersistentPlugin()
+ScriptPlugin::ScriptPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -374,6 +374,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getFontSize"), scribus_getfontsize, METH_VARARGS, tr(scribus_getfontsize__doc__)},
 	{const_cast<char*>("getGuiLanguage"), (PyCFunction)scribus_getlanguage, METH_NOARGS, tr(scribus_getlanguage__doc__)},
 	{const_cast<char*>("getHGuides"), (PyCFunction)scribus_getHguides, METH_NOARGS, tr(scribus_getHguides__doc__)},
+	{const_cast<char*>("getImageColorSpace"), scribus_getimagecolorspace, METH_VARARGS, tr(scribus_getimagecolorspace__doc__) },
 	{const_cast<char*>("getImageFile"), scribus_getimagefile, METH_VARARGS, tr(scribus_getimagefile__doc__)},
 	{const_cast<char*>("getImageScale"), scribus_getimgscale, METH_VARARGS, tr(scribus_getimgscale__doc__)},
 	{const_cast<char*>("getLayers"), (PyCFunction)scribus_getlayers, METH_NOARGS, tr(scribus_getlayers__doc__)},
@@ -402,17 +403,19 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getObjectAttributes"), scribus_getobjectattributes, METH_VARARGS, tr(scribus_getobjectattributes__doc__)},
 	{const_cast<char*>("getSelectedObject"), scribus_getselobjnam, METH_VARARGS, tr(scribus_getselobjnam__doc__)},
 	{const_cast<char*>("getSize"), scribus_getsize, METH_VARARGS, tr(scribus_getsize__doc__)},
+	{const_cast<char*>("getStyle"), scribus_getstyle, METH_VARARGS, tr(scribus_getstyle__doc__) },
 	{const_cast<char*>("getTableRows"), scribus_gettablerows, METH_VARARGS, tr(scribus_gettablerows__doc__)},
 	{const_cast<char*>("getTableRowHeight"), scribus_gettablerowheight, METH_VARARGS, tr(scribus_gettablerowheight__doc__)},
 	{const_cast<char*>("getTableColumns"), scribus_gettablecolumns, METH_VARARGS, tr(scribus_gettablecolumns__doc__)},
 	{const_cast<char*>("getTableColumnWidth"), scribus_gettablecolumnwidth, METH_VARARGS, tr(scribus_gettablecolumnwidth__doc__)},
 	{const_cast<char*>("getTableStyle"), scribus_gettablestyle, METH_VARARGS, tr(scribus_gettablestyle__doc__)},
 	{const_cast<char*>("getTableFillColor"), scribus_gettablefillcolor, METH_VARARGS, tr(scribus_gettablefillcolor__doc__)},
-	{const_cast<char*>("getTextColor"), scribus_getlinecolor, METH_VARARGS, tr(scribus_getlinecolor__doc__)},
+	{const_cast<char*>("getText"), scribus_getframetext, METH_VARARGS, tr(scribus_getframetext__doc__)},
+	{const_cast<char*>("getTextColor"), scribus_gettextcolor, METH_VARARGS, tr(scribus_gettextcolor__doc__)},
 	{const_cast<char*>("getTextLength"), scribus_gettextsize, METH_VARARGS, tr(scribus_gettextsize__doc__)},
 	{const_cast<char*>("getTextLines"), scribus_gettextlines, METH_VARARGS, tr(scribus_gettextlines__doc__)},
-	{const_cast<char*>("getText"), scribus_getframetext, METH_VARARGS, tr(scribus_getframetext__doc__)},
-	{const_cast<char*>("getTextShade"), scribus_getlineshade, METH_VARARGS, tr(scribus_getlineshade__doc__)},
+	{const_cast<char*>("getTextShade"), scribus_gettextshade, METH_VARARGS, tr(scribus_gettextshade__doc__)},
+	{const_cast<char*>("getTextVerticalAlignment"), scribus_gettextverticalalignment, METH_VARARGS, tr(scribus_gettextverticalalignment__doc__)},
 	{const_cast<char*>("getUnit"), (PyCFunction)scribus_getunit, METH_NOARGS, tr(scribus_getunit__doc__)},
 	{const_cast<char*>("getVGuides"), (PyCFunction)scribus_getVguides, METH_NOARGS, tr(scribus_getVguides__doc__)},
 	{const_cast<char*>("getXFontNames"), (PyCFunction)scribus_xfontnames, METH_NOARGS, tr(scribus_xfontnames__doc__)},
@@ -444,6 +447,8 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("messageBox"), (PyCFunction)scribus_messdia, METH_VARARGS|METH_KEYWORDS, tr(scribus_messdia__doc__)},
 	{const_cast<char*>("moveObjectAbs"), scribus_moveobjabs, METH_VARARGS, tr(scribus_moveobjabs__doc__)},
 	{const_cast<char*>("moveObject"), scribus_moveobjrel, METH_VARARGS, tr(scribus_moveobjrel__doc__)},
+	{const_cast<char*>("moveSelectionToBack"), (PyCFunction)scribus_moveselectiontoback, METH_NOARGS, tr(scribus_moveselectiontoback__doc__) },
+	{const_cast<char*>("moveSelectionToFront"), (PyCFunction)scribus_moveselectiontofront, METH_NOARGS, tr(scribus_moveselectiontofront__doc__) },
 	{const_cast<char*>("newDocDialog"), (PyCFunction)scribus_newdocdia, METH_NOARGS, tr(scribus_newdocdia__doc__)},
 	{const_cast<char*>("newDoc"), scribus_newdoc, METH_VARARGS, tr(scribus_newdoc__doc__)},
 	{const_cast<char*>("newDocument"), scribus_newdocument, METH_VARARGS, tr(scribus_newdocument__doc__)},
@@ -540,6 +545,7 @@ PyMethodDef scribus_methods[] = {
 	// missing? {"setSelectedObject", scribus_setselobjnam, METH_VARARGS, "Returns the Name of the selecteted Object. \"nr\" if given indicates the Number of the selected Object, e.g. 0 means the first selected Object, 1 means the second selected Object and so on."},
 	{const_cast<char*>("hyphenateText"), scribus_hyphenatetext, METH_VARARGS, tr(scribus_hyphenatetext__doc__)},
 	{const_cast<char*>("dehyphenateText"), scribus_dehyphenatetext, METH_VARARGS, tr(scribus_dehyphenatetext__doc__)},
+	{const_cast<char*>("scrollDocument"), scribus_scrolldocument, METH_VARARGS, tr(scribus_scrolldocument__doc__) },
 	{const_cast<char*>("setScaleFrameToImage"), (PyCFunction)scribus_setscaleframetoimage, METH_VARARGS, tr(scribus_setscaleframetoimage__doc__)},
 	{const_cast<char*>("setScaleImageToFrame"), (PyCFunction)scribus_setscaleimagetoframe, METH_KEYWORDS, tr(scribus_setscaleimagetoframe__doc__)},
 	{const_cast<char*>("setStyle"), scribus_setstyle, METH_VARARGS, tr(scribus_setstyle__doc__)},
@@ -550,28 +556,26 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("setTableTopBorder"), scribus_settabletopborder, METH_VARARGS, tr(scribus_settabletopborder__doc__)},
 	{const_cast<char*>("setTableBottomBorder"), scribus_settablebottomborder, METH_VARARGS, tr(scribus_settablebottomborder__doc__)},
 	{const_cast<char*>("setTableFillColor"), scribus_settablefillcolor, METH_VARARGS, tr(scribus_settablefillcolor__doc__)},
-	{const_cast<char*>("setTextAlignment"), scribus_setalign, METH_VARARGS, tr(scribus_setalign__doc__)},
+	{const_cast<char*>("setText"), scribus_setboxtext, METH_VARARGS, tr(scribus_setboxtext__doc__)},
+	{const_cast<char*>("setTextAlignment"), scribus_setalignment, METH_VARARGS, tr(scribus_setalign__doc__)},
 	{const_cast<char*>("setTextDirection"), scribus_setdirection, METH_VARARGS, tr(scribus_setdirection__doc__)},
 	{const_cast<char*>("setTextColor"), scribus_settextfill, METH_VARARGS, tr(scribus_settextfill__doc__)},
-	{const_cast<char*>("setText"), scribus_setboxtext, METH_VARARGS, tr(scribus_setboxtext__doc__)},
 	{const_cast<char*>("setTextScalingH"), scribus_settextscalingh, METH_VARARGS, tr(scribus_settextscalingh__doc__)},
 	{const_cast<char*>("setTextScalingV"), scribus_settextscalingv, METH_VARARGS, tr(scribus_settextscalingv__doc__)},
 	{const_cast<char*>("setTextShade"), scribus_settextshade, METH_VARARGS, tr(scribus_settextshade__doc__)},
 	{const_cast<char*>("setTextStroke"), scribus_settextstroke, METH_VARARGS, tr(scribus_settextstroke__doc__)},
+	{const_cast<char*>("setTextVerticalAlignment"), scribus_settextverticalalignment, METH_VARARGS, tr(scribus_settextverticalalignment__doc__)},
 	{const_cast<char*>("setUnit"), scribus_setunit, METH_VARARGS, tr(scribus_setunit__doc__)},
 	{const_cast<char*>("setVGuides"), scribus_setVguides, METH_VARARGS, tr(scribus_setVguides__doc__)},
 	{const_cast<char*>("sizeObject"), scribus_sizeobjabs, METH_VARARGS, tr(scribus_sizeobjabs__doc__)},
 	{const_cast<char*>("statusMessage"), scribus_messagebartext, METH_VARARGS, tr(scribus_messagebartext__doc__)},
 	{const_cast<char*>("textFlowMode"), scribus_textflow, METH_VARARGS, tr(scribus_textflow__doc__)},
+	{const_cast<char*>("textOverflows"), (PyCFunction)scribus_istextoverflowing, METH_KEYWORDS, tr(scribus_istextoverflowing__doc__) },
 	{const_cast<char*>("traceText"), scribus_tracetext, METH_VARARGS, tr(scribus_tracetext__doc__)},
 	{const_cast<char*>("unGroupObject"), scribus_ungroupobj, METH_VARARGS, tr(scribus_ungroupobj__doc__)},
 	{const_cast<char*>("unlinkTextFrames"), scribus_unlinktextframes, METH_VARARGS, tr(scribus_unlinktextframes__doc__)},
 	{const_cast<char*>("valueDialog"), scribus_valdialog, METH_VARARGS, tr(scribus_valdialog__doc__)},
-	{const_cast<char*>("textOverflows"), (PyCFunction)scribus_istextoverflowing, METH_KEYWORDS, tr(scribus_istextoverflowing__doc__)},
 	{const_cast<char*>("zoomDocument"), scribus_zoomdocument, METH_VARARGS, tr(scribus_zoomdocument__doc__)},
-	{const_cast<char*>("scrollDocument"), scribus_scrolldocument, METH_VARARGS, tr(scribus_scrolldocument__doc__)},
-	{const_cast<char*>("moveSelectionToBack"), (PyCFunction)scribus_moveselectiontoback, METH_NOARGS, tr(scribus_moveselectiontoback__doc__)},
-	{const_cast<char*>("moveSelectionToFront"), (PyCFunction)scribus_moveselectiontofront, METH_NOARGS, tr(scribus_moveselectiontofront__doc__)},
 	// Property magic
 	{const_cast<char*>("getPropertyCType"), (PyCFunction)scribus_propertyctype, METH_KEYWORDS, tr(scribus_propertyctype__doc__)},
 	{const_cast<char*>("getPropertyNames"), (PyCFunction)scribus_getpropertynames, METH_KEYWORDS, tr(scribus_getpropertynames__doc__)},
@@ -583,6 +587,8 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("duplicateObject"), scribus_duplicateobject, METH_VARARGS, tr(scribus_duplicateobject__doc__)},
 	{const_cast<char*>("copyObject"), scribus_copyobject, METH_VARARGS, tr(scribus_copyobject__doc__)},
 	{const_cast<char*>("pasteObject"), scribus_pasteobject, METH_VARARGS, tr(scribus_pasteobject__doc__)},
+	// by Tj (hacker@iam.tj>
+	{const_cast<char*>("combinePolygons"), (PyCFunction)scribus_combinepolygons, METH_NOARGS, tr(scribus_combinepolygons__doc__)},
 	// Internal methods - Not for public use
 	{const_cast<char*>("retval"), (PyCFunction)scribus_retval, METH_VARARGS, const_cast<char*>("Scribus internal.")},
 	{const_cast<char*>("getval"), (PyCFunction)scribus_getval, METH_NOARGS, const_cast<char*>("Scribus internal.")},
@@ -592,7 +598,9 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("setTextAnnotation"), scribus_settextannotation, METH_VARARGS,tr(scribus_settextannotation__doc__)},
 	{const_cast<char*>("createPdfAnnotation"), scribus_createpdfannotation, METH_VARARGS,tr(scribus_createpdfannotation__doc__)},
 	{const_cast<char*>("isAnnotated"),(PyCFunction)scribus_isannotated, METH_VARARGS|METH_KEYWORDS,tr(scribus_isannotated__doc__)},
-	{nullptr, (PyCFunction)(0), 0, nullptr} /* sentinel */
+	{const_cast<char*>("setJSActionScript"), scribus_setjsactionscript, METH_VARARGS,tr(scribus_setjsactionscript__doc__)},
+	{const_cast<char*>("getJSActionScript"), scribus_getjsactionscript, METH_VARARGS,tr(scribus_getjsactionscript__doc__)},
+	{nullptr, (PyCFunction)(nullptr), 0, nullptr} /* sentinel */
 };
 
 void initscribus_failed(const char* fileName, int lineNo)
@@ -600,7 +608,6 @@ void initscribus_failed(const char* fileName, int lineNo)
 	qDebug("Scripter setup failed (%s:%i)", fileName, lineNo);
 	if (PyErr_Occurred())
 		PyErr_Print();
-	return;
 }
 
 void initscribus(ScribusMainWindow *pl)
@@ -659,12 +666,12 @@ void initscribus(ScribusMainWindow *pl)
 	PyDict_SetItemString(d, const_cast<char*>("UNIT_PICAS"), PyInt_FromLong(unitIndexFromString("p")));
 	PyDict_SetItemString(d, const_cast<char*>("UNIT_CENTIMETRES"), PyInt_FromLong(unitIndexFromString("cm")));
 	PyDict_SetItemString(d, const_cast<char*>("UNIT_CICERO"), PyInt_FromLong(unitIndexFromString("c")));
-        PyDict_SetItemString(d, const_cast<char*>("UNIT_PT"), PyInt_FromLong(unitIndexFromString("pt")));
-        PyDict_SetItemString(d, const_cast<char*>("UNIT_MM"), PyInt_FromLong(unitIndexFromString("mm")));
-        PyDict_SetItemString(d, const_cast<char*>("UNIT_IN"), PyInt_FromLong(unitIndexFromString("in")));
-        PyDict_SetItemString(d, const_cast<char*>("UNIT_P"), PyInt_FromLong(unitIndexFromString("p")));
-        PyDict_SetItemString(d, const_cast<char*>("UNIT_CM"), PyInt_FromLong(unitIndexFromString("cm")));
-        PyDict_SetItemString(d, const_cast<char*>("UNIT_C"), PyInt_FromLong(unitIndexFromString("c")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_PT"), PyInt_FromLong(unitIndexFromString("pt")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_MM"), PyInt_FromLong(unitIndexFromString("mm")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_IN"), PyInt_FromLong(unitIndexFromString("in")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_P"), PyInt_FromLong(unitIndexFromString("p")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_CM"), PyInt_FromLong(unitIndexFromString("cm")));
+	PyDict_SetItemString(d, const_cast<char*>("UNIT_C"), PyInt_FromLong(unitIndexFromString("c")));
 	PyDict_SetItemString(d, const_cast<char*>("PORTRAIT"), Py_BuildValue(const_cast<char*>("i"), portraitPage));
 	PyDict_SetItemString(d, const_cast<char*>("LANDSCAPE"), Py_BuildValue(const_cast<char*>("i"), landscapePage));
 	PyDict_SetItemString(d, const_cast<char*>("NOFACINGPAGES"), Py_BuildValue(const_cast<char*>("i"), 0));
@@ -676,6 +683,9 @@ void initscribus(ScribusMainWindow *pl)
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_CENTERED"), Py_BuildValue(const_cast<char*>("i"), 1));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_BLOCK"), Py_BuildValue(const_cast<char*>("i"), 3));
 	PyDict_SetItemString(d, const_cast<char*>("ALIGN_FORCED"), Py_BuildValue(const_cast<char*>("i"), 4));
+	PyDict_SetItemString(d, const_cast<char*>("ALIGNV_TOP"), Py_BuildValue(const_cast<char*>("i"), 0));
+	PyDict_SetItemString(d, const_cast<char*>("ALIGNV_CENTERED"), Py_BuildValue(const_cast<char*>("i"), 1));
+	PyDict_SetItemString(d, const_cast<char*>("ALIGNV_BOTTOM"), Py_BuildValue(const_cast<char*>("i"), 2));
 	PyDict_SetItemString(d, const_cast<char*>("DIRECTION_LTR"), Py_BuildValue(const_cast<char*>("i"), 0));
 	PyDict_SetItemString(d, const_cast<char*>("DIRECTION_RTL"), Py_BuildValue(const_cast<char*>("i"), 1));
 	PyDict_SetItemString(d, const_cast<char*>("FILL_NOG"), Py_BuildValue(const_cast<char*>("i"), 0));
@@ -759,6 +769,12 @@ void initscribus(ScribusMainWindow *pl)
 	PyDict_SetItemString(d, const_cast<char*>("PAPER_LEGAL"), Py_BuildValue(const_cast<char*>("(ff)"), 612.0, 1008.0));
 	PyDict_SetItemString(d, const_cast<char*>("PAPER_LETTER"), Py_BuildValue(const_cast<char*>("(ff)"), 612.0, 792.0));
 	PyDict_SetItemString(d, const_cast<char*>("PAPER_TABLOID"), Py_BuildValue(const_cast<char*>("(ff)"), 792.0, 1224.0));
+	PyDict_SetItemString(d, const_cast<char*>("CSPACE_UNDEFINED"), Py_BuildValue(const_cast<char*>("i"), -1));
+	PyDict_SetItemString(d, const_cast<char*>("CSPACE_RGB"), Py_BuildValue(const_cast<char*>("i"), 0));
+	PyDict_SetItemString(d, const_cast<char*>("CSPACE_CMYK"), Py_BuildValue(const_cast<char*>("i"), 1));
+	PyDict_SetItemString(d, const_cast<char*>("CSPACE_GRAY"), Py_BuildValue(const_cast<char*>("i"), 2));
+	PyDict_SetItemString(d, const_cast<char*>("CSPACE_DUOTONE"), Py_BuildValue(const_cast<char*>("i"), 3));
+	PyDict_SetItemString(d, const_cast<char*>("CSPACE_MONOCHROME"), Py_BuildValue(const_cast<char*>("i"), 4));
 	PyDict_SetItemString(d, const_cast<char*>("NORMAL"), Py_BuildValue(const_cast<char*>("i"), 0));
 	PyDict_SetItemString(d, const_cast<char*>("DARKEN"), Py_BuildValue(const_cast<char*>("i"), 1));
 	PyDict_SetItemString(d, const_cast<char*>("LIGHTEN"), Py_BuildValue(const_cast<char*>("i"), 2));
@@ -944,6 +960,6 @@ with header files structure untouched (docstrings are kept near declarations)
 PV */
 void scriptplugindocwarnings()
 {
-    QStringList s;
-    s <<printer__doc__<<pdffile__doc__<<imgexp__doc__<<imgexp_dpi__doc__<<imgexp_scale__doc__ <<imgexp_quality__doc__<<imgexp_filename__doc__<<imgexp_type__doc__<<imgexp_alltypes__doc__ << imgexp_save__doc__ << imgexp_saveas__doc__;
+	QStringList s;
+	s <<printer__doc__<<pdffile__doc__<<imgexp__doc__<<imgexp_dpi__doc__<<imgexp_scale__doc__ <<imgexp_quality__doc__<<imgexp_filename__doc__<<imgexp_type__doc__<<imgexp_alltypes__doc__ << imgexp_save__doc__ << imgexp_saveas__doc__;
 }

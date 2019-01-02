@@ -41,13 +41,13 @@ QStringList FileExtensions()
 	return ret;
 }
 
-void GetText2(QString filename, QString encoding, bool textOnly, bool prefix, bool append, PageItem *textItem)
+void GetText2(const QString& filename, const QString& encoding, bool textOnly, bool prefix, bool append, PageItem *textItem)
 {
 	ODTIm* docxim = new ODTIm(filename, textItem, textOnly, prefix, append);
 	delete docxim;
 }
 
-ODTIm::ODTIm(QString fileName, PageItem *textItem, bool textOnly, bool prefix, bool append)
+ODTIm::ODTIm(const QString& fileName, PageItem *textItem, bool textOnly, bool prefix, bool append)
 {
 	uz=nullptr;
 	m_Doc = textItem->doc();
@@ -139,7 +139,7 @@ ODTIm::~ODTIm()
 
 /* Raw Text import */
 
-bool ODTIm::parseRawDocReference(QString designMap)
+bool ODTIm::parseRawDocReference(const QString& designMap)
 {
 	QByteArray f;
 	QDomDocument designMapDom;
@@ -289,7 +289,7 @@ void ODTIm::parseRawText(QDomElement &elem, PageItem* item)
 				{
 					if (!spn.hasChildNodes())
 						continue;
-					for(QDomNode spp = spn.firstChild(); !spp.isNull(); spp = spp.nextSibling())
+					for (QDomNode spp = spn.firstChild(); !spp.isNull(); spp = spp.nextSibling())
 					{
 						if (spp.nodeName() == "text:p")
 						{
@@ -316,7 +316,7 @@ void ODTIm::parseRawText(QDomElement &elem, PageItem* item)
 
 /* Styled Text import */
 
-bool ODTIm::parseStyleSheets(QString designMap)
+bool ODTIm::parseStyleSheets(const QString& designMap)
 {
 	QByteArray f;
 	QDomDocument designMapDom;
@@ -368,7 +368,7 @@ bool ODTIm::parseStyleSheetsXML(QDomDocument &designMapDom)
 	return true;
 }
 
-void ODTIm::parseStyles(QDomElement &sp, QString type)
+void ODTIm::parseStyles(QDomElement &sp, const QString& type)
 {
 	for (QDomElement spd = sp.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement() )
 	{
@@ -580,7 +580,7 @@ void ODTIm::parseStyles(QDomElement &sp, QString type)
 	}
 }
 
-bool ODTIm::parseDocReference(QString designMap)
+bool ODTIm::parseDocReference(const QString& designMap)
 {
 	QByteArray f;
 	QDomDocument designMapDom;
@@ -851,7 +851,7 @@ void ODTIm::parseText(QDomElement &elem, PageItem* item, ObjStyleODT &tmpOStyle)
 				{
 					if (!spn.hasChildNodes())
 						continue;
-					for(QDomNode spp = spn.firstChild(); !spp.isNull(); spp = spp.nextSibling())
+					for (QDomNode spp = spn.firstChild(); !spp.isNull(); spp = spp.nextSibling())
 					{
 						if (spp.nodeName() == "text:p")
 						{
@@ -962,7 +962,7 @@ void ODTIm::applyParagraphStyle(ParagraphStyle &tmpStyle, ObjStyleODT &oStyle)
 	tmpStyle.setTabValues(oStyle.tabStops);
 }
 
-void ODTIm::resolveStyle(ObjStyleODT &tmpOStyle, QString pAttrs)
+void ODTIm::resolveStyle(ObjStyleODT &tmpOStyle, const QString& pAttrs)
 {
 	if (m_Styles.contains(pAttrs))
 	{
@@ -1243,30 +1243,30 @@ double ODTIm::parseUnit(const QString &unit)
 	QString unitval=unit;
 	if (unit.isEmpty())
 		return 0.0;
-	if( unit.right( 2 ) == "pt" )
+	if (unit.right( 2 ) == "pt")
 		unitval.replace( "pt", "" );
-	else if( unit.right( 2 ) == "cm" )
+	else if (unit.right( 2 ) == "cm")
 		unitval.replace( "cm", "" );
-	else if( unit.right( 2 ) == "mm" )
+	else if (unit.right( 2 ) == "mm")
 		unitval.replace( "mm" , "" );
-	else if( unit.right( 2 ) == "in" )
+	else if (unit.right( 2 ) == "in")
 		unitval.replace( "in", "" );
-	else if( unit.right( 2 ) == "px" )
+	else if (unit.right( 2 ) == "px")
 		unitval.replace( "px", "" );
-	else if( unit.right( 1 ) == "%" )
+	else if (unit.right( 1 ) == "%" )
 		unitval.replace( "%", "" );
 	double value = ScCLocale::toDoubleC(unitval);
-	if( unit.right( 2 ) == "pt" )
+	if (unit.right( 2 ) == "pt" )
 		{}/* value = value; */ //no change
-	else if( unit.right( 2 ) == "cm" )
+	else if (unit.right( 2 ) == "cm")
 		value = ( value / 2.54 ) * 72;
-	else if( unit.right( 2 ) == "mm" )
+	else if (unit.right( 2 ) == "mm")
 		value = ( value / 25.4 ) * 72;
-	else if( unit.right( 2 ) == "in" )
+	else if (unit.right( 2 ) == "in")
 		value = value * 72;
-	else if( unit.right( 2 ) == "px" )
+	else if (unit.right( 2 ) == "px")
 		{}/* value = value; */ //no change
-	else if( unit.right( 1 ) == "%" )
+	else if (unit.right( 1 ) == "%")
 		value = value / 100.0;
 	return value;
 }
@@ -1284,24 +1284,24 @@ QString ODTIm::parseColor( const QString &s )
 	QString ret = CommonStrings::None;
 	if ((s == "") || s.isEmpty())
 		return ret;
-	if( s.startsWith( "rgb(" ) )
+	if (s.startsWith( "rgb(" ))
 	{
 		QString parse = s.trimmed();
 		QStringList colors = parse.split( ',', QString::SkipEmptyParts );
 		QString r = colors[0].right( ( colors[0].length() - 4 ) );
 		QString g = colors[1];
 		QString b = colors[2].left( ( colors[2].length() - 1 ) );
-		if( r.contains( "%" ) )
+		if (r.contains( "%" ))
 		{
 			r.chop(1);
 			r = QString::number( static_cast<int>( ( static_cast<double>( 255 * ScCLocale::toDoubleC(r) ) / 100.0 ) ) );
 		}
-		if( g.contains( "%" ) )
+		if (g.contains( "%" ))
 		{
 			g.chop(1);
 			g = QString::number( static_cast<int>( ( static_cast<double>( 255 * ScCLocale::toDoubleC(g) ) / 100.0 ) ) );
 		}
-		if( b.contains( "%" ) )
+		if (b.contains( "%" ))
 		{
 			b.chop(1);
 			b = QString::number( static_cast<int>( ( static_cast<double>( 255 * ScCLocale::toDoubleC(b) ) / 100.0 ) ) );
@@ -1311,7 +1311,7 @@ QString ODTIm::parseColor( const QString &s )
 	else
 	{
 		QString rgbColor = s.trimmed();
-		if( rgbColor.startsWith( "#" ) )
+		if (rgbColor.startsWith( "#" ))
 			c.setNamedColor( rgbColor );
 		else
 			c = parseColorN( rgbColor );
@@ -1325,7 +1325,7 @@ QString ODTIm::parseColor( const QString &s )
 	return ret;
 }
 
-QString ODTIm::constructFontName(QString fontBaseName, QString fontStyle)
+QString ODTIm::constructFontName(const QString& fontBaseName, const QString& fontStyle)
 {
 	QString fontName;
 	SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
@@ -1354,11 +1354,8 @@ QString ODTIm::constructFontName(QString fontBaseName, QString fontStyle)
 				fontName = it.current().family() + " " + slist[reInd];
 			return fontName;
 		}
-		else
-		{
-			fontName = it.current().family();
-			return fontName;
-		}
+		fontName = it.current().family();
+		return fontName;
 	}
 
 	// Still no font found
@@ -1372,7 +1369,7 @@ QString ODTIm::constructFontName(QString fontBaseName, QString fontStyle)
 	}
 
 	qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
-	QScopedPointer<MissingFont> dia(new MissingFont(0, family, m_Doc));
+	QScopedPointer<MissingFont> dia(new MissingFont(nullptr, family, m_Doc));
 	if (dia->exec())
 		fontName = dia->getReplacementFont();
 	else

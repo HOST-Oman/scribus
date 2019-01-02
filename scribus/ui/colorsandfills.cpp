@@ -66,7 +66,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 
 
-ColorsAndFillsDialog::ColorsAndFillsDialog(QWidget* parent, QHash<QString, VGradient> *docGradients, ColorList doco, const QString& docColSet, QHash<QString, ScPattern> *docPatterns, ScribusDoc *doc, ScribusMainWindow *scMW) : QDialog(parent)
+ColorsAndFillsDialog::ColorsAndFillsDialog(QWidget* parent, QHash<QString, VGradient> *docGradients, const ColorList& doco, const QString& docColSet, QHash<QString, ScPattern> *docPatterns, ScribusDoc *doc, ScribusMainWindow *scMW) : QDialog(parent)
 {
 	setupUi(this);
 	setModal(true);
@@ -176,14 +176,14 @@ void ColorsAndFillsDialog::leaveDialog()
 	accept();
 }
 
-QTreeWidgetItem* ColorsAndFillsDialog::updatePatternList(QString addedName)
+QTreeWidgetItem* ColorsAndFillsDialog::updatePatternList(const QString& addedName)
 {
 	QList<QTreeWidgetItem*> lg = patternItems->takeChildren();
 	for (int a = 0; a < lg.count(); a++)
 	{
 		delete lg[a];
 	}
-	QTreeWidgetItem* ret = 0;
+	QTreeWidgetItem* ret = nullptr;
 	QStringList patK = dialogPatterns.keys();
 	qSort(patK);
 	for (int a = 0; a < patK.count(); a++)
@@ -210,14 +210,14 @@ QTreeWidgetItem* ColorsAndFillsDialog::updatePatternList(QString addedName)
 	return ret;
 }
 
-QTreeWidgetItem* ColorsAndFillsDialog::updateGradientList(QString addedName)
+QTreeWidgetItem* ColorsAndFillsDialog::updateGradientList(const QString& addedName)
 {
 	QList<QTreeWidgetItem*> lg = gradientItems->takeChildren();
 	for (int a = 0; a < lg.count(); a++)
 	{
 		delete lg[a];
 	}
-	QTreeWidgetItem* ret = 0;
+	QTreeWidgetItem* ret = nullptr;
 	QStringList patK = dialogGradients.keys();
 	qSort(patK);
 	for (int a = 0; a < patK.count(); a++)
@@ -249,14 +249,14 @@ QTreeWidgetItem* ColorsAndFillsDialog::updateGradientList(QString addedName)
 	return ret;
 }
 
-QTreeWidgetItem* ColorsAndFillsDialog::updateColorList(QString addedName)
+QTreeWidgetItem* ColorsAndFillsDialog::updateColorList(const QString& addedName)
 {
 	QList<QTreeWidgetItem*> lg = colorItems->takeChildren();
 	for (int a = 0; a < lg.count(); a++)
 	{
 		delete lg[a];
 	}
-	QTreeWidgetItem* ret = 0;
+	QTreeWidgetItem* ret = nullptr;
 	if (sortRule > 0)
 	{
 		QMap<QString, QString> sortMap;
@@ -318,19 +318,19 @@ QTreeWidgetItem* ColorsAndFillsDialog::updateColorList(QString addedName)
 void ColorsAndFillsDialog::slotRightClick(QPoint p)
 {
 	QTreeWidgetItem* it = dataTree->itemAt(p);
-	if (it)
+	if (!it)
+		return;
+
+	if ((it->parent() == colorItems) || (it == colorItems))
 	{
-		if ((it->parent() == colorItems) || (it == colorItems))
-		{
-			QMenu *pmen = new QMenu();
+		QMenu *pmen = new QMenu();
 //			qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
-			pmen->addAction( tr("Sort by Name"));
-			pmen->addAction( tr("Sort by Color"));
-			pmen->addAction( tr("Sort by Type"));
-			sortRule = pmen->actions().indexOf(pmen->exec(QCursor::pos()));
-			delete pmen;
-			updateColorList();
-		}
+		pmen->addAction( tr("Sort by Name"));
+		pmen->addAction( tr("Sort by Color"));
+		pmen->addAction( tr("Sort by Type"));
+		sortRule = pmen->actions().indexOf(pmen->exec(QCursor::pos()));
+		delete pmen;
+		updateColorList();
 	}
 }
 
@@ -346,7 +346,7 @@ void ColorsAndFillsDialog::selEditColor(QTreeWidgetItem *it)
 			duplicateButton->setEnabled(curCol != "Registration");
 			deleteButton->setEnabled(enableDel);
 			editButton->setEnabled(enableEdit);
-			if(enableEdit)
+			if (enableEdit)
 				editColorItem();
 		}
 	}
@@ -443,56 +443,56 @@ void ColorsAndFillsDialog::createNew()
 	if (paletteLocked)
 		return;
 	QTreeWidgetItem* it = dataTree->currentItem();
-	if (it)
+	if (!it)
+		return;
+
+	if ((it->parent() == gradientItems) || (it == gradientItems))
 	{
-		if ((it->parent() == gradientItems) || (it == gradientItems))
+		VGradient fill_gradient = VGradient(VGradient::linear);
+		fill_gradient.clearStops();
+		fill_gradient.addStop(QColor(Qt::black), 0.0, 0.5, 1.0, "Black", 100);
+		fill_gradient.addStop(QColor(Qt::white), 1.0, 0.5, 1.0, "White", 100);
+		gradientEditDialog *dia = new gradientEditDialog(this, tr("New Gradient"), fill_gradient, m_colorList, m_doc, &dialogGradients, true);
+		if (dia->exec())
 		{
-			VGradient fill_gradient = VGradient(VGradient::linear);
-			fill_gradient.clearStops();
-			fill_gradient.addStop(QColor(Qt::black), 0.0, 0.5, 1.0, "Black", 100);
-			fill_gradient.addStop(QColor(Qt::white), 1.0, 0.5, 1.0, "White", 100);
-			gradientEditDialog *dia = new gradientEditDialog(this, tr("New Gradient"), fill_gradient, m_colorList, m_doc, &dialogGradients, true);
-			if (dia->exec())
+			dialogGradients.insert(dia->name(), dia->gradient());
+			QTreeWidgetItem *lg = updateGradientList(dia->name());
+			if (lg != nullptr)
 			{
-				dialogGradients.insert(dia->name(), dia->gradient());
-				QTreeWidgetItem *lg = updateGradientList(dia->name());
-				if (lg != 0)
-				{
-					dataTree->expandItem(lg->parent());
-					dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
-				}
-				itemSelected(dataTree->currentItem());
-				modified = true;
+				dataTree->expandItem(lg->parent());
+				dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
 			}
-			delete dia;
+			itemSelected(dataTree->currentItem());
+			modified = true;
 		}
-		else if ((it->parent() == colorItems) || (it == colorItems))
+		delete dia;
+	}
+	else if ((it->parent() == colorItems) || (it == colorItems))
+	{
+		ScColor tmpColor = ScColor(0, 0, 0, 0);
+		CMYKChoose* dia = new CMYKChoose(this, m_doc, tmpColor, tr("New Color"), &m_colorList, true);
+		if (dia->exec())
 		{
-			ScColor tmpColor = ScColor(0, 0, 0, 0);
-			CMYKChoose* dia = new CMYKChoose(this, m_doc, tmpColor, tr("New Color"), &m_colorList, true);
-			if (dia->exec())
+			dia->Farbe.setSpotColor(dia->isSpotColor());
+			m_colorList.insert(dia->colorName(), dia->Farbe);
+			QTreeWidgetItem *lg = updateColorList(dia->colorName());
+			if (lg != nullptr)
 			{
-				dia->Farbe.setSpotColor(dia->isSpotColor());
-				m_colorList.insert(dia->colorName(), dia->Farbe);
-				QTreeWidgetItem *lg = updateColorList(dia->colorName());
-				if (lg != 0)
-				{
-					dataTree->expandItem(lg->parent());
-					dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
-				}
-				itemSelected(dataTree->currentItem());
-				modified = true;
+				dataTree->expandItem(lg->parent());
+				dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
 			}
-			delete dia;
+			itemSelected(dataTree->currentItem());
+			modified = true;
 		}
-		else if ((it->parent() == patternItems) || (it == patternItems))
-		{
-			loadPatternDir();
-			updateColorList();
-			updateGradientList();
-			updatePatternList();
-			itemSelected(0);
-		}
+		delete dia;
+	}
+	else if ((it->parent() == patternItems) || (it == patternItems))
+	{
+		loadPatternDir();
+		updateColorList();
+		updateGradientList();
+		updatePatternList();
+		itemSelected(nullptr);
 	}
 }
 
@@ -501,130 +501,130 @@ void ColorsAndFillsDialog::editColorItem()
 	if (paletteLocked)
 		return;
 	QTreeWidgetItem* it = dataTree->currentItem();
-	if (it)
+	if (!it)
+		return;
+
+	if (it->parent() == gradientItems)
 	{
-		if (it->parent() == gradientItems)
+		QString gradN = it->text(0);
+		QString patternName = origNames[it->text(0)];
+		QString newName;
+		gradientEditDialog *dia = new gradientEditDialog(this, gradN, dialogGradients[gradN], m_colorList, m_doc, &dialogGradients, false);
+		if (dia->exec())
 		{
-			QString gradN = it->text(0);
-			QString patternName = origNames[it->text(0)];
-			QString newName;
-			gradientEditDialog *dia = new gradientEditDialog(this, gradN, dialogGradients[gradN], m_colorList, m_doc, &dialogGradients, false);
-			if (dia->exec())
+			newName = dia->name();
+			if (newName != gradN)
 			{
-				newName = dia->name();
-				if (newName != gradN)
-				{
-					origNames.remove(patternName);
-					origNames.insert(newName, patternName);
-					replaceMap.insert(patternName, newName);
-					dialogGradients.remove(gradN);
-					dialogGradients.insert(newName, dia->gradient());
-				}
-				else
-					dialogGradients[gradN] = dia->gradient();
-				QStringList patterns = dialogPatterns.keys();
-				for (int c = 0; c < dialogPatterns.count(); ++c)
-				{
-					ScPattern pa = dialogPatterns[patterns[c]];
-					for (int o = 0; o < pa.items.count(); o++)
-					{
-						PageItem *ite = pa.items.at(o);
-						if (ite->gradient() == gradN)
-							ite->setGradient(newName);
-						if (ite->strokeGradient() == gradN)
-							ite->setStrokeGradient(newName);
-						if (ite->gradientMask() == gradN)
-							ite->setGradientMask(newName);
-					}
-					PageItem *ite = pa.items.at(0);
-					dialogPatterns[patterns[c]].pattern = ite->DrawObj_toImage(pa.items, 1.0);
-				}
-				QTreeWidgetItem *lg = updateGradientList(dia->name());
-				if (lg != 0)
-				{
-					dataTree->expandItem(lg->parent());
-					dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
-				}
-				itemSelected(dataTree->currentItem());
-				modified = true;
-			}
-			delete dia;
-		}
-		else if (it->parent() == colorItems)
-		{
-			ScColor tmpColor = m_colorList[it->text(0)];
-			CMYKChoose* dia = new CMYKChoose(this, m_doc, tmpColor, it->text(0), &m_colorList, false);
-			if (dia->exec())
-			{
-				dia->Farbe.setSpotColor(dia->isSpotColor());
-				dia->Farbe.setRegistrationColor(tmpColor.isRegistrationColor());
-				m_colorList[dia->colorName()] = dia->Farbe;
-				if (it->text(0) != dia->colorName())
-				{
-					replaceColorMap.insert(it->text(0), dia->colorName());
-					m_colorList.remove(it->text(0));
-				}
-				updateGradientColors(dia->colorName(), it->text(0));
-				updateGradientList();
-				updatePatternList();
-				QTreeWidgetItem *lg = updateColorList(dia->colorName());
-				if (lg != 0)
-				{
-					dataTree->expandItem(lg->parent());
-					dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
-				}
-				itemSelected(dataTree->currentItem());
-				modified = true;
-			}
-			delete dia;
-		}
-		else if (it->parent() == patternItems)
-		{
-			QString patternName = origNames[it->text(0)];
-			QString newName = "";
-			Query dia(this, "tt", 1, tr("&Name:"), tr("Rename Entry"));
-			dia.setEditText(it->text(0), true);
-			dia.setTestList(dialogPatterns.keys());
-			if (dia.exec())
-			{
-				newName = dia.getEditText();
-				ScPattern pat = dialogPatterns.take(it->text(0));
-				dialogPatterns.insert(newName, pat);
-				replaceMapPatterns.insert(patternName, newName);
-				origNamesPatterns.remove(it->text(0));
-				origNamesPatterns.insert(newName, patternName);
-				QStringList patterns = dialogPatterns.keys();
-				for (int c = 0; c < dialogPatterns.count(); ++c)
-				{
-					ScPattern pa = dialogPatterns[patterns[c]];
-					for (int o = 0; o < pa.items.count(); o++)
-					{
-						PageItem *ite = pa.items.at(o);
-						if ((ite->pattern() == patternName) && ((ite->GrType == 8) || (ite->itemType() == PageItem::Symbol)))
-							ite->setPattern(newName);
-						if (!ite->strokePattern().isEmpty())
-						{
-							if (ite->strokePattern() == patternName)
-								ite->setStrokePattern(newName);
-						}
-						if (!ite->patternMask().isEmpty())
-						{
-							if (ite->patternMask() == patternName)
-								ite->setPatternMask(newName);
-						}
-					}
-				}
-				QTreeWidgetItem *lg = updatePatternList(newName);
-				if (lg != 0)
-				{
-					dataTree->expandItem(lg->parent());
-					dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
-				}
-				itemSelected(dataTree->currentItem());
+				origNames.remove(patternName);
+				origNames.insert(newName, patternName);
+				replaceMap.insert(patternName, newName);
+				dialogGradients.remove(gradN);
+				dialogGradients.insert(newName, dia->gradient());
 			}
 			else
-				return;
+				dialogGradients[gradN] = dia->gradient();
+			QStringList patterns = dialogPatterns.keys();
+			for (int c = 0; c < dialogPatterns.count(); ++c)
+			{
+				ScPattern pa = dialogPatterns[patterns[c]];
+				for (int o = 0; o < pa.items.count(); o++)
+				{
+					PageItem *ite = pa.items.at(o);
+					if (ite->gradient() == gradN)
+						ite->setGradient(newName);
+					if (ite->strokeGradient() == gradN)
+						ite->setStrokeGradient(newName);
+					if (ite->gradientMask() == gradN)
+						ite->setGradientMask(newName);
+				}
+				PageItem *ite = pa.items.at(0);
+				dialogPatterns[patterns[c]].pattern = ite->DrawObj_toImage(pa.items, 1.0);
+			}
+			QTreeWidgetItem *lg = updateGradientList(dia->name());
+			if (lg != nullptr)
+			{
+				dataTree->expandItem(lg->parent());
+				dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
+			}
+			itemSelected(dataTree->currentItem());
+			modified = true;
 		}
+		delete dia;
+	}
+	else if (it->parent() == colorItems)
+	{
+		ScColor tmpColor = m_colorList[it->text(0)];
+		CMYKChoose* dia = new CMYKChoose(this, m_doc, tmpColor, it->text(0), &m_colorList, false);
+		if (dia->exec())
+		{
+			dia->Farbe.setSpotColor(dia->isSpotColor());
+			dia->Farbe.setRegistrationColor(tmpColor.isRegistrationColor());
+			m_colorList[dia->colorName()] = dia->Farbe;
+			if (it->text(0) != dia->colorName())
+			{
+				replaceColorMap.insert(it->text(0), dia->colorName());
+				m_colorList.remove(it->text(0));
+			}
+			updateGradientColors(dia->colorName(), it->text(0));
+			updateGradientList();
+			updatePatternList();
+			QTreeWidgetItem *lg = updateColorList(dia->colorName());
+			if (lg != nullptr)
+			{
+				dataTree->expandItem(lg->parent());
+				dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
+			}
+			itemSelected(dataTree->currentItem());
+			modified = true;
+		}
+		delete dia;
+	}
+	else if (it->parent() == patternItems)
+	{
+		QString patternName = origNames[it->text(0)];
+		QString newName = "";
+		Query dia(this, "tt", true, tr("&Name:"), tr("Rename Entry"));
+		dia.setEditText(it->text(0), true);
+		dia.setTestList(dialogPatterns.keys());
+		if (dia.exec())
+		{
+			newName = dia.getEditText();
+			ScPattern pat = dialogPatterns.take(it->text(0));
+			dialogPatterns.insert(newName, pat);
+			replaceMapPatterns.insert(patternName, newName);
+			origNamesPatterns.remove(it->text(0));
+			origNamesPatterns.insert(newName, patternName);
+			QStringList patterns = dialogPatterns.keys();
+			for (int c = 0; c < dialogPatterns.count(); ++c)
+			{
+				ScPattern pa = dialogPatterns[patterns[c]];
+				for (int o = 0; o < pa.items.count(); o++)
+				{
+					PageItem *ite = pa.items.at(o);
+					if ((ite->pattern() == patternName) && ((ite->GrType == 8) || (ite->itemType() == PageItem::Symbol)))
+						ite->setPattern(newName);
+					if (!ite->strokePattern().isEmpty())
+					{
+						if (ite->strokePattern() == patternName)
+							ite->setStrokePattern(newName);
+					}
+					if (!ite->patternMask().isEmpty())
+					{
+						if (ite->patternMask() == patternName)
+							ite->setPatternMask(newName);
+					}
+				}
+			}
+			QTreeWidgetItem *lg = updatePatternList(newName);
+			if (lg != nullptr)
+			{
+				dataTree->expandItem(lg->parent());
+				dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
+			}
+			itemSelected(dataTree->currentItem());
+		}
+		else
+			return;
 	}
 }
 
@@ -633,78 +633,78 @@ void ColorsAndFillsDialog::duplicateColorItem()
 	if (paletteLocked)
 		return;
 	QTreeWidgetItem* it = dataTree->currentItem();
-	if (it)
+	if (!it)
+		return;
+
+	if (it->parent() == gradientItems)
 	{
-		if (it->parent() == gradientItems)
+		QString gradN = tr("Copy of %1").arg(it->text(0));
+		dialogGradients.insert(gradN, dialogGradients[it->text(0)]);
+		origNames.insert(gradN, gradN);
+		QString patternName = origNames[gradN];
+		QString newName = "";
+		gradientEditDialog *dia = new gradientEditDialog(this, gradN, dialogGradients[gradN], m_colorList, m_doc, &dialogGradients, false);
+		if (dia->exec())
 		{
-			QString gradN = tr("Copy of %1").arg(it->text(0));
-			dialogGradients.insert(gradN, dialogGradients[it->text(0)]);
-			origNames.insert(gradN, gradN);
-			QString patternName = origNames[gradN];
-			QString newName = "";
-			gradientEditDialog *dia = new gradientEditDialog(this, gradN, dialogGradients[gradN], m_colorList, m_doc, &dialogGradients, false);
-			if (dia->exec())
+			newName = dia->name();
+			if (newName != gradN)
 			{
-				newName = dia->name();
-				if (newName != gradN)
-				{
-					origNames.remove(patternName);
-					origNames.insert(newName, patternName);
-					replaceMap.insert(patternName, newName);
-					dialogGradients.remove(gradN);
-					dialogGradients.insert(newName, dia->gradient());
-				}
-				else
-					dialogGradients[gradN] = dia->gradient();
-				updatePatternList();
-				QTreeWidgetItem *lg = updateGradientList(dia->name());
-				if (lg != 0)
-				{
-					dataTree->expandItem(lg->parent());
-					dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
-				}
-				itemSelected(dataTree->currentItem());
-				modified = true;
-			}
-			else
-			{
+				origNames.remove(patternName);
+				origNames.insert(newName, patternName);
+				replaceMap.insert(patternName, newName);
 				dialogGradients.remove(gradN);
-				origNames.remove(gradN);
-			}
-			delete dia;
-		}
-		else if (it->parent() == colorItems)
-		{
-			QString nam = tr("Copy of %1").arg(it->text(0));
-			m_colorList.insert(nam, m_colorList[it->text(0)]);
-			ScColor tmpColor = m_colorList[nam];
-			CMYKChoose* dia = new CMYKChoose(this, m_doc, tmpColor, nam, &m_colorList, false);
-			if (dia->exec())
-			{
-				dia->Farbe.setSpotColor(dia->isSpotColor());
-				dia->Farbe.setRegistrationColor(tmpColor.isRegistrationColor());
-				m_colorList[dia->colorName()] = dia->Farbe;
-				if (nam != dia->colorName())
-				{
-					replaceColorMap.insert(nam, dia->colorName());
-					m_colorList.remove(nam);
-				}
-				updateGradientColors(dia->colorName(), nam);
-				updateGradientList();
-				updatePatternList();
-				QTreeWidgetItem *lg = updateColorList(dia->colorName());
-				if (lg != 0)
-				{
-					dataTree->expandItem(lg->parent());
-					dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
-				}
-				itemSelected(dataTree->currentItem());
-				modified = true;
+				dialogGradients.insert(newName, dia->gradient());
 			}
 			else
-				m_colorList.remove(nam);
-			delete dia;
+				dialogGradients[gradN] = dia->gradient();
+			updatePatternList();
+			QTreeWidgetItem *lg = updateGradientList(dia->name());
+			if (lg != nullptr)
+			{
+				dataTree->expandItem(lg->parent());
+				dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
+			}
+			itemSelected(dataTree->currentItem());
+			modified = true;
 		}
+		else
+		{
+			dialogGradients.remove(gradN);
+			origNames.remove(gradN);
+		}
+		delete dia;
+	}
+	else if (it->parent() == colorItems)
+	{
+		QString nam = tr("Copy of %1").arg(it->text(0));
+		m_colorList.insert(nam, m_colorList[it->text(0)]);
+		ScColor tmpColor = m_colorList[nam];
+		CMYKChoose* dia = new CMYKChoose(this, m_doc, tmpColor, nam, &m_colorList, false);
+		if (dia->exec())
+		{
+			dia->Farbe.setSpotColor(dia->isSpotColor());
+			dia->Farbe.setRegistrationColor(tmpColor.isRegistrationColor());
+			m_colorList[dia->colorName()] = dia->Farbe;
+			if (nam != dia->colorName())
+			{
+				replaceColorMap.insert(nam, dia->colorName());
+				m_colorList.remove(nam);
+			}
+			updateGradientColors(dia->colorName(), nam);
+			updateGradientList();
+			updatePatternList();
+			QTreeWidgetItem *lg = updateColorList(dia->colorName());
+			if (lg != nullptr)
+			{
+				dataTree->expandItem(lg->parent());
+				dataTree->setCurrentItem(lg, 0, QItemSelectionModel::ClearAndSelect);
+			}
+			itemSelected(dataTree->currentItem());
+			modified = true;
+		}
+		else
+			m_colorList.remove(nam);
+		delete dia;
 	}
 }
 
@@ -799,7 +799,7 @@ void ColorsAndFillsDialog::removeColorItem()
 		updatePatternList();
 		updateGradientList();
 		updateColorList();
-		itemSelected(0);
+		itemSelected(nullptr);
 	}
 	else
 	{
@@ -932,12 +932,12 @@ void ColorsAndFillsDialog::removeColorItem()
 		updatePatternList();
 		updateGradientList();
 		updateColorList();
-		itemSelected(0);
+		itemSelected(nullptr);
 		modified = true;
 	}
 }
 
-QStringList ColorsAndFillsDialog::getUsedPatternsHelper(QString pattern, QStringList &results)
+QStringList ColorsAndFillsDialog::getUsedPatternsHelper(const QString& pattern, QStringList &results)
 {
 	ScPattern *pat = &dialogPatterns[pattern];
 	QStringList pats;
@@ -988,235 +988,236 @@ void ColorsAndFillsDialog::removeUnusedColorItem()
 	if (paletteLocked)
 		return;
 	QTreeWidgetItem* it = dataTree->currentItem();
-	if (it)
+	if (!it)
+		return;
+
+	if ((it->parent() == colorItems) || (it == colorItems))
 	{
-		if ((it->parent() == colorItems) || (it == colorItems))
+		ColorList UsedC;
+		ColorList::Iterator it;
+		ColorList UsedCG = getGradientColors();
+		if (mainWin->HaveDoc)
 		{
-			ColorList UsedC;
-			ColorList::Iterator it;
-			ColorList UsedCG = getGradientColors();
-			if (mainWin->HaveDoc)
+			m_colorList = inDocUsedColors;
+			for (it = UsedCG.begin(); it != UsedCG.end(); ++it)
 			{
-				m_colorList = inDocUsedColors;
-				for (it = UsedCG.begin(); it != UsedCG.end(); ++it)
-				{
-					if (!m_colorList.contains(it.key()))
-						m_colorList.insert(it.key(), it.value());
-				}
+				if (!m_colorList.contains(it.key()))
+					m_colorList.insert(it.key(), it.value());
 			}
-			else
-				m_colorList = UsedCG;
-			m_colorList.ensureDefaultColors();
-			updatePatternList();
-			updateGradientList();
-			updateColorList();
-			itemSelected(0);
-			modified = true;
 		}
+		else
+			m_colorList = UsedCG;
+		m_colorList.ensureDefaultColors();
+		updatePatternList();
+		updateGradientList();
+		updateColorList();
+		itemSelected(nullptr);
+		modified = true;
 	}
 }
 
 void ColorsAndFillsDialog::importColorItems()
 {
 	QTreeWidgetItem* it = dataTree->currentItem();
-	if (it)
+	if (!it)
+		return;
+
+	if ((it->parent() == gradientItems) || (it == gradientItems))
 	{
-		if ((it->parent() == gradientItems) || (it == gradientItems))
-		{
-			QString fileName;
-			QString allFormats = tr("All Supported Formats")+" (";
-			allFormats += "*.sgr *.SGR";
-			allFormats += " *.ggr *.GGR";
-			allFormats += ");;";
-			QString formats = tr("Scribus Gradient Files \"*.sgr\" (*.sgr *.SGR);;");
-			formats += tr("Gimp Gradient Files \"*.ggr\" (*.ggr *.GGR);;");
-			formats += tr("All Files (*)");
-			allFormats += formats;
-			PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
-			QString wdir = dirs->get("gradients", ".");
-			CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdHidePreviewCheckBox | fdExistingFiles | fdDisableOk);
-			if (dia.exec() == QDialog::Accepted)
-				fileName = dia.selectedFile();
-			else
-				return;
-			if (!fileName.isEmpty())
-			{
-				PrefsManager::instance()->prefsFile->getContext("dirs")->set("gradients", fileName.left(fileName.lastIndexOf("/")));
-				QFileInfo fi(fileName);
-				QString ext = fi.suffix().toLower();
-				if (ext == "sgr")
-					loadScribusFormat(fileName);
-				else if (ext == "ggr")
-					loadGimpFormat(fileName);
-				updateGradientList();
-				updateColorList();
-				itemSelected(0);
-				modified = true;
-			}
-		}
-		else if ((it->parent() == colorItems) || (it == colorItems))
-		{
-			QStringList allFormatsV = LoadSavePlugin::getExtensionsForColors();
-			allFormatsV.removeAll("sla");
-			allFormatsV.removeAll("scd");
-			allFormatsV.removeAll("sla.gz");
-			allFormatsV.removeAll("scd.gz");
-			allFormatsV.removeAll("ai");
-			QString extra = allFormatsV.join(" *.");
-			extra.prepend(" *.");
-			QString fileName;
-			PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
-			QString wdir = dirs->get("colors", ".");
-			QString docexts("*.sla *.sla.gz *.scd *.scd.gz");
-			QString aiepsext(FormatsManager::instance()->extensionListForFormat(FormatsManager::EPS|FormatsManager::PS|FormatsManager::AI, 0));
-			QString ooexts(" *.acb *.aco *.ase *.cxf *.gpl *.sbz *.skp *.soc *.xml");
-			ooexts += extra;
-			QString filter = tr("All Supported Formats (%1);;Documents (%2);;Other Files (%3);;All Files (*)").arg(docexts+" "+aiepsext+ooexts).arg(docexts).arg(aiepsext+ooexts);
-			CustomFDialog dia(this, wdir, tr("Import Colors"), filter, fdHidePreviewCheckBox | fdDisableOk);
-			if (dia.exec() == QDialog::Accepted)
-				fileName = dia.selectedFile();
-			else
-				return;
-			if (!fileName.isEmpty())
-				dirs->set("colors", fileName.left(fileName.lastIndexOf("/")));
-			if (!importColorsFromFile(fileName, m_colorList))
-				ScMessageBox::information(this, tr("Information"), "<qt>" + tr("The file %1 does not contain colors which can be imported.\nIf the file was a PostScript-based, try to import it with File -&gt; Import. \nNot all files have DSC conformant comments where the color descriptions are located.\n This prevents importing colors from some files.\nSee the Edit Colors section of the documentation for more details.").arg(fileName) + "</qt>");
-			else
-			{
-				updateGradientList();
-				updateColorList();
-				modified = true;
-			}
-			itemSelected(0);
-		}
-		else if ((it->parent() == patternItems) || (it == patternItems))
-		{
-			QString fileName;
-			QStringList formats;
-			QString allFormats = tr("All Supported Formats")+" (";
-			int fmtCode = FORMATID_FIRSTUSER;
-			const FileFormat *fmt = LoadSavePlugin::getFormatById(fmtCode);
-			while (fmt != 0)
-			{
-				if (fmt->load)
-				{
-					formats.append(fmt->filter);
-					int an = fmt->filter.indexOf("(");
-					int en = fmt->filter.indexOf(")");
-					while (an != -1)
-					{
-						allFormats += fmt->filter.mid(an+1, en-an-1)+" ";
-						an = fmt->filter.indexOf("(", en);
-						en = fmt->filter.indexOf(")", an);
-					}
-				}
-				fmtCode++;
-				fmt = LoadSavePlugin::getFormatById(fmtCode);
-			}
-			allFormats += "*.sce *.SCE ";
-			formats.append("Scribus Objects (*.sce *.SCE)");
-			QString form1 = "";
-			QString form2 = "";
-			QStringList imgFormats;
-			bool jpgFound = false;
-			bool tiffFound = false;
-			for (int i = 0; i < QImageReader::supportedImageFormats().count(); ++i )
-			{
-				form1 = QString(QImageReader::supportedImageFormats().at(i)).toLower();
-				form2 = QString(QImageReader::supportedImageFormats().at(i)).toUpper();
-				if ((form1 == "png") || (form1 == "xpm") || (form1 == "gif"))
-				{
-					formats.append(form2 + " (*."+form1+" *."+form2+")");
-					allFormats += "*."+form1+" *."+form2+" ";
-					imgFormats.append(form1);
-				}
-				else if ((form1 == "jpg") || (form1 == "jpeg"))
-				{
-					// JPEG is a special case because both .jpg and .jpeg
-					// are acceptable extensions.
-					if (!jpgFound)
-					{
-						formats.append("JPEG (*.jpg *.jpeg *.JPG *.JPEG)");
-						allFormats += "*.jpg *.jpeg *.JPG *.JPEG ";
-						imgFormats.append("jpeg");
-						imgFormats.append("jpg");
-						jpgFound = true;
-					}
-				}
-				else if ((form1 == "tif") || (form1 == "tiff"))
-				{
-					if (!tiffFound)
-					{
-						formats.append("TIFF (*.tif *.tiff *.TIF *.TIFF)");
-						allFormats += "*.tif *.tiff *.TIF *.TIFF ";
-						imgFormats.append("tif");
-						imgFormats.append("tiff");
-						tiffFound = true;
-					}
-				}
-				else if (form1 != "svg")
-				{
-					imgFormats.append(form1);
-					allFormats += "*."+form1+" *."+form2+" ";
-				}
-			}
-			if (!tiffFound)
-			{
-				formats.append("TIFF (*.tif *.tiff *.TIF *.TIFF)");
-				allFormats += "*.tif *.tiff *.TIF *.TIFF ";
-			}
-			if (!jpgFound)
-			{
-				formats.append("JPEG (*.jpg *.jpeg *.JPG *.JPEG)");
-				allFormats += "*.jpg *.jpeg *.JPG *.JPEG ";
-			}
-			formats.append("PSD (*.psd *.PSD)");
-			formats.append("Gimp Patterns (*.pat *.PAT)");
-			allFormats += "*.psd *.PSD ";
-			allFormats += "*.pat *.PAT);;";
-			imgFormats.append("tif");
-			imgFormats.append("tiff");
-			imgFormats.append("pat");
-			imgFormats.append("psd");
-		//	imgFormats.append("pdf");
-			imgFormats.append("eps");
-			imgFormats.append("epsi");
-			imgFormats.append("ps");
-			qSort(formats);
-			allFormats += formats.join(";;");
-			PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
-			QString wdir = dirs->get("patterns", ".");
-			CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdHidePreviewCheckBox | fdExistingFiles | fdDisableOk);
-			if (dia.exec() != QDialog::Accepted)
-				return;
+		QString fileName;
+		QString allFormats = tr("All Supported Formats")+" (";
+		allFormats += "*.sgr *.SGR";
+		allFormats += " *.ggr *.GGR";
+		allFormats += ");;";
+		QString formats = tr("Scribus Gradient Files \"*.sgr\" (*.sgr *.SGR);;");
+		formats += tr("Gimp Gradient Files \"*.ggr\" (*.ggr *.GGR);;");
+		formats += tr("All Files (*)");
+		allFormats += formats;
+		PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+		QString wdir = dirs->get("gradients", ".");
+		CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdHidePreviewCheckBox | fdExistingFiles | fdDisableOk);
+		if (dia.exec() == QDialog::Accepted)
 			fileName = dia.selectedFile();
-			if (fileName.isEmpty())
-				return;
-			qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
-			PrefsManager::instance()->prefsFile->getContext("dirs")->set("patterns", fileName.left(fileName.lastIndexOf("/")));
+		else
+			return;
+		if (!fileName.isEmpty())
+		{
+			PrefsManager::instance()->prefsFile->getContext("dirs")->set("gradients", fileName.left(fileName.lastIndexOf("/")));
 			QFileInfo fi(fileName);
-			if ((fi.suffix().toLower() == "sce") || (!imgFormats.contains(fi.suffix().toLower())))
+			QString ext = fi.suffix().toLower();
+			if (ext == "sgr")
+				loadScribusFormat(fileName);
+			else if (ext == "ggr")
+				loadGimpFormat(fileName);
+			updateGradientList();
+			updateColorList();
+			itemSelected(nullptr);
+			modified = true;
+		}
+	}
+	else if ((it->parent() == colorItems) || (it == colorItems))
+	{
+		QStringList allFormatsV = LoadSavePlugin::getExtensionsForColors();
+		allFormatsV.removeAll("sla");
+		allFormatsV.removeAll("scd");
+		allFormatsV.removeAll("sla.gz");
+		allFormatsV.removeAll("scd.gz");
+		allFormatsV.removeAll("ai");
+		QString extra = allFormatsV.join(" *.");
+		extra.prepend(" *.");
+		QString fileName;
+		PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+		QString wdir = dirs->get("colors", ".");
+		QString docexts("*.sla *.sla.gz *.scd *.scd.gz");
+		QString aiepsext(FormatsManager::instance()->extensionListForFormat(FormatsManager::EPS|FormatsManager::PS|FormatsManager::AI, 0));
+		QString ooexts(" *.acb *.aco *.ase *.cxf *.gpl *.sbz *.skp *.soc *.xml");
+		ooexts += extra;
+		QString filter = tr("All Supported Formats (%1);;Documents (%2);;Other Files (%3);;All Files (*)").arg(docexts+" "+aiepsext+ooexts, docexts, aiepsext+ooexts);
+		CustomFDialog dia(this, wdir, tr("Import Colors"), filter, fdHidePreviewCheckBox | fdDisableOk);
+		if (dia.exec() == QDialog::Accepted)
+			fileName = dia.selectedFile();
+		else
+			return;
+		if (!fileName.isEmpty())
+			dirs->set("colors", fileName.left(fileName.lastIndexOf("/")));
+		if (!importColorsFromFile(fileName, m_colorList))
+			ScMessageBox::information(this, tr("Information"), "<qt>" + tr("The file %1 does not contain colors which can be imported.\nIf the file was a PostScript-based, try to import it with File -&gt; Import. \nNot all files have DSC conformant comments where the color descriptions are located.\n This prevents importing colors from some files.\nSee the Edit Colors section of the documentation for more details.").arg(fileName) + "</qt>");
+		else
+		{
+			m_colorList.ensureDefaultColors();
+			updateGradientList();
+			updateColorList();
+			modified = true;
+		}
+		itemSelected(nullptr);
+	}
+	else if ((it->parent() == patternItems) || (it == patternItems))
+	{
+		QString fileName;
+		QStringList formats;
+		QString allFormats = tr("All Supported Formats")+" (";
+		int fmtCode = FORMATID_FIRSTUSER;
+		const FileFormat *fmt = LoadSavePlugin::getFormatById(fmtCode);
+		while (fmt != nullptr)
+		{
+			if (fmt->load)
 			{
-				loadVectors(fileName);
-			}
-			else
-			{
-				QString patNam = fi.baseName().trimmed().simplified().replace(" ", "_");
-				ScPattern pat = ScPattern();
-				pat.setDoc(m_doc);
-				pat.setPattern(fileName);
-				if (!dialogPatterns.contains(patNam))
+				formats.append(fmt->filter);
+				int an = fmt->filter.indexOf("(");
+				int en = fmt->filter.indexOf(")");
+				while (an != -1)
 				{
-					dialogPatterns.insert(patNam, pat);
-					origNamesPatterns.insert(patNam, patNam);
+					allFormats += fmt->filter.mid(an+1, en-an-1)+" ";
+					an = fmt->filter.indexOf("(", en);
+					en = fmt->filter.indexOf(")", an);
 				}
 			}
-			updateColorList();
-			updateGradientList();
-			updatePatternList();
-			itemSelected(0);
-			qApp->restoreOverrideCursor();
+			fmtCode++;
+			fmt = LoadSavePlugin::getFormatById(fmtCode);
 		}
+		allFormats += "*.sce *.SCE ";
+		formats.append("Scribus Objects (*.sce *.SCE)");
+		QString form1 = "";
+		QString form2 = "";
+		QStringList imgFormats;
+		bool jpgFound = false;
+		bool tiffFound = false;
+		for (int i = 0; i < QImageReader::supportedImageFormats().count(); ++i )
+		{
+			form1 = QString(QImageReader::supportedImageFormats().at(i)).toLower();
+			form2 = QString(QImageReader::supportedImageFormats().at(i)).toUpper();
+			if ((form1 == "png") || (form1 == "xpm") || (form1 == "gif"))
+			{
+				formats.append(form2 + " (*."+form1+" *."+form2+")");
+				allFormats += "*."+form1+" *."+form2+" ";
+				imgFormats.append(form1);
+			}
+			else if ((form1 == "jpg") || (form1 == "jpeg"))
+			{
+				// JPEG is a special case because both .jpg and .jpeg
+				// are acceptable extensions.
+				if (!jpgFound)
+				{
+					formats.append("JPEG (*.jpg *.jpeg *.JPG *.JPEG)");
+					allFormats += "*.jpg *.jpeg *.JPG *.JPEG ";
+					imgFormats.append("jpeg");
+					imgFormats.append("jpg");
+					jpgFound = true;
+				}
+			}
+			else if ((form1 == "tif") || (form1 == "tiff"))
+			{
+				if (!tiffFound)
+				{
+					formats.append("TIFF (*.tif *.tiff *.TIF *.TIFF)");
+					allFormats += "*.tif *.tiff *.TIF *.TIFF ";
+					imgFormats.append("tif");
+					imgFormats.append("tiff");
+					tiffFound = true;
+				}
+			}
+			else if (form1 != "svg")
+			{
+				imgFormats.append(form1);
+				allFormats += "*."+form1+" *."+form2+" ";
+			}
+		}
+		if (!tiffFound)
+		{
+			formats.append("TIFF (*.tif *.tiff *.TIF *.TIFF)");
+			allFormats += "*.tif *.tiff *.TIF *.TIFF ";
+		}
+		if (!jpgFound)
+		{
+			formats.append("JPEG (*.jpg *.jpeg *.JPG *.JPEG)");
+			allFormats += "*.jpg *.jpeg *.JPG *.JPEG ";
+		}
+		formats.append("PSD (*.psd *.PSD)");
+		formats.append("Gimp Patterns (*.pat *.PAT)");
+		allFormats += "*.psd *.PSD ";
+		allFormats += "*.pat *.PAT);;";
+		imgFormats.append("tif");
+		imgFormats.append("tiff");
+		imgFormats.append("pat");
+		imgFormats.append("psd");
+	//	imgFormats.append("pdf");
+		imgFormats.append("eps");
+		imgFormats.append("epsi");
+		imgFormats.append("ps");
+		qSort(formats);
+		allFormats += formats.join(";;");
+		PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+		QString wdir = dirs->get("patterns", ".");
+		CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdHidePreviewCheckBox | fdExistingFiles | fdDisableOk);
+		if (dia.exec() != QDialog::Accepted)
+			return;
+		fileName = dia.selectedFile();
+		if (fileName.isEmpty())
+			return;
+		qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
+		PrefsManager::instance()->prefsFile->getContext("dirs")->set("patterns", fileName.left(fileName.lastIndexOf("/")));
+		QFileInfo fi(fileName);
+		if ((fi.suffix().toLower() == "sce") || (!imgFormats.contains(fi.suffix().toLower())))
+		{
+			loadVectors(fileName);
+		}
+		else
+		{
+			QString patNam = fi.baseName().trimmed().simplified().replace(" ", "_");
+			ScPattern pat = ScPattern();
+			pat.setDoc(m_doc);
+			pat.setPattern(fileName);
+			if (!dialogPatterns.contains(patNam))
+			{
+				dialogPatterns.insert(patNam, pat);
+				origNamesPatterns.insert(patNam, patNam);
+			}
+		}
+		updateColorList();
+		updateGradientList();
+		updatePatternList();
+		itemSelected(nullptr);
+		qApp->restoreOverrideCursor();
 	}
 }
 
@@ -1274,7 +1275,7 @@ void ColorsAndFillsDialog::loadPatternDir()
 				QString ext = fi.suffix().toLower();
 				if ((ext == "sce") || (!formats.contains(ext)))
 					continue;
-				else if (formats.contains(ext))
+				if (formats.contains(ext))
 				{
 					QString patNam = fi.baseName().trimmed().simplified().replace(" ", "_");
 					if (!dialogPatterns.contains(patNam))
@@ -1298,7 +1299,7 @@ void ColorsAndFillsDialog::loadPatternDir()
 	}
 }
 
-void ColorsAndFillsDialog::loadVectors(QString data)
+void ColorsAndFillsDialog::loadVectors(const QString& data)
 {
 	int storedPageNum = m_doc->currentPageNumber();
 	int storedContentsX = m_doc->view()->contentsX();
@@ -1324,7 +1325,7 @@ void ColorsAndFillsDialog::loadVectors(QString data)
 	if (fi.suffix().toLower() == "sce")
 	{
 		ScriXmlDoc ss;
-		ss.ReadElem(data, PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts, m_doc, m_doc->currentPage()->xOffset(), m_doc->currentPage()->yOffset(), true, true, PrefsManager::instance()->appPrefs.fontPrefs.GFontSub);
+		ss.readElem(data, PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts, m_doc, m_doc->currentPage()->xOffset(), m_doc->currentPage()->yOffset(), true, true, PrefsManager::instance()->appPrefs.fontPrefs.GFontSub);
 	}
 	else
 	{
@@ -1334,9 +1335,9 @@ void ColorsAndFillsDialog::loadVectors(QString data)
 		if ((testResult != -1) && (testResult >= FORMATID_FIRSTUSER))
 		{
 			const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-			if( fmt )
+			if (fmt)
 			{
-				fmt->setupTargets(m_doc, 0, mainWin, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+				fmt->setupTargets(m_doc, nullptr, mainWin, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 				fmt->loadFile(data, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted|LoadSavePlugin::lfKeepPatterns|LoadSavePlugin::lfLoadAsPattern);
 			}
 		}
@@ -1422,14 +1423,12 @@ void ColorsAndFillsDialog::loadVectors(QString data)
 	m_doc->view()->setContentsPos(static_cast<int>(storedContentsX * storedViewScale), static_cast<int>(storedContentsY * storedViewScale));
 }
 
-bool ColorsAndFillsDialog::isMandatoryColor(QString colorName)
+bool ColorsAndFillsDialog::isMandatoryColor(const QString& colorName)
 {
 	if (colorName == "Black" || colorName == "White")
 		return true;
 	ScColor color = m_colorList.value(colorName, ScColor());
-	if (color.isRegistrationColor())
-		return true;
-	return false;
+	return color.isRegistrationColor();
 }
 
 QString ColorsAndFillsDialog::getColorTooltip(const ScColor& color)
@@ -1463,7 +1462,7 @@ ColorList ColorsAndFillsDialog::getGradientColors()
 	for (itg = dialogGradients.begin(); itg != dialogGradients.end(); ++itg)
 	{
 		QList<VColorStop*> cstops = itg.value().colorStops();
-		for (uint cst = 0; cst < itg.value().Stops(); ++cst)
+		for (int cst = 0; cst < itg.value().stops(); ++cst)
 		{
 			if ((!colorList.contains(cstops.at(cst)->name)) && (cstops.at(cst)->name != CommonStrings::None))
 				colorList.insert(cstops.at(cst)->name, m_colorList[cstops.at(cst)->name]);
@@ -1500,19 +1499,19 @@ ColorList ColorsAndFillsDialog::getGradientColors()
 				}
 			}
 			QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-			for (uint cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 			{
 				if ((!colorList.contains(cstops.at(cst)->name)) && (cstops.at(cst)->name != CommonStrings::None))
 					colorList.insert(cstops.at(cst)->name, m_colorList[cstops.at(cst)->name]);
 			}
 			cstops = ite->stroke_gradient.colorStops();
-			for (uint cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 			{
 				if ((!colorList.contains(cstops.at(cst)->name)) && (cstops.at(cst)->name != CommonStrings::None))
 					colorList.insert(cstops.at(cst)->name, m_colorList[cstops.at(cst)->name]);
 			}
 			cstops = ite->mask_gradient.colorStops();
-			for (uint cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 			{
 				if ((!colorList.contains(cstops.at(cst)->name)) && (cstops.at(cst)->name != CommonStrings::None))
 					colorList.insert(cstops.at(cst)->name, m_colorList[cstops.at(cst)->name]);
@@ -1523,13 +1522,13 @@ ColorList ColorsAndFillsDialog::getGradientColors()
 	return colorList;
 }
 
-void ColorsAndFillsDialog::updateGradientColors(QString newName, QString oldName)
+void ColorsAndFillsDialog::updateGradientColors(const QString& newName, const QString& oldName)
 {
 	QHash<QString,VGradient>::Iterator itg;
 	for (itg = dialogGradients.begin(); itg != dialogGradients.end(); ++itg)
 	{
 		QList<VColorStop*> cstops = itg.value().colorStops();
-		for (uint cst = 0; cst < itg.value().Stops(); ++cst)
+		for (int cst = 0; cst < itg.value().stops(); ++cst)
 		{
 			if (oldName == cstops.at(cst)->name)
 			{
@@ -1576,7 +1575,7 @@ void ColorsAndFillsDialog::updateGradientColors(QString newName, QString oldName
 				}
 			}
 			QList<VColorStop*> cstops = ite->fill_gradient.colorStops();
-			for (uint cst = 0; cst < ite->fill_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->fill_gradient.stops(); ++cst)
 			{
 				if (oldName == cstops.at(cst)->name)
 				{
@@ -1585,7 +1584,7 @@ void ColorsAndFillsDialog::updateGradientColors(QString newName, QString oldName
 				}
 			}
 			cstops = ite->stroke_gradient.colorStops();
-			for (uint cst = 0; cst < ite->stroke_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->stroke_gradient.stops(); ++cst)
 			{
 				if (oldName == cstops.at(cst)->name)
 				{
@@ -1594,7 +1593,7 @@ void ColorsAndFillsDialog::updateGradientColors(QString newName, QString oldName
 				}
 			}
 			cstops = ite->mask_gradient.colorStops();
-			for (uint cst = 0; cst < ite->mask_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < ite->mask_gradient.stops(); ++cst)
 			{
 				if (oldName == cstops.at(cst)->name)
 				{
@@ -1609,7 +1608,7 @@ void ColorsAndFillsDialog::updateGradientColors(QString newName, QString oldName
 	m_doc->PageColors = colorListBack;
 }
 
-void ColorsAndFillsDialog::loadGimpFormat(QString fileName)
+void ColorsAndFillsDialog::loadGimpFormat(const QString& fileName)
 {
 	QFile f(fileName);
 	if (f.open(QIODevice::ReadOnly))
@@ -1758,17 +1757,17 @@ void ColorsAndFillsDialog::addGimpColor(QString &colorName, double r, double g, 
 	}
 }
 
-void ColorsAndFillsDialog::loadScribusFormat(QString fileName)
+void ColorsAndFillsDialog::loadScribusFormat(const QString& fileName)
 {
 	QFile f(fileName);
-	if(!f.open(QIODevice::ReadOnly))
+	if (!f.open(QIODevice::ReadOnly))
 		return;
 	QDomDocument docu("scridoc");
 	QTextStream ts(&f);
 	ts.setCodec("UTF-8");
 	QString errorMsg;
 	int errorLine = 0, errorColumn = 0;
-	if( !docu.setContent(ts.readAll(), &errorMsg, &errorLine, &errorColumn) )
+	if (!docu.setContent(ts.readAll(), &errorMsg, &errorLine, &errorColumn) )
 	{
 		f.close();
 		return;
@@ -1778,7 +1777,7 @@ void ColorsAndFillsDialog::loadScribusFormat(QString fileName)
 	if (elem.tagName() != "SCRIBUSGRADIENT")
 		return;
 	QDomNode DOC = elem.firstChild();
-	while(!DOC.isNull())
+	while (!DOC.isNull())
 	{
 		QDomElement dc = DOC.toElement();
 		if (dc.tagName()=="COLOR")
@@ -1840,7 +1839,7 @@ void ColorsAndFillsDialog::loadScribusFormat(QString fileName)
 			VGradient gra = VGradient(VGradient::linear);
 			gra.clearStops();
 			QDomNode grad = dc.firstChild();
-			while(!grad.isNull())
+			while (!grad.isNull())
 			{
 				QDomElement stop = grad.toElement();
 				QString name = stop.attribute("NAME");
@@ -1931,7 +1930,7 @@ void ColorsAndFillsDialog::loadDefaults(QTreeWidgetItem* item)
 	updateColorList();
 	updateGradientList();
 	updatePatternList();
-	itemSelected(0);
+	itemSelected(nullptr);
 }
 
 void ColorsAndFillsDialog::saveDefaults()
@@ -1949,7 +1948,7 @@ void ColorsAndFillsDialog::saveDefaults()
 	delete dia;
 }
 
-void ColorsAndFillsDialog::doSaveDefaults(QString name, bool changed)
+void ColorsAndFillsDialog::doSaveDefaults(const QString& name, bool changed)
 {
 	QString filename = name;
 	filename.replace(" ", "_");
@@ -1962,11 +1961,11 @@ void ColorsAndFillsDialog::doSaveDefaults(QString name, bool changed)
 		s_doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 		s_doc->setPage(100, 100, 0, 0, 0, 0, 0, 0, false, false);
 		s_doc->addPage(0);
-		s_doc->setGUI(false, mainWin, 0);
+		s_doc->setGUI(false, mainWin, nullptr);
 		s_doc->PageColors = m_colorList;
 		s_doc->setGradients(dialogGradients);
 		s_doc->setPatterns(dialogPatterns);
-		fmt->setupTargets(s_doc, 0, mainWin, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+		fmt->setupTargets(s_doc, nullptr, mainWin, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 		fmt->savePalette(filename);
 		delete s_doc;
 	}

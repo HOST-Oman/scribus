@@ -45,8 +45,8 @@ for which a new license (GPL+exception) is in place.
 
 PropertiesPalette_XYZ::PropertiesPalette_XYZ( QWidget* parent) : QWidget(parent)
 {
-	m_ScMW=0;
-	m_doc=0;
+	m_ScMW=nullptr;
+	m_doc=nullptr;
 	m_haveDoc  = false;
 	m_haveItem = false;
 	m_lineMode = false;
@@ -524,13 +524,11 @@ void PropertiesPalette_XYZ::handleSelectionChanged()
 		case PageItem::ImageFrame:
 		case PageItem::LatexFrame:
 		case PageItem::OSGFrame:
-#ifdef HAVE_OSG
 			if (currItem->asOSGFrame())
 			{
 				setEnabled(true);
 				rotationSpin->setEnabled(false);
 			}
-#endif
 			break;
 		case PageItem::Line:
 			basePointWidget->setEnabled(false);
@@ -1237,16 +1235,15 @@ void PropertiesPalette_XYZ::handleNewName()
 
 void PropertiesPalette_XYZ::installSniffer(ScrSpinBox *spinBox)
 {
-	const QList<QObject*> list = spinBox->children();
-	if (!list.isEmpty())
+	const QList<QObject*>& list = spinBox->children();
+	if (list.isEmpty())
+		return;
+	QListIterator<QObject*> it(list);
+	QObject *obj;
+	while (it.hasNext())
 	{
-		QListIterator<QObject*> it(list);
-		QObject *obj;
-		while (it.hasNext())
-		{
-			obj = it.next();
-			obj->installEventFilter(userActionSniffer);
-		}
+		obj = it.next();
+		obj->installEventFilter(userActionSniffer);
 	}
 }
 

@@ -217,7 +217,7 @@ void ShapeView::startDrag(Qt::DropActions supportedActions)
 		m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 		m_Doc->setPage(w, h, 0, 0, 0, 0, 0, 0, false, false);
 		m_Doc->addPage(0);
-		m_Doc->setGUI(false, scMW, 0);
+		m_Doc->setGUI(false, scMW, nullptr);
 		int z = m_Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, m_Doc->currentPage()->xOffset(), m_Doc->currentPage()->yOffset(), w, h, m_Doc->itemToolPrefs().shapeLineWidth, m_Doc->itemToolPrefs().shapeFillColor, m_Doc->itemToolPrefs().shapeLineColor);
 		PageItem* ite = m_Doc->Items->at(z);
 		ite->PoLine = shapes[key].path.copy();
@@ -231,7 +231,7 @@ void ShapeView::startDrag(Qt::DropActions supportedActions)
 		ite->ClipEdited = true;
 		ite->FrameType = 3;
 		m_Doc->m_Selection->addItem(ite, true);
-		ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, m_Doc->m_Selection);
+		ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, m_Doc->m_Selection);
 		QDrag* dr = new QDrag(this);
 		dr->setMimeData(md);
 		dr->setPixmap(currentItem()->icon().pixmap(QSize(48, 48)));
@@ -277,7 +277,7 @@ void ShapeView::updateShapeList()
 	}
 }
 
-ShapePalette::ShapePalette( QWidget* parent) : ScDockPalette( parent, "Shap", 0)
+ShapePalette::ShapePalette( QWidget* parent) : ScDockPalette( parent, "Shap", nullptr)
 {
 	setMinimumSize( QSize( 220, 240 ) );
 	setObjectName(QString::fromLocal8Bit("Shap"));
@@ -317,7 +317,7 @@ void ShapePalette::writeToPrefs()
 {
 	QString prFile = QDir::toNativeSeparators(PrefsManager::instance()->preferencesLocation()+"/scribusshapes.xml");
 	QFile f(prFile);
-	if(!f.open(QIODevice::WriteOnly))
+	if (!f.open(QIODevice::WriteOnly))
 		return;
 	QDomDocument docu = QDomDocument("svgdoc");
 	QString vo = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n";

@@ -11,8 +11,8 @@ for which a new license (GPL+exception) is in place.
 #include "scribus.h"
 #include "smtablestylewidget.h"
 
-SMTableStyleWidget::SMTableStyleWidget(QWidget *parent) : QWidget(),
-	m_Doc(0)
+SMTableStyleWidget::SMTableStyleWidget(QWidget *parent) :
+	m_Doc(nullptr)
 {
 	setupUi(this);
 
@@ -62,7 +62,7 @@ void SMTableStyleWidget::show(TableStyle *tableStyle, QList<TableStyle> &tableSt
 		return;
 	parentCombo->setEnabled(!tableStyle->isDefaultStyle());
 	const TableStyle *parent = dynamic_cast<const TableStyle*>(tableStyle->parentStyle());
-	bool hasParent =  tableStyle->hasParent() && parent != 0 && parent->hasName() && tableStyle->parent() != "";
+	bool hasParent =  tableStyle->hasParent() && parent != nullptr && parent->hasName() && tableStyle->parent() != "";
 	if (hasParent)
 	{
 		fillColor->setCurrentText(tableStyle->fillColor(), tableStyle->isInhFillColor());
@@ -124,8 +124,7 @@ void SMTableStyleWidget::showColors(const QList<TableStyle*> &tableStyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = tableStyles[i]->fillShade();
+		d = tableStyles[i]->fillShade();
 	}
 	if (d == -30000)
 		fillShade->setText( tr("Shade"));
@@ -140,8 +139,7 @@ void SMTableStyleWidget::showColors(const QList<TableStyle*> &tableStyles)
 			s = emptyString;
 			break;
 		}
-		else
-			s = tableStyles[i]->fillColor();
+		s = tableStyles[i]->fillColor();
 	}
 	if (s.isEmpty())
 	{

@@ -98,8 +98,8 @@ protected:
 	ScGuardedPtr<ScribusDoc> m_styledTextDoc;
 
 public:
-	const StoryText&  styledText(void) const { return m_styledText; }
-	const ScribusDoc* document(void)   const { return m_styledTextDoc; }
+	const StoryText&  styledText() const { return m_styledText; }
+	const ScribusDoc* document()   const { return m_styledTextDoc; }
 
 	void  setStyledText(const StoryText& text, ScribusDoc* doc)
 	{
@@ -121,7 +121,7 @@ SideBar::SideBar(QWidget *pa) : QLabel(pa)
 	setPalette(pal);
 	offs = 0;
 	currentPar = 0;
-	editor = 0;
+	editor = nullptr;
 	noUpdt = true;
 	inRep = false;
 	pmen = new QMenu(this);
@@ -311,14 +311,14 @@ void SEditor::inputMethodEvent(QInputMethodEvent *event)
 	SuspendContentsChange = 1;	// prevent our handler from doing anything
 	bool changed = false;
 	int pos;
-	if(textCursor().hasSelection())
+	if (textCursor().hasSelection())
 	{
 		pos =  textCursor().selectionStart();
 		StyledText.removeChars(pos, textCursor().selectionEnd() - pos);
 		changed = true;
 	}
 	pos = -1;
-	if(!uc.isEmpty())
+	if (!uc.isEmpty())
 	{
 		pos = textCursor().hasSelection() ? textCursor().selectionStart() : textCursor().position();
 		pos = qMin(pos, StyledText.length());
@@ -326,12 +326,12 @@ void SEditor::inputMethodEvent(QInputMethodEvent *event)
 	}
 	QTextEdit::inputMethodEvent(event);
 	SuspendContentsChange = 0;
-	if(pos >= 0)
+	if (pos >= 0)
 	{
 		handleContentsChange(pos, 0, uc.length());
 		changed = true;
 	}
-	if(changed)
+	if (changed)
 	{
 		emit SideBarUp(true);
 		emit SideBarUpdate();
@@ -482,7 +482,7 @@ void SEditor::handleContentsChange(int position, int charsRemoved, int charsAdde
 {
 	// As of Qt 4.7.4, Cococa-QTextEdit output of input method is broken.
 	// We need a workaround to avoit the bug.
-	if(SuspendContentsChange != 0)
+	if (SuspendContentsChange != 0)
 		return;
 	if (blockContentsChangeHook <= 0)
 	{
@@ -717,7 +717,7 @@ void SEditor::loadItemText(PageItem *currItem)
 	//SelParaStart = 0;
 }
 
-void SEditor::loadText(QString tx, PageItem *currItem)
+void SEditor::loadText(const QString& tx, PageItem *currItem)
 {
 	setTextColor(Qt::black);
 	setUpdatesEnabled(false);
@@ -1087,9 +1087,8 @@ void SEditor::paste()
 
 bool SEditor::canInsertFromMimeData( const QMimeData * source ) const
 {
-	if (source->hasText() || source->hasFormat("application/x-scribus-styledtext"))
-		return true;
-	return false;
+	return (source->hasText() || source->hasFormat("application/x-scribus-styledtext"));
+
 }
 
 QMimeData* SEditor::createMimeDataFromSelection () const
@@ -1160,7 +1159,7 @@ void SToolBColorF::changeEvent(QEvent *e)
 		languageChange();
 	}
 	else
-		QWidget::changeEvent(e);
+		QToolBar::changeEvent(e);
 }
 
 
@@ -1226,7 +1225,7 @@ void SToolBColorS::changeEvent(QEvent *e)
 		languageChange();
 	}
 	else
-		QWidget::changeEvent(e);
+		QToolBar::changeEvent(e);
 }
 
 void SToolBColorS::languageChange()
@@ -1298,7 +1297,7 @@ void SToolBStyle::changeEvent(QEvent *e)
 		languageChange();
 	}
 	else
-		QWidget::changeEvent(e);
+		QToolBar::changeEvent(e);
 }
 
 void SToolBStyle::languageChange()
@@ -1408,7 +1407,7 @@ void SToolBAlign::changeEvent(QEvent *e)
 		languageChange();
 	}
 	else
-		QWidget::changeEvent(e);
+		QToolBar::changeEvent(e);
 }
 
 void SToolBAlign::languageChange()
@@ -1430,7 +1429,7 @@ void SToolBAlign::SetDirection(int s)
 	QSignalBlocker sigBlocker(GroupDirection);
 }
 
-void SToolBAlign::SetParaStyle(QString s)
+void SToolBAlign::SetParaStyle(const QString& s)
 {
 	QSignalBlocker sigBlocker(paraStyleCombo);
 	paraStyleCombo->setFormat(s);
@@ -1483,7 +1482,7 @@ void SToolBFont::changeEvent(QEvent *e)
 		languageChange();
 	}
 	else
-		QWidget::changeEvent(e);
+		QToolBar::changeEvent(e);
 }
 
 void SToolBFont::languageChange()
@@ -1494,7 +1493,7 @@ void SToolBFont::languageChange()
 	charScaleV->setToolTip( tr("Scaling height of characters"));
 }
 
-void SToolBFont::SetFont(QString f)
+void SToolBFont::SetFont(const QString& f)
 {
 	QSignalBlocker sigBlocker(Fonts);
 	setCurrentComboItem(Fonts, f);
@@ -1588,7 +1587,7 @@ void StoryEditor::showEvent(QShowEvent *)
 	charSelect = new CharSelect(this);
 	charSelect->userTableModel()->setCharactersAndFonts(ScCore->primaryMainWindow()->charPalette->userTableModel()->characters(), ScCore->primaryMainWindow()->charPalette->userTableModel()->fonts());
 	connect(charSelect, SIGNAL(insertSpecialChar()), this, SLOT(slot_insertSpecialChar()));
-	connect(charSelect, SIGNAL(insertUserSpecialChar(QChar, QString)), this, SLOT(slot_insertUserSpecialChar(QChar, QString)));
+	connect(charSelect, SIGNAL(insertUserSpecialChar(QChar,QString)), this, SLOT(slot_insertUserSpecialChar(QChar,QString)));
 
 	m_smartSelection = prefsManager->appPrefs.storyEditorPrefs.smartTextSelection;
 	seActions["settingsSmartTextSelection"]->setChecked(m_smartSelection);
@@ -2069,49 +2068,49 @@ void StoryEditor::languageChange()
 
 void StoryEditor::disconnectSignals()
 {
-	disconnect(Editor,0,0,0);
-	disconnect(Editor->document(), 0,0,0);
-	disconnect(EditorBar,0,0,0);
-	disconnect(AlignTools,0,0,0);
-	disconnect(FillTools,0,0,0);
-	disconnect(FontTools,0,0,0);
-	disconnect(StrokeTools,0,0,0);
-	disconnect(StyleTools,0,0,0);
+	Editor->disconnect();
+	Editor->document()->disconnect();
+	EditorBar->disconnect();
+	AlignTools->disconnect();
+	FillTools->disconnect();
+	FontTools->disconnect();
+	StrokeTools->disconnect();
+	StyleTools->disconnect();
 }
 
 void StoryEditor::connectSignals()
 {
 	connect(Editor, SIGNAL(textChanged()), this, SLOT(modifiedText()));
 //	connect(Editor, SIGNAL(clicked(int, int)), this, SLOT(updateProps(int, int)));
-	connect(Editor, SIGNAL(setProps(int, int)), this, SLOT(updateProps(int, int)));
+	connect(Editor, SIGNAL(setProps(int,int)), this, SLOT(updateProps(int, int)));
 	connect(Editor, SIGNAL(cursorPositionChanged()), this, SLOT(updateProps()));
-	connect(Editor, SIGNAL(copyAvailable(bool)), this, SLOT(CopyAvail(bool )));
+	connect(Editor, SIGNAL(copyAvailable(bool)), this, SLOT(CopyAvail(bool)));
 	connect(Editor, SIGNAL(PasteAvail()), this, SLOT(PasteAvail()));
-	connect(Editor, SIGNAL(contentsMoving(int, int)), EditorBar, SLOT(doMove(int, int )));
+	connect(Editor, SIGNAL(contentsMoving(int,int)), EditorBar, SLOT(doMove(int,int )));
 	connect(Editor, SIGNAL(textChanged()), EditorBar, SLOT(doRepaint()));
-	connect(Editor, SIGNAL(SideBarUp(bool )), EditorBar, SLOT(setRepaint(bool )));
-	connect(Editor, SIGNAL(SideBarUpdate( )), EditorBar, SLOT(doRepaint()));
-	connect(Editor->document(), SIGNAL(contentsChange(int, int, int)), Editor, SLOT(handleContentsChange(int, int, int)));
+	connect(Editor, SIGNAL(SideBarUp(bool)), EditorBar, SLOT(setRepaint(bool )));
+	connect(Editor, SIGNAL(SideBarUpdate()), EditorBar, SLOT(doRepaint()));
+	connect(Editor->document(), SIGNAL(contentsChange(int,int,int)), Editor, SLOT(handleContentsChange(int,int,int)));
 	Editor->SuspendContentsChange = 0;
 	// 10/12/2004 - pv - #1203: wrong selection on double click
 //	connect(Editor, SIGNAL(doubleClicked(int, int)), this, SLOT(doubleClick(int, int)));
-	connect(EditorBar, SIGNAL(ChangeStyle(int, const QString& )), this, SLOT(changeStyleSB(int, const QString&)));
+	connect(EditorBar, SIGNAL(ChangeStyle(int, const QString&)), this, SLOT(changeStyleSB(int, const QString&)));
 //	connect(EditorBar, SIGNAL(sigEditStyles()), this, SLOT(slotEditStyles()));
 	connect(AlignTools, SIGNAL(newParaStyle(const QString&)), this, SLOT(newStyle(const QString&)));
 	connect(AlignTools, SIGNAL(newAlign(int)), this, SLOT(newAlign(int)));
 	connect(AlignTools, SIGNAL(newDirection(int)), this, SLOT(newDirection(int)));
-	connect(FillTools, SIGNAL(NewColor(int, int)), this, SLOT(newTxFill(int, int)));
-	connect(StrokeTools, SIGNAL(NewColor(int, int)), this, SLOT(newTxStroke(int, int)));
-	connect(FontTools, SIGNAL(newSize(double )), this, SLOT(newTxSize(double)));
-	connect(FontTools, SIGNAL(newFont(const QString& )), this, SLOT(newTxFont(const QString& )));
-	connect(FontTools, SIGNAL(newScaleH(double )), this, SLOT(newTxScale()));
-	connect(FontTools, SIGNAL(newScaleV(double )), this, SLOT(newTxScaleV()));
-	connect(StyleTools, SIGNAL(NewKern(double )), this, SLOT(newTxKern(double )));
-	connect(StyleTools, SIGNAL(newStyle(int )), this, SLOT(newTxStyle(int )));
-	connect(StyleTools, SIGNAL(NewShadow(double, double)), this, SLOT(newShadowOffs(double, double)));
-	connect(StyleTools, SIGNAL(newOutline(double )), this, SLOT(newTxtOutline(double )));
-	connect(StyleTools, SIGNAL(newUnderline(double, double)), this, SLOT(newTxtUnderline(double, double)));
-	connect(StyleTools, SIGNAL(newStrike(double, double )), this, SLOT(newTxtStrike(double, double)));
+	connect(FillTools, SIGNAL(NewColor(int,int)), this, SLOT(newTxFill(int,int)));
+	connect(StrokeTools, SIGNAL(NewColor(int,int)), this, SLOT(newTxStroke(int,int)));
+	connect(FontTools, SIGNAL(newSize(double)), this, SLOT(newTxSize(double)));
+	connect(FontTools, SIGNAL(newFont(const QString&)), this, SLOT(newTxFont(const QString&)));
+	connect(FontTools, SIGNAL(newScaleH(double)), this, SLOT(newTxScale()));
+	connect(FontTools, SIGNAL(newScaleV(double)), this, SLOT(newTxScaleV()));
+	connect(StyleTools, SIGNAL(NewKern(double)), this, SLOT(newTxKern(double)));
+	connect(StyleTools, SIGNAL(newStyle(int)), this, SLOT(newTxStyle(int)));
+	connect(StyleTools, SIGNAL(NewShadow(double,double)), this, SLOT(newShadowOffs(double,double)));
+	connect(StyleTools, SIGNAL(newOutline(double)), this, SLOT(newTxtOutline(double)));
+	connect(StyleTools, SIGNAL(newUnderline(double,double)), this, SLOT(newTxtUnderline(double,double)));
+	connect(StyleTools, SIGNAL(newStrike(double,double)), this, SLOT(newTxtStrike(double,double)));
 }
 
 void StoryEditor::setCurrentDocumentAndItem(ScribusDoc *doc, PageItem *item)
@@ -2148,8 +2147,9 @@ void StoryEditor::setCurrentDocumentAndItem(ScribusDoc *doc, PageItem *item)
 		Editor->clear();
 		setWindowTitle( tr( "Story Editor" ));
 	}
-	if (!QApplication::clipboard()->text(QClipboard::Clipboard).isNull())
-		seActions["editPaste"]->setEnabled(true);
+
+	QString clipboardText = QApplication::clipboard()->text(QClipboard::Clipboard);
+	seActions["editPaste"]->setEnabled(!clipboardText.isEmpty());
 }
 
 void StoryEditor::setSpellActive(bool ssa)
@@ -2298,7 +2298,7 @@ void StoryEditor::setBackPref()
 void StoryEditor::setFontPref()
 {
 	m_blockUpdate = true;
-	Editor->setFont( QFontDialog::getFont( 0, Editor->font(), this ) );
+	Editor->setFont( QFontDialog::getFont( nullptr, Editor->font(), this ) );
 	prefsManager->appPrefs.storyEditorPrefs.guiFont = Editor->font().toString();
 	EditorBar->doRepaint();
 	m_blockUpdate = false;
@@ -2334,7 +2334,7 @@ void StoryEditor::newTxStroke(int c, int s)
 
 void StoryEditor::newTxFont(const QString &f)
 {
-	if(!m_doc->UsedFonts.contains(f)) {
+	if (!m_doc->UsedFonts.contains(f)) {
 		if (!m_doc->AddFont(f)) {
 //, prefsManager->appPrefs.AvailFonts[f]->Font)) {
 			FontTools->Fonts->RebuildList(m_doc);
@@ -2725,7 +2725,7 @@ void StoryEditor::Do_insSp()
 	charSelectUsed = true;
 	if (charSelect->isVisible())
 		return;
-	charSelect->setEnabled(true, 0);
+	charSelect->setEnabled(true, nullptr);
 	charSelect->setDoc(m_doc);
 	charSelect->show();
 }
@@ -2748,7 +2748,7 @@ void StoryEditor::slot_insertSpecialChar()
 	m_blockUpdate = false;
 }
 
-void StoryEditor::slot_insertUserSpecialChar(QChar c, QString)
+void StoryEditor::slot_insertUserSpecialChar(QChar c, const QString&)
 {
 	m_blockUpdate = true;
 	Editor->insertPlainText(c);
@@ -2934,9 +2934,9 @@ void StoryEditor::updateTextFrame()
 //#if 0
 	if (m_item->asTextFrame())
 	{
-		while (nextItem != 0)
+		while (nextItem != nullptr)
 		{
-			if (nextItem->prevInChain() != 0)
+			if (nextItem->prevInChain() != nullptr)
 				nextItem = nextItem->prevInChain();
 			else
 				break;
@@ -3375,7 +3375,7 @@ void StoryEditor::LoadTextFile()
 		CustomFDialog dia(this, wdir, tr("Open"), tr("Text Files (*.txt);;All Files (*)"), fdExistingFiles | fdShowCodecs | fdDisableOk);
 		if (dia.exec() != QDialog::Accepted)
 			return;
-		LoadEnc = dia.TxCodeM->currentText();
+		LoadEnc = dia.optionCombo->currentText();
 		if (LoadEnc == "UTF-16")
 			LoadEnc = "ISO-10646-UCS-2";
 		fileName =  dia.selectedFile();
@@ -3414,7 +3414,7 @@ void StoryEditor::SaveTextFile()
 		m_blockUpdate = false;
 		return;
 	}
-	LoadEnc = dia.TxCodeM->currentText();
+	LoadEnc = dia.optionCombo->currentText();
 	if (LoadEnc == "UTF-16")
 		LoadEnc = "ISO-10646-UCS-2";
 	fileName =  dia.selectedFile();

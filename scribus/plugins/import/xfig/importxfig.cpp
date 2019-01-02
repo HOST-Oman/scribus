@@ -49,9 +49,6 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 
-
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
 XfigPlug::XfigPlug(ScribusDoc* doc, int flags)
 {
 	tmpSel=new Selection(this, false);
@@ -61,7 +58,7 @@ XfigPlug::XfigPlug(ScribusDoc* doc, int flags)
 	progressDialog = nullptr;
 }
 
-QImage XfigPlug::readThumbnail(QString fName)
+QImage XfigPlug::readThumbnail(const QString& fName)
 {
 	QFileInfo fi = QFileInfo(fName);
 	baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
@@ -80,7 +77,7 @@ QImage XfigPlug::readThumbnail(QString fName)
 	m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 	m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
 	m_Doc->addPage(0);
-	m_Doc->setGUI(false, ScCore->primaryMainWindow(), 0);
+	m_Doc->setGUI(false, ScCore->primaryMainWindow(), nullptr);
 	baseX = m_Doc->currentPage()->xOffset();
 	baseY = m_Doc->currentPage()->yOffset();
 	Elements.clear();
@@ -180,19 +177,15 @@ QImage XfigPlug::readThumbnail(QString fName)
 		delete m_Doc;
 		return tmpImage;
 	}
-	else
-	{
-		QDir::setCurrent(CurDirP);
-		m_Doc->DoDrawing = true;
-		m_Doc->scMW()->setScriptRunning(false);
-		delete m_Doc;
-	}
+	QDir::setCurrent(CurDirP);
+	m_Doc->DoDrawing = true;
+	m_Doc->scMW()->setScriptRunning(false);
+	delete m_Doc;
 	return QImage();
 }
 
-bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
+bool XfigPlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
-	QString fName = fNameIn;
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 	importerFlags = flags;
@@ -262,7 +255,7 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 	CustColors.insert("Pink2", ScColor(255, 192, 192));
 	CustColors.insert("Pink", ScColor(255, 224, 224));
 	CustColors.insert("Gold", ScColor(255, 215, 0));
-	QFileInfo fi = QFileInfo(fName);
+	QFileInfo fi = QFileInfo(fNameIn);
 	if ( !ScCore->usingGUI() )
 	{
 		interactive = false;
@@ -271,7 +264,7 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 	baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
 	if ( showProgress )
 	{
-		ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 		progressDialog = new MultiProgressDialog( tr("Importing: %1").arg(fi.fileName()), CommonStrings::tr_Cancel, mw );
 		QStringList barNames, barTexts;
 		barNames << "GI";
@@ -298,7 +291,7 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 		progressDialog->setOverallProgress(1);
 		qApp->processEvents();
 	}
-	parseHeader(fName, x, y, b, h);
+	parseHeader(fNameIn, x, y, b, h);
 	docX = x;
 	docY = y;
 	if (b == 0.0)
@@ -359,7 +352,7 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString CurDirP = QDir::currentPath();
 	QDir::setCurrent(fi.path());
-	if (convert(fName))
+	if (convert(fNameIn))
 	{
 		tmpSel->clear();
 		QDir::setCurrent(CurDirP);
@@ -393,7 +386,7 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 			else
 			{
 				m_Doc->DragP = true;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 				m_Doc->m_Selection->delaySignalsOn();
 				for (int dre=0; dre<Elements.count(); ++dre)
@@ -401,7 +394,7 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 					tmpSel->addItem(Elements.at(dre), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				m_Doc->m_Selection->delaySignalsOff();
@@ -410,7 +403,7 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 				TransactionSettings* transacSettings = new TransactionSettings(trSettings);
 				m_Doc->view()->handleObjectImport(md, transacSettings);
 				m_Doc->DragP = false;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 			}
 		}
@@ -445,12 +438,11 @@ bool XfigPlug::import(QString fNameIn, const TransactionSettings& trSettings, in
 
 XfigPlug::~XfigPlug()
 {
-	if (progressDialog)
-		delete progressDialog;
+	delete progressDialog;
 	delete tmpSel;
 }
 
-bool XfigPlug::parseHeader(QString fName, double &x, double &y, double &b, double &h)
+bool XfigPlug::parseHeader(const QString& fName, double &x, double &y, double &b, double &h)
 {
 	bool found = false;
 	QFile f(fName);
@@ -767,11 +759,11 @@ void XfigPlug::processArrows(int forward_arrow, QString fArrowData, int backward
 	}
 }
 
-void XfigPlug::processPolyline(QDataStream &ts, QString data)
+void XfigPlug::processPolyline(QDataStream &ts, const QString& data)
 {
 	QString tmp = data;
-	QString fArrowData = "";
-	QString bArrowData = "";
+	QString fArrowData;
+	QString bArrowData;
 	int		command;
 	int		subtype;				// (1: polyline, 2: box, 3: polygon, 4: arc-box, 5: imported-picture bounding-box)
 	int		line_style;				// (enumeration type)
@@ -904,7 +896,7 @@ void XfigPlug::processPolyline(QDataStream &ts, QString data)
 	}
 }
 
-void XfigPlug::processSpline(QDataStream &ts, QString data)
+void XfigPlug::processSpline(QDataStream &ts, const QString& data)
 {
 	QString tmp = data;
 	QString fArrowData = "";
@@ -1022,7 +1014,7 @@ void XfigPlug::processSpline(QDataStream &ts, QString data)
 	}
 }
 
-void XfigPlug::processArc(QDataStream &ts, QString data)
+void XfigPlug::processArc(QDataStream &ts, const QString& data)
 {
 	QString tmp = data;
 	QString fArrowData = "";
@@ -1144,7 +1136,7 @@ void XfigPlug::processArc(QDataStream &ts, QString data)
 	}
 }
 
-void XfigPlug::processEllipse(QString data)
+void XfigPlug::processEllipse(const QString& data)
 {
 	QString tmp = data;
 	int		command;			// (always 1)
@@ -1204,10 +1196,10 @@ void XfigPlug::processEllipse(QString data)
 	}
 }
 
-QString XfigPlug::cleanText(QString text)
+QString XfigPlug::cleanText(const QString& text)
 {
-	QString ret = "";
-	QString tmp = "";
+	QString ret;
+	QString tmp;
 	bool sep = false;
 	int sepcount = 0;
 	for (int a = 1; a < text.count(); ++a)
@@ -1252,7 +1244,7 @@ QString XfigPlug::cleanText(QString text)
 	return ret;
 }
 
-void XfigPlug::processText(QString data)
+void XfigPlug::processText(const QString& data)
 {
 	QString tmp = data;
 	int		command;			// (always 4)
@@ -1520,7 +1512,7 @@ void XfigPlug::processText(QString data)
 	}
 }
 
-void XfigPlug::processData(QDataStream &ts, QString data)
+void XfigPlug::processData(QDataStream &ts, const QString& data)
 {
 	QString tmp = data;
 	int command, subtype;
@@ -1590,7 +1582,7 @@ double XfigPlug::fig2Pts(double in)
 	return in / 1200.0 * 72.0;
 }
 
-bool XfigPlug::convert(QString fn)
+bool XfigPlug::convert(const QString& fn)
 {
 	QString tmp;
 	CurrColorFill = "White";
@@ -1615,7 +1607,7 @@ bool XfigPlug::convert(QString fn)
 	QList<PageItem*> gElements;
 	groupStack.push(gElements);
 	currentItemNr = 0;
-	if(progressDialog)
+	if (progressDialog)
 	{
 		progressDialog->setOverallProgress(2);
 		progressDialog->setLabel("GI", tr("Generating Items"));

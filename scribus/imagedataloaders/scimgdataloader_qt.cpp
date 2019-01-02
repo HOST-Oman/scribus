@@ -12,12 +12,12 @@ for which a new license (GPL+exception) is in place.
 #include "scimgdataloader_qt.h"
 #include "util_formats.h"
 
-ScImgDataLoader_QT::ScImgDataLoader_QT(void) : ScImgDataLoader()
+ScImgDataLoader_QT::ScImgDataLoader_QT()
 {
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_QT::initSupportedFormatList(void)
+void ScImgDataLoader_QT::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	QList<QByteArray> fmtList = QImageReader::supportedImageFormats();
@@ -51,9 +51,9 @@ bool ScImgDataLoader_QT::loadPicture(const QString& fn, int /*page*/, int /*res*
 		m_imageInfoRecord.exifDataValid = false;
 		float xres = m_image.dotsPerMeterX() * 0.0254;
 		float yres = m_image.dotsPerMeterY() * 0.0254;
-		if( xres <= 1.0 || xres > 3000.0 )
+		if (xres <= 1.0 || xres > 3000.0)
 			xres = 72.0;
-		if( yres <= 1.0 || yres > 3000.0 )
+		if (yres <= 1.0 || yres > 3000.0)
 			yres = 72.0;
 		int resInf = m_imageInfoRecord.lowResType;
 		m_imageInfoRecord.colorspace = ColorSpaceRGB;

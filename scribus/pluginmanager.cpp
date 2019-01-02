@@ -36,11 +36,8 @@ for which a new license (GPL+exception) is in place.
 #include <QLibrary>
 #endif
 
-
-extern ScribusQApp *ScQApp;
-
 PluginManager::PluginManager() :
-	QObject(0),
+	QObject(nullptr),
 	prefs(PrefsManager::instance()->prefsFile->getPluginContext("pluginmanager"))
 {
 }
@@ -49,7 +46,7 @@ PluginManager::~PluginManager()
 {
 }
 
-void* PluginManager::loadDLL( QString plugin )
+void* PluginManager::loadDLL( const QString& plugin )
 {
 	void* lib = nullptr;
 #ifdef HAVE_DLFCN_H
@@ -120,7 +117,7 @@ void PluginManager::savePreferences()
 		prefs->set(it.value().pluginName, it.value().enableOnStartup);
 }
 
-QString PluginManager::getPluginName(QString fileName)
+QString PluginManager::getPluginName(const QString& fileName)
 {
 	// Must return plugin name. Note that this may be platform dependent;
 	// it's likely to need some adjustment for platform naming schemes.
@@ -143,7 +140,7 @@ QString PluginManager::getPluginName(QString fileName)
 	return baseName.toLatin1();
 }
 
-int PluginManager::initPlugin(const QString fileName)
+int PluginManager::initPlugin(const QString& fileName)
 {
 	PluginData pda;
 	pda.pluginFile = QString("%1/%2").arg(ScPaths::instance().pluginDir(), fileName);
@@ -152,8 +149,8 @@ int PluginManager::initPlugin(const QString fileName)
 		// Couldn't determine plugname from filename. We've already complained, so
 		// move on to the next one.
 		return 0;
-	pda.plugin = 0;
-	pda.pluginDLL = 0;
+	pda.plugin = nullptr;
+	pda.pluginDLL = nullptr;
 	pda.enabled = false;
 	pda.enableOnStartup = prefs->getBool(pda.pluginName, false);
 	ScCore->setSplashStatus( tr("Plugin: loading %1", "plugin manager").arg(pda.pluginName));
@@ -278,7 +275,7 @@ void PluginManager::enablePlugin(PluginData & pda)
 bool PluginManager::setupPluginActions(ScribusMainWindow *mw)
 {
 	Q_CHECK_PTR(mw);
-	ScActionPlugin* plugin = 0;
+	ScActionPlugin* plugin = nullptr;
 
 	//mw->scrMenuMgr->addMenuItemString("SEPARATOR", "Extras");
 	for (PluginMap::Iterator it = pluginMap.begin(); it != pluginMap.end(); ++it)
@@ -369,7 +366,7 @@ bool PluginManager::setupPluginActions(ScribusMainWindow *mw)
 bool PluginManager::setupPluginActions(StoryEditor *sew)
 {
 	Q_CHECK_PTR(sew);
-	ScActionPlugin* plugin = 0;
+	ScActionPlugin* plugin = nullptr;
 
 	//sew->seMenuMgr->addMenuSeparator("Extras");
 	for (PluginMap::Iterator it = pluginMap.begin(); it != pluginMap.end(); ++it)
@@ -431,7 +428,7 @@ bool PluginManager::setupPluginActions(StoryEditor *sew)
 void PluginManager::enableOnlyStartupPluginActions(ScribusMainWindow* mw)
 {
 	Q_CHECK_PTR(mw);
-	ScActionPlugin* plugin = 0;
+	ScActionPlugin* plugin = nullptr;
 	for (PluginMap::Iterator it = pluginMap.begin(); it != pluginMap.end(); ++it)
 	{
 		if (it.value().plugin->inherits("ScActionPlugin"))
@@ -452,8 +449,8 @@ void PluginManager::enablePluginActionsForSelection(ScribusMainWindow* mw)
 	if (!doc)
 		return;
 
-	ScActionPlugin* ixplug = 0;
-	ScrAction* pluginAction = 0;
+	ScActionPlugin* ixplug = nullptr;
+	ScrAction* pluginAction = nullptr;
 	for (PluginMap::Iterator it = pluginMap.begin(); it != pluginMap.end(); ++it)
 	{
 		if (it.value().plugin->inherits("ScActionPlugin"))
@@ -464,7 +461,7 @@ void PluginManager::enablePluginActionsForSelection(ScribusMainWindow* mw)
 			{
 				ScActionPlugin::ActionInfo ai(ixplug->actionInfo());
 				pluginAction = mw->scrActions[ai.name];
-				if (pluginAction != 0)
+				if (pluginAction != nullptr)
 				{
 					if (doc->m_Selection->count() != 0)
 						pluginAction->setEnabled(ixplug->handleSelection(doc, doc->m_Selection->itemAt(0)->itemType()));
@@ -476,7 +473,7 @@ void PluginManager::enablePluginActionsForSelection(ScribusMainWindow* mw)
 	}
 }
 
-bool PluginManager::DLLexists(QString name, bool includeDisabled) const
+bool PluginManager::DLLexists(const QString& name, bool includeDisabled) const
 {
 	// the plugin name must be known
 	if (pluginMap.contains(name))
@@ -487,8 +484,7 @@ bool PluginManager::DLLexists(QString name, bool includeDisabled) const
 			// and the plugin must be enabled unless we were told otherwise
 			if (pluginMap[name].enabled)
 				return true;
-			else
-				return includeDisabled;
+			return includeDisabled;
 		}
 	}
 	return false;
@@ -501,10 +497,10 @@ bool PluginManager::loadPlugin(PluginData & pda)
 	getPluginAPIVersionPtr getPluginAPIVersion;
 	getPluginPtr getPlugin;
 
-	Q_ASSERT(pda.plugin == 0);
-	Q_ASSERT(pda.pluginDLL == 0);
+	Q_ASSERT(pda.plugin == nullptr);
+	Q_ASSERT(pda.pluginDLL == nullptr);
 	Q_ASSERT(!pda.enabled);
-	pda.plugin = 0;
+	pda.plugin = nullptr;
 
 	pda.pluginDLL = loadDLL(pda.pluginFile);
 	if (!pda.pluginDLL)
@@ -538,7 +534,7 @@ bool PluginManager::loadPlugin(PluginData & pda)
 		}
 	}
 	unloadDLL(pda.pluginDLL);
-	pda.pluginDLL = 0;
+	pda.pluginDLL = nullptr;
 	Q_ASSERT(!pda.plugin);
 	return false;
 }
@@ -562,13 +558,13 @@ void PluginManager::finalizePlug(PluginData & pluginData)
 			(freePluginPtr) resolveSym(pluginData.pluginDLL, QString(pluginData.pluginName + "_freePlugin").toLocal8Bit().data());
 		if ( freePlugin )
 			(*freePlugin)( pluginData.plugin );
-		pluginData.plugin = 0;
+		pluginData.plugin = nullptr;
 	}
 	Q_ASSERT(!pluginData.enabled);
 	if (pluginData.pluginDLL)
 	{
 		unloadDLL(pluginData.pluginDLL);
-		pluginData.pluginDLL = 0;
+		pluginData.pluginDLL = nullptr;
 	}
 }
 
@@ -640,9 +636,9 @@ void PluginManager::changeEvent(QEvent *e)
 
 void PluginManager::languageChange()
 {
-	ScPlugin* plugin = 0;
-	ScActionPlugin* ixplug = 0;
-	ScrAction* pluginAction = 0;
+	ScPlugin* plugin = nullptr;
+	ScActionPlugin* ixplug = nullptr;
+	ScrAction* pluginAction = nullptr;
 	for (PluginMap::Iterator it = pluginMap.begin(); it != pluginMap.end(); ++it)
 	{
 		plugin = it.value().plugin;
@@ -654,7 +650,7 @@ void PluginManager::languageChange()
 			{
 				ScActionPlugin::ActionInfo ai(ixplug->actionInfo());
 				pluginAction = ScCore->primaryMainWindow()->scrActions[ai.name];
-				if (pluginAction != 0)
+				if (pluginAction != nullptr)
 					pluginAction->setText( ai.text );
 				if ((!ai.menu.isEmpty()) && (!ai.subMenuName.isEmpty()))
 					ScCore->primaryMainWindow()->scrMenuMgr->setText(ai.menu, ai.subMenuName);
@@ -667,7 +663,7 @@ ScPlugin* PluginManager::getPlugin(const QString & pluginName, bool includeDisab
 {
 	if (DLLexists(pluginName, includeDisabled))
 		return pluginMap[pluginName].plugin;
-	return 0;
+	return nullptr;
 }
 
 PluginManager & PluginManager::instance()

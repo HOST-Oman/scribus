@@ -153,7 +153,7 @@ void PropertyWidget_Advanced::disconnectSignals()
     disconnect(fontFallBackSize		, SIGNAL(valueChanged(double)), this, SLOT(handleFontFallBackSize(double)));
 }
 
-void PropertyWidget_Advanced::configureWidgets(void)
+void PropertyWidget_Advanced::configureWidgets()
 {
 	bool enabled = false;
 	if (m_item && m_doc)

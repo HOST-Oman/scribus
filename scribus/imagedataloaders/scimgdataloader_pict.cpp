@@ -42,7 +42,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 
-ScImgDataLoader_PICT::ScImgDataLoader_PICT(void) : ScImgDataLoader(),
+ScImgDataLoader_PICT::ScImgDataLoader_PICT() :
 	m_baseX(0),
 	m_baseY(0),
 	m_docWidth(0),
@@ -62,7 +62,7 @@ ScImgDataLoader_PICT::ScImgDataLoader_PICT(void) : ScImgDataLoader(),
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_PICT::initSupportedFormatList(void)
+void ScImgDataLoader_PICT::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	m_supportedFormats.append( "pct" );
@@ -83,7 +83,7 @@ void ScImgDataLoader_PICT::loadEmbeddedProfile(const QString& fn, int /*page*/)
 	m_profileComponents = 0;
 }
 
-void ScImgDataLoader_PICT::parseHeader(QString fName, double &x, double &y, double &w, double &h)
+void ScImgDataLoader_PICT::parseHeader(const QString& fName, double &x, double &y, double &w, double &h)
 {
 	QFile f(fName);
 	if (f.open(QIODevice::ReadOnly))
@@ -822,7 +822,7 @@ void ScImgDataLoader_PICT::handlePolygon(QDataStream &ts, quint16 opCode)
 		fillBrush = setFillPattern();
 	else
 		fillBrush = QBrush(m_foreColor);
-	for(unsigned i = 0; i < polySize; i += 4)
+	for (unsigned i = 0; i < polySize; i += 4)
 	{
 		ts >> y >> x;
 		m_Coords.lineTo(x, y);
@@ -1165,7 +1165,7 @@ void ScImgDataLoader_PICT::handleDHVText(QDataStream &ts)
 	alignStreamToWord(ts, 0);
 }
 
-void ScImgDataLoader_PICT::createTextPath(QByteArray textString)
+void ScImgDataLoader_PICT::createTextPath(const QByteArray& textString)
 {
 	QTextCodec *codec = QTextCodec::codecForName("Apple Roman");
 	QString string = codec->toUnicode(textString);
@@ -1174,7 +1174,7 @@ void ScImgDataLoader_PICT::createTextPath(QByteArray textString)
 		textFont = QFont();
 	else
 	{
-		QString fontName = m_fontMap[m_currentFontID];
+		QString fontName(m_fontMap[m_currentFontID]);
 		textFont = QFont(fontName, m_currentTextSize);
 //		QFontInfo inf(textFont);
 //		qDebug() << "Using Font" << inf.family() << "for" << fontName;
@@ -1705,17 +1705,17 @@ QByteArray ScImgDataLoader_PICT::decodeRLE(QByteArray &in, quint16 bytesPerLine,
 	quint16 count = 0;
 	uchar c, c2;
 	quint16 len;
-	while( count < in.size() )
+	while (count < in.size())
 	{
 		c = *ptrIn++;
 		count++;
 		len = c;
-		if( len < 128 )
+		if (len < 128)
 		{
 			// Copy next len+1 bytes literally.
 			len++;
 			len *= multByte;
-			while( len != 0 )
+			while (len != 0)
 			{
 				*ptrOut++ = *ptrIn++;
 				len--;
@@ -1728,7 +1728,7 @@ QByteArray ScImgDataLoader_PICT::decodeRLE(QByteArray &in, quint16 bytesPerLine,
 				}
 			}
 		}
-		else if( len > 128 )
+		else if (len > 128)
 		{
 			// Next -len+1 bytes in the dest are replicated from next source byte.
 			// (Interpret len as a negative 8-bit int.)
@@ -1741,7 +1741,7 @@ QByteArray ScImgDataLoader_PICT::decodeRLE(QByteArray &in, quint16 bytesPerLine,
 				count++;
 				c2 = *ptrIn++;
 				count++;
-				while( len != 0 )
+				while (len != 0)
 				{
 					*ptrOut++ = c;
 					*ptrOut++ = c2;
@@ -1753,14 +1753,14 @@ QByteArray ScImgDataLoader_PICT::decodeRLE(QByteArray &in, quint16 bytesPerLine,
 			{
 				c = *ptrIn++;
 				count++;
-				while( len != 0 )
+				while (len != 0)
 				{
 					*ptrOut++ = c;
 					len--;
 				}
 			}
 		}
-		else if( len == 128 )
+		else if (len == 128)
 		{
 			// No-op.
 		}

@@ -40,23 +40,21 @@ FT_Library FtFace::m_library = nullptr;
    unicode emulate: spaces, hyphen, ligatures?, diacritics?
  *****/
 
-FtFace::FtFace(QString fam, QString sty, QString vari, QString scname, 
-			   QString psname, QString path, int face, QStringList features)
-: ScFaceData(),
-	m_face(nullptr),
-	m_isBold(false),
-	m_isItalic(false),
-	m_encoding(0.0),
-	m_uniEM(0.0),
-	m_ascent(0.0),
-	m_descent(0.0),
-	m_height(0.0),
-	m_xHeight(0.0),
-	m_capHeight(0.0),
-	m_maxAdvanceWidth(0.0),
-	m_underlinePos(0.0),
-	m_strikeoutPos(0.0),
-	m_strokeWidth(0.0)
+FtFace::FtFace(const QString& fam, const QString& sty, const QString& vari, const QString& scname, const QString& psname, const QString& path, int face, const QStringList& features)
+	: 	m_face(nullptr),
+	  m_isBold(false),
+	  m_isItalic(false),
+	  m_encoding(0.0),
+	  m_uniEM(0.0),
+	  m_ascent(0.0),
+	  m_descent(0.0),
+	  m_height(0.0),
+	  m_xHeight(0.0),
+	  m_capHeight(0.0),
+	  m_maxAdvanceWidth(0.0),
+	  m_underlinePos(0.0),
+	  m_strikeoutPos(0.0),
+	  m_strokeWidth(0.0)
 {
 	family = fam;
 	style = sty;
@@ -66,10 +64,9 @@ FtFace::FtFace(QString fam, QString sty, QString vari, QString scname,
 	fontFile = path;
 	faceIndex = face;
 	fontFeatures = features;
-	if (!m_library) {
+	if (!m_library)
 		if (FT_Init_FreeType( &m_library ))
 			sDebug(QObject::tr("Freetype2 library not available"));
-	}
 }
 
 
@@ -78,16 +75,18 @@ FtFace::~FtFace() {
 }
 
 
-FT_Face FtFace::ftFace() const {
-	if (!m_face) {
-		if (FT_New_Face( m_library, QFile::encodeName(fontFile), faceIndex, & m_face )) {
+FT_Face FtFace::ftFace() const
+{
+	if (!m_face)
+	{
+		if (FT_New_Face( m_library, QFile::encodeName(fontFile), faceIndex, & m_face ))
+		{
 			status = ScFace::BROKEN;
 			m_face = nullptr;
 			sDebug(QObject::tr("Font %1(%2) is broken").arg(fontFile).arg(faceIndex));
 		}
-		else {
+		else
 			load();
-		}
 	}
 	return m_face;
 }
@@ -97,7 +96,8 @@ void FtFace::load() const
 	ScFaceData::load();
 
 	if (!m_face) {
-		if (FT_New_Face( m_library, QFile::encodeName(fontFile), faceIndex, & m_face )) {
+		if (FT_New_Face( m_library, QFile::encodeName(fontFile), faceIndex, & m_face ))
+		{
 			status = ScFace::BROKEN;
 			m_face = nullptr;
 			sDebug(QObject::tr("Font %1(%2) is broken").arg(fontFile).arg(faceIndex));
@@ -317,7 +317,7 @@ bool FtFace::hasMicrosoftUnicodeCmap(FT_Face face)
 }
 
 
-bool FtFace::glyphNames(ScFace::FaceEncoding& GList) const
+bool FtFace::glyphNames(ScFace::FaceEncoding& glyphList) const
 {
 	char buf[50];
 	FT_ULong  charcode;
@@ -330,7 +330,7 @@ bool FtFace::glyphNames(ScFace::FaceEncoding& GList) const
 	const bool hasPSNames = FT_HAS_GLYPH_NAMES(face);
 	
 //	qDebug() << "reading metrics for" << face->family_name << face->style_name;
-	charcode = FT_Get_First_Char(face, &gindex );
+	charcode = FT_Get_First_Char(face, &gindex);
 	while (gindex != 0)
 	{
 		bool notfound = true;
@@ -347,9 +347,9 @@ bool FtFace::glyphNames(ScFace::FaceEncoding& GList) const
 		else
 			glEncoding.glyphName = QString(reinterpret_cast<char*>(buf));
 		glEncoding.toUnicode = QString().sprintf("%04lX", charcode);
-		GList.insert(gindex, glEncoding);
+		glyphList.insert(gindex, glEncoding);
 
-		charcode = FT_Get_Next_Char(face, charcode, &gindex );
+		charcode = FT_Get_Next_Char(face, charcode, &gindex);
 	}
 
 	if (!hasPSNames)
@@ -359,34 +359,34 @@ bool FtFace::glyphNames(ScFace::FaceEncoding& GList) const
 	int maxSlot1 = face->num_glyphs;
 	for (int gindex = 1; gindex < maxSlot1; ++gindex)
 	{
-		if (GList.contains(gindex))
+		if (glyphList.contains(gindex))
 			continue;
 		if (FT_Get_Glyph_Name(face, gindex, &buf, 50))
 			continue;
-		QString glyphname(reinterpret_cast<char*>(buf));
+		QString glyphName(reinterpret_cast<char*>(buf));
 
 		charcode = 0;
-		ScFace::FaceEncoding::Iterator gli;
-		for (gli = GList.begin(); gli != GList.end(); ++gli)
+		for (auto gli = glyphList.cbegin(); gli != glyphList.cend(); ++gli)
 		{
-			if (glyphname == gli.value().glyphName)
+			const ScFace::GlyphEncoding& glEncoding = gli.value();
+			if (glyphName == glEncoding.glyphName)
 			{
-				charcode = gli.value().charcode;
+				charcode = glEncoding.charcode;
 				break;
 			}
 		}
 //		qDebug() << "\tmore: " << gindex << " '" << charcode << "' --> '" << buf << "'";
 		ScFace::GlyphEncoding glEncoding;
 		glEncoding.charcode  = static_cast<ScFace::ucs4_type>(charcode);
-		glEncoding.glyphName = glyphname;
+		glEncoding.glyphName = glyphName;
 		glEncoding.toUnicode = QString().sprintf("%04lX", charcode);
-		if ((charcode == 0) && glyphname.startsWith("uni"))
+		if ((charcode == 0) && glyphName.startsWith("uni"))
 		{
-			QString uniHexStr = uniGlyphNameToUnicode(glyphname);
+			QString uniHexStr = uniGlyphNameToUnicode(glyphName);
 			if (uniHexStr.length() > 0)
 				glEncoding.toUnicode = uniHexStr;
 		}
-		GList.insert(gindex, glEncoding);
+		glyphList.insert(gindex, glEncoding);
 	}
 
 	return true;

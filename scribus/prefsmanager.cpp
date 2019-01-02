@@ -63,13 +63,12 @@ for which a new license (GPL+exception) is in place.
 #include "ui/modetoolbar.h"
 #include "ui/prefs_keyboardshortcuts.h"
 
-extern ScribusQApp* ScQApp;
 extern bool emergencyActivated;
 
-PrefsManager* PrefsManager::m_instance = 0;
+PrefsManager* PrefsManager::m_instance = nullptr;
 
 PrefsManager::PrefsManager(QObject *parent) : QObject(parent),
-	prefsFile(0),
+	prefsFile(nullptr),
 	m_importingFrom12(false),
 	m_firstTimeIgnoreOldPrefs(false)
 {
@@ -83,7 +82,7 @@ PrefsManager::~PrefsManager()
 
 PrefsManager* PrefsManager::instance()
 {
-	if (m_instance == 0)
+	if (m_instance == nullptr)
 		m_instance = new PrefsManager();
 
 	return m_instance;
@@ -91,9 +90,8 @@ PrefsManager* PrefsManager::instance()
 
 void PrefsManager::deleteInstance()
 {
-	if (m_instance)
-		delete m_instance;
-	m_instance = 0;
+	delete m_instance;
+	m_instance = nullptr;
 }
 
 
@@ -149,7 +147,7 @@ void PrefsManager::initDefaults()
 	SCFonts& availableFonts = appPrefs.fontPrefs.AvailFonts;
 	for (int i = 0; i < defaultFonts.count(); ++i)
 	{
-		QString defCandidate = defaultFonts.at(i);
+		const QString& defCandidate = defaultFonts.at(i);
 		if (availableFonts.contains(defCandidate))
 		{
 			appPrefs.itemToolPrefs.textFont = defCandidate;
@@ -793,24 +791,24 @@ bool PrefsManager::copyOldAppConfigAndData()
 
 	//Move plugin data files to new plugin data file directory
 	QDir oldPluginData(ScPaths::preferencesDir() + "/plugins");
-	QFileInfoList filPluginData(oldPluginData.entryInfoList());
-	foreach (const QFileInfo &fiP, filPluginData)
+	const QFileInfoList filPluginData(oldPluginData.entryInfoList());
+	for (const QFileInfo &fiP : filPluginData)
 		moveFile(fiP.absoluteFilePath(), ScPaths::pluginDataDir(true) + fiP.fileName());
 
 	//Move scrapbook files to new scrapbook directory
 	QDir oldScrapData(ScPaths::preferencesDir() + "/scrapbook");
-	QFileInfoList filScrapData(oldScrapData.entryInfoList());
-	foreach (const QFileInfo &fiS, filScrapData)
+	const QFileInfoList filScrapData(oldScrapData.entryInfoList());
+	for (const QFileInfo &fiS : filScrapData)
 		moveFile(fiS.absoluteFilePath(), ScPaths::scrapbookDir(true) + fiS.fileName());
 
 	//Move swatch files to new palette directory
 	QDir oldPaletteData(ScPaths::preferencesDir() + "/swatches");
-	QFileInfoList filPaletteData(oldPaletteData.entryInfoList());
-	foreach (const QFileInfo &fiPal, filPaletteData)
+	const QFileInfoList filPaletteData(oldPaletteData.entryInfoList());
+	for (const QFileInfo &fiPal : filPaletteData)
 		moveFile(fiPal.absoluteFilePath(), ScPaths::userPaletteFilesDir(true) + fiPal.fileName());
-	QDir oldPaletteData2=ScPaths::preferencesDir() + "/palettes";
-	QFileInfoList filPaletteData2(oldPaletteData2.entryInfoList());
-	foreach (const QFileInfo &fiPal, filPaletteData2)
+	QDir oldPaletteData2 = ScPaths::preferencesDir() + "/palettes";
+	const QFileInfoList filPaletteData2(oldPaletteData2.entryInfoList());
+	for (const QFileInfo &fiPal : filPaletteData2)
 		moveFile(fiPal.absoluteFilePath(), ScPaths::userPaletteFilesDir(true) + fiPal.fileName());
 
 	//Now make copies for 1.3 use and leave the old ones alone for <1.3.0 usage
@@ -930,7 +928,7 @@ void PrefsManager::setupMainWindow(ScribusMainWindow* mw)
 		QFileInfo fd(appPrefs.uiPrefs.RecentDocs[m]);
 		if (fd.exists())
 		{
-			mw->RecentDocs.append(appPrefs.uiPrefs.RecentDocs[m]);
+			mw->m_recentDocsList.append(appPrefs.uiPrefs.RecentDocs[m]);
 			//#9845: ScCore->fileWatcher->addFile(appPrefs.uiPrefs.RecentDocs[m]);
 		}
 	}
@@ -1023,10 +1021,10 @@ void PrefsManager::SavePrefs()
 	appPrefs.uiPrefs.mainWinSettings.maximized = ScCore->primaryMainWindow()->isMaximized();
 	appPrefs.uiPrefs.mainWinState = ScCore->primaryMainWindow()->saveState();
 	appPrefs.uiPrefs.RecentDocs.clear();
-	uint max = qMin(appPrefs.uiPrefs.recentDocCount, ScCore->primaryMainWindow()->RecentDocs.count());
+	uint max = qMin(appPrefs.uiPrefs.recentDocCount, ScCore->primaryMainWindow()->m_recentDocsList.count());
 	for (uint m = 0; m < max; ++m)
 	{
-		appPrefs.uiPrefs.RecentDocs.append(ScCore->primaryMainWindow()->RecentDocs[m]);
+		appPrefs.uiPrefs.RecentDocs.append(ScCore->primaryMainWindow()->m_recentDocsList[m]);
 	}
 	ScCore->primaryMainWindow()->getDefaultPrinter(appPrefs.printerPrefs.PrinterName, appPrefs.printerPrefs.PrinterFile, appPrefs.printerPrefs.PrinterCommand);
 	SavePrefsXML();
@@ -1240,12 +1238,12 @@ QStringList PrefsManager::toolColorNames(const struct ItemToolPrefs& settings)
 	return names;
 }
 
-void PrefsManager::replaceToolColors(const QMap<QString, QString> replaceMap)
+void PrefsManager::replaceToolColors(const QMap<QString, QString>& replaceMap)
 {
 	replaceToolColors(appPrefs.itemToolPrefs, replaceMap);
 }
 
-void PrefsManager::replaceToolColors(struct ItemToolPrefs& settings, const QMap<QString, QString> replaceMap)
+void PrefsManager::replaceToolColors(struct ItemToolPrefs& settings, const QMap<QString, QString>& replaceMap)
 {
 	if (replaceMap.contains(settings.textColor))
 		settings.textColor = replaceMap[settings.textColor];
@@ -1309,6 +1307,7 @@ void PrefsManager::setColorSet(const ColorList& colorSet)
 	if (!tmpSet.contains(brushCpen2) && brushCpen2 != CommonStrings::None)
 		tmpSet[brushCpen2] = appPrefs.colorPrefs.DColors[brushCpen2];
 	appPrefs.colorPrefs.DColors = tmpSet;
+	appPrefs.colorPrefs.DColors.ensureDefaultColors();
 }
 
 void PrefsManager::setColorSetName(const QString& colorSetName)
@@ -1370,7 +1369,7 @@ bool PrefsManager::showPageShadow() const
 	return appPrefs.displayPrefs.showPageShadow;
 }
 
-bool PrefsManager::WritePref(QString ho)
+bool PrefsManager::WritePref(const QString& ho)
 {
 	QDomDocument docu("scribusrc");
 	QString st="<SCRIBUSRC></SCRIBUSRC>";
@@ -1762,8 +1761,8 @@ bool PrefsManager::WritePref(QString ho)
 	dcExternalTools.setAttribute("LatexResolution", latexResolution());
 	dcExternalTools.setAttribute("LatexForceDpi", static_cast<int>(appPrefs.extToolPrefs.latexForceDpi));
 	dcExternalTools.setAttribute("LatexStartWithEmptyFrames", static_cast<int>(appPrefs.extToolPrefs.latexStartWithEmptyFrames));
-	QStringList configs = latexConfigs();
-	foreach (const QString& config, configs)
+	const QStringList configs = latexConfigs();
+	for (const QString& config : configs)
 	{
 		QDomElement domConfig = docu.createElement("LatexConfig");
 		domConfig.setAttribute("file", config);
@@ -1940,7 +1939,7 @@ bool PrefsManager::WritePref(QString ho)
 	return result;
 }
 
-bool PrefsManager::ReadPref(QString ho)
+bool PrefsManager::ReadPref(const QString& ho)
 {
 	QDomDocument docu("scridoc");
 	QFile f(ho);
@@ -1982,7 +1981,7 @@ bool PrefsManager::ReadPref(QString ho)
 	QDomNode DOC=elem.firstChild();
 	if (!DOC.namedItem("CheckProfile").isNull())
 		appPrefs.verifierPrefs.checkerPrefsList.clear();
-	while(!DOC.isNull())
+	while (!DOC.isNull())
 	{
 		ScDomElement dc = DOC.toElement();
 
@@ -1999,7 +1998,7 @@ bool PrefsManager::ReadPref(QString ho)
 			appPrefs.uiPrefs.useSmallWidgets = dc.attribute("UseSmallWidgets").toInt();
 			appPrefs.uiPrefs.useTabs = static_cast<bool>(dc.attribute("UseDocumentTabs", "0").toInt());
 			appPrefs.uiPrefs.stickyTools = static_cast<bool>(dc.attribute("StickyTools", "0").toInt());
-			appPrefs.uiPrefs.grayscaleIcons = static_cast<bool>(dc.attribute("UseGrayscaleIcons",0).toInt());
+			appPrefs.uiPrefs.grayscaleIcons = static_cast<bool>(dc.attribute("UseGrayscaleIcons",nullptr).toInt());
 			appPrefs.uiPrefs.iconSet = dc.attribute("IconSet", "1_5_0");
 		}
 
@@ -2231,11 +2230,11 @@ bool PrefsManager::ReadPref(QString ho)
 			if (dc.hasAttribute("FontFace"))
 			{
 				QString tmpf=dc.attribute("FontFace");
-				QString newFont = "";
+				QString newFont;
 				if (!appPrefs.fontPrefs.AvailFonts.contains(tmpf) || !appPrefs.fontPrefs.AvailFonts[tmpf].usable())
 				{
 					ScCore->showSplash(false);
-					MissingFont *dia = new MissingFont(0, tmpf, 0);
+					MissingFont *dia = new MissingFont(nullptr, tmpf, nullptr);
 					dia->exec();
 					newFont = dia->getReplacementFont();
 					delete dia;
@@ -2306,7 +2305,7 @@ bool PrefsManager::ReadPref(QString ho)
 			appPrefs.scrapbookPrefs.writePreviews = static_cast<bool>(dc.attribute("WritePreviews", "1").toInt());
 			appPrefs.scrapbookPrefs.numScrapbookCopies = dc.attribute("ScrapbookCopies", "10").toInt();
 			QDomNode scrp = dc.firstChild();
-			while(!scrp.isNull())
+			while (!scrp.isNull())
 			{
 				QDomElement scrpElem = scrp.toElement();
 				if (scrpElem.tagName() == "Recent")
@@ -2326,7 +2325,7 @@ bool PrefsManager::ReadPref(QString ho)
 			if  (!PGS.namedItem("PageNames").isNull())
 			{
 				appPrefs.pageSets.clear();
-				while(!PGS.isNull())
+				while (!PGS.isNull())
 				{
 					QDomElement PgsAttr = PGS.toElement();
 					if(PgsAttr.tagName() == "Set")
@@ -2341,7 +2340,7 @@ bool PrefsManager::ReadPref(QString ho)
 //						pageS.GapBelow = PgsAttr.attribute("GapBelow", "0").toDouble();
 						pageS.pageNames.clear();
 						QDomNode PGSN = PGS.firstChild();
-						while(!PGSN.isNull())
+						while (!PGSN.isNull())
 						{
 							QDomElement PgsAttrN = PGSN.toElement();
 							if(PgsAttrN.tagName() == "PageNames")
@@ -2453,7 +2452,7 @@ bool PrefsManager::ReadPref(QString ho)
 		{
 			bool gsa1 = testGSAvailability(dc.attribute("Ghostscript", "gs"));
 			bool gsa2 = testGSAvailability(ghostscriptExecutable());
-			if( (gsa1 == true) || (gsa2 == false) )
+			if( (gsa1) || (!gsa2) )
 				setGhostscriptExecutable(dc.attribute("Ghostscript", "gs"));
 			appPrefs.extToolPrefs.gs_AntiAliasText = static_cast<bool>(dc.attribute("GhostscriptAntiAliasText", "0").toInt());
 			appPrefs.extToolPrefs.gs_AntiAliasGraphics = static_cast<bool>(dc.attribute("GhostscriptAntiAliasGraphics", "0").toInt());
@@ -2496,7 +2495,7 @@ bool PrefsManager::ReadPref(QString ho)
 			appPrefs.hyphPrefs.Automatic = static_cast<bool>(dc.attribute("Automatic", "1").toInt());
 			appPrefs.hyphPrefs.AutoCheck = static_cast<bool>(dc.attribute("AutomaticCheck", "1").toInt());
 			QDomNode hyelm = dc.firstChild();
-			while(!hyelm.isNull())
+			while (!hyelm.isNull())
 			{
 				QDomElement hyElem = hyelm.toElement();
 				if (hyElem.tagName()=="Exception")
@@ -2613,7 +2612,7 @@ bool PrefsManager::ReadPref(QString ho)
 			appPrefs.pdfPrefs.openAction = dc.attribute("OpenAction", "");
 			QDomNode PFO = DOC.firstChild();
 			appPrefs.pdfPrefs.LPISettings.clear();
-			while(!PFO.isNull())
+			while (!PFO.isNull())
 			{
 				QDomElement pdfF = PFO.toElement();
 				if(pdfF.tagName() == "LPI")
@@ -2631,7 +2630,7 @@ bool PrefsManager::ReadPref(QString ho)
 		{
 			QDomNode DIA = DOC.firstChild();
 			appPrefs.itemAttrPrefs.defaultItemAttributes.clear();
-			while(!DIA.isNull())
+			while (!DIA.isNull())
 			{
 				QDomElement itemAttr = DIA.toElement();
 				if(itemAttr.tagName() == "ItemAttribute")
@@ -2653,7 +2652,7 @@ bool PrefsManager::ReadPref(QString ho)
 		{
 			QDomNode TOC = DOC.firstChild();
 			appPrefs.tocPrefs.defaultToCSetups.clear();
-			while(!TOC.isNull())
+			while (!TOC.isNull())
 			{
 				QDomElement tocElem = TOC.toElement();
 				if(tocElem.tagName() == "TableOfContents")
@@ -2770,7 +2769,7 @@ void PrefsManager::insertMissingCheckerProfiles(CheckerPrefsList& cp)
 	CheckerPrefsList::const_iterator it = defaultList.constBegin();
 	for (; it != defaultList.constEnd(); ++it)
 	{
-		QString name = it.key();
+		const QString& name = it.key();
 		if (cp.contains(name))
 			continue;
 		cp.insert(name, it.value());

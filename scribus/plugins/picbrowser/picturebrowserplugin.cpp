@@ -11,12 +11,12 @@ for which a new license (GPL+exception) is in place.
 // Please don't implement the functionality of your plugin here; do that
 // in mypluginimpl.h and mypluginimpl.cpp .
 
-PictureBrowserPlugin::PictureBrowserPlugin() : ScActionPlugin()
+PictureBrowserPlugin::PictureBrowserPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
 	languageChange();
-	pictureBrowser = 0;
+	pictureBrowser = nullptr;
 }
 
 PictureBrowserPlugin::~PictureBrowserPlugin()
@@ -66,12 +66,12 @@ void PictureBrowserPlugin::deleteAboutData ( const AboutData* about ) const
 	delete about;
 }
 
-bool PictureBrowserPlugin::run ( ScribusDoc* doc, QString target )
+bool PictureBrowserPlugin::run ( ScribusDoc* doc, const QString& target )
 {
 	//picturebrowser isn't running yet, so create it
 	if ( !pictureBrowser )
 	{
-		pictureBrowser = new PictureBrowser ( doc, 0 );
+		pictureBrowser = new PictureBrowser ( doc, nullptr );
 
 		if ( !pictureBrowser )
 		{

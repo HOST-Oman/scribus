@@ -49,7 +49,7 @@ void subdivide_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-SubdividePlugin::SubdividePlugin() : ScActionPlugin()
+SubdividePlugin::SubdividePlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -103,10 +103,10 @@ void SubdividePlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool SubdividePlugin::run(ScribusDoc* doc, QString)
+bool SubdividePlugin::run(ScribusDoc* doc, const QString&)
 {
 	ScribusDoc* currDoc = doc;
-	if (currDoc == 0)
+	if (currDoc == nullptr)
 		currDoc = ScCore->primaryMainWindow()->doc;
 	double nearT = 0.5;
 	uint docSelectionCount = currDoc->m_Selection->count();

@@ -67,7 +67,9 @@ void TOCGenerator::generateDefault()
 	if (m_doc == nullptr)
 		return;
 	Q_ASSERT(!m_doc->masterPageMode());
-	for(ToCSetupVector::Iterator tocSetupIt = m_doc->tocSetups().begin(); tocSetupIt != m_doc->tocSetups().end(); ++tocSetupIt )
+
+	const ToCSetupVector& topSetups = m_doc->tocSetups();
+	for (auto tocSetupIt = topSetups.cbegin(); tocSetupIt != topSetups.cend(); ++tocSetupIt)
 	{
 		PageItem* tocFrame = findTargetFrame(tocSetupIt->frameName);
 		if (tocFrame == nullptr)
@@ -76,10 +78,10 @@ void TOCGenerator::generateDefault()
 		PageItem *currentDocItem;
 		QMap<QString, QString> tocMap;
 
-		uint *pageCounter = new uint[m_doc->DocPages.count()];
+		int *pageCounter = new int[m_doc->DocPages.count()];
 		if (pageCounter == nullptr)
 			return;
-		uint pageNumberWidth = QString("%1").arg(m_doc->DocPages.count()).length();
+		int pageNumberWidth = QString("%1").arg(m_doc->DocPages.count()).length();
 		for (int i = 0; i < m_doc->DocPages.count(); ++i)
 			pageCounter[i] = 0;
 

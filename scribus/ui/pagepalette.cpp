@@ -25,10 +25,10 @@ for which a new license (GPL+exception) is in place.
 #include "scribusdoc.h"
 #include "scribusview.h"
 
-PagePalette::PagePalette(QWidget* parent) : ScDockPalette(parent, "PagePalette", 0)
+PagePalette::PagePalette(QWidget* parent) : ScDockPalette(parent, "PagePalette", nullptr)
 {
 	m_scMW = (ScribusMainWindow*) parent;
-	m_view = 0;
+	m_view = nullptr;
 
 	setObjectName(QString::fromLocal8Bit("PagePalette"));
 
@@ -52,21 +52,21 @@ QWidget* PagePalette::currentWidget()
 	QStackedWidget* sw = dynamic_cast<QStackedWidget*>(this->widget());
 	if (sw)
 		return sw->currentWidget();
-	return 0;
+	return nullptr;
 }
 
 PagePalette_MasterPages* PagePalette::masterpageWidget() const
 {
 	if (this->stackedWidget()->count() >= 2)
 		return dynamic_cast<PagePalette_MasterPages*>(this->stackedWidget()->widget(1));
-	return 0;
+	return nullptr;
 }
 
 PagePalette_Pages* PagePalette::pageWidget() const
 {
 	if (this->stackedWidget()->count() >= 1)
 		return dynamic_cast<PagePalette_Pages*>(this->stackedWidget()->widget(0));
-	return 0;
+	return nullptr;
 }
 
 QStackedWidget* PagePalette::stackedWidget() const
@@ -106,7 +106,7 @@ void PagePalette::Rebuild()
 {
 	rebuildMasters();
 	rebuildPages();
-	enablePalette(m_view != 0);
+	enablePalette(m_view != nullptr);
 }
 
 void PagePalette::markPage(uint nr)
@@ -118,10 +118,10 @@ void PagePalette::markPage(uint nr)
 
 void PagePalette::setView(ScribusView *view)
 {
-	PagePalette_Pages* pageWidget = dynamic_cast<PagePalette_Pages*>(this->currentWidget());
+	PagePalette_Pages* pageWidget = view ? dynamic_cast<PagePalette_Pages*>(this->currentWidget()) : this->pageWidget();
 	if (pageWidget)
 		pageWidget->setView(view);
-	PagePalette_MasterPages* mpWidget = dynamic_cast<PagePalette_MasterPages*>(this->currentWidget());
+	PagePalette_MasterPages* mpWidget = view ? dynamic_cast<PagePalette_MasterPages*>(this->currentWidget()) : this->masterpageWidget();
 	if (mpWidget)
 		mpWidget->setView(view);
 	m_view = view;
@@ -160,7 +160,7 @@ bool PagePalette::masterPageMode()
 	return (mpWidget != nullptr);
 }
 
-void PagePalette::startMasterPageMode(QString masterPage)
+void PagePalette::startMasterPageMode(const QString& masterPage)
 {
 	ScribusDoc* doc = m_view->Doc;
 	
@@ -184,8 +184,8 @@ void PagePalette::startMasterPageMode(QString masterPage)
 		mpWidget->setObjectName(QString::fromLocal8Bit("PagePalette_MasterPages"));
 		stackedWidget->addWidget(mpWidget);
 
-		connect(mpWidget, SIGNAL(removePage(int )), m_scMW, SLOT(deletePage2(int )));
-		connect(mpWidget, SIGNAL(finished())      , m_scMW, SLOT(editMasterPagesEnd()));
+		connect(mpWidget, SIGNAL(removePage(int)), m_scMW, SLOT(deletePage2(int)));
+		connect(mpWidget, SIGNAL(finished()), m_scMW, SLOT(editMasterPagesEnd()));
 	}
 	else
 	{

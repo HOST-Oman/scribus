@@ -47,7 +47,7 @@ namespace Pdf
 	{
 		uchar row = c.row();
 		uchar cell = c.cell();
-		switch(row)
+		switch (row)
 		{
 			case 0:
 				if (cell <= 23
@@ -340,7 +340,7 @@ namespace Pdf
 	}
 	
 	
-	QByteArray toLiteralString(QString s)
+	QByteArray toLiteralString(const QString& s)
 	{
 		return toLiteralString(toPdfDocEncoding(s));
 	}
@@ -427,7 +427,7 @@ namespace Pdf
 	}
 	
 	
-	QByteArray toName(QString s)
+	QByteArray toName(const QString& s)
 	{
 		return toName(toPdfDocEncoding(s));
 	}
@@ -453,7 +453,7 @@ namespace Pdf
 		return result;
 	}
 	
-	QByteArray toDateString(QDateTime dt)
+	QByteArray toDateString(const QDateTime& dt)
 	{
 		QString tmp = dt.toString("yyyy:MM:dd:HH:mm:ss");
 		tmp = tmp.replace(":", "");
@@ -531,10 +531,7 @@ namespace Pdf
 			QByteArray step1 = ComputeRC4Key(objId);
 			return new ScRC4EncodeFilter(&m_outStream, step1.data(), qMin(m_KeyLen+5, 16));
 		}
-		else
-		{
-			return new ScNullEncodeFilter(&m_outStream);
-		}
+		return new ScNullEncodeFilter(&m_outStream);
 	}
 	
 	

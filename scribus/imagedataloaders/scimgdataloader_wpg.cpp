@@ -13,17 +13,17 @@ for which a new license (GPL+exception) is in place.
 #include <cmath>
 #include <cstdlib>
 
-#include <stdio.h>
+#include <cstdio>
 #include "scimgdataloader_wpg.h"
 #include "third_party/wpg/WPGStreamImplementation.h"
 
-ScrPainterIm::ScrPainterIm(): libwpg::WPGPaintInterface(),
+ScrPainterIm::ScrPainterIm() :
 	fillrule(false),
 	gradientAngle(0.0),
 	isGradient(false),
 	fillSet(false),
 	strokeSet(false),
-	image(NULL)
+	image(nullptr)
 {
 }
 
@@ -70,7 +70,7 @@ void ScrPainterIm::setPen(const libwpg::WPGPen& pen)
 	if(!pen.solid)
 	{
 		dashArray.clear();
-		for(unsigned i = 0; i < pen.dashArray.count(); i++)
+		for (unsigned i = 0; i < pen.dashArray.count(); i++)
 		{
 			dashArray.append(pen.dashArray.at(i)*LineW);
 		}
@@ -128,7 +128,7 @@ void ScrPainterIm::setBrush(const libwpg::WPGBrush& brush)
 		gradientAngle = brush.gradient.angle();
 		isGradient = true;
 		currentGradient = QLinearGradient();
-		for(unsigned c = 0; c < brush.gradient.count(); c++)
+		for (unsigned c = 0; c < brush.gradient.count(); c++)
 		{
 			QColor stopC(brush.gradient.stopColor(c).red, brush.gradient.stopColor(c).green, brush.gradient.stopColor(c).blue);
 			double pos = qBound(0.0, fabs(brush.gradient.stopOffset(c)), 1.0);
@@ -197,7 +197,7 @@ void ScrPainterIm::drawPolygon(const libwpg::WPGPointArray& vertices, bool close
 	imagePainter.setPen(currentPen);
 	Coords = QPainterPath();
 	Coords.moveTo(72 * vertices[0].x, 72 * vertices[0].y);
-	for(unsigned i = 1; i < vertices.count(); i++)
+	for (unsigned i = 1; i < vertices.count(); i++)
 	{
 		Coords.lineTo(72 * vertices[i].x, 72 * vertices[i].y);
 	}
@@ -222,11 +222,11 @@ void ScrPainterIm::drawPolygon(const libwpg::WPGPointArray& vertices, bool close
 void ScrPainterIm::drawPath(const libwpg::WPGPath& path)
 {
 	Coords = QPainterPath();
-	for(unsigned i = 0; i < path.count(); i++)
+	for (unsigned i = 0; i < path.count(); i++)
 	{
 		libwpg::WPGPathElement element = path.element(i);
 		libwpg::WPGPoint point = element.point;
-		switch(element.type)
+		switch (element.type)
 		{
 			case libwpg::WPGPathElement::MoveToElement:
 				Coords.moveTo(72 * point.x, 72 * point.y);
@@ -259,9 +259,9 @@ void ScrPainterIm::drawPath(const libwpg::WPGPath& path)
 			imagePainter.setBrush(currentBrush);
 	}
 	if (!path.framed)
-			imagePainter.setPen(Qt::NoPen);
-		else
-			imagePainter.setPen(currentPen);
+		imagePainter.setPen(Qt::NoPen);
+	else
+		imagePainter.setPen(currentPen);
 	if(path.closed)
 		Coords.closeSubpath();
 	imagePainter.drawPath(Coords);
@@ -271,9 +271,9 @@ void ScrPainterIm::drawPath(const libwpg::WPGPath& path)
 void ScrPainterIm::drawBitmap(const libwpg::WPGBitmap& bitmap, double hres, double vres)
 {
 	QImage img(bitmap.width(), bitmap.height(), QImage::Format_RGB32);
-	for(int x = 0; x < bitmap.width(); x++)
+	for (int x = 0; x < bitmap.width(); x++)
 	{
-		for(int y = 0; y < bitmap.height(); y++)
+		for (int y = 0; y < bitmap.height(); y++)
 		{
 			libwpg::WPGColor color = bitmap.pixel(x, y);
 			img.setPixel(x, y, qRgb(color.red, color.green, color.blue));
@@ -291,12 +291,12 @@ void ScrPainterIm::drawImageObject(const libwpg::WPGBinaryData& /*binaryData*/)
 }
 
 
-ScImgDataLoader_WPG::ScImgDataLoader_WPG(void) : ScImgDataLoader()
+ScImgDataLoader_WPG::ScImgDataLoader_WPG()
 {
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_WPG::initSupportedFormatList(void)
+void ScImgDataLoader_WPG::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	m_supportedFormats.append( "wpg" );

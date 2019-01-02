@@ -29,6 +29,7 @@ for which a new license (GPL+exception) is in place.
 #include <QLabel>
 #include <QPixmap>
 #include <QStringList>
+#include <QToolTip>
 
 #include "fontcombo.h"
 #include "iconmanager.h"
@@ -54,7 +55,7 @@ FontCombo::FontCombo(QWidget* pa) : QComboBox(pa)
 	setValidator(new FontComboValidator(this));
 	setInsertPolicy(QComboBox::NoInsert);
 	setItemDelegate(new FontFamilyDelegate(this));
-	RebuildList(0);
+	RebuildList(nullptr);
 }
 
 void FontCombo::RebuildList(ScribusDoc *currentDoc, bool forAnnotation, bool forSubstitute)
@@ -103,8 +104,8 @@ void FontCombo::RebuildList(ScribusDoc *currentDoc, bool forAnnotation, bool for
 
 FontComboH::FontComboH(QWidget* parent, bool labels) :
 		QWidget(parent),
-		fontFaceLabel(0),
-		fontStyleLabel(0),
+		fontFaceLabel(nullptr),
+		fontStyleLabel(nullptr),
 		showLabels(labels)
 {
 	currDoc = nullptr;
@@ -135,7 +136,7 @@ FontComboH::FontComboH(QWidget* parent, bool labels) :
 	fontStyle = new ScComboBox(this);
 	fontComboLayout->addWidget(fontStyle,1,col);
 	isForAnnotation = true;  // this is merely to ensure that the list is rebuilt
-	RebuildList(0);
+	rebuildList(nullptr);
 	connect(fontFamily, SIGNAL(activated(int)), this, SLOT(familySelected(int)));
 	connect(fontStyle, SIGNAL(activated(int)), this, SLOT(styleSelected(int)));
 	languageChange();
@@ -151,7 +152,7 @@ void FontComboH::changeEvent(QEvent *e)
 
 void FontComboH::languageChange()
 {
-	if(showLabels)
+	if (showLabels)
 	{
 		fontFaceLabel->setText( tr("Family:"));
 		fontStyleLabel->setText( tr("Style:"));
@@ -181,10 +182,12 @@ void FontComboH::familySelected(int id)
 	fontStyle->addItems(slist);
 	if (slist.contains(curr))
 		setCurrentComboItem(fontStyle, curr);
-	else if (slist.contains("Regular"))
-		setCurrentComboItem(fontStyle, "Regular");
-	else if (slist.contains("Roman"))
-		setCurrentComboItem(fontStyle, "Roman");
+	else
+		if (slist.contains("Regular"))
+			setCurrentComboItem(fontStyle, "Regular");
+		else
+			if (slist.contains("Roman"))
+				setCurrentComboItem(fontStyle, "Roman");
 	emit fontSelected(fontFamily->itemText(id) + " " + fontStyle->currentText());
 	connect(fontStyle, SIGNAL(activated(int)), this, SLOT(styleSelected(int)));
 }
@@ -199,7 +202,7 @@ QString FontComboH::currentFont()
 	return fontFamily->currentText() + " " + fontStyle->currentText();
 }
 
-void FontComboH::setCurrentFont(QString f)
+void FontComboH::setCurrentFont(const QString& f)
 {
 	QString family = prefsManager->appPrefs.fontPrefs.AvailFonts[f].family();
 	QString style = prefsManager->appPrefs.fontPrefs.AvailFonts[f].style();
@@ -235,7 +238,7 @@ void FontComboH::setCurrentFont(QString f)
 	fontStyle->blockSignals(styleSigBlocked);
 }
 
-void FontComboH::RebuildList(ScribusDoc *currentDoc, bool forAnnotation, bool forSubstitute)
+void FontComboH::rebuildList(ScribusDoc *currentDoc, bool forAnnotation, bool forSubstitute)
 {
 	// if we already have the proper fonts loaded, we need to do nothing
 	if ((currDoc == currentDoc) && (forAnnotation == isForAnnotation) && (isForSubstitute == forSubstitute))
@@ -298,7 +301,8 @@ void FontComboH::RebuildList(ScribusDoc *currentDoc, bool forAnnotation, bool fo
 		// Replacement fonts were systematically discarded in previous code
 		/*if (fon.isReplacement())
 			fontFamily->addItem(substFont, it2a.value());
-		else */if (type == ScFace::OTF)
+		else */
+		if (type == ScFace::OTF)
 			fontFamily->addItem(otfFont, it2a.key());
 		else if (type == ScFace::TYPE1)
 			fontFamily->addItem(psFont, it2a.key());
@@ -454,14 +458,14 @@ QFontDatabase::WritingSystem writingSystemForFont(const QFont &font, bool *hasLa
 	return QFontDatabase::Any;
 }
 
-const ScFace& getScFace(QString classname, QString text)
+const ScFace& getScFace(const QString& className, const QString& text)
 {
 	QFontDatabase& fontDb = ScQApp->qtFontDatabase();
 	PrefsManager* prefsManager = PrefsManager::instance();
 	SCFonts& availableFonts = prefsManager->appPrefs.fontPrefs.AvailFonts;
 
 	// Handle FontComboH class witch has only Family names in the combo class.
-	if (classname == "FontComboH" || classname == "SMFontComboH")
+	if (className == "FontComboH" || className == "SMFontComboH")
 	{
 		// SMFontComboH's "Use Parent Font" case
 		if (!availableFonts.fontMap.contains(text))
@@ -481,13 +485,10 @@ const ScFace& getScFace(QString classname, QString text)
 			QFontDatabase::addApplicationFont(fon.fontFilePath());
 		return fon;
 	}
-	else
-	{
-		const ScFace& scFace = availableFonts.findFont(text);
-		if (!fontDb.families().contains(scFace.family()))
-			QFontDatabase::addApplicationFont(scFace.fontFilePath());
-		return scFace;
-	}
+	const ScFace& scFace = availableFonts.findFont(text);
+	if (!fontDb.families().contains(scFace.family()))
+		QFontDatabase::addApplicationFont(scFace.fontFilePath());
+	return scFace;
 }
 
 FontFamilyDelegate::FontFamilyDelegate(QObject *parent)
@@ -619,8 +620,35 @@ void FontFamilyDelegate::paint(QPainter *painter, const QStyleOptionViewItem &op
 	pixmapCache.insert(cacheKey+"-selected", invPixmap);
 }
 
-QSize FontFamilyDelegate::sizeHint(const QStyleOptionViewItem &option,
-								   const QModelIndex &index) const
+bool FontFamilyDelegate::helpEvent(QHelpEvent * event, QAbstractItemView * view,
+	const QStyleOptionViewItem & option, const QModelIndex & index)
+{
+	if (!event || !view)
+		return false;
+
+	if (event->type() == QEvent::ToolTip)
+	{
+		QString text(index.data(Qt::DisplayRole).toString());
+		QString className = this->parent()->metaObject()->className();
+		const ScFace& scFace = getScFace(className, text);
+		if (!scFace.isNone())
+		{
+			QString tooltip = scFace.family();
+			if (className == QLatin1String("FontCombo"))
+			{
+				tooltip += QLatin1String(" ");
+				tooltip += scFace.style();
+			}
+			QHelpEvent *helpEvent = static_cast<QHelpEvent*>(event);
+			QToolTip::showText(helpEvent->globalPos(), tooltip, view);
+			return true;
+		}
+	}
+	
+	return QAbstractItemDelegate::helpEvent(event, view, option, index);
+}
+
+QSize FontFamilyDelegate::sizeHint(const QStyleOptionViewItem &option, const QModelIndex &index) const
 {
 	QString text(index.data(Qt::DisplayRole).toString());
 	QFont font(option.font);

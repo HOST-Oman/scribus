@@ -124,7 +124,8 @@ void PropertyWidget_ParEffect::fillNumerationsCombo()
 	QStringList numNames;
 	if (m_doc)
 	{
-		foreach (const QString& numName, m_doc->numerations.keys())
+		const auto numerationKeys = m_doc->numerations.keys();
+		for (const QString& numName : numerationKeys)
 			numNames.append(numName);
 		numNames.sort();
 	}
@@ -332,7 +333,7 @@ void PropertyWidget_ParEffect::disconnectSignals()
 	disconnect(peCharStyleCombo, SIGNAL(newStyle(QString)), this, SLOT(handlePECharStyle(QString)));
 }
 
-void PropertyWidget_ParEffect::configureWidgets(void)
+void PropertyWidget_ParEffect::configureWidgets()
 {
 	bool enabled = false;
 	if (m_item && m_doc)
@@ -369,7 +370,7 @@ void PropertyWidget_ParEffect::handleUpdateRequest(int updateFlags)
 	if (updateFlags & reqCharStylesUpdate)
 		updateCharStyles();
 	if (updateFlags & reqStyleComboDocUpdate)
-		setDoc(m_doc ? m_doc : 0);
+		setDoc(m_doc ? m_doc : nullptr);
 	if (updateFlags & reqNumUpdate)
 		fillNumerationsCombo();
 }
@@ -451,7 +452,7 @@ void PropertyWidget_ParEffect::handleDropCapLines(int dcLines)
 	handleChanges(m_item, newStyle);
 }
 
-void PropertyWidget_ParEffect::handleNumName(QString numName)
+void PropertyWidget_ParEffect::handleNumName(const QString& numName)
 {
 	if (!m_doc || !m_item)
 		return;
@@ -517,7 +518,7 @@ void PropertyWidget_ParEffect::handleNumLevel(int level)
 	handleChanges(m_item, newStyle);
 }
 
-void PropertyWidget_ParEffect::handleNumPrefix(QString prefix)
+void PropertyWidget_ParEffect::handleNumPrefix(const QString& prefix)
 {
 	if (!m_doc || !m_item)
 		return;
@@ -526,7 +527,7 @@ void PropertyWidget_ParEffect::handleNumPrefix(QString prefix)
 	handleChanges(m_item, newStyle);
 }
 
-void PropertyWidget_ParEffect::handleNumSuffix(QString suffix)
+void PropertyWidget_ParEffect::handleNumSuffix(const QString& suffix)
 {
 	if (!m_doc || !m_item)
 		return;
@@ -562,7 +563,7 @@ void PropertyWidget_ParEffect::handlePEIndent(bool indent)
 	handleChanges(m_item, newStyle);
 }
 
-void PropertyWidget_ParEffect::handlePECharStyle(QString name)
+void PropertyWidget_ParEffect::handlePECharStyle(const QString& name)
 {
 	if (!m_doc || !m_item)
 		return;

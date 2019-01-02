@@ -75,7 +75,7 @@ QVariant FontListModel::headerData(int section,
 	// TODO for tooltips etc.
 	
 	bool isDisplayRole = (role == Qt::DisplayRole);
-	switch(role)
+	switch (role)
 	{
 		case Qt::DisplayRole:
 		case Qt::ToolTipRole:
@@ -211,15 +211,13 @@ QVariant FontListModel::data(const QModelIndex & index,
 	{
 		if (isLive())
 			return (font.usable() ? Qt::Checked : Qt::Unchecked);
-		else
-			return (m_enabledFonts[index.row()] ? Qt::Checked : Qt::Unchecked);
+		return (m_enabledFonts[index.row()] ? Qt::Checked : Qt::Unchecked);
 	}
 	if (role == Qt::CheckStateRole && index.column() == FontListModel::FontSubset)
 	{
 		if (isLive())
 			return (font.subset() ? Qt::Checked : Qt::Unchecked);
-		else
-			return ((m_embedFlags[index.row()] & SubsetPDF) ? Qt::Checked : Qt::Unchecked);
+		return ((m_embedFlags[index.row()] & SubsetPDF) ? Qt::Checked : Qt::Unchecked);
 	}
 
 	return QVariant();
@@ -234,8 +232,7 @@ Qt::ItemFlags FontListModel::flags(const QModelIndex &index) const
 	if (index.column() == FontListModel::FontUsable
 		   || index.column() == FontListModel::FontSubset)
 		return Qt::ItemIsUserCheckable | /*Qt::ItemIsEditable |*/ defaultFlags;
-	else
-		return defaultFlags;
+	return defaultFlags;
 }
 
 bool FontListModel::setData(const QModelIndex & idx,

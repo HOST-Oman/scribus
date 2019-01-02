@@ -38,7 +38,7 @@ public:
 
 public slots:
 	void setView(ScribusView *view);
-	void deleteMasterPage(QString tmp);
+	void deleteMasterPage(const QString& tmp);
 	void enablePalette(const bool);
 	void handlePageLayout(int layout);
 	void handleFirstPage(int fp);
@@ -53,7 +53,7 @@ public slots:
 	void handleBinding(int);
 
 private slots:
-	void pageView_applyMasterPage(QString masterpageName, int pageIndex);
+	void pageView_applyMasterPage(const QString& masterpageName, int pageIndex);
 	void pageView_movePage(int r, int c);
 	void pageView_gotoPage(int r, int c, int b);
 
@@ -68,7 +68,7 @@ protected:
 	QList<SeItem*>    pageList;
 	QPixmap pix;
 
-	QPixmap createIcon(int nr, QString mp, QPixmap pixin);
+	QPixmap createIcon(int nr, QString mp, const QPixmap& pixin);
 };
 
 #endif // SEITENPAL_H

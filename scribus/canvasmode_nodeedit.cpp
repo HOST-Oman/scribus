@@ -67,7 +67,7 @@ void CanvasMode_NodeEdit::drawControls(QPainter* p)
 	p->setPen(QPen(Qt::blue, 1 / m_canvas->m_viewMode.scale, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
 	p->setBrush(Qt::NoBrush);
 
-	if ((m_doc->nodeEdit.isContourLine()) && (currItem->ContourLine.size() != 0))
+	if ((m_doc->nodeEdit.isContourLine()) && (!currItem->ContourLine.empty()))
 		cli = currItem->ContourLine;
 	else
 	{
@@ -96,10 +96,10 @@ void CanvasMode_NodeEdit::drawControls(QPainter* p)
 			if (cli.isMarker(poi))
 				continue;
 			p->setPen(QPen(Qt::blue, onePerScale, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin));
-			FPoint a1 = cli.point(poi);
-			FPoint a2 = cli.point(poi+1);
-			FPoint a3 = cli.point(poi+3);
-			FPoint a4 =	cli.point(poi+2);
+			const FPoint& a1 = cli.point(poi);
+			const FPoint& a2 = cli.point(poi+1);
+			const FPoint& a3 = cli.point(poi+3);
+			const FPoint& a4 =	cli.point(poi+2);
 			QPainterPath Bez;
 			Bez.moveTo(a1.x(), a1.y());
 			Bez.cubicTo(a2.x(), a2.y(), a3.x(), a3.y(), a4.x(), a4.y());
@@ -207,7 +207,7 @@ void CanvasMode_NodeEdit::activate(bool fromGesture)
 		{
 			if (Clip.isMarker(a))
 				continue;
-			FPoint np = Clip.point(a);
+			const FPoint& np = Clip.point(a);
 			FPoint npf2 = np.transformPoint(pm2, false);
 			if ((Sele.contains(npf2.x(), npf2.y())) && ((a == 0) || (((a-2) % 4) == 0)))
 			{
@@ -465,9 +465,7 @@ void CanvasMode_NodeEdit::mouseReleaseEvent(QMouseEvent *m)
 			currItem->ContourLine.translate(xposOrig - currItem->xPos(), yposOrig - currItem->yPos());
 		m_doc->regionsChanged()->update(QRectF());
 		if (state)
-		{
 			m_doc->nodeEdit.finishTransaction2(currItem, state);
-		}
 		return;
 	}
 
@@ -491,7 +489,7 @@ void CanvasMode_NodeEdit::mouseReleaseEvent(QMouseEvent *m)
 	//Make sure the Zoom spinbox and page selector don't have focus if we click on the canvas
 	m_view->m_ScMW->zoomSpinBox->clearFocus();
 	m_view->m_ScMW->pageSelector->clearFocus();
-	if (m_doc->m_Selection->itemAt(0) != 0) // is there the old clip stored for the undo action
+	if (m_doc->m_Selection->itemAt(0) != nullptr) // is there the old clip stored for the undo action
 	{
 		currItem = m_doc->m_Selection->itemAt(0);
 		m_doc->nodeEdit.finishTransaction(currItem);
@@ -600,10 +598,10 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 			mpo2.moveCenter(QPoint(qRound(npf2.x()), qRound(npf2.y())));
 			for (int poi=0; poi<Clip.size()-3; poi += 4)
 			{
-				FPoint a1 = Clip.point(poi);
-				FPoint a2 = Clip.point(poi+1);
-				FPoint a3 = Clip.point(poi+3);
-				FPoint a4 = Clip.point(poi+2);
+				const FPoint& a1 = Clip.point(poi);
+				const FPoint& a2 = Clip.point(poi+1);
+				const FPoint& a3 = Clip.point(poi+3);
+				const FPoint& a4 = Clip.point(poi+2);
 				QPainterPath Bez;
 				Bez.moveTo(a1.x(), a1.y());
 				Bez.cubicTo(a2.x(), a2.y(), a3.x(), a3.y(), a4.x(), a4.y());
@@ -811,7 +809,7 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 			{
 				if (!(currItem->isLine() || currItem->isPathText() || currItem->isPolyLine()))
 				{
-					FPoint kp(Clip.point(EndInd-3));
+					const FPoint& kp(Clip.point(EndInd-3));
 					cli.putPoints(0, StartInd, Clip);
 					cli.putPoints(cli.size(), EndInd - StartInd - 4, Clip, StartInd);
 					cli.setPoint(StartInd, cli.point(cli.size()-2));
@@ -859,10 +857,10 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 		mpo2.moveCenter(QPoint(qRound(npf2.x()), qRound(npf2.y())));
 		for (int poi = 0; poi < Clip.size()-3; poi += 4)
 		{
-			FPoint a1 = Clip.point(poi);
-			FPoint a2 = Clip.point(poi+1);
-			FPoint a3 = Clip.point(poi+3);
-			FPoint a4 = Clip.point(poi+2);
+			const FPoint& a1 = Clip.point(poi);
+			const FPoint& a2 = Clip.point(poi+1);
+			const FPoint& a3 = Clip.point(poi+3);
+			const FPoint& a4 = Clip.point(poi+2);
 			QPainterPath Bez;
 			Bez.moveTo(a1.x(), a1.y());
 			Bez.cubicTo(a2.x(), a2.y(), a3.x(), a3.y(), a4.x(), a4.y());
@@ -896,8 +894,8 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 			npf2 = nearPoint;
 			FPoint base = cli.point(cli.size()-2);
 			FPoint c1 = cli.point(cli.size()-1);
-			FPoint base2 =  Clip.point(m_doc->nodeEdit.clre2()+2);
-			FPoint c2 = Clip.point(m_doc->nodeEdit.clre2()+3);
+			const FPoint& base2 =  Clip.point(m_doc->nodeEdit.clre2()+2);
+			const FPoint& c2 = Clip.point(m_doc->nodeEdit.clre2()+3);
 			if ((base == c1) && (base2 == c2))
 			{
 				cli.resize(cli.size()+4);
@@ -977,7 +975,7 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 
 
 
-bool CanvasMode_NodeEdit::handleNodeEditMove(QMouseEvent* m, QRect, PageItem* currItem, QTransform)
+bool CanvasMode_NodeEdit::handleNodeEditMove(QMouseEvent* m, QRect, PageItem* currItem, const QTransform&)
 {
 	QTransform itemPos = currItem->getTransform();
 	if ((currItem->isSymbol() || currItem->isGroup()) && (!m_doc->nodeEdit.isContourLine()))
@@ -1154,10 +1152,10 @@ void CanvasMode_NodeEdit::handleNodeEditDrag(QMouseEvent* m, PageItem* currItem)
 					int prev = (curr+cli.size()-4)%cli.size();
 					int next = (curr+4)%cli.size();
 
-					if(std::abs(cli.point(prev).x()-cli.point(curr).x())<std::abs(cli.point(next).x()-cli.point(curr).x()))
+					if (std::abs(cli.point(prev).x()-cli.point(curr).x())<std::abs(cli.point(next).x()-cli.point(curr).x()))
 						tmpNode=next;
-					else if(std::abs(cli.point(prev).x()-cli.point(curr).x())==std::abs(cli.point(next).x()-cli.point(curr).x())){
-						if(cli.point(prev).y()!=cli.point(curr).y())
+					else if (std::abs(cli.point(prev).x()-cli.point(curr).x())==std::abs(cli.point(next).x()-cli.point(curr).x())){
+						if (cli.point(prev).y()!=cli.point(curr).y())
 							tmpNode=next;
 						else
 							tmpNode=prev;
@@ -1176,7 +1174,7 @@ void CanvasMode_NodeEdit::handleNodeEditDrag(QMouseEvent* m, PageItem* currItem)
 
 					m_doc->nodeEdit.moveClipPoint(currItem, npf1);
 
-					if(m_doc->nodeEdit.clre()==prev)
+					if (m_doc->nodeEdit.clre()==prev)
 						m_doc->nodeEdit.setClre(next);
 					else
 						m_doc->nodeEdit.setClre(prev);

@@ -11,8 +11,8 @@ for which a new license (GPL+exception) is in place.
 #include "scribus.h"
 #include "smcellstylewidget.h"
 
-SMCellStyleWidget::SMCellStyleWidget(QWidget *parent) : QWidget(),
-	m_Doc(0)
+SMCellStyleWidget::SMCellStyleWidget(QWidget *parent) :
+	m_Doc(nullptr)
 {
 	setupUi(this);
 
@@ -62,7 +62,7 @@ void SMCellStyleWidget::show(CellStyle *cellStyle, QList<CellStyle> &cellStyles,
 		return;
 	parentCombo->setEnabled(!cellStyle->isDefaultStyle());
 	const CellStyle *parent = dynamic_cast<const CellStyle*>(cellStyle->parentStyle());
-	bool hasParent =  cellStyle->hasParent() && parent != 0 && parent->hasName() && cellStyle->parent() != "";
+	bool hasParent =  cellStyle->hasParent() && parent != nullptr && parent->hasName() && cellStyle->parent() != "";
 	if (hasParent)
 	{
 		fillColor->setCurrentText(cellStyle->fillColor(), cellStyle->isInhFillColor());
@@ -124,8 +124,7 @@ void SMCellStyleWidget::showColors(const QList<CellStyle*> &cellStyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cellStyles[i]->fillShade();
+		d = cellStyles[i]->fillShade();
 	}
 	if (d == -30000)
 		fillShade->setText( tr("Shade"));
@@ -140,8 +139,7 @@ void SMCellStyleWidget::showColors(const QList<CellStyle*> &cellStyles)
 			s = emptyString;
 			break;
 		}
-		else
-			s = cellStyles[i]->fillColor();
+		s = cellStyles[i]->fillColor();
 	}
 	if (s.isEmpty())
 	{

@@ -45,7 +45,7 @@ void importemf_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-ImportEmfPlugin::ImportEmfPlugin() : LoadSavePlugin(), importAction(new ScrAction(ScrAction::DLL, "", QKeySequence(), this))
+ImportEmfPlugin::ImportEmfPlugin() : importAction(new ScrAction(ScrAction::DLL, "", QKeySequence(), this))
 {
 	// Set action info in languageChange, so we only have to do it in one
 	// place. This includes registering file format support.
@@ -119,7 +119,7 @@ bool ImportEmfPlugin::import(QString fileName, int flags)
 {
 	if (!checkFlags(flags))
 		return false;
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 	{
 		flags |= lfInteractive;
 		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("importemf");
@@ -133,7 +133,7 @@ bool ImportEmfPlugin::import(QString fileName, int flags)
 		else
 			return true;
 	}
-	if (m_Doc == 0)
+	if (m_Doc == nullptr)
 		m_Doc=ScCore->primaryMainWindow()->doc;
 	UndoTransaction* activeTransaction = nullptr;
 	bool emptyDoc = (m_Doc == nullptr);
@@ -165,7 +165,7 @@ bool ImportEmfPlugin::import(QString fileName, int flags)
 
 QImage ImportEmfPlugin::readThumbnail(const QString& fileName)
 {
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 		return QImage();
 	UndoManager::instance()->setUndoEnabled(false);
 	m_Doc = nullptr;

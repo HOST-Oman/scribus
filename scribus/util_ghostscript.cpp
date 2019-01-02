@@ -59,7 +59,7 @@ for which a new license (GPL+exception) is in place.
 using namespace std;
 
 
-int callGS(const QStringList& args_in, const QString device, const QString fileStdErr, const QString fileStdOut)
+int callGS(const QStringList& args_in, const QString& device, const QString& fileStdErr, const QString& fileStdOut)
 {
 	QString cmd;
  	QStringList args;
@@ -90,7 +90,7 @@ int callGS(const QStringList& args_in, const QString device, const QString fileS
 		cmd = QString("-sFONTPATH=%1").arg(QDir::toNativeSeparators(extraFonts->get(0,0)));
 	for (int i = 1; i < extraFonts->getRowCount(); ++i)
 		cmd += QString("%1%2").arg(sep).arg(QDir::toNativeSeparators(extraFonts->get(i,0)));
-	if( !cmd.isEmpty() )
+	if (!cmd.isEmpty())
 		args.append( cmd );
 
 	args += args_in;
@@ -100,7 +100,7 @@ int callGS(const QStringList& args_in, const QString device, const QString fileS
 	return System( getShortPathName(prefsManager->ghostscriptExecutable()), args, fileStdErr, fileStdOut );
 }
 
-int callGS(const QString& args_in, const QString device)
+int callGS(const QString& args_in, const QString& device)
 {
 	PrefsManager* prefsManager=PrefsManager::instance();
 	QString cmd1 = getShortPathName(prefsManager->ghostscriptExecutable());
@@ -140,7 +140,7 @@ int callGS(const QString& args_in, const QString device)
 	return system(cmd1.toLocal8Bit().constData());
 }
 
-int convertPS2PS(QString in, QString out, const QStringList& opts, int level)
+int convertPS2PS(const QString& in, const QString& out, const QStringList& opts, int level)
 {
 	PrefsManager* prefsManager=PrefsManager::instance();
 	QStringList args;
@@ -149,13 +149,13 @@ int convertPS2PS(QString in, QString out, const QStringList& opts, int level)
 	args.append( "-dNOPAUSE" );
 	args.append( "-dPARANOIDSAFER" );
 	args.append( "-dBATCH" );
-	if( level == 2 )
+	if (level == 2)
 	{
-		int major = 0, minor = 0;
+		int gsVersion = 0;
 		// ps2write cannot be detected with testGSAvailability()
 		// so determine availability according to gs version.
-		getNumericGSVersion(major, minor);
-		if ((major >=8 && minor >= 53) || major > 8)
+		getNumericGSVersion(gsVersion);
+		if (gsVersion >= 853)
 			args.append( "-sDEVICE=ps2write" );
 		else
 		{
@@ -167,7 +167,7 @@ int convertPS2PS(QString in, QString out, const QStringList& opts, int level)
 	else
 	{
 		args.append( "-sDEVICE=pswrite" );
-		if(level <= 3)
+		if (level <= 3)
 			args.append( QString("-dLanguageLevel=%1").arg(level) );
 	}
 	args += opts;
@@ -177,7 +177,7 @@ int convertPS2PS(QString in, QString out, const QStringList& opts, int level)
 	return ret;
 }
 
-int convertPS2PDF(QString in, QString out, const QStringList& opts)
+int convertPS2PDF(const QString& in, const QString& out, const QStringList& opts)
 {
 	PrefsManager* prefsManager=PrefsManager::instance();
 	QStringList args;
@@ -194,7 +194,7 @@ int convertPS2PDF(QString in, QString out, const QStringList& opts)
 	return ret;
 }
 
-bool testGSAvailability( void )
+bool testGSAvailability()
 {
 	QStringList args;
 	PrefsManager* prefsManager = PrefsManager::instance();
@@ -245,6 +245,18 @@ QString getGSVersion()
 	return gsVer;
 }
 
+bool getNumericGSVersion(int &version)
+{
+	int gsMajor(0), gsMinor(0);
+	version = 0;
+	if (getNumericGSVersion(gsMajor, gsMinor))
+	{
+		version = 100 * gsMajor + gsMinor;
+		return true;
+	}
+	return false;
+}
+
 // Return the GhostScript major and minor version numbers.
 bool getNumericGSVersion(int & major, int & minor)
 {
@@ -261,12 +273,10 @@ bool getNumericGSVersion(const QString& ver, int& major, int& minor)
 	if (!success)
 		return false;
 	minor = ver.section('.', 1, 1).toInt(&success);
-	if (!success)
-		return false;
-	return true;
+	return success;
 }
 
-QString getGSDefaultExeName(void)
+QString getGSDefaultExeName()
 {
 	QString gsName("gs");
 #if defined _WIN32
@@ -377,9 +387,9 @@ QMap<int, QString> SCRIBUS_API getGSExePaths(const QString& regKey, bool alterna
 				{
 					// We now have GhostScript dll path, but we want gswin32c.exe
 					// Normally gswin32c.exe and gsdll.dll are in the same directory
-					if ( getNumericGSVersion(QString::fromUtf16((const ushort*) regVersion), gsMajor, gsMinor) )
+					if (getNumericGSVersion(QString::fromUtf16((const ushort*) regVersion), gsMajor, gsMinor))
 					{
-						gsNumericVer = gsMajor * 1000 + gsMinor;
+						gsNumericVer = gsMajor * 100 + gsMinor;
 						gsName = QString::fromUtf16((const ushort*) gsPath);
 						size   = gsName.lastIndexOf("\\");
 						if (size > 0)
@@ -402,14 +412,14 @@ QMap<int, QString> SCRIBUS_API getGSExePaths(const QString& regKey, bool alterna
 	PrefsManager* prefsManager=PrefsManager::instance();
 	if (getNumericGSVersion(gsMajor, gsMinor))
 	{
-		gsNumericVer = gsMajor * 1000 + gsMinor;
+		gsNumericVer = gsMajor * 100 + gsMinor;
 		gsVersions.insert(gsNumericVer, prefsManager->ghostscriptExecutable());
 	}
 #endif
 	return gsVersions;
 }
 
-QPixmap LoadPDF(QString fn, int Page, int Size, int *w, int *h)
+QPixmap LoadPDF(const QString& fn, int Page, int Size, int *w, int *h)
 {
 	QString tmp;
 	QString pdfFile = QDir::toNativeSeparators(fn);

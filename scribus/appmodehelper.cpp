@@ -76,7 +76,6 @@ void AppModeHelper::resetApplicationMode(ScribusMainWindow* scmw, int newMode)
 	a_actMgr->disconnectModeActions();
 	setModeActionsPerMode(newMode);
 	a_actMgr->connectModeActions();
-	return;
 }
 
 void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc, int newMode)
@@ -97,7 +96,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 
 
 	int oldMode = doc->appMode;
-	PageItem *currItem=0;
+	PageItem *currItem=nullptr;
 	if (!doc->m_Selection->isEmpty())
 		currItem = doc->m_Selection->itemAt(0);
 
@@ -147,8 +146,8 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 				scmw->pageSelector->setFocusPolicy(Qt::ClickFocus);
 				(*a_scrActions)["editClearContents"]->setEnabled(false);
 				(*a_scrActions)["editTruncateContents"]->setEnabled(false);
-				scmw->charPalette->setEnabled(false, 0);
-				if (currItem != 0)
+				scmw->charPalette->setEnabled(false, nullptr);
+				if (currItem != nullptr)
 				{
 					currItem->update();
 					if (currItem->asTextFrame())
@@ -193,7 +192,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 		case modeEditTable:
 			if (newMode != modeEditTable)
 			{
-				scmw->charPalette->setEnabled(false, 0);
+				scmw->charPalette->setEnabled(false, nullptr);
 				enableTextActions(false);
 				(*a_scrActions)["insertSampleText"]->setEnabled(false);
 				(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(false);
@@ -233,11 +232,11 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 				}
 				(*a_scrActions)["editSearchReplace"]->setEnabled(editSearchReplace);
 
-				(*a_scrActions)["editCut"]->setEnabled(currItem != 0);
-				(*a_scrActions)["editCopy"]->setEnabled(currItem != 0);
-				(*a_scrActions)["editClearContents"]->setEnabled(currItem != 0);
+				(*a_scrActions)["editCut"]->setEnabled(currItem != nullptr);
+				(*a_scrActions)["editCopy"]->setEnabled(currItem != nullptr);
+				(*a_scrActions)["editClearContents"]->setEnabled(currItem != nullptr);
 				(*a_scrActions)["editPaste"]->setEnabled(ScMimeData::clipboardHasScribusData());
-				(*a_scrActions)["editTruncateContents"]->setEnabled(currItem != 0);
+				(*a_scrActions)["editTruncateContents"]->setEnabled(currItem != nullptr);
 
 				scmw->propertiesPalette->setGradientEditMode(false);
 				scmw->outlinePalette->setEnabled(true);
@@ -294,7 +293,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 			{
 				if (oldMode != modeEdit)
 					a_actMgr->saveActionShortcutsPreEditMode();
-				if (currItem != 0)
+				if (currItem != nullptr)
 				{
 					currItem->itemText.setCursorPosition(0);
 					scmw->setTBvals(currItem);
@@ -313,7 +312,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 				}
 				setTextEditMode(true);
 
-				if (currItem != 0)
+				if (currItem != nullptr)
 				{
 					(*a_scrActions)["editCut"]->setEnabled(currItem->HasSel);
 					(*a_scrActions)["editCopy"]->setEnabled(currItem->HasSel);
@@ -477,11 +476,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 	(*a_scrActions)["editPasteContents"]->setEnabled(SelectedType==PageItem::ImageFrame);
 	(*a_scrActions)["editPasteContentsAbs"]->setEnabled(SelectedType==PageItem::ImageFrame);
 	(*a_scrActions)["editEditWithImageEditor"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->imageIsAvailable && currItem->isRaster);
-#ifdef HAVE_OSG
 	(*a_scrActions)["editEditRenderSource"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem && (currItem->asLatexFrame() || currItem->asOSGFrame()));
-#else
-	(*a_scrActions)["editEditRenderSource"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem && (currItem->asLatexFrame()));
-#endif
 	(*a_scrActions)["itemAdjustFrameHeightToText"]->setEnabled(SelectedType==PageItem::TextFrame && currItem->itemText.length() >0);
 	if (SelectedType!=PageItem::ImageFrame)
 	{
@@ -655,7 +650,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["insertSampleText"]->setEnabled(true);
 			//scrMenuMgr->setMenuEnabled("InsertMark",true);
 
-			if ((currItem->nextInChain() != 0) || (currItem->prevInChain() != 0))
+			if ((currItem->nextInChain() != nullptr) || (currItem->prevInChain() != nullptr))
 			{
 				(*a_scrActions)["itemConvertToBezierCurve"]->setEnabled(false);
 				(*a_scrActions)["itemConvertToImageFrame"]->setEnabled(false);
@@ -666,7 +661,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 				(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(true);
 				(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(true);
 				// FIXME: once there's one itemtext per story, always enable editcontents
-				if ((currItem->prevInChain() != 0) && (currItem->itemText.length() == 0))
+				if ((currItem->prevInChain() != nullptr) && (currItem->itemText.length() == 0))
 					(*a_scrActions)["toolsEditContents"]->setEnabled(false);
 				else
 					(*a_scrActions)["toolsEditContents"]->setEnabled(true);
@@ -865,12 +860,12 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		}
 		(*a_scrActions)["editSearchReplace"]->setEnabled(false);
 
-		bool hPoly = false;
+		bool hPoly = true;
 		for (int i=0; i < docSelectionCount; ++i)
 		{
 			PageItem* it=doc->m_Selection->itemAt(i);
-			if ((it->asPolygon()) || (it->asPolyLine()))
-				hPoly = true;
+			if ((!it->asPolygon()) || (!it->asPolyLine()))
+				hPoly = false;
 		}
 		(*a_scrActions)["itemCombinePolygons"]->setEnabled(hPoly);
 
@@ -892,10 +887,10 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			if (item1->asTextFrame() && (item2->asPolygon() || item2->asPolyLine() || item2->asSpiral() || item2->asArc() || item2->asRegularPolygon()))
 			{
 				canAttachTextToPath  = true;
-				canAttachTextToPath &= (item1->nextInChain() == 0);
-				canAttachTextToPath &= (item1->prevInChain() == 0);
-				canAttachTextToPath &= (item2->nextInChain() == 0);
-				canAttachTextToPath &= (item2->prevInChain() == 0);
+				canAttachTextToPath &= (item1->nextInChain() == nullptr);
+				canAttachTextToPath &= (item1->prevInChain() == nullptr);
+				canAttachTextToPath &= (item2->nextInChain() == nullptr);
+				canAttachTextToPath &= (item2->prevInChain() == nullptr);
 				canAttachTextToPath &= (!item1->isGroup() && !item2->isGroup());
 			}
 			(*a_scrActions)["itemAttachTextToPath"]->setEnabled(canAttachTextToPath);
@@ -1191,7 +1186,7 @@ void AppModeHelper::setSymbolEditMode(bool b, ScribusDoc* doc)
 	if (b2)
 	{
 		(*a_scrActions)["fileSave"]->setEnabled(!doc->isConverted);
-		bool setter = doc->DocPages.count() > 1 ? true : false;
+		bool setter = doc->DocPages.count() > 1;
 		(*a_scrActions)["pageDelete"]->setEnabled(setter);
 		(*a_scrActions)["pageMove"]->setEnabled(setter);
 	}
@@ -1236,7 +1231,7 @@ void AppModeHelper::setInlineEditMode(bool b, ScribusDoc *doc)
 		(*a_scrActions)["fileSave"]->setEnabled(!doc->isConverted);
 		if ( ScCore->haveGS() || ScCore->isWinGUI() )
 			(*a_scrActions)["PrintPreview"]->setEnabled(true);
-		bool setter = doc->DocPages.count() > 1 ? true : false;
+		bool setter = doc->DocPages.count() > 1;
 		(*a_scrActions)["pageDelete"]->setEnabled(setter);
 		(*a_scrActions)["pageMove"]->setEnabled(setter);
 	}
@@ -1284,7 +1279,7 @@ void AppModeHelper::setMasterPageEditMode(bool b, ScribusDoc* doc)
 		(*a_scrActions)["fileSave"]->setEnabled(!doc->isConverted);
 		if ( ScCore->haveGS() || ScCore->isWinGUI() )
 			(*a_scrActions)["PrintPreview"]->setEnabled(true);
-		bool setter = doc->DocPages.count() > 1 ? true : false;
+		bool setter = doc->DocPages.count() > 1;
 		(*a_scrActions)["pageDelete"]->setEnabled(setter);
 		(*a_scrActions)["pageMove"]->setEnabled(setter);
 	}
@@ -1313,8 +1308,8 @@ void AppModeHelper::setMasterPageEditMode(bool b, ScribusDoc* doc)
 void AppModeHelper::updateTableMenuActions(ScribusDoc* doc)
 {
 	// Determine state.
-	PageItem* item = doc ? doc->m_Selection->itemAt(0) : 0;
-	PageItem_Table* table = (item && item->isTable()) ? item->asTable() : 0;
+	PageItem* item = doc ? doc->m_Selection->itemAt(0) : nullptr;
+	PageItem_Table* table = (item && item->isTable()) ? item->asTable() : nullptr;
 
 	if (!doc || !table)
 	{
@@ -1478,7 +1473,7 @@ void AppModeHelper::mainWindowHasNewDoc(ScribusDoc *doc, bool clipScrapHaveData)
 	(*a_scrActions)["toolsPDFAnnot3D"]->setEnabled(true);
 #endif
 	(*a_scrActions)["toolsPreflightVerifier"]->setEnabled(true);
-	bool setter = doc->DocPages.count() > 1 ? true : false;
+	bool setter = doc->DocPages.count() > 1;
 	(*a_scrActions)["pageDelete"]->setEnabled(setter);
 	(*a_scrActions)["pageMove"]->setEnabled(setter);
 	(*a_scrActions)["pageInsert"]->setEnabled(true);
@@ -1539,7 +1534,7 @@ void AppModeHelper::mainWindowSwitchWin(ScribusDoc *doc)
 
 		if (!doc->isModified())
 		{
-			bool setter = doc->DocPages.count() > 1 ? true : false;
+			bool setter = doc->DocPages.count() > 1;
 			(*a_scrActions)["pageDelete"]->setEnabled(setter);
 			(*a_scrActions)["pageMove"]->setEnabled(setter);
 		}
@@ -1747,6 +1742,7 @@ void AppModeHelper::enableTextActions(bool enabled, const QString& fontName)
 
 void AppModeHelper::setStartupActionsEnabled(bool enabled)
 {
+	Q_UNUSED(enabled);
 	(*a_scrActions)["fileDocSetup150"]->setEnabled(false);
 	(*a_scrActions)["filePrint"]->setEnabled(false);
 	(*a_scrActions)["fileSave"]->setEnabled(false);

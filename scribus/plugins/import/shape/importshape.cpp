@@ -50,8 +50,6 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
 ShapePlug::ShapePlug(ScribusDoc* doc, int flags)
 {
 	tmpSel=new Selection(this, false);
@@ -61,7 +59,7 @@ ShapePlug::ShapePlug(ScribusDoc* doc, int flags)
 	progressDialog = nullptr;
 }
 
-QImage ShapePlug::readThumbnail(QString fName)
+QImage ShapePlug::readThumbnail(const QString& fName)
 {
 	QFileInfo fi = QFileInfo(fName);
 	baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
@@ -78,7 +76,7 @@ QImage ShapePlug::readThumbnail(QString fName)
 	m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 	m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
 	m_Doc->addPage(0);
-	m_Doc->setGUI(false, ScCore->primaryMainWindow(), 0);
+	m_Doc->setGUI(false, ScCore->primaryMainWindow(), nullptr);
 	baseX = m_Doc->currentPage()->xOffset();
 	baseY = m_Doc->currentPage()->yOffset();
 	Elements.clear();
@@ -115,19 +113,15 @@ QImage ShapePlug::readThumbnail(QString fName)
 		delete m_Doc;
 		return tmpImage;
 	}
-	else
-	{
-		QDir::setCurrent(CurDirP);
-		m_Doc->DoDrawing = true;
-		m_Doc->scMW()->setScriptRunning(false);
-		delete m_Doc;
-	}
+	QDir::setCurrent(CurDirP);
+	m_Doc->DoDrawing = true;
+	m_Doc->scMW()->setScriptRunning(false);
+	delete m_Doc;
 	return QImage();
 }
 
-bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
+bool ShapePlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
-	QString fName = fNameIn;
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 	importerFlags = flags;
@@ -135,7 +129,7 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 //	double x, y, b, h;
 	double b, h;
 	bool ret = false;
-	QFileInfo fi = QFileInfo(fName);
+	QFileInfo fi = QFileInfo(fNameIn);
 	if ( !ScCore->usingGUI() )
 	{
 		interactive = false;
@@ -144,7 +138,7 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 	baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
 	if ( showProgress )
 	{
-		ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 		progressDialog = new MultiProgressDialog( tr("Importing: %1").arg(fi.fileName()), CommonStrings::tr_Cancel, mw );
 		QStringList barNames, barTexts;
 		barNames << "GI";
@@ -171,7 +165,7 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 		progressDialog->setOverallProgress(1);
 		qApp->processEvents();
 	}
-	parseHeader(fName, b, h);
+	parseHeader(fNameIn, b, h);
 	if (b == 0.0)
 		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
@@ -225,7 +219,7 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString CurDirP = QDir::currentPath();
 	QDir::setCurrent(fi.path());
-	if (convert(fName))
+	if (convert(fNameIn))
 	{
 		tmpSel->clear();
 		QDir::setCurrent(CurDirP);
@@ -259,7 +253,7 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 			else
 			{
 				m_Doc->DragP = true;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 				m_Doc->m_Selection->delaySignalsOn();
 				for (int dre=0; dre<Elements.count(); ++dre)
@@ -267,7 +261,7 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 					tmpSel->addItem(Elements.at(dre), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				m_Doc->m_Selection->delaySignalsOff();
@@ -276,7 +270,7 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 				TransactionSettings* transacSettings = new TransactionSettings(trSettings);
 				m_Doc->view()->handleObjectImport(md, transacSettings);
 				m_Doc->DragP = false;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 			}
 		}
@@ -312,12 +306,11 @@ bool ShapePlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 
 ShapePlug::~ShapePlug()
 {
-	if (progressDialog)
-		delete progressDialog;
+	delete progressDialog;
 	delete tmpSel;
 }
 
-void ShapePlug::parseHeader(QString fName, double &b, double &h)
+void ShapePlug::parseHeader(const QString& fName, double &b, double &h)
 {
 	QFile f(fName);
 	if (f.open(QIODevice::ReadOnly))
@@ -346,12 +339,12 @@ void ShapePlug::parseHeader(QString fName, double &b, double &h)
 	}
 }
 
-bool ShapePlug::convert(QString fn)
+bool ShapePlug::convert(const QString& fn)
 {
 	importedColors.clear();
 	QList<PageItem*> gElements;
 	groupStack.push(gElements);
-	if(progressDialog)
+	if (progressDialog)
 	{
 		progressDialog->setOverallProgress(2);
 		progressDialog->setLabel("GI", tr("Generating Items"));
@@ -419,7 +412,7 @@ void ShapePlug::parseGroup(QDomNode &DOC)
 //	int fillStyle = 1;
 	double strokewidth = 0.1;
 //	bool poly = false;
-	while(!DOC.isNull())
+	while (!DOC.isNull())
 	{
 		double x1, y1, x2, y2;
 		StrokeCol = defStrokeCol;
@@ -439,7 +432,7 @@ void ShapePlug::parseGroup(QDomNode &DOC)
 		if (style.isEmpty())
 			style = pg.attribute( "svg:style", "" ).simplified();
 		QStringList substyles = style.split(';', QString::SkipEmptyParts);
-		for( QStringList::Iterator it = substyles.begin(); it != substyles.end(); ++it )
+		for (QStringList::Iterator it = substyles.begin(); it != substyles.end(); ++it)
 		{
 			QStringList substyle = (*it).split(':', QString::SkipEmptyParts);
 			QString command(substyle[0].trimmed());
@@ -483,22 +476,22 @@ void ShapePlug::parseGroup(QDomNode &DOC)
 			}
 			else if (command == "stroke-width")
 				strokewidth = ScCLocale::toDoubleC(params);
-			else if( command == "stroke-linejoin" )
+			else if (command == "stroke-linejoin")
 			{
-				if( params == "miter" )
+				if (params == "miter")
 					LineJoin = Qt::MiterJoin;
-				else if( params == "round" )
+				else if (params == "round")
 					LineJoin = Qt::RoundJoin;
-				else if( params == "bevel" )
+				else if (params == "bevel")
 					LineJoin = Qt::BevelJoin;
 			}
-			else if( command == "stroke-linecap" )
+			else if (command == "stroke-linecap")
 			{
-				if( params == "butt" )
+				if (params == "butt")
 					LineEnd = Qt::FlatCap;
-				else if( params == "round" )
+				else if (params == "round")
 					LineEnd = Qt::RoundCap;
-				else if( params == "square" )
+				else if (params == "square")
 					LineEnd = Qt::SquareCap;
 			}
 		}
@@ -535,11 +528,11 @@ void ShapePlug::parseGroup(QDomNode &DOC)
 			QString points = pg.attribute( "points" ).simplified().replace(',', " ");
 			QStringList pointList = points.split(' ', QString::SkipEmptyParts);
 			FirstM = true;
-			for( QStringList::Iterator it = pointList.begin(); it != pointList.end(); it++ )
+			for (QStringList::Iterator it = pointList.begin(); it != pointList.end(); it++)
 			{
 				x = ScCLocale::toDoubleC(*(it++));
 				y = ScCLocale::toDoubleC(*it);
-				if( bFirst )
+				if (bFirst)
 				{
 					svgMoveTo(x * Conversion, y * Conversion);
 					bFirst = false;
@@ -665,7 +658,7 @@ void ShapePlug::parseGroup(QDomNode &DOC)
 
 void ShapePlug::parseGroupProperties(QDomNode &DOC, double &minXCoor, double &minYCoor, double &maxXCoor, double &maxYCoor, bool &firstCheck)
 {
-	while(!DOC.isNull())
+	while (!DOC.isNull())
 	{
 		double x1, y1, x2, y2;
 		FPointArray PoLine;
@@ -710,11 +703,11 @@ void ShapePlug::parseGroupProperties(QDomNode &DOC, double &minXCoor, double &mi
 			QString points = pg.attribute( "points" ).simplified().replace(',', " ");
 			QStringList pointList = points.split(' ', QString::SkipEmptyParts);
 			FirstM = true;
-			for( QStringList::Iterator it1 = pointList.begin(); it1 != pointList.end(); it1++ )
+			for (QStringList::Iterator it1 = pointList.begin(); it1 != pointList.end(); it1++)
 			{
 				x = ScCLocale::toDoubleC(*(it1++));
 				y = ScCLocale::toDoubleC(*it1);
-				if( bFirst )
+				if (bFirst)
 				{
 					svgMoveTo(x * Conversion, y * Conversion);
 					bFirst = false;
@@ -828,42 +821,42 @@ double ShapePlug::parseUnit(const QString &unit)
 	
 	bool noUnit = false;
 	QString unitval(unit);
-	if( unit.right( 2 ) == sPT )
+	if (unit.right( 2 ) == sPT)
 		unitval.replace( sPT, "" );
-	else if( unit.right( 2 ) == sCM )
+	else if (unit.right( 2 ) == sCM)
 		unitval.replace( sCM, "" );
-	else if( unit.right( 2 ) == sMM )
+	else if (unit.right( 2 ) == sMM)
 		unitval.replace( sMM , "" );
-	else if( unit.right( 2 ) == sIN )
+	else if (unit.right( 2 ) == sIN)
 		unitval.replace( sIN, "" );
-	else if( unit.right( 2 ) == sPX )
+	else if (unit.right( 2 ) == sPX)
 		unitval.replace( sPX, "" );
 	if (unitval == unit)
 		noUnit = true;
 	double value = ScCLocale::toDoubleC(unitval);
-	if( unit.right( 2 ) == sPT )
+	if (unit.right( 2 ) == sPT)
 		{}/* value = value; */ //no change
-	else if( unit.right( 2 ) == sCM )
+	else if (unit.right( 2 ) == sCM)
 	{
 		value = cm2pts(value);
 		Conversion = 1/unitGetRatioFromIndex(SC_CM);
 	}
-	else if( unit.right( 2 ) == sMM )
+	else if (unit.right( 2 ) == sMM)
 	{
 		value = mm2pts(value);
 		Conversion = 1/unitGetRatioFromIndex(SC_MM);
 	}
-	else if( unit.right( 2 ) == sIN )
+	else if (unit.right( 2 ) == sIN)
 	{
 		value = in2pts(value);
 		Conversion = 1/unitGetRatioFromIndex(SC_IN);
 	}
-	else if( unit.right( 2 ) == sPX )
+	else if (unit.right( 2 ) == sPX)
 	{
 		value = value * 0.8;
 		Conversion = 0.8;
 	}
-	else if(noUnit)
+	else if (noUnit)
 		{}/* value = value; */ //no change
 	return value;
 }
@@ -882,39 +875,39 @@ const char * ShapePlug::getCoord( const char *ptr, double &number )
 	expsign = 1;
 
 	// read the sign
-	if(*ptr == '+')
+	if (*ptr == '+')
 		ptr++;
-	else if(*ptr == '-')
+	else if (*ptr == '-')
 	{
 		ptr++;
 		sign = -1;
 	}
 
 	// read the integer part
-	while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+	while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 		integer = (integer * 10) + *(ptr++) - '0';
-	if(*ptr == '.') // read the decimals
+	if (*ptr == '.') // read the decimals
 	{
 		ptr++;
-		while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+		while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 			decimal += (*(ptr++) - '0') * (frac *= 0.1);
 	}
 
-	if(*ptr == 'e' || *ptr == 'E') // read the exponent part
+	if (*ptr == 'e' || *ptr == 'E') // read the exponent part
 	{
 		ptr++;
 
 		// read the sign of the exponent
-		if(*ptr == '+')
+		if (*ptr == '+')
 			ptr++;
-		else if(*ptr == '-')
+		else if (*ptr == '-')
 		{
 			ptr++;
 			expsign = -1;
 		}
 
 		exponent = 0;
-		while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+		while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 		{
 			exponent *= 10;
 			exponent += *ptr - '0';
@@ -924,7 +917,7 @@ const char * ShapePlug::getCoord( const char *ptr, double &number )
 	number = integer + decimal;
 	number *= sign * pow( static_cast<double>(10), static_cast<double>( expsign * exponent ) );
 	// skip the following space
-	if(*ptr == ' ')
+	if (*ptr == ' ')
 		ptr++;
 
 	return ptr;
@@ -935,7 +928,7 @@ bool ShapePlug::parseSVG( const QString &s, FPointArray *ite )
 	QString d = s;
 	d = d.replace( QRegExp( "," ), " ");
 	bool ret = false;
-	if( !d.isEmpty() )
+	if (!d.isEmpty())
 	{
 		d = d.simplified();
 		QByteArray pathData = d.toLatin1();
@@ -947,12 +940,12 @@ bool ShapePlug::parseSVG( const QString &s, FPointArray *ite )
 		FirstM = true;
 		char command = *(ptr++), lastCommand = ' ';
 		subpathx = subpathy = curx = cury = contrlx = contrly = 0.0;
-		while( ptr < end )
+		while (ptr < end)
 		{
-			if( *ptr == ' ' )
+			if (*ptr == ' ')
 				ptr++;
 			relative = false;
-			switch( command )
+			switch (command)
 			{
 			case 'm':
 				relative = true;
@@ -1125,18 +1118,18 @@ bool ShapePlug::parseSVG( const QString &s, FPointArray *ite )
 				}
 			}
 			lastCommand = command;
-			if(*ptr == '+' || *ptr == '-' || (*ptr >= '0' && *ptr <= '9'))
+			if (*ptr == '+' || *ptr == '-' || (*ptr >= '0' && *ptr <= '9'))
 			{
 				// there are still coords in this command
-				if(command == 'M')
+				if (command == 'M')
 					command = 'L';
-				else if(command == 'm')
+				else if (command == 'm')
 					command = 'l';
 			}
 			else
 				command = *(ptr++);
 
-			if( lastCommand != 'C' && lastCommand != 'c' &&
+			if (lastCommand != 'C' && lastCommand != 'c' &&
 			        lastCommand != 'S' && lastCommand != 's' &&
 			        lastCommand != 'Q' && lastCommand != 'q' &&
 			        lastCommand != 'T' && lastCommand != 't')
@@ -1176,10 +1169,10 @@ void ShapePlug::svgLineTo(FPointArray *i, double x1, double y1)
 	WasM = false;
 	if (i->size() > 3)
 	{
-		FPoint b1 = i->point(i->size()-4);
-		FPoint b2 = i->point(i->size()-3);
-		FPoint b3 = i->point(i->size()-2);
-		FPoint b4 = i->point(i->size()-1);
+		const FPoint& b1 = i->point(i->size()-4);
+		const FPoint& b2 = i->point(i->size()-3);
+		const FPoint& b3 = i->point(i->size()-2);
+		const FPoint& b4 = i->point(i->size()-1);
 		FPoint n1 = FPoint(CurrX, CurrY);
 		FPoint n2 = FPoint(x1, y1);
 		if ((b1 == n1) && (b2 == n1) && (b3 == n2) && (b4 == n2))
@@ -1205,10 +1198,10 @@ void ShapePlug::svgCurveToCubic(FPointArray *i, double x1, double y1, double x2,
 	WasM = false;
 	if (PathLen > 3)
 	{
-		FPoint b1 = i->point(i->size()-4);
-		FPoint b2 = i->point(i->size()-3);
-		FPoint b3 = i->point(i->size()-2);
-		FPoint b4 = i->point(i->size()-1);
+		const FPoint& b1 = i->point(i->size()-4);
+		const FPoint& b2 = i->point(i->size()-3);
+		const FPoint& b3 = i->point(i->size()-2);
+		const FPoint& b4 = i->point(i->size()-1);
 		FPoint n1 = FPoint(CurrX, CurrY);
 		FPoint n2 = FPoint(x1, y1);
 		FPoint n3 = FPoint(x3, y3);

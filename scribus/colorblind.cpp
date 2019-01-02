@@ -5,9 +5,8 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 #include "colorblind.h"
-//#include "colorblind.moc"
 
-#include <math.h>
+#include <cmath>
 
 //#define CLAMP(x, low, high)  (((x) > (high)) ? (high) : (((x) < (low)) ? (low) : (x)))
 
@@ -21,7 +20,7 @@ VisionDefectColor::VisionDefectColor(int r, int g, int b)
 	init();
 }
 
-VisionDefectColor::VisionDefectColor(QColor c)
+VisionDefectColor::VisionDefectColor(const QColor& c)
 {
 	m_red = (double)c.red();
 	m_green = (double)c.green();
@@ -156,7 +155,7 @@ void VisionDefectColor::convertDefect()
 	m_blue  = clamp(m_blue, 0.0, 255.0);
 }
 
-QColor VisionDefectColor::convertDefect(QColor c, int d)
+QColor VisionDefectColor::convertDefect(const QColor& c, int d)
 {
 	m_red = (double)c.red();
 	m_green = (double)c.green();

@@ -52,11 +52,11 @@ class PLUGIN_API Scribus150Format : public LoadSavePlugin
 		virtual bool savePalette(const QString & fileName);
 		virtual QString saveElements(double xp, double yp, double wp, double hp, Selection* selection, QByteArray &prevData);
 		virtual bool loadPalette(const QString & fileName);
-		virtual bool loadElements(const QString & data, QString fileDir, int toLayer, double Xp_in, double Yp_in, bool loc);
+		virtual bool loadElements(const QString & data, const QString& fileDir, int toLayer, double Xp_in, double Yp_in, bool loc);
 		virtual void addToMainWindowMenu(ScribusMainWindow *) {};
 
 		// Special features - .sla page extraction support
-		virtual bool loadPage(const QString & fileName, int pageNumber, bool Mpage, QString renamedPageName=QString::null);
+		virtual bool loadPage(const QString & fileName, int pageNumber, bool Mpage, const QString& renamedPageName=QString::null);
 		virtual bool readStyles(const QString& fileName, ScribusDoc* doc, StyleSet<ParagraphStyle> &docParagraphStyles);
 		virtual bool readCharStyles(const QString& fileName, ScribusDoc* doc, StyleSet<CharStyle> &docCharStyles);
 		virtual bool readLineStyles(const QString& fileName, QHash<QString, multiLine> *Sty);
@@ -119,7 +119,7 @@ class PLUGIN_API Scribus150Format : public LoadSavePlugin
 		bool readLatexInfo(PageItem_LatexFrame* item, ScXmlStreamReader& reader);
 		void readLayers(ScLayer& layer, ScXmlStreamAttributes& attrs);
 		bool readMultiline(multiLine& ml, ScXmlStreamReader& reader);
-		bool readObject(ScribusDoc* doc, ScXmlStreamReader& reader, ItemInfo& info, const QString& baseDir, bool loadPage, QString renamedPageName = QString());
+		bool readObject(ScribusDoc* doc, ScXmlStreamReader& reader, ItemInfo& info, const QString& baseDir, bool loadPage, const QString& renamedPageName = QString());
 		bool readPage(ScribusDoc* doc, ScXmlStreamReader& reader);
 		bool readPageItemAttributes(PageItem* item, ScXmlStreamReader& reader);
 		bool readPageSets(ScribusDoc* doc, ScXmlStreamReader& reader);
@@ -157,7 +157,7 @@ class PLUGIN_API Scribus150Format : public LoadSavePlugin
 		PageItem* pasteItem(ScribusDoc *doc, ScXmlStreamAttributes& attrs, const QString& baseDir, PageItem::ItemKind itemKind, int pagenr = -2 /* currentPage*/);
 
 		void writeCheckerProfiles(ScXmlStreamWriter& docu);
-		void writeLinestyles(ScXmlStreamWriter& docu);
+		void writeLineStyles(ScXmlStreamWriter& docu);
 		void writeJavascripts(ScXmlStreamWriter& docu);
 		void writeBookmarks(ScXmlStreamWriter& docu);
 		void writeColors(ScXmlStreamWriter& docu, bool part = false);

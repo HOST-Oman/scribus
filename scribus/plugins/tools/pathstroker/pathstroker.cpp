@@ -61,7 +61,7 @@ void pathstroker_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-PathStrokerPlugin::PathStrokerPlugin() : ScActionPlugin()
+PathStrokerPlugin::PathStrokerPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -121,10 +121,10 @@ void PathStrokerPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool PathStrokerPlugin::run(ScribusDoc* doc, QString)
+bool PathStrokerPlugin::run(ScribusDoc* doc, const QString&)
 {
 	ScribusDoc* currDoc = doc;
-	if (currDoc == 0)
+	if (currDoc == nullptr)
 		currDoc = ScCore->primaryMainWindow()->doc;
 	if (currDoc->m_Selection->count() > 0)
 	{

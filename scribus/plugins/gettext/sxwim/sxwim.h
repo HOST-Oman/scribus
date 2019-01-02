@@ -32,7 +32,7 @@ for which a new license (GPL+exception) is in place.
 #include "scconfig.h"
 #include "pluginapi.h"
 
-extern "C" PLUGIN_API void GetText(QString filename, QString encoding, bool textOnly, gtWriter *writer);
+extern "C" PLUGIN_API void GetText(const QString& filename, const QString& encoding, bool textOnly, gtWriter *writer);
 
 extern "C" PLUGIN_API QString FileFormatName();
 
@@ -44,7 +44,7 @@ const QString CONTENT = "content.xml";
 class SxwIm
 {
 public:
-	SxwIm(QString fileName, QString encoding, gtWriter* w, bool textOnly);
+	SxwIm(const QString& fileName, const QString& encoding, gtWriter* w, bool textOnly);
 	~SxwIm();
 
 private:

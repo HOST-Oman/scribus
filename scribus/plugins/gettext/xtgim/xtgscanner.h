@@ -32,8 +32,14 @@ for which a new license (GPL+exception) is in place.
 
 #include "pageitem.h"
 
+#include <QByteArray>
 #include <QHash>
-#include <QTextCodec>
+#include <QString>
+#include <QSet>
+
+class QTextCodec;
+class QTextDecoder;
+
 /**
 Enum datatype for determining the Scanner mode 
 */
@@ -56,63 +62,71 @@ private:
 	/**
 	 \variable Variables based on which scanner works in different modes
 	 */
-	scannerMode Mode;
-	scannerMode prevMode;
+	scannerMode m_mode;
+	scannerMode m_prevMode;
 	/**
 	 \variable Variables of the importer
 	 */
 	PageItem* m_item;
-	bool importTextOnly;
+	bool m_importTextOnly;
 	bool m_prefixName;
 	bool m_append;
 	/**
 	 \variable Flag variables used in the scanner
 	 */
-	bool newlineFlag;
-	bool xflag;
-	bool inDef;
+	bool m_newlineFlag;
+	bool m_xflag;
+	bool m_inDef;
 	 /**
-	 \variable Input Buffer to which properly encoded file is loaded
+	 \variable Input buffer to which properly encoded file is loaded
 	 */
-	QByteArray input_Buffer;
-	int top;
+	QByteArray m_inputBuffer;
+	int m_bufferIndex;
 
-	ScribusDoc* doc;
+	QString m_decodedText;
+	int m_textIndex;
+
+	ScribusDoc* m_doc;
 	/**
 	 \variable current Character and paragraph styles
 	 */
-	CharStyle currentCharStyle;
-	ParagraphStyle currentParagraphStyle;
-	StyleFlag styleEffects;
+	CharStyle m_currentCharStyle;
+	ParagraphStyle m_currentParagraphStyle;
+	StyleFlag m_styleEffects;
 
 	/** To store unsupported attributes */
-	QSet<QString> unSupported;
+	QSet<QString> m_unsupported;
 	/** 
-	\brief textToAppend will be the QString used by the function TextWriter::append(QString& )
+	\brief m_textToAppend will be the QString used by the function TextWriter::append(QString& )
 	*/ 
-	QString textToAppend;
-	QString token;
-	QString sfcName; // Name of Style/Fontset/Color to be defined, hence named sfcName
+	QString m_textToAppend;
+	QString m_token;
+	QString m_sfcName; // Name of Style/Fontset/Color to be defined, hence named m_sfcName
 
-	QHash<QString,void (XtgScanner::*)(void)> tagModeHash;
-	QHash<QString,void (XtgScanner::*)(void)> textModeHash;
-	QHash<QString,void (XtgScanner::*)(void)> nameModeHash;
+	QHash<QString,void (XtgScanner::*)(void)> m_tagModeHash;
+	QHash<QString,void (XtgScanner::*)(void)> m_textModeHash;
+	QHash<QString,void (XtgScanner::*)(void)> m_nameModeHash;
 	QHash<int,QString> languages;
 
-	/** define variable will take the following values : 
+	/** m_define variable will take the following values : 
 	 \brief
 		0	Not a definition
 		1	Character Stylesheet Definition
 		2	Paragraph Stylesheet Definition
 	 */
-	int define;
-	QTextCodec *m_codec;
-	QList<QByteArray> m_codecList;
+	int  m_define;
 	bool m_isBold;
 	bool m_isItalic;
+
+	QTextDecoder *m_decoder;
+
+	/**
+	 \brief Decode text from input buffer until specified index
+	 */
+	bool decodeText(int index);
 	
 public:
-	XtgScanner(QString filename, PageItem* item, bool textOnly, bool prefix, bool append);
+	XtgScanner(PageItem* item, bool textOnly, bool prefix, bool append);
 	~XtgScanner();
 
 	/**
@@ -124,16 +138,22 @@ public:
 	void initNameMode();
 	void initLanguages();
 	/**
-	\brief parse function which will parse the inputBuffer and append it into the PageItem
+	\brief Open file and initialize inputBuffer for parsing
+	*/
+	bool open(const QString& fileName);
+
+	/**
+	\brief Parse function which will parse the inputBuffer and append it into the PageItem
 	*/
 	void xtgParse();
+
 	/**
-	\brief This function will return the character in Buffer to which top is now pointing to 
+	\brief This function will return the character in Buffer to which m_textIndex is now pointing to 
 	*/
 	QChar lookAhead(int adj = 0);
 
 	/** 
-	\brief A function which returns the next symbol in the input stream as character. This function will increment the top by 1
+	\brief A function which returns the next symbol in the input stream as character. This function will increment the m_textIndex by 1
 	*/
 	QChar nextSymbol();
 
@@ -161,7 +181,7 @@ public:
 	 */
 	void applyFeature(StyleFlagValue feature);
 	/**
-	 \brief Function which will empty the textToAppend variable by writing into text frame
+	 \brief Function which will empty the m_textToAppend variable by writing into text frame
 	 */
 	void flushText();
 	/**

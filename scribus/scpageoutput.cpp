@@ -38,7 +38,7 @@ for which a new license (GPL+exception) is in place.
 #include "text/boxes.h"
 
 
-MarksOptions::MarksOptions(void)
+MarksOptions::MarksOptions()
 {
 	markLength = 20.0;
 	markOffset = 0.0;
@@ -279,7 +279,7 @@ void ScPageOutput::drawItem_Pre( PageItem* item, ScPainterExBase* painter)
 			gradientVal = "";
 		if (!(gradientVal.isEmpty()) && (m_doc->docGradients.contains(gradientVal)))
 			painter->m_fillGradient = VGradientEx(m_doc->docGradients[gradientVal], *m_doc);
-		if ((painter->m_fillGradient.Stops() < 2) && (item->GrType < 9)) // fall back to solid filling if there are not enough colorstops in the gradient.
+		if ((painter->m_fillGradient.stops() < 2) && (item->GrType < 9)) // fall back to solid filling if there are not enough colorstops in the gradient.
 		{
 			if (item->fillColor() != CommonStrings::None)
 			{
@@ -447,7 +447,7 @@ void ScPageOutput::drawItem_Post( PageItem* item, ScPainterExBase* painter )
 						gradientStrokeVal = "";
 					if (!(gradientStrokeVal.isEmpty()) && (m_doc->docGradients.contains(gradientStrokeVal)))
 						painter->m_strokeGradient = VGradientEx(m_doc->docGradients[gradientStrokeVal], *m_doc);
-					if (painter->m_strokeGradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+					if (painter->m_strokeGradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 					{
 						if (item->lineColor() != CommonStrings::None)
 						{
@@ -531,7 +531,7 @@ void ScPageOutput::drawItem_Embedded( PageItem* item, ScPainterExBase *p, QRect 
 		p->scale(style.scaleH() / 1000.0, style.scaleV() / 1000.0);
 		double pws = embedded->m_lineWidth;
 		drawItem_Pre(embedded, p);
-		switch(embedded->itemType())
+		switch (embedded->itemType())
 		{
 			case PageItem::ImageFrame:
 			case PageItem::LatexFrame:
@@ -596,7 +596,7 @@ void ScPageOutput::drawPattern( PageItem* item, ScPainterExBase* painter, QRect 
 	QPointF ipc = invMat.map(pc), ipd = invMat.map(pd);
 
 	painter->save();
-	if (item->imageClip.size() != 0)
+	if (!item->imageClip.empty())
 	{
 		painter->setupPolygon(&item->imageClip);
 		painter->setClipPath();
@@ -795,7 +795,7 @@ void ScPageOutput::drawItem_ImageFrame( PageItem_ImageFrame* item, ScPainterExBa
 				pImage = &item->pixm;
 
 			painter->save();
-			if (item->imageClip.size() != 0)
+			if (!item->imageClip.empty())
 			{
 				painter->setupPolygon(&item->imageClip);
 				painter->setClipPath();
@@ -855,7 +855,7 @@ void ScPageOutput::drawItem_Line( PageItem_Line* item, ScPainterExBase* painter,
 				gradientStrokeVal = "";
 			if (!(gradientStrokeVal.isEmpty()) && (m_doc->docGradients.contains(gradientStrokeVal)))
 				painter->m_strokeGradient = VGradientEx(m_doc->docGradients[gradientStrokeVal], *m_doc);
-			if (painter->m_strokeGradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+			if (painter->m_strokeGradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 			{
 				if (item->lineColor() != CommonStrings::None)
 				{
@@ -1080,7 +1080,7 @@ public:
 		embedded->invalid = true;
 		m_scpage->drawItem_Pre(embedded, m_painter);
 
-		switch(embedded->itemType())
+		switch (embedded->itemType())
 		{
 		case PageItem::ImageFrame:
 		case PageItem::TextFrame:
@@ -1192,7 +1192,7 @@ void ScPageOutput::drawItem_PolyLine( PageItem_PolyLine* item, ScPainterExBase* 
 				gradientStrokeVal = "";
 			if (!(gradientStrokeVal.isEmpty()) && (m_doc->docGradients.contains(gradientStrokeVal)))
 				painter->m_strokeGradient = VGradientEx(m_doc->docGradients[gradientStrokeVal], *m_doc);
-			if (painter->m_strokeGradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+			if (painter->m_strokeGradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 			{
 				if (item->lineColor() != CommonStrings::None)
 				{
@@ -1359,7 +1359,7 @@ void ScPageOutput::drawItem_Spiral( PageItem_Spiral* item, ScPainterExBase* pain
 				gradientStrokeVal = "";
 			if (!(gradientStrokeVal.isEmpty()) && (m_doc->docGradients.contains(gradientStrokeVal)))
 				painter->m_strokeGradient = VGradientEx(m_doc->docGradients[gradientStrokeVal], *m_doc);
-			if (painter->m_strokeGradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+			if (painter->m_strokeGradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 			{
 				if (item->lineColor() != CommonStrings::None)
 				{

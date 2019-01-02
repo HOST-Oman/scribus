@@ -60,7 +60,7 @@ double docUnitYToPageY(double pageUnitY)
 	return PointToValue(pageUnitY - ScCore->primaryMainWindow()->doc->currentPage()->yOffset());
 }
 
-PageItem *GetItem(QString Name)
+PageItem *GetItem(const QString& Name)
 {
 	if (!Name.isEmpty())
 	{
@@ -78,7 +78,7 @@ PageItem *GetItem(QString Name)
 	return nullptr;
 }
 
-void ReplaceColor(QString col, QString rep)
+void ReplaceColor(const QString& col, const QString& rep)
 {
 	QMap<QString, QString> colorMap;
 	colorMap.insert(col, rep);
@@ -99,31 +99,29 @@ void ReplaceColor(QString col, QString rep)
 }
 
 /* 04/07/10 returns selection if is not name specified  pv  */
-PageItem* GetUniqueItem(QString name)
+PageItem* GetUniqueItem(const QString& name)
 {
-	if (name.length()==0)
+	if (name.length() == 0)
+	{
 		if (ScCore->primaryMainWindow()->doc->m_Selection->count() != 0)
 			return ScCore->primaryMainWindow()->doc->m_Selection->itemAt(0);
-		else
-		{
-			PyErr_SetString(NoValidObjectError, QString("Cannot use empty string for object name when there is no selection").toLocal8Bit().constData());
-			return nullptr;
-		}
-	else
-		return getPageItemByName(name);
+		PyErr_SetString(NoValidObjectError, QString("Cannot use empty string for object name when there is no selection").toLocal8Bit().constData());
+		return nullptr;
+	}
+	return getPageItemByName(name);
 }
 
-PageItem* getPageItemByName(QString name)
+PageItem* getPageItemByName(const QString& name)
 {
 	if (name.length() == 0)
 	{
 		PyErr_SetString(PyExc_ValueError, QString("Cannot accept empty name for pageitem").toLocal8Bit().constData());
 		return nullptr;
 	}
-	for (int j = 0; j<ScCore->primaryMainWindow()->doc->Items->count(); j++)
+	for (int i = 0; i<ScCore->primaryMainWindow()->doc->Items->count(); i++)
 	{
-		if (name==ScCore->primaryMainWindow()->doc->Items->at(j)->itemName())
-			return ScCore->primaryMainWindow()->doc->Items->at(j);
+		if (name==ScCore->primaryMainWindow()->doc->Items->at(i)->itemName())
+			return ScCore->primaryMainWindow()->doc->Items->at(i);
 	} // for items
 	PyErr_SetString(NoValidObjectError, QString("Object not found").toLocal8Bit().constData());
 	return nullptr;
@@ -135,13 +133,13 @@ PageItem* getPageItemByName(QString name)
  * if it does exist. Returns false if there is no such object, or
  * if the empty string ("") is passed.
  */
-bool ItemExists(QString name)
+bool ItemExists(const QString& name)
 {
 	if (name.length() == 0)
 		return false;
-	for (int j = 0; j<ScCore->primaryMainWindow()->doc->Items->count(); j++)
+	for (int i = 0; i<ScCore->primaryMainWindow()->doc->Items->count(); i++)
 	{
-		if (name==ScCore->primaryMainWindow()->doc->Items->at(j)->itemName())
+		if (name==ScCore->primaryMainWindow()->doc->Items->at(i)->itemName())
 			return true;
 	} // for items
 	return false;
@@ -183,7 +181,7 @@ bool setSelectedItemsByName(QStringList& itemNames)
 	for (QStringList::Iterator it = itemNames.begin() ; it != itemNames.end() ; it++)
 	{
 		// Search for the named item
-		PageItem* item = 0;
+		PageItem* item = nullptr;
 		for (int j = 0; j < ScCore->primaryMainWindow()->doc->Items->count(); j++)
 			if (*it == ScCore->primaryMainWindow()->doc->Items->at(j)->itemName())
 				item = ScCore->primaryMainWindow()->doc->Items->at(j);

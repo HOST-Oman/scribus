@@ -28,9 +28,9 @@ PyObject *scribus_placevec(PyObject* /* self */, PyObject* args)
 	double x = 0.0;
 	double y = 0.0;
 	if (!PyArg_ParseTuple(args, "es|dd", "utf-8", &Image, &x, &y))
-		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
 	QStringList allFormatsV = LoadSavePlugin::getExtensionsForImport(FORMATID_FIRSTUSER);
 	QString fName = QString::fromUtf8(Image);
 	QFileInfo fi = QFileInfo(fName);
@@ -38,7 +38,7 @@ PyObject *scribus_placevec(PyObject* /* self */, PyObject* args)
 	if (!allFormatsV.contains(ext))
 	{
 		PyErr_SetString(PyExc_Exception, "Requested Import plugin not available");
-		return NULL;
+		return nullptr;
 	}
 	FileLoader *fileLoader = new FileLoader(fName);
 	int testResult = fileLoader->testFile();
@@ -63,10 +63,8 @@ PyObject *scribus_placevec(PyObject* /* self */, PyObject* args)
 	else
 	{
 		PyErr_SetString(PyExc_Exception, "Requested File cannot be imported");
-		return NULL;
+		return nullptr;
 	}
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 #if 0
@@ -76,9 +74,9 @@ PyObject *scribus_placesvg(PyObject* /* self */, PyObject* args)
 	double x = 0.0;
 	double y = 0.0;
 	if (!PyArg_ParseTuple(args, "es|dd", "utf-8", &Image, &x, &y))
-		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
 	const FileFormat * fmt = LoadSavePlugin::getFormatById(FORMATID_SVGIMPORT);
 	if (fmt)
 	{
@@ -96,10 +94,8 @@ PyObject *scribus_placesvg(PyObject* /* self */, PyObject* args)
 	else
 	{
 		PyErr_SetString(PyExc_Exception, "SVG Import plugin not available");
-		return NULL;
+		return nullptr;
 	}
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -109,9 +105,9 @@ PyObject *scribus_placeeps(PyObject* /* self */, PyObject* args)
 	double x = 0.0;
 	double y = 0.0;
 	if (!PyArg_ParseTuple(args, "es|dd", "utf-8", &Image, &x, &y))
-		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
 	const FileFormat * fmt = LoadSavePlugin::getFormatById(FORMATID_PSIMPORT);
 	if (fmt)
 	{
@@ -129,10 +125,8 @@ PyObject *scribus_placeeps(PyObject* /* self */, PyObject* args)
 	else
 	{
 		PyErr_SetString(PyExc_Exception, "EPS Import plugin not available");
-		return NULL;
+		return nullptr;
 	}
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -142,9 +136,9 @@ PyObject *scribus_placesxd(PyObject* /* self */, PyObject* args)
 	double x = 0.0;
 	double y = 0.0;
 	if (!PyArg_ParseTuple(args, "es|dd", "utf-8", &Image, &x, &y))
-		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
 	const FileFormat * fmt = LoadSavePlugin::getFormatById(FORMATID_SXDIMPORT);
 	if (fmt)
 	{
@@ -162,10 +156,8 @@ PyObject *scribus_placesxd(PyObject* /* self */, PyObject* args)
 	else
 	{
 		PyErr_SetString(PyExc_Exception, "OpenOffice Import plugin not available");
-		return NULL;
+		return nullptr;
 	}
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -176,8 +168,8 @@ PyObject *scribus_placeodg(PyObject* /* self */, PyObject* args)
 	double y = 0.0;
 	if (!PyArg_ParseTuple(args, "es|dd", "utf-8", &Image, &x, &y))
 		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+	if (!checkHaveDocument())
+		return nullptr;
 	const FileFormat * fmt = LoadSavePlugin::getFormatById(FORMATID_ODGIMPORT);
 	if (fmt)
 	{
@@ -195,10 +187,8 @@ PyObject *scribus_placeodg(PyObject* /* self */, PyObject* args)
 	else
 	{
 		PyErr_SetString(PyExc_Exception, "OpenOffice Import plugin not available");
-		return NULL;
+		return nullptr;
 	}
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 #endif

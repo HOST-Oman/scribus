@@ -24,7 +24,7 @@ Qt::ItemFlags multiComboboxModel::flags ( const QModelIndex& index ) const
 
 multiView::multiView ( QWidget* parent ) : QListView ( parent )
 {
-	parentMcb = 0;
+	parentMcb = nullptr;
 }
 
 
@@ -128,17 +128,10 @@ int multiCombobox::checkstate ( int index )
 	QVariant var = QComboBox::itemData ( index, Qt::CheckStateRole );
 
 	if ( var == Qt::Checked )
-	{
 		return 1;
-	}
-	else if ( var == Qt::PartiallyChecked )
-	{
+	if ( var == Qt::PartiallyChecked )
 		return 2;
-	}
-	else
-	{
-		return 0;
-	}
+	return 0;
 }
 
 
@@ -157,7 +150,7 @@ void multiCombobox::switchCheckstate ( int row )
 }
 
 
-int multiCombobox::addItem ( QString text, int checked )
+int multiCombobox::addItem ( const QString& text, int checked )
 {
 	QComboBox::addItem ( text );
 

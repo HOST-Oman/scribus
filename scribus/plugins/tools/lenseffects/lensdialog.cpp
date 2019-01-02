@@ -255,7 +255,7 @@ LensDialog::LensDialog(QWidget* parent, ScribusDoc *doc) : QDialog(parent)
 	setModal(true);
 	buttonZoomOut->setIcon(QIcon(IconManager::instance()->loadIcon("16/zoom-out.png")));
 	buttonZoomI->setIcon(QIcon(IconManager::instance()->loadIcon("16/zoom-in.png")));
-	addItemsToScene(doc->m_Selection, doc, 0, 0);
+	addItemsToScene(doc->m_Selection, doc, nullptr, nullptr);
 	previewWidget->setRenderHint(QPainter::Antialiasing);
 	previewWidget->setScene(&scene);
 	isFirst = true;
@@ -294,7 +294,7 @@ void LensDialog::addItemsToScene(Selection* itemSelection, ScribusDoc *doc, QGra
 			pp = path.toQPainterPath(true);
 		origPath.append(pp);
 		QGraphicsPathItem* pItem = new QGraphicsPathItem(pp, parentItem);
-		if (parentItem == 0)
+		if (parentItem == nullptr)
 		{
 			scene.addItem(pItem);
 			pItem->setPos(currItem->xPos() - gx, currItem->yPos() - gy);
@@ -339,7 +339,7 @@ void LensDialog::addItemsToScene(Selection* itemSelection, ScribusDoc *doc, QGra
 					}
 					QList<VColorStop*> colorStops = currItem->fill_gradient.colorStops();
 					QColor qStopColor;
-					for( int offset = 0 ; offset < colorStops.count() ; offset++ )
+					for (int offset = 0 ; offset < colorStops.count() ; offset++)
 					{
 						qStopColor = colorStops[ offset ]->color;
 						int h, s, v, sneu, vneu;
@@ -419,7 +419,7 @@ void LensDialog::addItemsToScene(Selection* itemSelection, ScribusDoc *doc, QGra
 					pat = QRadialGradient(x1, y1, sqrt(pow(x2 - x1, 2) + pow(y2 - y1,2)), x1, y1);
 				QList<VColorStop*> colorStops = currItem->stroke_gradient.colorStops();
 				QColor qStopColor;
-				for( int offset = 0 ; offset < colorStops.count() ; offset++ )
+				for (int offset = 0 ; offset < colorStops.count() ; offset++)
 				{
 					qStopColor = colorStops[ offset ]->color;
 					int h, s, v, sneu, vneu;

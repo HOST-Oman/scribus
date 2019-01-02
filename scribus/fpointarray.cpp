@@ -148,7 +148,7 @@ bool FPointArray::putPoints( int index, int nPoints, const FPointArray & from, i
 	p += index;
 	ConstIterator q = from.begin();
 	q += fromIndex;
-	while( --nPoints >= 0 )
+	while (--nPoints >= 0)
 	{
 		*p++ = *q++;
     }
@@ -238,7 +238,7 @@ FPoint FPointArray::WidthHeight() const
 	return FPoint(maxx - minx,maxy - miny);
 }
 
-void FPointArray::map( QTransform m )
+void FPointArray::map( const QTransform& m )
 {
 	const double m11 = m.m11();
 	const double m12 = m.m12();
@@ -296,7 +296,7 @@ void FPointArray::addPoint(double x, double y)
 	QVector<FPoint>::append(FPoint(x, y));
 }
 
-void FPointArray::addPoint(FPoint p)
+void FPointArray::addPoint(const FPoint& p)
 {
 	QVector<FPoint>::append(p);
 }
@@ -318,10 +318,7 @@ bool FPointArray::hasLastQuadPoint(double x1, double y1, double x2, double y2, d
 	if (p->xp != x3 || p->yp != y3)
 		return false;
 	++p; 
-	if (p->xp != x4 || p->yp != y4)
-		return false;
-	
-	return true;
+	return !(p->xp != x4 || p->yp != y4);
 }
 
 void FPointArray::addQuadPoint(double x1, double y1, double x2, double y2, double x3, double y3, double x4, double y4)
@@ -332,7 +329,7 @@ void FPointArray::addQuadPoint(double x1, double y1, double x2, double y2, doubl
 	QVector<FPoint>::append(FPoint(x4, y4));
 }
 
-void FPointArray::addQuadPoint(FPoint p1, FPoint p2, FPoint p3, FPoint p4)
+void FPointArray::addQuadPoint(const FPoint& p1, const FPoint& p2, const FPoint& p3, const FPoint& p4)
 {
 	QVector<FPoint>::append(p1);
 	QVector<FPoint>::append(p2);
@@ -403,9 +400,9 @@ void FPointArray::pointTangentNormalAt( int seg, double t, FPoint* p, FPoint* tn
 	// Calculate derivative if necessary.
 	FPoint d;
 	if( tn || n )
-		pointDerivativesAt( seg, t, p, &d, 0L );
+		pointDerivativesAt( seg, t, p, &d, nullptr );
 	else
-		pointDerivativesAt( seg, t, p, 0L, 0L );
+		pointDerivativesAt( seg, t, p, nullptr, nullptr );
 	// Normalize derivative.
 	if( tn || n )
 	{
@@ -440,9 +437,9 @@ void FPointArray::pointDerivativesAt( int seg, double t, FPoint* p, FPoint* d1, 
 	q[ 3 ] = point(seg+2);
 	q[ 2 ] = point(seg+3);
 	// The De Casteljau algorithm.
-	for( unsigned short j = 1; j <= 3; j++ )
+	for (unsigned short j = 1; j <= 3; j++)
 	{
-		for( unsigned short i = 0; i <= 3 - j; i++ )
+		for (unsigned short i = 0; i <= 3 - j; i++)
 		{
 			q[ i ] = ( 1.0 - t ) * q[ i ] + t * q[ i + 1 ];
 		}
@@ -463,7 +460,6 @@ void FPointArray::pointDerivativesAt( int seg, double t, FPoint* p, FPoint* d1, 
 	if( p )
 		*p = q[ 0 ];
 	delete[]( q );
-	return;
 }
 
 
@@ -614,8 +610,7 @@ void FPointArray::fromQPainterPath(QPainterPath &path, bool close)
 
 FPointArray::~FPointArray()
 {
-	if (m_svgState)
-		delete m_svgState;
+	delete m_svgState;
 }
 
 
@@ -789,7 +784,7 @@ void FPointArray::calculateArc(bool relative, double &curx, double &cury, double
 	else if(th_arc > 0 && !sweepFlag)
 		th_arc -= 2 * M_PI;
 	n_segs = static_cast<int>(ceil(fabs(th_arc / (M_PI * 0.5 + 0.001))));
-	for(i = 0; i < n_segs; i++)
+	for (i = 0; i < n_segs; i++)
 	{
 	{
 		double sin_th, cos_th;
@@ -851,12 +846,12 @@ static const char * getCoord( const char *ptr, double &number )
 	}
 	
 	// read the integer part
-	while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+	while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 		integer = (integer * 10) + *(ptr++) - '0';
 	if(*ptr == '.') // read the decimals
 	{
 		ptr++;
-		while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+		while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 			decimal += (*(ptr++) - '0') * (frac *= 0.1);
 	}
 	
@@ -874,7 +869,7 @@ static const char * getCoord( const char *ptr, double &number )
 		}
 		
 		exponent = 0;
-		while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+		while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 		{
 			exponent *= 10;
 			exponent += *ptr - '0';

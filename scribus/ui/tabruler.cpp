@@ -30,7 +30,7 @@ for which a new license (GPL+exception) is in place.
 #include "iconmanager.h"
 #include "util.h"
 
-RulerT::RulerT(QWidget *pa, int ein, QList<ParagraphStyle::TabRecord> Tabs, bool ind, double wid) : QWidget(pa),
+RulerT::RulerT(QWidget *pa, int ein, const QList<ParagraphStyle::TabRecord>& Tabs, bool ind, double wid) : QWidget(pa),
 	mousePressed(false),
 	tabValues(Tabs),
 	haveInd(ind),
@@ -67,7 +67,7 @@ RulerT::RulerT(QWidget *pa, int ein, QList<ParagraphStyle::TabRecord> Tabs, bool
 	}
 }
 
-void RulerT::setTabs(QList<ParagraphStyle::TabRecord> Tabs, int dEin)
+void RulerT::setTabs(const QList<ParagraphStyle::TabRecord>& Tabs, int dEin)
 {
 	unitIndex = dEin;
 	iter  = unitRulerGetIter1FromIndex(unitIndex);
@@ -102,7 +102,7 @@ void RulerT::paintEvent(QPaintEvent *)
 		{
 			case 2:
 			{
-				QString tx = "";
+				QString tx;
 				int num1 = static_cast<int>(xl / iter2);
 				if (num1 != 0)
 					tx = QString::number(num1);
@@ -492,13 +492,13 @@ void RulerT::moveLeftIndent(double t)
 	repaint();
 }
 
-Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, QList<ParagraphStyle::TabRecord> Tabs, double wid ) : QWidget( parent ),
-	firstLineLabel(0),
-	leftIndentLabel(0),
-	rightIndentLabel(0),
-	firstLineData(0),
-	leftIndentData(0),
-	rightIndentData(0)
+Tabruler::Tabruler( QWidget* parent, bool haveFirst, int dEin, const QList<ParagraphStyle::TabRecord>& Tabs, double wid ) : QWidget( parent ),
+	firstLineLabel(nullptr),
+	leftIndentLabel(nullptr),
+	rightIndentLabel(nullptr),
+	firstLineData(nullptr),
+	leftIndentData(nullptr),
+	rightIndentData(nullptr)
 {
 	docUnitRatio=unitGetRatioFromIndex(dEin);
 	double ww = (wid < 0) ? 4000 : wid;
@@ -739,7 +739,7 @@ void Tabruler::languageChange()
 	tabData->setSuffix(unitSuffix);
 }
 
-void Tabruler::setTabs(QList<ParagraphStyle::TabRecord> Tabs, int dEin)
+void Tabruler::setTabs(const QList<ParagraphStyle::TabRecord>& Tabs, int dEin)
 {
 	docUnitRatio=unitGetRatioFromIndex(dEin);
 	tabData->setNewUnit(dEin);
@@ -864,32 +864,35 @@ void Tabruler::setTabFillChar(QChar t)
 		tabFillCombo->setEditable(false);
 		tabFillCombo->setCurrentIndex(0);
 	}
-	else if (t == '.')
-	{
-		tabFillCombo->setEditable(false);
-		tabFillCombo->setCurrentIndex(1);
-	}
-	else if (t == '-')
-	{
-		tabFillCombo->setEditable(false);
-		tabFillCombo->setCurrentIndex(2);
-	}
-	else if (t == '_')
-	{
-		tabFillCombo->setEditable(false);
-		tabFillCombo->setCurrentIndex(3);
-	}
 	else
-	{
-		tabFillCombo->setCurrentIndex(4);
-		tabFillCombo->setEditable(true);
-		if (!t.isNull())
+		if (t == '.')
 		{
-			bool sigBlocked = tabFillCombo->blockSignals(true);
-			tabFillCombo->setEditText(QString(t));
-			tabFillCombo->blockSignals(sigBlocked);
+			tabFillCombo->setEditable(false);
+			tabFillCombo->setCurrentIndex(1);
 		}
-	}
+		else
+			if (t == '-')
+			{
+				tabFillCombo->setEditable(false);
+				tabFillCombo->setCurrentIndex(2);
+			}
+			else
+				if (t == '_')
+				{
+					tabFillCombo->setEditable(false);
+					tabFillCombo->setCurrentIndex(3);
+				}
+				else
+				{
+					tabFillCombo->setCurrentIndex(4);
+					tabFillCombo->setEditable(true);
+					if (!t.isNull())
+					{
+						bool sigBlocked = tabFillCombo->blockSignals(true);
+						tabFillCombo->setEditText(QString(t));
+						tabFillCombo->blockSignals(sigBlocked);
+					}
+				}
 	emit tabrulerChanged();
 	emit tabsChanged();
 }

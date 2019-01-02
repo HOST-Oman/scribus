@@ -49,7 +49,7 @@ void lenseffects_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-LensEffectsPlugin::LensEffectsPlugin() : ScActionPlugin()
+LensEffectsPlugin::LensEffectsPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -108,10 +108,10 @@ void LensEffectsPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool LensEffectsPlugin::run(ScribusDoc* doc, QString)
+bool LensEffectsPlugin::run(ScribusDoc* doc, const QString&)
 {
 	ScribusDoc* currDoc = doc;
-	if (currDoc == 0)
+	if (currDoc == nullptr)
 		currDoc = ScCore->primaryMainWindow()->doc;
 	if (currDoc->m_Selection->count() > 0)
 	{

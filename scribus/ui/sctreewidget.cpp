@@ -124,7 +124,7 @@ bool ScTreeWidget::event(QEvent *e)
 	return QTreeWidget::event(e);
 }
 
-QTreeWidgetItem* ScTreeWidget::addWidget(QString title, QWidget* widget)
+QTreeWidgetItem* ScTreeWidget::addWidget(const QString& title, QWidget* widget)
 {
 	QTreeWidgetItem *item1 = new QTreeWidgetItem(this);
 	item1->setText(0, title);
@@ -151,7 +151,7 @@ void ScTreeWidget::setToolBoxMode(bool enable)
 	m_toolbox_mode = enable;
 }
 
-int ScTreeWidget::addItem(QWidget* widget, QString title)
+int ScTreeWidget::addItem(QWidget* widget, const QString& title)
 {
 	QTreeWidgetItem *top = addWidget(title, widget);
 	return indexOfTopLevelItem(top);
@@ -175,7 +175,7 @@ void ScTreeWidget::setItemEnabled(int index, bool enable)
 	if (enable)
 		topLevelItem(index)->setFlags(Qt::ItemIsEnabled);
 	else
-		topLevelItem(index)->setFlags(0);
+		topLevelItem(index)->setFlags(Qt::NoItemFlags);
 	QTreeWidgetItem *child = topLevelItem(index)->child(0);
 	if (child != nullptr)
 		itemWidget(child, 0)->setEnabled(enable);
@@ -204,7 +204,7 @@ void ScTreeWidget::setCurrentIndex(int index)
 	if (top->childCount() != 0)
 	{
 		QTreeWidgetItem *child = top->child(0);
-		if (child != 0)
+		if (child != nullptr)
 			wide = itemWidget(child, 0)->minimumSizeHint().width()+5;
 	}
 	if (wide != 0)
@@ -217,14 +217,14 @@ int ScTreeWidget::currentIndex()
 {
 	int index = -1;
 	QTreeWidgetItem* item = currentItem();
-	if (item->parent() == 0)
+	if (item->parent() == nullptr)
 		index = indexOfTopLevelItem(item);
 	else
 		index = indexOfTopLevelItem(item->parent());
 	return index;
 }
 
-void ScTreeWidget::setItemText(int index, QString text)
+void ScTreeWidget::setItemText(int index, const QString& text)
 {
 	if ((index < 0) || (index >= topLevelItemCount()))
 		return;
@@ -233,9 +233,9 @@ void ScTreeWidget::setItemText(int index, QString text)
 
 void ScTreeWidget::handleMousePress(QTreeWidgetItem *item)
 {
-	if (item == 0)
+	if (item == nullptr)
 		return;
-	if (item->parent() == 0)
+	if (item->parent() == nullptr)
 	{
 		if (item->isDisabled())
 		{
@@ -255,7 +255,7 @@ void ScTreeWidget::handleMousePress(QTreeWidgetItem *item)
 			if (item->childCount() != 0)
 			{
 				QTreeWidgetItem *child = item->child(0);
-				if (child != 0)
+				if (child != nullptr)
 					wide = itemWidget(child, 0)->minimumSizeHint().width()+5;
 			}
 			if (wide != 0)
@@ -274,7 +274,7 @@ void ScTreeWidget::handleMousePress(QTreeWidgetItem *item)
 					if (top->childCount() != 0)
 					{
 						QTreeWidgetItem *child = top->child(0);
-						if (child != 0)
+						if (child != nullptr)
 							wide = qMax(wide, itemWidget(child, 0)->minimumSizeHint().width()+5);
 					}
 				}

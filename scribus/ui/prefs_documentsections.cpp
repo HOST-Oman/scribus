@@ -55,7 +55,7 @@ void Prefs_DocumentSections::updateTable()
 {
 	sectionsTable->setRowCount(m_localSections.count());
 	int row=0;
-	for(DocumentSectionMap::Iterator it = m_localSections.begin(); it!= m_localSections.end(); ++it)
+	for (DocumentSectionMap::Iterator it = m_localSections.begin(); it!= m_localSections.end(); ++it)
 	{
 		uint i=0;
 		//Name
@@ -113,69 +113,69 @@ void Prefs_DocumentSections::tableItemChanged( int row, int col )
 	uint newDocPageSpec;
 	switch (col)
 	{
-	case 0:
-		m_localSections[row].name=sectionsTable->item(row, col)->text();
-		break;
-	case 1:
-		m_localSections[row].active=(sectionsTable->item(row, col)->checkState()==Qt::Checked);
-		break;
-	case 2:
-		m_localSections[row].reversed=(sectionsTable->item(row, col)->checkState()==Qt::Checked);
-		break;
-	case 3:
-	case 4:
-		// Validate to/from page specification before conversion to an index
-		//!!!	There is still a problem here if m_maxPageIndex == MAX_UINT ;)
-		newDocPageSpec=sectionsTable->item(row, col)->text().toUInt();
-		if (newDocPageSpec==0)
-		{
-			newDocPageSpec=1;
-			outOfRange=true;
-		}
-		else
-		if (newDocPageSpec>m_maxPageIndex+1)
-		{
-			newDocPageSpec=m_maxPageIndex+1;
-			outOfRange=true;
-		}
-		// Now, since newDocPageSpec >= 1, convert to index
-		--newDocPageSpec;
-		if (col==3)
-			m_localSections[row].fromindex=newDocPageSpec;
-		else
-			m_localSections[row].toindex=newDocPageSpec;
-		break;
-	case 5:
-		{
-			QComboBox* qcti=dynamic_cast<QComboBox*>(sectionsTable->cellWidget(row,col));
-			if (qcti!=nullptr)
+		case 0:
+			m_localSections[row].name=sectionsTable->item(row, col)->text();
+			break;
+		case 1:
+			m_localSections[row].active=(sectionsTable->item(row, col)->checkState()==Qt::Checked);
+			break;
+		case 2:
+			m_localSections[row].reversed=(sectionsTable->item(row, col)->checkState()==Qt::Checked);
+			break;
+		case 3:
+		case 4:
+			// Validate to/from page specification before conversion to an index
+			//!!!	There is still a problem here if m_maxPageIndex == MAX_UINT ;)
+			newDocPageSpec=sectionsTable->item(row, col)->text().toUInt();
+			if (newDocPageSpec==0)
 			{
-				int index=qcti->currentIndex();
-				if (index<m_styles.count()-1)
-					m_localSections[row].type=(NumFormat)index;
-				else
-					if (index==m_styles.count()-1)
-						m_localSections[row].type=Type_None;
+				newDocPageSpec=1;
+				outOfRange=true;
 			}
-		}
-		break;
-	case 6:
-		m_localSections[row].sectionstartindex = sectionsTable->item(row, col)->text().toUInt();;
-		break;
-	case 7:
-		m_localSections[row].pageNumberWidth = sectionsTable->item(row, col)->text().toInt();
-		break;
-	case 8:
-		{
-			QString ch=sectionsTable->item(row, col)->text();
-			if (ch.length()>0)
-				m_localSections[row].pageNumberFillChar=sectionsTable->item(row, col)->text().at(0);
 			else
-				m_localSections[row].pageNumberFillChar=QChar();
-		}
-		break;
-	default:
-		break;
+				if (newDocPageSpec>m_maxPageIndex+1)
+				{
+					newDocPageSpec=m_maxPageIndex+1;
+					outOfRange=true;
+				}
+			// Now, since newDocPageSpec >= 1, convert to index
+			--newDocPageSpec;
+			if (col==3)
+				m_localSections[row].fromindex=newDocPageSpec;
+			else
+				m_localSections[row].toindex=newDocPageSpec;
+			break;
+		case 5:
+			{
+				QComboBox* qcti=dynamic_cast<QComboBox*>(sectionsTable->cellWidget(row,col));
+				if (qcti!=nullptr)
+				{
+					int index=qcti->currentIndex();
+					if (index<m_styles.count()-1)
+						m_localSections[row].type=(NumFormat)index;
+					else
+						if (index==m_styles.count()-1)
+							m_localSections[row].type=Type_None;
+				}
+			}
+			break;
+		case 6:
+			m_localSections[row].sectionstartindex = sectionsTable->item(row, col)->text().toUInt();;
+			break;
+		case 7:
+			m_localSections[row].pageNumberWidth = sectionsTable->item(row, col)->text().toInt();
+			break;
+		case 8:
+			{
+				QString ch=sectionsTable->item(row, col)->text();
+				if (ch.length()>0)
+					m_localSections[row].pageNumberFillChar=ch.at(0);
+				else
+					m_localSections[row].pageNumberFillChar=QChar();
+			}
+			break;
+		default:
+			break;
 	}
 
 	if (outOfRange)
@@ -191,7 +191,7 @@ void Prefs_DocumentSections::addEntry()
 	bool found=false;
 	DocumentSectionMap::Iterator it = m_localSections.begin();
 	int count=0;
-	for(; it!= m_localSections.end(); ++it)
+	for (; it!= m_localSections.end(); ++it)
 	{
 		if(count==currRow)
 		{
@@ -221,7 +221,7 @@ void Prefs_DocumentSections::addEntry()
 		m_localSections.clear();
 		//Copy the temp map entries over. When we find the number of the current row, also insert a new entry.
 		uint i=0;
-		for(DocumentSectionMap::Iterator it2 = tempSections.begin(); it2!= tempSections.end(); ++it2)
+		for (DocumentSectionMap::Iterator it2 = tempSections.begin(); it2!= tempSections.end(); ++it2)
 		{
 			it2.value().number=i;
 			m_localSections.insert(i, it2.value());
@@ -253,7 +253,7 @@ void Prefs_DocumentSections::deleteEntry()
 	bool found=false;
 	DocumentSectionMap::Iterator it = m_localSections.begin();
 	int count=0;
-	for(; it!= m_localSections.end(); ++it)
+	for (; it!= m_localSections.end(); ++it)
 	{
 		if(count==currRow)
 		{
@@ -278,7 +278,7 @@ void Prefs_DocumentSections::deleteEntry()
 		m_localSections.clear();
 		uint i=0;
 		it = tempSections.begin();
-		for(; it!= tempSections.end(); ++it)
+		for (; it!= tempSections.end(); ++it)
 		{
 			it.value().number=i;
 			m_localSections.insert(i++, it.value());

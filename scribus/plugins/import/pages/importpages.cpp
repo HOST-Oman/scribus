@@ -282,7 +282,7 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 					tmpSel->addItem(Elements.at(dre), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				if (importedPatterns.count() != 0)
@@ -464,9 +464,6 @@ bool PagesPlug::convert(QString fn)
 #include "util_formats.h"
 #include "util_math.h"
 
-
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
 PagesPlug::PagesPlug(ScribusDoc* doc, int flags)
 	: baseX(0.0),
 	  baseY(0.0),
@@ -491,7 +488,7 @@ PagesPlug::PagesPlug(ScribusDoc* doc, int flags)
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 }
 
-QImage PagesPlug::readThumbnail(QString fName)
+QImage PagesPlug::readThumbnail(const QString& fName)
 {
 	QImage tmp;
 	if (!QFile::exists(fName))
@@ -519,10 +516,10 @@ QImage PagesPlug::readThumbnail(QString fName)
 		{
 			if (uz->read("index.xml", f))
 			{
-				if(designMapDom.setContent(f))
+				if (designMapDom.setContent(f))
 				{
 					QDomElement docElem = designMapDom.documentElement();
-					for(QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
+					for (QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
 					{
 						if (drawPag.tagName() == "sl:slprint-info")
 						{
@@ -604,9 +601,8 @@ QImage PagesPlug::readThumbnail(QString fName)
 	return tmp;
 }
 
-bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
+bool PagesPlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
-	QString fName = fNameIn;
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 	importerFlags = flags;
@@ -615,7 +611,7 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 	firstPage = true;
 	pagecount = 1;
 	mpagecount = 0;
-	QFileInfo fi = QFileInfo(fName);
+	QFileInfo fi = QFileInfo(fNameIn);
 	if ( !ScCore->usingGUI() )
 	{
 		interactive = false;
@@ -623,7 +619,7 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 	}
 	if ( showProgress )
 	{
-		ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 		progressDialog = new MultiProgressDialog( tr("Importing: %1").arg(fi.fileName()), CommonStrings::tr_Cancel, mw );
 		QStringList barNames, barTexts;
 		barNames << "GI";
@@ -695,7 +691,7 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString CurDirP = QDir::currentPath();
 	QDir::setCurrent(fi.path());
-	if (convert(fName))
+	if (convert(fNameIn))
 	{
 		tmpSel->clear();
 		QDir::setCurrent(CurDirP);
@@ -729,7 +725,7 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 			else
 			{
 				m_Doc->DragP = true;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 				m_Doc->m_Selection->delaySignalsOn();
 				for (int dre=0; dre<Elements.count(); ++dre)
@@ -737,7 +733,7 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 					tmpSel->addItem(Elements.at(dre), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				if ((importedColors.count() != 0) && (!((flags & LoadSavePlugin::lfKeepGradients) || (flags & LoadSavePlugin::lfKeepColors) || (flags & LoadSavePlugin::lfKeepPatterns))))
@@ -760,7 +756,7 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 				TransactionSettings* transacSettings = new TransactionSettings(trSettings);
 				m_Doc->view()->handleObjectImport(md, transacSettings);
 				m_Doc->DragP = false;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 			}
 		}
@@ -797,19 +793,18 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 
 PagesPlug::~PagesPlug()
 {
-	if (progressDialog)
-		delete progressDialog;
+	delete progressDialog;
 	delete tmpSel;
 }
 
-bool PagesPlug::convert(QString fn)
+bool PagesPlug::convert(const QString& fn)
 {
 	bool retVal = true;
 	importedColors.clear();
 	importedPatterns.clear();
 	m_StyleSheets.clear();
 	m_currentStyleSheet = "";
-	if(progressDialog)
+	if (progressDialog)
 	{
 		progressDialog->setOverallProgress(2);
 		progressDialog->setLabel("GI", tr("Generating Items"));
@@ -836,7 +831,7 @@ bool PagesPlug::convert(QString fn)
 	return retVal;
 }
 
-bool PagesPlug::parseDocReference(QString designMap, bool compressed)
+bool PagesPlug::parseDocReference(const QString& designMap, bool compressed)
 {
 	QByteArray f;
 	QDomDocument designMapDom;
@@ -874,13 +869,13 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 	}
 	papersize = "Custom";
 	QDomElement docElem = designMapDom.documentElement();
-	for(QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
+	for (QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
 	{
 		if (drawPag.tagName() == "sl:slprint-info")
 		{
 			docWidth = drawPag.attribute("sl:page-width", "0").toDouble();
 			docHeight = drawPag.attribute("sl:page-height", "0").toDouble();
-			for(QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement() )
+			for (QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement())
 			{
 				if (sp.tagName() == "sf:page-margins")
 				{
@@ -912,7 +907,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 		}
 		else if (drawPag.tagName() == "sl:section-prototypes")
 		{
-			for(QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement() )
+			for (QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement())
 			{
 				if (sp.tagName() == "sl:prototype")
 				{
@@ -930,7 +925,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 							baseX = addedPage->xOffset();
 							baseY = addedPage->yOffset();
 							mpagecount++;
-							for(QDomElement spd = sp.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement() )
+							for (QDomElement spd = sp.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement())
 							{
 								if (spd.tagName() == "sl:stylesheet")
 								{
@@ -939,7 +934,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 								}
 								else if (spd.tagName() == "sl:drawables")
 								{
-									for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+									for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 									{
 										if (spe.tagName() == "sl:page-group")
 											parsePageReference(spe);
@@ -960,7 +955,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 		}
 		else if (drawPag.tagName() == "sl:drawables")
 		{
-			for(QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement() )
+			for (QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement())
 			{
 				if (sp.tagName() == "sl:page-group")
 				{
@@ -1012,7 +1007,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 		}
 		else if (drawPag.tagName() == "sf:text-storage")
 		{
-			for(QDomElement spf = drawPag.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+			for (QDomElement spf = drawPag.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 			{
 				if (spf.tagName() == "sf:stylesheet-ref")
 				{
@@ -1034,7 +1029,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 					newStyle.setLineSpacingMode(ParagraphStyle::FixedLineSpacing);
 					newStyle.setLineSpacing(nstyle.fontSize() / 10.0);
 					itemText.setDefaultStyle(newStyle);
-					for(QDomElement spg = spf.firstChildElement(); !spg.isNull(); spg = spg.nextSiblingElement() )
+					for (QDomElement spg = spf.firstChildElement(); !spg.isNull(); spg = spg.nextSiblingElement())
 					{
 					//	if (spg.tagName() == "sf:container-hint")
 					//	{
@@ -1060,7 +1055,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 							int totalCount = 0;
 							if (spg.hasChildNodes())
 							{
-								for(QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement() )
+								for (QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement())
 								{
 									totalCount += sph.text().length();
 								//	if (sph.tagName() == "sf:container-hint")
@@ -1081,7 +1076,7 @@ bool PagesPlug::parseDocReference(QString designMap, bool compressed)
 							}
 							if (spg.hasChildNodes())
 							{
-								for(QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement() )
+								for (QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement())
 								{
 									if (sph.tagName() == "sf:span")
 									{
@@ -1114,20 +1109,20 @@ void PagesPlug::parseStyleSheets(QDomElement &drawPag)
 {
 	QString sheetName = drawPag.attribute("sfa:ID");
 	StyleSheet styleSH;
-	for(QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement() )
+	for (QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement())
 	{
 		if ((sp.tagName() == "sf:styles") || (sp.tagName() == "sf:anon-styles"))
 		{
-			for(QDomElement spd = sp.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement() )
+			for (QDomElement spd = sp.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement())
 			{
 				if (spd.tagName() == "sf:characterstyle")
 				{
 					ChrStyle currStyle;
-					for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+					for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 					{
 						if (spe.tagName() == "sf:property-map")
 						{
-							for(QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+							for (QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 							{
 								if (spf.tagName() == "sf:fontSize")
 								{
@@ -1223,11 +1218,11 @@ void PagesPlug::parseStyleSheets(QDomElement &drawPag)
 				if (spd.tagName() == "sf:paragraphstyle")
 				{
 					ParStyle currStyle;
-					for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+					for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 					{
 						if (spe.tagName() == "sf:property-map")
 						{
-							for(QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+							for (QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 							{
 								if (spf.tagName() == "sf:fontSize")
 								{
@@ -1332,11 +1327,11 @@ void PagesPlug::parseStyleSheets(QDomElement &drawPag)
 				else if (spd.tagName() == "sf:layoutstyle")
 				{
 					LayoutStyle currStyle;
-					for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+					for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 					{
 						if (spe.tagName() == "sf:property-map")
 						{
-							for(QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+							for (QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 							{
 								if (spf.tagName() == "sf:padding")
 								{
@@ -1370,11 +1365,11 @@ void PagesPlug::parseStyleSheets(QDomElement &drawPag)
 				else if (spd.tagName() == "sf:graphic-style")
 				{
 					ObjStyle currStyle;
-					for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+					for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 					{
 						if (spe.tagName() == "sf:property-map")
 						{
-							for(QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+							for (QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 							{
 								if (spf.tagName() == "sf:stroke")
 								{
@@ -1540,7 +1535,7 @@ void PagesPlug::parseStyleSheets(QDomElement &drawPag)
 
 void PagesPlug::parsePageReference(QDomElement &drawPag)
 {
-	for(QDomElement draw = drawPag.firstChildElement(); !draw.isNull(); draw = draw.nextSiblingElement() )
+	for (QDomElement draw = drawPag.firstChildElement(); !draw.isNull(); draw = draw.nextSiblingElement())
 	{
 		PageItem* retObj = parseObjReference(draw);
 		if (retObj != nullptr)
@@ -1590,12 +1585,12 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 	if (draw.tagName() == "sf:group")
 	{
 		QList<PageItem*> GElements;
-		for(QDomElement spd = draw.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement() )
+		for (QDomElement spd = draw.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement())
 		{
 			if (spd.tagName() == "sf:geometry")
 			{
 				obState.rotation = spd.attribute("sf:angle", "0").toDouble();
-				for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+				for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 				{
 					if (spe.tagName() == "sf:position")
 					{
@@ -1652,12 +1647,12 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 	}
 	else if ((draw.tagName() == "sf:media") || (draw.tagName() == "sf:drawable-shape"))
 	{
-		for(QDomElement spd = draw.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement() )
+		for (QDomElement spd = draw.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement())
 		{
 			if (spd.tagName() == "sf:geometry")
 			{
 				obState.rotation = spd.attribute("sf:angle", "0").toDouble();
-				for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+				for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 				{
 					if (spe.tagName() == "sf:position")
 					{
@@ -1673,7 +1668,7 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 			}
 			else if (spd.tagName() == "sf:style")
 			{
-				for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+				for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 				{
 					if (spe.tagName() == "sf:graphic-style-ref")
 					{
@@ -1683,11 +1678,11 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 			}
 			else if (spd.tagName() == "sf:path")
 			{
-				for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+				for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 				{
 					if ((spe.tagName() == "sf:bezier-path") || (spe.tagName() == "sf:editable-bezier-path"))
 					{
-						for(QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+						for (QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 						{
 							if (spf.tagName() == "sf:bezier")
 							{
@@ -1706,7 +1701,7 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 			}
 			else if (spd.tagName() == "sf:wrap")
 			{
-				for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+				for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 				{
 					if (spe.tagName() == "sf:path")
 					{
@@ -1723,19 +1718,19 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 			}
 			else if (spd.tagName() == "sf:content")
 			{
-				for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+				for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 				{
 					if (spe.tagName() == "sf:image-media")
 					{
-						for(QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+						for (QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 						{
 							if (spf.tagName() == "sf:filtered-image")
 							{
-								for(QDomElement spg = spf.firstChildElement(); !spg.isNull(); spg = spg.nextSiblingElement() )
+								for (QDomElement spg = spf.firstChildElement(); !spg.isNull(); spg = spg.nextSiblingElement())
 								{
 									if (spg.tagName() == "sf:unfiltered")
 									{
-										for(QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement() )
+										for (QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement())
 										{
 											if (sph.tagName() == "sf:data")
 											{
@@ -1752,11 +1747,11 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 			else if (spd.tagName() == "sf:text")
 			{
 				obState.layoutStyleRef = spd.attribute("sf:layoutstyle");
-				for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+				for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 				{
 					if (spe.tagName() == "sf:text-storage")
 					{
-						for(QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+						for (QDomElement spf = spe.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 						{
 							if (spf.tagName() == "sf:text-body")
 							{
@@ -1770,7 +1765,7 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 								newStyle.setLineSpacingMode(ParagraphStyle::FixedLineSpacing);
 								newStyle.setLineSpacing(nstyle.fontSize() / 10.0);
 								itemText.setDefaultStyle(newStyle);
-								for(QDomElement spg = spf.firstChildElement(); !spg.isNull(); spg = spg.nextSiblingElement() )
+								for (QDomElement spg = spf.firstChildElement(); !spg.isNull(); spg = spg.nextSiblingElement())
 								{
 									if (spg.tagName() == "sf:p")
 									{
@@ -1791,7 +1786,7 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 										int totalCount = 0;
 										if (spg.hasChildNodes())
 										{
-											for(QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement() )
+											for (QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement())
 											{
 												totalCount += sph.text().length();
 											}
@@ -1808,7 +1803,7 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 										}
 										if (spg.hasChildNodes())
 										{
-											for(QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement() )
+											for (QDomElement sph = spg.firstChildElement(); !sph.isNull(); sph = sph.nextSiblingElement())
 											{
 												if (sph.tagName() == "sf:span")
 												{
@@ -1975,7 +1970,7 @@ PageItem* PagesPlug::addClip(PageItem* retObj, ObjState &obState)
 	return retObj;
 }
 
-void PagesPlug::applyParagraphAttrs(ParagraphStyle &newStyle, CharStyle &tmpCStyle, QString pAttrs)
+void PagesPlug::applyParagraphAttrs(ParagraphStyle &newStyle, CharStyle &tmpCStyle, const QString& pAttrs)
 {
 	if (!m_StyleSheets.contains(m_currentStyleSheet))
 		return;
@@ -2034,7 +2029,7 @@ void PagesPlug::applyParagraphAttrs(ParagraphStyle &newStyle, CharStyle &tmpCSty
 	}
 }
 
-void PagesPlug::applyCharAttrs(CharStyle &tmpCStyle, QString pAttrs)
+void PagesPlug::applyCharAttrs(CharStyle &tmpCStyle, const QString& pAttrs)
 {
 	if (!m_StyleSheets.contains(m_currentStyleSheet))
 		return;

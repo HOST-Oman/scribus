@@ -82,7 +82,7 @@ void xpsexplugin_freePlugin(ScPlugin* plugin)
 
 using namespace TableUtils;
 
-XPSExportPlugin::XPSExportPlugin() : ScActionPlugin()
+XPSExportPlugin::XPSExportPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -127,11 +127,11 @@ void XPSExportPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool XPSExportPlugin::run(ScribusDoc* doc, QString filename)
+bool XPSExportPlugin::run(ScribusDoc* doc, const QString& filename)
 {
 	Q_ASSERT(filename.isEmpty());
 	QString fileName;
-	if (doc!=0)
+	if (doc!=nullptr)
 	{
 		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("xpsex");
 		QString wdir = prefs->get("wdir", ".");
@@ -213,7 +213,7 @@ XPSExPlug::XPSExPlug(ScribusDoc* doc, int output_res)
 		m_dpi = 300.0;
 }
 
-bool XPSExPlug::doExport(QString fName)
+bool XPSExPlug::doExport(const QString& fName)
 {
 	zip = new ScZipHandler(true);
 	if (!zip->open(fName))
@@ -347,9 +347,9 @@ void XPSExPlug::writePage(QDomElement &doc_root, QDomElement &rel_root, ScPage *
 {
 	ScLayer ll;
 	ll.isPrintable = false;
-	for (int la = 0; la < m_Doc->Layers.count(); la++)
+	for (int i = 0; i < m_Doc->Layers.count(); i++)
 	{
-		m_Doc->Layers.levelToLayer(ll, la);
+		m_Doc->Layers.levelToLayer(ll, i);
 		if (ll.isPrintable)
 		{
 			ScPage *mpage = m_Doc->MasterPages.at(m_Doc->MasterNames[Page->MPageNam]);
@@ -376,7 +376,7 @@ void XPSExPlug::writePageLayer(QDomElement &doc_root, QDomElement &rel_root, ScP
 	QDomElement layerGroup = p_docu.createElement("Canvas");
 	if (layer.transparency != 1.0)
 		layerGroup.setAttribute("Opacity", layer.transparency);
-	for(int j = 0; j < Items.count(); ++j)
+	for (int j = 0; j < Items.count(); ++j)
 	{
 		Item = Items.at(j);
 		if (Item->LayerID != layer.ID)
@@ -566,10 +566,8 @@ void XPSExPlug::processPolyItem(double xOffset, double yOffset, PageItem *Item, 
 		if (Item->GrType == 14)
 			processHatchFill(xOffset, yOffset, Item, parentElem, rel_root);
 		bool closedPath;
-		if ((Item->itemType() == PageItem::Polygon) || (Item->itemType() == PageItem::RegularPolygon) || (Item->itemType() == PageItem::Arc))
-			closedPath = true;
-		else
-			closedPath = false;
+		closedPath = ((Item->itemType() == PageItem::Polygon) || (Item->itemType() == PageItem::RegularPolygon) || (Item->itemType() == PageItem::Arc));
+
 		QDomElement ob = p_docu.createElement("Path");
 		FPointArray path = Item->PoLine.copy();
 		QTransform mpx;
@@ -628,7 +626,6 @@ void XPSExPlug::processPolyItem(double xOffset, double yOffset, PageItem *Item, 
 			parentElem.appendChild(grp2);
 		}
 	}
-	return;
 }
 
 void XPSExPlug::processLineItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
@@ -667,7 +664,6 @@ void XPSExPlug::processLineItem(double xOffset, double yOffset, PageItem *Item, 
 		}
 		parentElem.appendChild(ob);
 	}
-	return;
 }
 
 void XPSExPlug::processImageItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
@@ -797,7 +793,6 @@ void XPSExPlug::processImageItem(double xOffset, double yOffset, PageItem *Item,
 			parentElem.appendChild(grp2);
 		}
 	}
-	return;
 }
 
 class XPSPainter: public TextLayoutPainter
@@ -819,7 +814,7 @@ public:
 
 	void drawGlyph(const GlyphCluster& gc)
 	{
-		if (gc.isControlGlyphs())
+		if (gc.isControlGlyphs() || gc.isEmpty())
 			return;
 
 		if (!m_fontMap.contains(font().replacementName()))
@@ -839,7 +834,14 @@ public:
 		QString gcMap = QString("(%1:%2)").arg(gc.getText().size()).arg(gc.glyphs().size());
 		QString indices;
 		double current_x = 0.0;
-		for (const GlyphLayout& gl : gc.glyphs()) {
+		for (const GlyphLayout& gl : gc.glyphs()) 
+		{
+			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			{
+				current_x += gl.xadvance;
+				continue;
+			}
+
 			indices += QString("%1,%2,%3,%4;").arg(gl.glyph)
 					.arg(((gl.xadvance + current_x) * m_xps->conversionFactor) / size * 100)
 					.arg((-gl.xoffset * m_xps->conversionFactor) / size * 100)
@@ -847,7 +849,7 @@ public:
 			current_x += gl.xadvance;
 		}
 		indices.chop(1);
-		glyph.setAttribute("Indices", QString("%1%2").arg(gcMap).arg(indices));
+		glyph.setAttribute("Indices", QString("%1%2").arg(gcMap, indices));
 		m_group.appendChild(glyph);
 	}
 
@@ -855,8 +857,16 @@ public:
 	{
 		if (gc.isControlGlyphs())
 			return;
+
 		double current_x = 0.0;
-		for (const GlyphLayout& gl : gc.glyphs()) {
+		for (const GlyphLayout& gl : gc.glyphs())
+		{
+			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
+			{
+				current_x += gl.xadvance;
+				continue;
+			}
+
 			FPointArray outline = font().glyphOutline(gl.glyph);
 			if (outline.size() >= 4)
 			{
@@ -1069,7 +1079,7 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 		QString Indices = "";
 		QString UnicodeString = "";
 		QDomElement glyph;
-		for(QDomElement txtGrp = grp.firstChildElement(); !txtGrp.isNull(); txtGrp = txtGrp.nextSiblingElement() )
+		for (QDomElement txtGrp = grp.firstChildElement(); !txtGrp.isNull(); txtGrp = txtGrp.nextSiblingElement())
 		{
 			if (txtGrp.tagName() != "Glyphs")
 			{
@@ -1231,7 +1241,6 @@ void XPSExPlug::processSymbolItem(double xOffset, double yOffset, PageItem *Item
 		writeItemOnPage(embed->gXpos, embed->gYpos, embed, ob, rel_root);
 	}
 	parentElem.appendChild(ob);
-	return;
 }
 
 void XPSExPlug::processTableItem(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
@@ -1679,7 +1688,6 @@ void XPSExPlug::processSymbolStroke(double xOffset, double yOffset, PageItem *It
 		xpos += adv;
 	}
 	parentElem.appendChild(ob);
-	return;
 }
 
 void XPSExPlug::processArrows(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root)
@@ -1785,7 +1793,6 @@ void XPSExPlug::processArrows(double xOffset, double yOffset, PageItem *Item, QD
 		arrow.map(arrowTrans);
 		drawArrow(xOffset, yOffset, Item, parentElem, rel_root, arrow);
 	}
-	return;
 }
 
 void XPSExPlug::drawArrow(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, FPointArray &arrow)
@@ -1835,7 +1842,7 @@ void XPSExPlug::drawArrow(double xOffset, double yOffset, PageItem *Item, QDomEl
 	}
 }
 
-QString XPSExPlug::embedFont(const ScFace font, QDomElement &rel_root)
+QString XPSExPlug::embedFont(const ScFace& font, QDomElement &rel_root)
 {
 	QByteArray fontData;
 	loadRawText(font.fontFilePath(), fontData);
@@ -2112,7 +2119,7 @@ void XPSExPlug::getStrokeStyle(PageItem *Item, QDomElement &parentElem, QDomElem
 			bool   isFirst = true;
 			double actualStop = 0.0, lastStop = 0.0;
 			QList<VColorStop*> cstops = Item->stroke_gradient.colorStops();
-			for (uint cst = 0; cst < Item->stroke_gradient.Stops(); ++cst)
+			for (int cst = 0; cst < Item->stroke_gradient.stops(); ++cst)
 			{
 				actualStop = cstops.at(cst)->rampPoint;
 				if ((actualStop != lastStop) || (isFirst))
@@ -2145,132 +2152,131 @@ void XPSExPlug::getFillStyle(PageItem *Item, QDomElement &parentElem, QDomElemen
 		}
 		return;
 	}
-	else
+
+	if ((Item->GrType == 6) || (Item->GrType == 7))
 	{
-		if ((Item->GrType == 6) || (Item->GrType == 7))
+		QDomElement ob = p_docu.createElement("Path.Fill");
+		QDomElement gr;
+		double GrStartX = (Item->GrStartX + xOffset) * conversionFactor;
+		double GrStartY = (Item->GrStartY + yOffset) * conversionFactor;
+		double GrFocalX = (Item->GrFocalX + xOffset) * conversionFactor;
+		double GrFocalY = (Item->GrFocalY + yOffset) * conversionFactor;
+		double GrEndX = (Item->GrEndX + xOffset) * conversionFactor;
+		double GrEndY = (Item->GrEndY + yOffset) * conversionFactor;
+		if (Item->GrType == 6)
 		{
-			QDomElement ob = p_docu.createElement("Path.Fill");
-			QDomElement gr;
-			double GrStartX = (Item->GrStartX + xOffset) * conversionFactor;
-			double GrStartY = (Item->GrStartY + yOffset) * conversionFactor;
-			double GrFocalX = (Item->GrFocalX + xOffset) * conversionFactor;
-			double GrFocalY = (Item->GrFocalY + yOffset) * conversionFactor;
-			double GrEndX = (Item->GrEndX + xOffset) * conversionFactor;
-			double GrEndY = (Item->GrEndY + yOffset) * conversionFactor;
-			if (Item->GrType == 6)
-			{
-				gr = p_docu.createElement("LinearGradientBrush");
-				gr.setAttribute("MappingMode", "Absolute");
-				gr.setAttribute("StartPoint", FToStr(GrStartX) + ", " + FToStr(GrStartY));
-				gr.setAttribute("EndPoint", FToStr(GrEndX) + ", " + FToStr(GrEndY));
-			}
-			else
-			{
-				gr = p_docu.createElement("RadialGradientBrush");
-				double rad = sqrt(pow(GrEndX - GrStartX, 2) + pow(GrEndY - GrStartY,2));
-				gr.setAttribute("MappingMode", "Absolute");
-				gr.setAttribute("RadiusX", FToStr(rad));
-				gr.setAttribute("RadiusY", FToStr(rad));
-				gr.setAttribute("Center", FToStr(GrStartX) + ", " + FToStr(GrStartY));
-				gr.setAttribute("GradientOrigin", FToStr(GrFocalX) + ", " + FToStr(GrFocalY));
-			}
-			double gradientSkew;
-			if (Item->GrSkew == 90)
-				gradientSkew = 1;
-			else if (Item->GrSkew == 180)
-				gradientSkew = 0;
-			else if (Item->GrSkew == 270)
-				gradientSkew = -1;
-			else if (Item->GrSkew == 390)
-				gradientSkew = 0;
-			else
-				gradientSkew = tan(M_PI / 180.0 * Item->GrSkew);
-			QTransform qmatrix;
-			if (Item->GrType == 6)
-			{
-				qmatrix.translate(GrStartX, GrStartY);
-				qmatrix.shear(-gradientSkew, 0);
-				qmatrix.translate(-GrStartX, -GrStartY);
-			}
-			else
-			{
-				double rotEnd = xy2Deg(GrEndX - GrStartX, GrEndY - GrStartY);
-				qmatrix.translate(GrStartX, GrStartY);
-				qmatrix.rotate(rotEnd);
-				qmatrix.shear(gradientSkew, 0);
-				qmatrix.translate(0, GrStartY * (1.0 - Item->GrScale));
-				qmatrix.translate(-GrStartX, -GrStartY);
-				qmatrix.scale(1, Item->GrScale);
-			}
-			gr.setAttribute("Transform", MatrixToStr(qmatrix));
-			if ((Item->fillTransparency() != 0) && ((withTransparency) || (Item->GrMask == 0)))
-				gr.setAttribute("Opacity", FToStr(1.0 - Item->fillTransparency()));
-			QDomElement grs;
-			if (Item->GrType == 6)
-				grs = p_docu.createElement("LinearGradientBrush.GradientStops");
-			else
-				grs = p_docu.createElement("RadialGradientBrush.GradientStops");
-			bool   isFirst = true;
-			double actualStop = 0.0, lastStop = 0.0;
-			QList<VColorStop*> cstops = Item->fill_gradient.colorStops();
-			for (uint cst = 0; cst < Item->fill_gradient.Stops(); ++cst)
-			{
-				actualStop = cstops.at(cst)->rampPoint;
-				if ((actualStop != lastStop) || (isFirst))
-				{
-					QDomElement itcl = p_docu.createElement("GradientStop");
-					itcl.setAttribute("Offset", FToStr(cstops.at(cst)->rampPoint));
-					itcl.setAttribute("Color", SetColor(cstops.at(cst)->name, cstops.at(cst)->shade, 1.0 - cstops.at(cst)->opacity));
-					grs.appendChild(itcl);
-					lastStop = actualStop;
-					isFirst  = false;
-				}
-			}
-			gr.appendChild(grs);
-			ob.appendChild(gr);
-			parentElem.appendChild(ob);
+			gr = p_docu.createElement("LinearGradientBrush");
+			gr.setAttribute("MappingMode", "Absolute");
+			gr.setAttribute("StartPoint", FToStr(GrStartX) + ", " + FToStr(GrStartY));
+			gr.setAttribute("EndPoint", FToStr(GrEndX) + ", " + FToStr(GrEndY));
 		}
-		else if (Item->GrType == 8)
+		else
 		{
-			ScPattern pa = m_Doc->docPatterns[Item->pattern()];
-			QDomElement ob = p_docu.createElement("Path.Fill");
-			QDomElement gr = p_docu.createElement("VisualBrush");
-			gr.setAttribute("TileMode", "Tile");
-			gr.setAttribute("ViewboxUnits", "Absolute");
-			gr.setAttribute("ViewportUnits", "Absolute");
-			gr.setAttribute("Viewbox", QString("0, 0, %1, %2").arg(pa.width * conversionFactor).arg(pa.height * conversionFactor));
-			double patternScaleX, patternScaleY, patternOffsetX, patternOffsetY, patternRotation, patternSkewX, patternSkewY;
-			Item->patternTransform(patternScaleX, patternScaleY, patternOffsetX, patternOffsetY, patternRotation, patternSkewX, patternSkewY);
-			patternScaleX /= 100.0;
-			patternScaleY /= 100.0;
-			gr.setAttribute("Viewport", QString("%1, %2, %3, %4").arg((xOffset + patternOffsetX) * conversionFactor).arg((yOffset + patternOffsetY) * conversionFactor).arg((pa.width * patternScaleX) * conversionFactor).arg((pa.height * patternScaleY) * conversionFactor));
-			bool mirrorX, mirrorY;
-			Item->patternFlip(mirrorX, mirrorY);
-			if ((patternRotation != 0) || (patternSkewX != 0) || (patternSkewY != 0) || mirrorX || mirrorY)
-			{
-				QTransform mpa;
-				mpa.rotate(patternRotation);
-				mpa.shear(-patternSkewX, patternSkewY);
-				mpa.scale(pa.scaleX, pa.scaleY);
-				if (mirrorX)
-					mpa.scale(-1, 1);
-				if (mirrorY)
-					mpa.scale(1, -1);
-				gr.setAttribute("Transform", MatrixToStr(mpa));
-			}
-			if ((Item->fillTransparency() != 0) && ((withTransparency) || (Item->GrMask == 0)))
-				gr.setAttribute("Opacity", FToStr(1.0 - Item->fillTransparency()));
-			QDomElement grp = p_docu.createElement("VisualBrush.Visual");
-			for (int em = 0; em < pa.items.count(); ++em)
-			{
-				PageItem* embed = pa.items.at(em);
-				writeItemOnPage(embed->gXpos, embed->gYpos, embed, grp, rel_root);
-			}
-			gr.appendChild(grp);
-			ob.appendChild(gr);
-			parentElem.appendChild(ob);
+			gr = p_docu.createElement("RadialGradientBrush");
+			double rad = sqrt(pow(GrEndX - GrStartX, 2) + pow(GrEndY - GrStartY,2));
+			gr.setAttribute("MappingMode", "Absolute");
+			gr.setAttribute("RadiusX", FToStr(rad));
+			gr.setAttribute("RadiusY", FToStr(rad));
+			gr.setAttribute("Center", FToStr(GrStartX) + ", " + FToStr(GrStartY));
+			gr.setAttribute("GradientOrigin", FToStr(GrFocalX) + ", " + FToStr(GrFocalY));
 		}
+		double gradientSkew;
+		if (Item->GrSkew == 90)
+			gradientSkew = 1;
+		else if (Item->GrSkew == 180)
+			gradientSkew = 0;
+		else if (Item->GrSkew == 270)
+			gradientSkew = -1;
+		else if (Item->GrSkew == 390)
+			gradientSkew = 0;
+		else
+			gradientSkew = tan(M_PI / 180.0 * Item->GrSkew);
+		QTransform qmatrix;
+		if (Item->GrType == 6)
+		{
+			qmatrix.translate(GrStartX, GrStartY);
+			qmatrix.shear(-gradientSkew, 0);
+			qmatrix.translate(-GrStartX, -GrStartY);
+		}
+		else
+		{
+			double rotEnd = xy2Deg(GrEndX - GrStartX, GrEndY - GrStartY);
+			qmatrix.translate(GrStartX, GrStartY);
+			qmatrix.rotate(rotEnd);
+			qmatrix.shear(gradientSkew, 0);
+			qmatrix.translate(0, GrStartY * (1.0 - Item->GrScale));
+			qmatrix.translate(-GrStartX, -GrStartY);
+			qmatrix.scale(1, Item->GrScale);
+		}
+		gr.setAttribute("Transform", MatrixToStr(qmatrix));
+		if ((Item->fillTransparency() != 0) && ((withTransparency) || (Item->GrMask == 0)))
+			gr.setAttribute("Opacity", FToStr(1.0 - Item->fillTransparency()));
+		QDomElement grs;
+		if (Item->GrType == 6)
+			grs = p_docu.createElement("LinearGradientBrush.GradientStops");
+		else
+			grs = p_docu.createElement("RadialGradientBrush.GradientStops");
+		bool   isFirst = true;
+		double actualStop = 0.0, lastStop = 0.0;
+		QList<VColorStop*> cstops = Item->fill_gradient.colorStops();
+		for (int cst = 0; cst < Item->fill_gradient.stops(); ++cst)
+		{
+			actualStop = cstops.at(cst)->rampPoint;
+			if ((actualStop != lastStop) || (isFirst))
+			{
+				QDomElement itcl = p_docu.createElement("GradientStop");
+				itcl.setAttribute("Offset", FToStr(cstops.at(cst)->rampPoint));
+				itcl.setAttribute("Color", SetColor(cstops.at(cst)->name, cstops.at(cst)->shade, 1.0 - cstops.at(cst)->opacity));
+				grs.appendChild(itcl);
+				lastStop = actualStop;
+				isFirst  = false;
+			}
+		}
+		gr.appendChild(grs);
+		ob.appendChild(gr);
+		parentElem.appendChild(ob);
 	}
+	else if (Item->GrType == 8)
+	{
+		ScPattern pa = m_Doc->docPatterns[Item->pattern()];
+		QDomElement ob = p_docu.createElement("Path.Fill");
+		QDomElement gr = p_docu.createElement("VisualBrush");
+		gr.setAttribute("TileMode", "Tile");
+		gr.setAttribute("ViewboxUnits", "Absolute");
+		gr.setAttribute("ViewportUnits", "Absolute");
+		gr.setAttribute("Viewbox", QString("0, 0, %1, %2").arg(pa.width * conversionFactor).arg(pa.height * conversionFactor));
+		double patternScaleX, patternScaleY, patternOffsetX, patternOffsetY, patternRotation, patternSkewX, patternSkewY;
+		Item->patternTransform(patternScaleX, patternScaleY, patternOffsetX, patternOffsetY, patternRotation, patternSkewX, patternSkewY);
+		patternScaleX /= 100.0;
+		patternScaleY /= 100.0;
+		gr.setAttribute("Viewport", QString("%1, %2, %3, %4").arg((xOffset + patternOffsetX) * conversionFactor).arg((yOffset + patternOffsetY) * conversionFactor).arg((pa.width * patternScaleX) * conversionFactor).arg((pa.height * patternScaleY) * conversionFactor));
+		bool mirrorX, mirrorY;
+		Item->patternFlip(mirrorX, mirrorY);
+		if ((patternRotation != 0) || (patternSkewX != 0) || (patternSkewY != 0) || mirrorX || mirrorY)
+		{
+			QTransform mpa;
+			mpa.rotate(patternRotation);
+			mpa.shear(-patternSkewX, patternSkewY);
+			mpa.scale(pa.scaleX, pa.scaleY);
+			if (mirrorX)
+				mpa.scale(-1, 1);
+			if (mirrorY)
+				mpa.scale(1, -1);
+			gr.setAttribute("Transform", MatrixToStr(mpa));
+		}
+		if ((Item->fillTransparency() != 0) && ((withTransparency) || (Item->GrMask == 0)))
+			gr.setAttribute("Opacity", FToStr(1.0 - Item->fillTransparency()));
+		QDomElement grp = p_docu.createElement("VisualBrush.Visual");
+		for (int em = 0; em < pa.items.count(); ++em)
+		{
+			PageItem* embed = pa.items.at(em);
+			writeItemOnPage(embed->gXpos, embed->gYpos, embed, grp, rel_root);
+		}
+		gr.appendChild(grp);
+		ob.appendChild(gr);
+		parentElem.appendChild(ob);
+	}
+
 }
 
 void XPSExPlug::handleMask(int type, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, double xOffset, double yOffset)
@@ -2311,7 +2317,7 @@ void XPSExPlug::handleMask(int type, PageItem *Item, QDomElement &parentElem, QD
 		double gradientSkew;
 		if (Item->GrMaskSkew == 90)
 			gradientSkew = 1;
-			else if (Item->GrMaskSkew == 180)
+		else if (Item->GrMaskSkew == 180)
 			gradientSkew = 0;
 		else if (Item->GrMaskSkew == 270)
 			gradientSkew = -1;
@@ -2345,7 +2351,7 @@ void XPSExPlug::handleMask(int type, PageItem *Item, QDomElement &parentElem, QD
 		bool   isFirst = true;
 		double actualStop = 0.0, lastStop = 0.0;
 		QList<VColorStop*> cstops = Item->mask_gradient.colorStops();
-		for (uint cst = 0; cst < Item->mask_gradient.Stops(); ++cst)
+		for (int cst = 0; cst < Item->mask_gradient.stops(); ++cst)
 		{
 			actualStop = cstops.at(cst)->rampPoint;
 			if ((actualStop != lastStop) || (isFirst))
@@ -2400,7 +2406,7 @@ void XPSExPlug::handleMask(int type, PageItem *Item, QDomElement &parentElem, QD
 	parentElem.appendChild(ob);
 }
 
-QString XPSExPlug::SetColor(QString farbe, int shad, double transparency)
+QString XPSExPlug::SetColor(const QString& farbe, int shad, double transparency)
 {
 	if (farbe == CommonStrings::None)
 		return "#00FFFFFF";

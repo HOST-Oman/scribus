@@ -19,7 +19,7 @@ static QDataStream & operator>> ( QDataStream & s, PSDHeader & header )
 {
 	s >> header.signature;
 	s >> header.version;
-	for( int i = 0; i < 6; i++ )
+	for (int i = 0; i < 6; i++)
 	{
 		s >> header.reserved[i];
 	}
@@ -31,13 +31,13 @@ static QDataStream & operator>> ( QDataStream & s, PSDHeader & header )
 	return s;
 }
 
-ScImgDataLoader_PSD::ScImgDataLoader_PSD(void)
+ScImgDataLoader_PSD::ScImgDataLoader_PSD()
 {
 	m_maxChannels = 0;
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_PSD::initSupportedFormatList(void)
+void ScImgDataLoader_PSD::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	m_supportedFormats.append( "psd" );
@@ -65,12 +65,12 @@ void ScImgDataLoader_PSD::loadEmbeddedProfile(const QString& fn, int /*page*/)
 			PSDHeader header;
 			s >> header;
 			// Check image file format.
-			if( s.atEnd() || !IsValid( header ) )
+			if (s.atEnd() || !IsValid(header))
 				return;
 			// Check if it's a supported format.
-			if( !IsSupported( header ) )
+			if (!IsSupported(header))
 				return;
-			if( !LoadPSDResources(s, header, s.device()->pos()) )
+			if (!LoadPSDResources(s, header, s.device()->pos()))
 				return;
 			if (m_embeddedProfile.size() > 0)
 			{
@@ -112,12 +112,12 @@ bool ScImgDataLoader_PSD::preloadAlphaChannel(const QString& fn, int /*page*/, i
 		PSDHeader header;
 		s >> header;
 		// Check image file format.
-		if( s.atEnd() || !IsValid( header ) )
+		if (s.atEnd() || !IsValid(header))
 			return false;
 		// Check if it's a supported format.
-		if( !IsSupported( header ) )
+		if (!IsSupported(header))
 			return false;
-		if( !LoadPSD(s, header) )
+		if (!LoadPSD(s, header))
 			r_image.resize(0);
 		f.close();
 		m_imageInfoRecord.valid = true;
@@ -157,14 +157,14 @@ bool ScImgDataLoader_PSD::loadPicture(const QString& fn, int /*page*/, int res, 
 		PSDHeader header;
 		s >> header;
 		// Check image file format.
-		if( s.atEnd() || !IsValid( header ) )
+		if (s.atEnd() || !IsValid(header))
 			return false;
 		// Check if it's a supported format.
-		if( !IsSupported( header ) )
+		if (!IsSupported(header))
 			return false;
 		if (thumbnail)
 			header.reserved[0] = 't';
-		if( !LoadPSD(s, header) )
+		if (!LoadPSD(s, header))
 			return false;
 		if (m_embeddedProfile.size() > 0)
 		{
@@ -199,11 +199,11 @@ bool ScImgDataLoader_PSD::loadPicture(const QString& fn, int /*page*/, int res, 
 				QRgb *s;
 				unsigned char cc, cm, cy, ck;
 				uchar *d;
-				for( int yit=0; yit < m_imageInfoRecord.exifInfo.thumbnail.height(); ++yit )
+				for (int yit = 0; yit < m_imageInfoRecord.exifInfo.thumbnail.height(); ++yit)
 				{
 					s = (QRgb*)(m_imageInfoRecord.exifInfo.thumbnail.scanLine( yit ));
 					d = r_image.scanLine( yit );
-					for(int xit=0; xit < m_imageInfoRecord.exifInfo.thumbnail.width(); ++xit )
+					for (int xit =0 ; xit < m_imageInfoRecord.exifInfo.thumbnail.width(); ++xit)
 					{
 						if (isCMYK)
 						{
@@ -509,21 +509,15 @@ bool ScImgDataLoader_PSD::LoadPSDImgData( QDataStream & s, const PSDHeader & hea
 			m_imageInfoRecord.valid = true;
 			return re;
 		}
-		else
-		{
-			// Try to decode simple psd file, no layers
-			s.device()->seek(startLayers + layerDataLen);
-			if(s.atEnd())
-				return false;
-			return loadLayer( s, header);
-		}
+		// Try to decode simple psd file, no layers
+		s.device()->seek(startLayers + layerDataLen);
+		if (s.atEnd())
+			return false;
+		return loadLayer( s, header);
 	}
-	else
-	{
-		// Decoding simple psd file, no layers
-		s.device()->seek( s.device()->pos() + layerDataLen );
-		loadLayer( s, header);
-	}
+	// Decoding simple psd file, no layers
+	s.device()->seek( s.device()->pos() + layerDataLen );
+	loadLayer( s, header);
 	return true;
 }
 
@@ -572,7 +566,7 @@ bool ScImgDataLoader_PSD::parseLayer( QDataStream & s, const PSDHeader & header 
 			}
 			s >> signature;
 			blend = "";
-			for( int i = 0; i < 4; i++ )
+			for (int i = 0; i < 4; i++)
 			{
 				s >> blendKey[i];
 				blend += QChar(blendKey[i]);
@@ -614,7 +608,7 @@ bool ScImgDataLoader_PSD::parseLayer( QDataStream & s, const PSDHeader & header 
 			lay.layerName = getLayerString(s);
 			m_imageInfoRecord.layerInfo.append(lay);
 			s >> signature;
-			if( signature == 0x3842494D )
+			if (signature == 0x3842494D)
 			{
 				while (signature == 0x3842494D )
 				{
@@ -629,7 +623,7 @@ bool ScImgDataLoader_PSD::parseLayer( QDataStream & s, const PSDHeader & header 
 			{
 				s.device()->seek( s.device()->pos() - 2 );
 				s >> signature;
-				if( signature == 0x3842494D )
+				if (signature == 0x3842494D)
 				{
 					while (signature == 0x3842494D )
 					{
@@ -666,7 +660,7 @@ bool ScImgDataLoader_PSD::loadChannel( QDataStream & s, const PSDHeader & header
 	uchar cbyte;
 	ushort compression;
 	s >> compression;
-	if( compression > 1 )
+	if (compression > 1)
 		return false;
 	if (compression == 0)
 	{
@@ -724,18 +718,18 @@ bool ScImgDataLoader_PSD::loadChannel( QDataStream & s, const PSDHeader & header
 			ptr = tmpImg.scanLine(hh);
 			ptr2 = ptr+tmpImg.width() * tmpImg.channels();
 			ptr += component;
-			while( count < pixel_count )
+			while (count < pixel_count)
 			{
-				if(s.atEnd())
+				if (s.atEnd())
 					return false;
 				s >> c;
 				len = c;
-				if( len < 128 )
+				if (len < 128)
 				{
 					// Copy next len+1 bytes literally.
 					len++;
 					count += len;
-					while( len != 0 )
+					while (len != 0)
 					{
 						s >> cbyte;
 						if (ptr < ptr2)
@@ -774,7 +768,7 @@ bool ScImgDataLoader_PSD::loadChannel( QDataStream & s, const PSDHeader & header
 						len--;
 					}
 				}
-				else if( len > 128 )
+				else if (len > 128)
 				{
 					// Next -len+1 bytes in the dest are replicated from next source byte.
 					// (Interpret len as a negative 8-bit int.)
@@ -785,7 +779,7 @@ bool ScImgDataLoader_PSD::loadChannel( QDataStream & s, const PSDHeader & header
 					s >> val;
 					if ((header.color_mode == CM_CMYK) && (component < 4))
 						val = 255 - val;
-					while( len != 0 )
+					while (len != 0)
 					{
 						if (ptr < ptr2)
 						{
@@ -819,7 +813,7 @@ bool ScImgDataLoader_PSD::loadChannel( QDataStream & s, const PSDHeader & header
 						len--;
 					}
 				}
-				else if( len == 128 )
+				else if (len == 128)
 				{
 					// No-op.
 				}
@@ -855,9 +849,9 @@ bool ScImgDataLoader_PSD::loadLayerChannels( QDataStream & s, const PSDHeader & 
 		createOk = r2_image.create(layerInfo[layer].width, layerInfo[layer].height, qMax(channel_num, (uint)4));
 		r2_image.fill(0);
 	}
-	if( !createOk )
+	if (!createOk)
 	{
-		for(uint channel = 0; channel < channel_num; channel++)
+		for (uint channel = 0; channel < channel_num; channel++)
 		{
 			base2 += layerInfo[layer].channelLen[channel];
 		}
@@ -866,9 +860,9 @@ bool ScImgDataLoader_PSD::loadLayerChannels( QDataStream & s, const PSDHeader & 
 	}
 	channel_num = qMin(channel_num, (uint)39);
 	uint components[40];
-	for(uint channel = 0; channel < channel_num; channel++)
+	for (uint channel = 0; channel < channel_num; channel++)
 	{
-		switch(layerInfo[layer].channelType[channel])
+		switch (layerInfo[layer].channelType[channel])
 		{
 		case 0:
 			components[channel] = 0;
@@ -910,8 +904,8 @@ bool ScImgDataLoader_PSD::loadLayerChannels( QDataStream & s, const PSDHeader & 
 		}
 	}
 	if (!hasAlpha)
-		r2_image.fill(255);
-	for(uint channel = 0; channel < channel_num; channel++)
+		r2_image.fill('\xff');
+	for (uint channel = 0; channel < channel_num; channel++)
 	{
 		if (layerInfo[layer].channelType[channel] == -2)
 		{
@@ -925,7 +919,7 @@ bool ScImgDataLoader_PSD::loadLayerChannels( QDataStream & s, const PSDHeader & 
 		if (!loadChannel(s, header, layerInfo, layer, channel, components[channel], r2_image))
 			break;
 	}
-	for(uint channel = 0; channel < channel_num; channel++)
+	for (uint channel = 0; channel < channel_num; channel++)
 	{
 		base2 += layerInfo[layer].channelLen[channel];
 	}
@@ -1039,13 +1033,13 @@ bool ScImgDataLoader_PSD::loadLayerChannels( QDataStream & s, const PSDHeader & 
 		{
 			unsigned char *s;
 			unsigned char *d;
-			for( int yi=static_cast<int>(startSrcY); yi < qMin(r2_image.height(),  r_image.height()); ++yi )
+			for (int yi=static_cast<int>(startSrcY); yi < qMin(r2_image.height(),  r_image.height()); ++yi)
 			{
 				s = r2_image.scanLine( yi );
 				d = r_image.scanLine( qMin(static_cast<int>(startDstY),  r_image.height()-1) );
 				d += qMin(static_cast<int>(startDstX), r_image.width()-1) * r_image.channels();
 				s += qMin(static_cast<int>(startSrcX), r2_image.width()-1) * r2_image.channels();
-				for(int xi=static_cast<int>(startSrcX); xi < qMin(r2_image.width(),  r_image.width()); ++xi )
+				for (int xi=static_cast<int>(startSrcX); xi < qMin(r2_image.width(),  r_image.width()); ++xi)
 				{
 					d[0] = s[0];
 					d[1] = s[1];
@@ -1075,7 +1069,7 @@ bool ScImgDataLoader_PSD::loadLayerChannels( QDataStream & s, const PSDHeader & 
 		{
 			unsigned char *s;
 			unsigned char *d;
-			unsigned char *sm = 0;
+			unsigned char *sm = nullptr;
 			unsigned char r, g, b, src_r, src_g, src_b, src_a, src_alpha, dst_alpha;
 			unsigned char a = 0;
 			uchar new_r, new_g, new_b;
@@ -1086,7 +1080,7 @@ bool ScImgDataLoader_PSD::loadLayerChannels( QDataStream & s, const PSDHeader & 
 				s = r2_image.scanLine(qMin(i, r2_image.height()-1));
 				d += qMin(static_cast<int>(startDstX),  r_image.width()-1) * r_image.channels();
 				s += qMin(static_cast<int>(startSrcX), r2_image.width()-1) * r2_image.channels();
-				sm = 0;
+				sm = nullptr;
 				if (hasMask)
 				{
 					sm = mask.scanLine(qMin(i, mask.height()-1));
@@ -1344,20 +1338,20 @@ bool ScImgDataLoader_PSD::loadLayer( QDataStream & s, const PSDHeader & header )
 	ushort compression;
 	uchar cbyte;
 	s >> compression;
-	if( compression > 1 )
+	if (compression > 1)
 	{
 		// Unknown compression type.
 		return false;
 	}
 	uint channel_num = header.channel_count;
-	r_image.fill(255);
+	r_image.fill('\xff');
 	const uint pixel_count = header.height * header.width;
 	static const uint components[5] = {0, 1, 2, 3, 4};
-	if( compression )
+	if (compression)
 	{
 		// Skip row lengths.
 		ushort w;
-		for(uint i = 0; i < header.height * header.channel_count; i++)
+		for (uint i = 0; i < header.height * header.channel_count; i++)
 		{
 			s >> w;
 		}
@@ -1366,24 +1360,24 @@ bool ScImgDataLoader_PSD::loadLayer( QDataStream & s, const PSDHeader & header )
 		uint count = 0;
 		uchar c;
 		uint len;
-		for(uint channel = 0; channel < channel_num; channel++)
+		for (uint channel = 0; channel < channel_num; channel++)
 		{
 			ptr = r_image.bits() + components[channel];
 			count = 0;
-			while( count < pixel_count )
+			while (count < pixel_count)
 			{
-				if(s.atEnd())
+				if (s.atEnd())
 					return false;
 				s >> c;
 				len = c;
-				if( len < 128 )
+				if (len < 128)
 				{
 					// Copy next len+1 bytes literally.
 					len++;
 					count += len;
-					if ( count > pixel_count )
+					if (count > pixel_count)
 						return false;
-					while( len != 0 )
+					while (len != 0)
 					{
 						s >> cbyte;
 						if ((header.color_mode == CM_CMYK) && (components[channel] < 4))
@@ -1417,20 +1411,20 @@ bool ScImgDataLoader_PSD::loadLayer( QDataStream & s, const PSDHeader & header )
 						len--;
 					}
 				}
-				else if( len > 128 )
+				else if (len > 128)
 				{
 					// Next -len+1 bytes in the dest are replicated from next source byte.
 					// (Interpret len as a negative 8-bit int.)
 					len ^= 0xFF;
 					len += 2;
 					count += len;
-					if(s.atEnd() || count > pixel_count)
+					if (s.atEnd() || count > pixel_count)
 						return false;
 					uchar val;
 					s >> val;
 					if ((header.color_mode == CM_CMYK) && (components[channel] < 4))
 						val = 255 - val;
-					while( len != 0 )
+					while (len != 0)
 					{
 						if ((header.color_mode == CM_GRAYSCALE) && (components[channel] != 3))
 						{
@@ -1461,7 +1455,7 @@ bool ScImgDataLoader_PSD::loadLayer( QDataStream & s, const PSDHeader & header )
 						len--;
 					}
 				}
-				else if( len == 128 )
+				else if (len == 128)
 				{
 					// No-op.
 				}
@@ -1475,12 +1469,12 @@ bool ScImgDataLoader_PSD::loadLayer( QDataStream & s, const PSDHeader & header )
 		// Read the data by channel.
 		uchar * ptr;
 		uint count = 0;
-		for(uint channel = 0; channel < channel_num; channel++)
+		for (uint channel = 0; channel < channel_num; channel++)
 		{
 			ptr =  r_image.bits() + components[channel];
 			// Read the data.
 			count = pixel_count;
-			while( count != 0 )
+			while (count != 0)
 			{
 				s >> cbyte;
 				if ((header.color_mode == CM_CMYK) && (components[channel] < 4))
@@ -1542,7 +1536,7 @@ QString ScImgDataLoader_PSD::getLayerString(QDataStream & s)
 		s >> tmp;
 		return ret;
 	}
-	for( int i = 0; i < len; i++ )
+	for (int i = 0; i < len; i++)
 	{
 		s >> tmp;
 		ret += QChar(tmp);
@@ -1556,9 +1550,7 @@ QString ScImgDataLoader_PSD::getLayerString(QDataStream & s)
 
 bool ScImgDataLoader_PSD::IsValid( const PSDHeader & header )
 {
-	if( header.signature != 0x38425053 )
-		return false;
-	return true;
+	return header.signature == 0x38425053;
 }
 
 // Check that the header is supported.
@@ -1570,10 +1562,8 @@ bool ScImgDataLoader_PSD::IsSupported( const PSDHeader & header )
 		return false;
 	if ( header.depth != 8 )
 		return false;
-	if ((header.color_mode == CM_RGB) || (header.color_mode == CM_CMYK) || (header.color_mode == CM_LABCOLOR)
-	 || (header.color_mode == CM_GRAYSCALE) || (header.color_mode == CM_INDEXED) || (header.color_mode == CM_DUOTONE))
-		return true;
-	return false;
+	return (header.color_mode == CM_RGB) || (header.color_mode == CM_CMYK) || (header.color_mode == CM_LABCOLOR)
+	 || (header.color_mode == CM_GRAYSCALE) || (header.color_mode == CM_INDEXED) || (header.color_mode == CM_DUOTONE);
 }
 
 void ScImgDataLoader_PSD::putDuotone(uchar *ptr, uchar cbyte)
@@ -1591,13 +1581,13 @@ void ScImgDataLoader_PSD::putDuotone(uchar *ptr, uchar cbyte)
 	}
 	else if (m_colorTableSc.count() == 2)
 	{
-		ScColorEngine::getCMYKValues(m_colorTableSc[0], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[0], nullptr, cmyk);
 		cmyk.getValues(c, m, y, k);
 		c = qMin((c * m_curveTable1[(int)cb]) >> 8, 255);
 		m = qMin((m * m_curveTable1[(int)cb]) >> 8, 255);
 		y = qMin((y * m_curveTable1[(int)cb]) >> 8, 255);
 		k = qMin((k * m_curveTable1[(int)cb]) >> 8, 255);
-		ScColorEngine::getCMYKValues(m_colorTableSc[1], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[1], nullptr, cmyk);
 		cmyk.getValues(c1, m1, y1, k1);
 		c1 = qMin((c1 * m_curveTable2[(int)cb]) >> 8, 255);
 		m1 = qMin((m1 * m_curveTable2[(int)cb]) >> 8, 255);
@@ -1611,19 +1601,19 @@ void ScImgDataLoader_PSD::putDuotone(uchar *ptr, uchar cbyte)
 	}
 	else if (m_colorTableSc.count() == 3)
 	{
-		ScColorEngine::getCMYKValues(m_colorTableSc[0], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[0], nullptr, cmyk);
 		cmyk.getValues(c, m, y, k);
 		c = qMin((c * m_curveTable1[(int)cb]) >> 8, 255);
 		m = qMin((m * m_curveTable1[(int)cb]) >> 8, 255);
 		y = qMin((y * m_curveTable1[(int)cb]) >> 8, 255);
 		k = qMin((k * m_curveTable1[(int)cb]) >> 8, 255);
-		ScColorEngine::getCMYKValues(m_colorTableSc[1], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[1], nullptr, cmyk);
 		cmyk.getValues(c1, m1, y1, k1);
 		c1 = qMin((c1 * m_curveTable2[(int)cb]) >> 8, 255);
 		m1 = qMin((m1 * m_curveTable2[(int)cb]) >> 8, 255);
 		y1 = qMin((y1 * m_curveTable2[(int)cb]) >> 8, 255);
 		k1 = qMin((k1 * m_curveTable2[(int)cb]) >> 8, 255);
-		ScColorEngine::getCMYKValues(m_colorTableSc[2], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[2], nullptr, cmyk);
 		cmyk.getValues(c2, m2, y2, k2);
 		c2 = qMin((c2 * m_curveTable3[(int)cb]) >> 8, 255);
 		m2 = qMin((m2 * m_curveTable3[(int)cb]) >> 8, 255);
@@ -1637,25 +1627,25 @@ void ScImgDataLoader_PSD::putDuotone(uchar *ptr, uchar cbyte)
 	}
 	else if (m_colorTableSc.count() == 4)
 	{
-		ScColorEngine::getCMYKValues(m_colorTableSc[0], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[0], nullptr, cmyk);
 		cmyk.getValues(c, m, y, k);
 		c = qMin((c * m_curveTable1[(int)cb]) >> 8, 255);
 		m = qMin((m * m_curveTable1[(int)cb]) >> 8, 255);
 		y = qMin((y * m_curveTable1[(int)cb]) >> 8, 255);
 		k = qMin((k * m_curveTable1[(int)cb]) >> 8, 255);
-		ScColorEngine::getCMYKValues(m_colorTableSc[1], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[1], nullptr, cmyk);
 		cmyk.getValues(c1, m1, y1, k1);
 		c1 = qMin((c1 * m_curveTable2[(int)cb]) >> 8, 255);
 		m1 = qMin((m1 * m_curveTable2[(int)cb]) >> 8, 255);
 		y1 = qMin((y1 * m_curveTable2[(int)cb]) >> 8, 255);
 		k1 = qMin((k1 * m_curveTable2[(int)cb]) >> 8, 255);
-		ScColorEngine::getCMYKValues(m_colorTableSc[2], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[2], nullptr, cmyk);
 		cmyk.getValues(c2, m2, y2, k2);
 		c2 = qMin((c2 * m_curveTable3[(int)cb]) >> 8, 255);
 		m2 = qMin((m2 * m_curveTable3[(int)cb]) >> 8, 255);
 		y2 = qMin((y2 * m_curveTable3[(int)cb]) >> 8, 255);
 		k2 = qMin((k2 * m_curveTable3[(int)cb]) >> 8, 255);
-		ScColorEngine::getCMYKValues(m_colorTableSc[3], NULL, cmyk);
+		ScColorEngine::getCMYKValues(m_colorTableSc[3], nullptr, cmyk);
 		cmyk.getValues(c3, m3, y3, k3);
 		c3 = qMin((c3 * m_curveTable4[(int)cb]) >> 8, 255);
 		m3 = qMin((m3 * m_curveTable4[(int)cb]) >> 8, 255);

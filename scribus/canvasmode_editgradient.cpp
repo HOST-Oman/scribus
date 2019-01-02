@@ -272,7 +272,7 @@ void CanvasMode_EditGradient::mouseDoubleClickEvent(QMouseEvent *m)
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
 //	m_view->stopDragTimer();
-	PageItem *currItem = 0;
+	PageItem *currItem = nullptr;
 	if ((m_doc->m_Selection->isMultipleSelection()) || (m_doc->appMode != modeNormal))
 	{
 		if ((m_doc->m_Selection->isMultipleSelection()) && (m_doc->appMode == modeNormal))
@@ -294,13 +294,10 @@ void CanvasMode_EditGradient::mouseDoubleClickEvent(QMouseEvent *m)
 			}
 			return;
 		}
-		else
+		if (!(GetItem(&currItem) && (m_doc->appMode == modeEdit) && currItem->asTextFrame()))
 		{
-			if (!(GetItem(&currItem) && (m_doc->appMode == modeEdit) && currItem->asTextFrame()))
-			{
-				mousePressEvent(m);
-				return;
-			}
+			mousePressEvent(m);
+			return;
 		}
 	}
 }
@@ -889,7 +886,7 @@ void CanvasMode_EditGradient::mousePressEvent(QMouseEvent *m)
 			m_gradientPoint = useGradientSkew;
 	}
 	m_canvas->m_viewMode.m_MouseButtonPressed = true;
-	if(m_gradientPoint != noPointDefined){
+	if (m_gradientPoint != noPointDefined){
 		OldGrStartX = currItem->gradientStartX();
 		OldGrStartY = currItem->gradientStartY();
 		OldGrEndX = currItem->gradientEndX();
@@ -932,7 +929,7 @@ void CanvasMode_EditGradient::mouseReleaseEvent(QMouseEvent *m)
 	m_canvas->resetRenderMode();
 	m->accept();
 	PageItem* currItem = m_doc->m_Selection->itemAt(0);
-	if(m_gradientPoint != noPointDefined && UndoManager::undoEnabled()){
+	if (m_gradientPoint != noPointDefined && UndoManager::undoEnabled()){
 		QList<FPoint> tmp;
 		ScItemState<QList<FPoint> > *is = new ScItemState<QList<FPoint> >(Um::GradPos + "i");
 		is->set("GRAD_POS");

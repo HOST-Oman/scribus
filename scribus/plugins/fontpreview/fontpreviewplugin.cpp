@@ -30,7 +30,7 @@ void fontpreview_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-FontPreviewPlugin::FontPreviewPlugin() : ScActionPlugin()
+FontPreviewPlugin::FontPreviewPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -82,13 +82,13 @@ void FontPreviewPlugin::deleteAboutData(const AboutData* about) const
 /**
 Create dialog and insert font into Style menu when user accepts.
 */
-bool FontPreviewPlugin::run(ScribusDoc* doc, QString target)
+bool FontPreviewPlugin::run(ScribusDoc* doc, const QString& target)
 {
-	ScribusMainWindow* scmw=(doc==0)?ScCore->primaryMainWindow():doc->scMW();
+	ScribusMainWindow* scmw=(doc==nullptr)?ScCore->primaryMainWindow():doc->scMW();
 	return run(scmw, doc, target);
 }
 
-bool FontPreviewPlugin::run(QWidget* parent, ScribusDoc* doc, QString target)
+bool FontPreviewPlugin::run(QWidget* parent, ScribusDoc* doc, const QString& target)
 {
 	if (doc==nullptr)
 		return false;
@@ -100,7 +100,7 @@ bool FontPreviewPlugin::run(QWidget* parent, ScribusDoc* doc, QString target)
 	if (dlg->exec() == QDialog::Accepted)
 	{
 		if  (target.isEmpty())
-			doc->scMW()->SetNewFont(dlg->getCurrentFont());
+			doc->itemSelection_SetFont(dlg->getCurrentFont());
 		else
 			m_runResult = dlg->getCurrentFont();
 	}

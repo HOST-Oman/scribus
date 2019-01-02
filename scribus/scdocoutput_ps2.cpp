@@ -15,7 +15,7 @@ for which a new license (GPL+exception) is in place.
 
 using namespace std;
 
-ScDocOutput_Ps2::ScDocOutput_Ps2(ScribusDoc* doc, QString fileName, vector<int>& pageNumbers, QRect& clip, ScPs2OutputParams& options)
+ScDocOutput_Ps2::ScDocOutput_Ps2(ScribusDoc* doc, const QString& fileName, vector<int>& pageNumbers, QRect& clip, ScPs2OutputParams& options)
 {
 	m_doc = doc;
 	m_file.setFileName(fileName);
@@ -35,7 +35,7 @@ ScDocOutput_Ps2::~ScDocOutput_Ps2()
 		m_file.close();
 }
 
-bool ScDocOutput_Ps2::begin(void)
+bool ScDocOutput_Ps2::begin()
 {
 	if (!m_file.open(QIODevice::WriteOnly))
 	{
@@ -68,7 +68,7 @@ bool ScDocOutput_Ps2::begin(void)
 	return true;
 }
 
-void ScDocOutput_Ps2::end(void)
+void ScDocOutput_Ps2::end()
 {
 	m_stream << "%%Trailer\n";
 	m_stream << "end\n";
@@ -76,7 +76,7 @@ void ScDocOutput_Ps2::end(void)
 	m_file.close();
 }
 
-bool ScDocOutput_Ps2::initializeCmsTransforms(void)
+bool ScDocOutput_Ps2::initializeCmsTransforms()
 {
 	bool success = false;
 	if (!m_options.outputProfile.isEmpty() && QFile::exists(m_options.outputProfile))

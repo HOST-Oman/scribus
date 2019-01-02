@@ -6,12 +6,12 @@ for which a new license (GPL+exception) is in place.
 */
 #include "scimgdataloader.h"
 
-ScImgDataLoader::ScImgDataLoader(void)
+ScImgDataLoader::ScImgDataLoader()
 {
 	initialize();
 }
 
-void ScImgDataLoader::initialize(void)
+void ScImgDataLoader::initialize()
 {
 	m_msgType = noMsg;
 	m_message.resize(0);
@@ -22,7 +22,7 @@ void ScImgDataLoader::initialize(void)
 	m_pixelFormat = Format_Undefined;
 }
 
-void ScImgDataLoader::setRequest(bool valid, QMap<int, ImageLoadRequest> req)
+void ScImgDataLoader::setRequest(bool valid, const QMap<int, ImageLoadRequest>& req)
 {
 	m_imageInfoRecord.RequestProps = req;
 	m_imageInfoRecord.isRequest = valid;
@@ -45,7 +45,7 @@ QString ScImgDataLoader::getPascalString(QDataStream & s)
 		s >> tmp;
 		return ret;
 	}
-	for( int i = 0; i < len; i++ )
+	for (int i = 0; i < len; i++)
 	{
 		s >> tmp;
 		ret += QChar(tmp);
@@ -123,7 +123,7 @@ void ScImgDataLoader::parseRessourceData( QDataStream & s, const PSDHeader & hea
 	{
 		s >> signature;
 		offset += 4;
-		if(((signature >> 24)&0xff) != '8' ||
+		if (((signature >> 24)&0xff) != '8' ||
 		        ((signature >> 16)&0xff) != 'B' ||
 		        ((signature >> 8)&0xff) != 'I' ||
 		        ((signature )&0xff) != 'M' )
@@ -134,7 +134,7 @@ void ScImgDataLoader::parseRessourceData( QDataStream & s, const PSDHeader & hea
 		resName = getPascalString(s);
 		offset += s.device()->pos() - adj;
 		s >> resSize;
-		if(offset + resSize > size)
+		if (offset + resSize > size)
 			break;
 		resBase = s.device()->pos();
 		if ( (resID >= 0x07d0) && (resID <= 0x0bb6) )
@@ -271,6 +271,6 @@ void ScImgDataLoader::parseRessourceData( QDataStream & s, const PSDHeader & hea
 			offset += 1;
 		}
 	}
-	if(offset<size)
+	if (offset<size)
 		s.device()->seek( size );
 }

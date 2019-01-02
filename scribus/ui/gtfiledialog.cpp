@@ -14,7 +14,6 @@ for which a new license (GPL+exception) is in place.
 #include "prefsfile.h"
 
 gtFileDialog::gtFileDialog(const QString& filters, const QStringList& importers, const QString& wdir)
-	: QDialog()
 {
 	setupUi(this);
 
@@ -84,7 +83,7 @@ void gtFileDialog::okClicked()
 		accept();
 }
 
-void gtFileDialog::loadSettings(void)
+void gtFileDialog::loadSettings()
 {
 	PrefsContext* context = PrefsManager::instance()->prefsFile->getContext("textimport_dialog");
 	if (context->contains("filter"))
@@ -120,7 +119,7 @@ void gtFileDialog::loadSettings(void)
 	}
 }
 
-void gtFileDialog::saveSettings(void)
+void gtFileDialog::saveSettings()
 {
 	PrefsContext* context = PrefsManager::instance()->prefsFile->getContext("textimport_dialog");
 	context->set("filter"  , fileWidget->selectedNameFilter());

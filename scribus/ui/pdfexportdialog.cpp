@@ -171,7 +171,7 @@ void PDFExportDialog::DoExport()
 		}
 	}
 
-	if ((pageNumbers.size() == 0) || hasInvalidPageRange)
+	if ((pageNumbers.empty()) || hasInvalidPageRange)
 	{
 		ScMessageBox::warning(this, CommonStrings::trWarning, tr("The range of pages to export is invalid.\nPlease check it and try again."));
 		return;
@@ -244,7 +244,7 @@ void PDFExportDialog::ChangeFile()
 			wdir = wfile;
 	}
 
-	QString d = QFileDialog::getSaveFileName(this, tr("Save As"), wdir, tr("PDF Files (*.pdf);;All Files (*)"), 0, QFileDialog::DontConfirmOverwrite);
+	QString d = QFileDialog::getSaveFileName(this, tr("Save As"), wdir, tr("PDF Files (*.pdf);;All Files (*)"), nullptr, QFileDialog::DontConfirmOverwrite);
 	if (d.length() > 0)
 	{
 		QString fn(QDir::fromNativeSeparators(d));

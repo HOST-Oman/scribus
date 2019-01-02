@@ -137,7 +137,8 @@ namespace cff {
 	};
 	
 	
-	enum CFF_Variant_Type {
+	enum CFF_Variant_Type
+	{
 		cff_varnt_Error    = 0,
 		cff_varnt_Bool     = 1,
 		cff_varnt_Card     = 2,
@@ -149,17 +150,20 @@ namespace cff {
 	};
 
 	
-	struct CFF_Number {
+	struct CFF_Number
+	{
 		long long   card;
 		int         exponent;
 		uchar       type;
 		bool        isCardinal() const;
 		double      toDouble() const;
 		int         toCardinal() const;
+		CFF_Number() : card(0),exponent(0),type(0) {};
 	};
 	
 
-	struct CFF_Variant {
+	struct CFF_Variant
+	{
 		uchar type;
 		QList<CFF_Number> array;
 		CFF_Variant()                      : type(cff_varnt_Error) {}
@@ -226,7 +230,7 @@ namespace cff {
 		
 		/// This write the header, name index and TopDict index for exactly one font.
 		/// All unknown offset are preset as 4 byte cardinal and corresponding operator positions returned
-		uint writeTopDict(QByteArray name, QMap<operator_type, CFF_Variant> dict, QList<QByteArray> oldStrings, QHash<operator_type, uint>& patches);
+		uint writeTopDict(const QByteArray& name, const QMap<operator_type, CFF_Variant>& dict, const QList<QByteArray>& oldStrings, QHash<operator_type, uint>& patches);
 		/// this will write another segment and return the start offset
 		uint writeSegment(const QByteArray& data);
 		void patch(QHash<operator_type, uint> patchPositions, uint patchOffset, operator_type op, uint offset, uint length = 0);
@@ -234,7 +238,7 @@ namespace cff {
 		QByteArray makeCharset(QList<sid_type>) const;
 		QByteArray makeEncoding(QList<uint>) const;
 		QByteArray makeIndex(QList<QByteArray> data) const;
-		QByteArray makeDict(QMap<operator_type, CFF_Variant> dict, QList<QByteArray> oldStrings, QHash<operator_type, uint>& patchAddresses);
+		QByteArray makeDict(QMap<operator_type, CFF_Variant> dict, const QList<QByteArray>& oldStrings, QHash<operator_type, uint>& patchAddresses);
 	};
 	
 	QByteArray extractFace(const QByteArray& cff, int faceIndex);

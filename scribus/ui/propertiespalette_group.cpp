@@ -71,9 +71,9 @@ for which a new license (GPL+exception) is in place.
 
 PropertiesPalette_Group::PropertiesPalette_Group( QWidget* parent) : QWidget(parent)
 {
-	m_ScMW = 0;
-	m_doc  = 0;
-	m_item = 0;
+	m_ScMW = nullptr;
+	m_doc  = nullptr;
+	m_item = nullptr;
 	m_haveDoc   = false;
 	m_haveItem  = false;
 	m_unitIndex = 0;
@@ -151,11 +151,11 @@ void PropertiesPalette_Group::setDoc(ScribusDoc *d)
 		disconnect(m_doc             , SIGNAL(docChanged())      , this, SLOT(handleSelectionChanged()));
 	}
 	
-	disconnect(this->transPalWidget, SIGNAL(NewTrans(double)), 0, 0);
-	disconnect(this->transPalWidget, SIGNAL(NewBlend(int)), 0, 0);
-	disconnect(this->transPalWidget, SIGNAL(NewGradient(int)), 0, 0);
-	disconnect(this->transPalWidget, SIGNAL(NewPattern(QString)), 0, 0);
-	disconnect(this->transPalWidget, SIGNAL(NewPatternProps(double, double, double, double, double, double, double, bool, bool)), 0, 0);
+	this->transPalWidget->disconnect(SIGNAL(NewTrans(double)));
+	this->transPalWidget->disconnect(SIGNAL(NewBlend(int)));
+	this->transPalWidget->disconnect(SIGNAL(NewGradient(int)));
+	this->transPalWidget->disconnect(SIGNAL(NewPattern(QString)));
+	this->transPalWidget->disconnect(SIGNAL(NewPatternProps(double, double, double, double, double, double, double, bool, bool)));
 
 	m_doc  = d;
 	m_item = nullptr;
@@ -354,23 +354,22 @@ void PropertiesPalette_Group::showTextFlowMode(PageItem::TextFlowMode mode)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning() || !m_haveItem)
 		return;
-	if (m_item->isGroup())
-	{
-		if (mode == PageItem::TextFlowDisabled)
-			textFlowDisabled->setChecked(true);
-		else if (mode == PageItem::TextFlowUsesFrameShape)
-			textFlowUsesFrameShape->setChecked(true);
-		else if (mode == PageItem::TextFlowUsesBoundingBox)
-			textFlowUsesBoundingBox->setChecked(true);
-		else if (mode == PageItem::TextFlowUsesContourLine)
-			textFlowUsesContourLine->setChecked(true);
-		else if (mode == PageItem::TextFlowUsesImageClipping)
-			textFlowUsesImageClipping->setChecked(true);
-		if ((m_item->asImageFrame()) && (m_item->imageClip.size() != 0))
-			textFlowUsesImageClipping->setEnabled(true);
-		else
-			textFlowUsesImageClipping->setEnabled(false);
-	}
+	if (!m_item->isGroup())
+		return;
+	if (mode == PageItem::TextFlowDisabled)
+		textFlowDisabled->setChecked(true);
+	else if (mode == PageItem::TextFlowUsesFrameShape)
+		textFlowUsesFrameShape->setChecked(true);
+	else if (mode == PageItem::TextFlowUsesBoundingBox)
+		textFlowUsesBoundingBox->setChecked(true);
+	else if (mode == PageItem::TextFlowUsesContourLine)
+		textFlowUsesContourLine->setChecked(true);
+	else if (mode == PageItem::TextFlowUsesImageClipping)
+		textFlowUsesImageClipping->setChecked(true);
+	if ((m_item->asImageFrame()) && (!m_item->imageClip.empty()))
+		textFlowUsesImageClipping->setEnabled(true);
+	else
+		textFlowUsesImageClipping->setEnabled(false);
 }
 
 void PropertiesPalette_Group::updateColorList()
@@ -444,7 +443,7 @@ void PropertiesPalette_Group::handleGroupGradMask(int typ)
 	}
 }
 
-void PropertiesPalette_Group::handleGroupPatternMask(QString pattern)
+void PropertiesPalette_Group::handleGroupPatternMask(const QString& pattern)
 {
 	if ((m_haveDoc) && (m_haveItem))
 	{

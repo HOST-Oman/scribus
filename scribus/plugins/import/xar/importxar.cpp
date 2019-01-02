@@ -58,9 +58,6 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 
-
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
 XarPlug::XarPlug(ScribusDoc* doc, int flags)
 {
 	tmpSel=new Selection(this, false);
@@ -73,10 +70,9 @@ XarPlug::XarPlug(ScribusDoc* doc, int flags)
 bool XarPlug::readColors(const QString& fNameIn, ColorList &colors)
 {
 	progressDialog = nullptr;
-	QString fName = fNameIn;
 	bool success = false;
 	importedColors.clear();
-	QFile f(fName);
+	QFile f(fNameIn);
 	if (f.open(QIODevice::ReadOnly))
 	{
 		QDataStream ts(&f);
@@ -92,7 +88,7 @@ bool XarPlug::readColors(const QString& fNameIn, ColorList &colors)
 		m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 		m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
 		m_Doc->addPage(0);
-		m_Doc->setGUI(false, ScCore->primaryMainWindow(), 0);
+		m_Doc->setGUI(false, ScCore->primaryMainWindow(), nullptr);
 		m_Doc->setLoading(true);
 		m_Doc->DoDrawing = false;
 		m_Doc->scMW()->setScriptRunning(true);
@@ -120,7 +116,7 @@ bool XarPlug::readColors(const QString& fNameIn, ColorList &colors)
 						tsc.skipRawData(dataLen);
 						break;
 					}
-					else if (opCode == 51)
+					if (opCode == 51)
 						handleComplexColor(tsc);
 					else
 						tsc.skipRawData(dataLen);
@@ -155,7 +151,7 @@ bool XarPlug::readColors(const QString& fNameIn, ColorList &colors)
 	return success;
 }
 
-QImage XarPlug::readThumbnail(QString fName)
+QImage XarPlug::readThumbnail(const QString& fName)
 {
 	progressDialog = nullptr;
 	QImage image = QImage();
@@ -230,9 +226,9 @@ QImage XarPlug::readThumbnail(QString fName)
 	return image;
 }
 
-bool XarPlug::import(QString fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
+bool XarPlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
-	QString fName = fNameIn;
+	const QString& fName = fNameIn;
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 	importerFlags = flags;
@@ -247,7 +243,7 @@ bool XarPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 	}
 	if ( showProgress )
 	{
-		ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 		progressDialog = new MultiProgressDialog( tr("Importing: %1").arg(fi.fileName()), CommonStrings::tr_Cancel, mw );
 		QStringList barNames, barTexts;
 		barNames << "GI";
@@ -361,7 +357,7 @@ bool XarPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 			else
 			{
 				m_Doc->DragP = true;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 				m_Doc->m_Selection->delaySignalsOn();
 				for (int dre=0; dre<Elements.count(); ++dre)
@@ -369,7 +365,7 @@ bool XarPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 					tmpSel->addItem(Elements.at(dre), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				if (importedColors.count() != 0)
@@ -392,7 +388,7 @@ bool XarPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 				TransactionSettings* transacSettings = new TransactionSettings(trSettings);
 				m_Doc->view()->handleObjectImport(md, transacSettings);
 				m_Doc->DragP = false;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 			}
 		}
@@ -429,12 +425,11 @@ bool XarPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 
 XarPlug::~XarPlug()
 {
-	if (progressDialog)
-		delete progressDialog;
+	delete progressDialog;
 	delete tmpSel;
 }
 
-void XarPlug::parseHeader(QString fName, double &x, double &y, double &b, double &h)
+void XarPlug::parseHeader(const QString& fName, double &x, double &y, double &b, double &h)
 {
 	QFile f(fName);
 	if (f.open(QIODevice::ReadOnly))
@@ -452,7 +447,7 @@ void XarPlug::parseHeader(QString fName, double &x, double &y, double &b, double
 	}
 }
 
-bool XarPlug::convert(QString fn)
+bool XarPlug::convert(const QString& fn)
 {
 	Coords.resize(0);
 	Coords.svgInit();
@@ -536,7 +531,7 @@ bool XarPlug::convert(QString fn)
 	ignoreableTags << 2205 << 2900 << 2901;
 	ignoreableTags << 4031 << 4081 << 4082 << 4083 << 4087 << 4102 << 4103 << 4104 << 4105 << 4106 << 4107 << 4108 << 4109;
 	ignoreableTags << 4110 << 4111 << 4112 << 4113 << 4114 << 4115 << 4116 << 4124;
-	if(progressDialog)
+	if (progressDialog)
 	{
 		progressDialog->setOverallProgress(2);
 		progressDialog->setLabel("GI", tr("Generating Items"));
@@ -1253,7 +1248,7 @@ void XarPlug::endTextLine()
 	double xpos = 0;
 	if (isPathText)
 	{
-		if (textPath.size() > 0)
+		if (!textPath.empty())
 		{
 			QPainterPath guidePath = textPath.toQPainterPath(false);
 			for (int a = 0; a < textLines.count(); a++)
@@ -1327,7 +1322,7 @@ void XarPlug::endTextLine()
 						Coords.fromQPainterPath(painterPath);
 						QPointF np = textMatrix.map(QPointF(TextX, TextY));
 						Coords.translate(np.x(), np.y());
-						if (Coords.size() > 0)
+						if (!Coords.empty())
 						{
 							int z = m_Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, baseX, baseY, 10, 10, 0, txDat.FillCol, CommonStrings::None);
 							PageItem *item = m_Doc->Items->at(z);
@@ -1434,7 +1429,7 @@ void XarPlug::endTextLine()
 					double dist = qMax(gc->LineWidth, gc->LineWidth2) - (QFontMetricsF(textFont).width(txDat.itemText) / 10.0);
 					Coords.translate(dist, 0);
 				}
-				if (Coords.size() > 0)
+				if (!Coords.empty())
 				{
 					int z = m_Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, baseX, baseY, 10, 10, 0, gc->FillCol, CommonStrings::None);
 					PageItem *item = m_Doc->Items->at(z);
@@ -1902,10 +1897,10 @@ void XarPlug::handleBitmapTransparency(QDataStream &ts, quint32 dataLen)
 		int te = transEnd;
 		QRgb *s;
 		QRgb r;
-		for( int yi=0; yi < h; ++yi )
+		for (int yi = 0; yi < h; ++yi)
 		{
 			s = (QRgb*)(image.scanLine( yi ));
-			for( int xi=0; xi < w; ++xi )
+			for (int xi = 0; xi < w; ++xi)
 			{
 				r = *s;
 				k = qMin(qRound(0.3 * qRed(r) + 0.59 * qGreen(r) + 0.11 * qBlue(r)), 255);
@@ -2698,10 +2693,10 @@ void XarPlug::handleContoneBitmapFill(QDataStream &ts, quint32 dataLen)
 		endC.getRgb(&rE, &gE, &bE);
 		QRgb *s;
 		QRgb r;
-		for( int yi=0; yi < h; ++yi )
+		for (int yi = 0; yi < h; ++yi)
 		{
 			s = (QRgb*)(image.scanLine( yi ));
-			for( int xi=0; xi < w; ++xi )
+			for (int xi = 0; xi < w; ++xi)
 			{
 				r = *s;
 				k = qMin(qRound(0.3 * qRed(r) + 0.59 * qGreen(r) + 0.11 * qBlue(r)), 255);
@@ -2864,10 +2859,10 @@ void XarPlug::defineBitmap(QDataStream &ts, quint32 dataLen, quint32 tag)
 			int w = image.width();
 			QRgb *s;
 			QRgb r;
-			for( int yi=0; yi < h; ++yi )
+			for (int yi = 0; yi < h; ++yi)
 			{
 				s = (QRgb*)(image.scanLine( yi ));
-				for( int xi=0; xi < w; ++xi )
+				for (int xi = 0; xi < w; ++xi)
 				{
 					r = *s;
 					*s = qRgba(qRed(r), qGreen(r), qBlue(r), 255 - qAlpha(r));
@@ -3182,7 +3177,7 @@ void XarPlug::finishItem(int z)
 		XarGroup gg = groupStack.top();
 		if (gg.clipping)
 		{
-			if (clipCoords.size() == 0)
+			if (clipCoords.empty())
 			{
 				gc->clipPath = ite->PoLine.copy();
 				gc->clipPath.translate(ite->xPos(), ite->yPos());
@@ -3669,7 +3664,7 @@ void XarPlug::popGraphicContext()
 				groupItem->FrameType = 3;
 				groupItem->setTextFlowMode(PageItem::TextFlowDisabled);
 				groupItem->setItemName( tr("Group%1").arg(m_Doc->GroupCounter));
-				if (gc->clipPath.size() > 0)
+				if (!gc->clipPath.empty())
 				{
 					groupItem->PoLine = gc->clipPath.copy();
 					groupItem->PoLine.translate(-minx + baseX, -miny + baseY);

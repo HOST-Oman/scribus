@@ -60,7 +60,7 @@ void pathfinder_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-PathFinderPlugin::PathFinderPlugin() : ScActionPlugin()
+PathFinderPlugin::PathFinderPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -124,10 +124,10 @@ void PathFinderPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool PathFinderPlugin::run(ScribusDoc* doc, QString)
+bool PathFinderPlugin::run(ScribusDoc* doc, const QString&)
 {
 	ScribusDoc* currDoc = doc;
-	if (currDoc == 0)
+	if (currDoc == nullptr)
 		currDoc = ScCore->primaryMainWindow()->doc;
 	if (currDoc->m_Selection->count() <= 1)
 		return true;

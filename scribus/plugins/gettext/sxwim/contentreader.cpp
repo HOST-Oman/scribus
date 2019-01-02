@@ -36,7 +36,7 @@ ContentReader* ContentReader::creader = nullptr;
 
 extern xmlSAXHandlerPtr cSAXHandler;
 
-ContentReader::ContentReader(QString documentName, StyleReader *s, gtWriter *w, bool textOnly)
+ContentReader::ContentReader(const QString& documentName, StyleReader *s, gtWriter *w, bool textOnly)
 {
 	creader = this;
 	docname = documentName;
@@ -211,7 +211,7 @@ bool ContentReader::endElement(const QString&, const QString&, const QString &na
 		--append;
 		if (inList || inNote || inNoteBody)
 		{
-			if (styleNames.size() != 0)
+			if (!styleNames.empty())
 				styleNames.pop_back();
 		}
 		else
@@ -221,7 +221,7 @@ bool ContentReader::endElement(const QString&, const QString&, const QString &na
 	{
 		inSpan = false;
 		currentStyle = pstyle;
-		if (styleNames.size() != 0)
+		if (!styleNames.empty())
 			styleNames.pop_back();	
 		currentStyle = sreader->getStyle(getName());
 	}
@@ -270,7 +270,7 @@ void ContentReader::write(const QString& text)
 	lastStyle = currentStyle;
 }
 
-void ContentReader::parse(QString fileName)
+void ContentReader::parse(const QString& fileName)
 {
 	sreader->parse(fileName);
 #if defined(_WIN32)
@@ -328,7 +328,7 @@ void ContentReader::startElement(void*, const xmlChar *fullname, const xmlChar *
 	QXmlAttributes attrs;
 	if (atts)
 	{
-		for(const xmlChar** cur = atts; cur && *cur; cur += 2)
+		for (const xmlChar** cur = atts; cur && *cur; cur += 2)
 			attrs.append(QString((char*)*cur), nullptr, QString((char*)*cur), QString((char*)*(cur + 1)));
 	}
 	creader->startElement(nullptr, nullptr, name, attrs);
@@ -357,7 +357,7 @@ QString ContentReader::getName()
 void ContentReader::getStyle()
 {
 	gtStyle *style = nullptr, *tmp = nullptr;
-	if (styleNames.size() == 0)
+	if (styleNames.empty())
 		style = sreader->getStyle("default-style");
 	else
 		style = sreader->getStyle(styleNames[0]);

@@ -74,10 +74,10 @@ public:
 	virtual void changeEvent(QEvent *e);
 	
 	QString currentFont();
-	void RebuildList(ScribusDoc *currentDoc, bool forAnnotation = false, bool forSubstitute = false);
+	void rebuildList(ScribusDoc *currentDoc, bool forAnnotation = false, bool forSubstitute = false);
 
 public slots:
-	void setCurrentFont(QString f);
+	void setCurrentFont(const QString& f);
 	void languageChange();
 
 signals:
@@ -114,6 +114,9 @@ public:
 	void paint(QPainter *painter,
 			   const QStyleOptionViewItem &option,
 			   const QModelIndex &index) const Q_DECL_OVERRIDE;
+
+	bool helpEvent(QHelpEvent * event, QAbstractItemView * view, 
+	               const QStyleOptionViewItem & option, const QModelIndex & index) Q_DECL_OVERRIDE;
 
 	QSize sizeHint(const QStyleOptionViewItem &option,
 				   const QModelIndex &index) const Q_DECL_OVERRIDE;

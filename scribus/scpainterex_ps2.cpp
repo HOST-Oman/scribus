@@ -33,13 +33,14 @@ for which a new license (GPL+exception) is in place.
 #include <QPixmap>
 #include <QImage>
 
+#include <cmath>
 #include <iostream>
 #include <memory>
 using namespace std;
- 
-#include <cmath>
+
 #include "colormgmt/sccolormgmtengine.h"
 #include "sccolorengine.h"
+#include "scimage.h"
 #include "util.h"
 
 ScPs2OutputParams::ScPs2OutputParams(ScribusDoc* doc)
@@ -59,7 +60,7 @@ ScPs2OutputParams::ScPs2OutputParams(ScribusDoc* doc)
 	cmykToOutputImageTransform = nullptr;
 }
 
-ScPainterEx_Ps2::ScPainterEx_Ps2(QIODevice* iodev, QRect& rect, ScPs2OutputParams& options ) : ScPainterExBase()
+ScPainterEx_Ps2::ScPainterEx_Ps2(QIODevice* iodev, QRect& rect, ScPs2OutputParams& options )
 {
 	m_stream.setDevice( iodev );
 	m_colorMode = options.colorMode;
@@ -175,7 +176,7 @@ void ScPainterEx_Ps2::transformPoint( const FPoint& in, FPoint& out )
 
 void ScPainterEx_Ps2::transformPoints( const FPoint* ArrayIn, FPoint* ArrayOut, uint length )
 {
-	for( uint i = 0; i < length; i++ )
+	for (uint i = 0; i < length; i++)
 	{
 		transformPoint( ArrayIn[i], ArrayOut[i] );
 	}
@@ -281,18 +282,18 @@ void ScPainterEx_Ps2::setPattern(ScPattern *pattern, double scaleX, double scale
 
 void ScPainterEx_Ps2::fillPath()
 {
-	if(!m_pathIsClosed)
+	if (!m_pathIsClosed)
 		closePath();
-	if( m_fillMode != 0)
+	if (m_fillMode != 0)
 		drawVPath( 0 );
 }
 
 void ScPainterEx_Ps2::strokePath()
 {
-	if( m_lineWidth == 0 )
+	if (m_lineWidth == 0)
 		return;
 	save();
-	if(!m_pathIsClosed)
+	if (!m_pathIsClosed)
 		closePath();
 	drawVPath( 1 );
 	restore();
@@ -413,27 +414,27 @@ void ScPainterEx_Ps2::drawVPath( int mode )
 		m_stream << QString("%1 setlinewidth\n").arg(penWidth);
 
 		m_stream << "[";
-		for( int i = 0; i < m_array.count();++ i )
+		for (int i = 0; i < m_array.count();++ i)
 		{
 			m_stream << QString("%1").arg(m_array[i]) << " ";
 		}
 		m_stream << "]";
 		m_stream << " 0 setdash\n";
 
-		if( m_lineEnd == Qt::RoundCap )
+		if (m_lineEnd == Qt::RoundCap)
 			m_stream << "1 setlinecap\n";
-		else if( m_lineEnd == Qt::SquareCap )
+		else if (m_lineEnd == Qt::SquareCap)
 			m_stream << "2 setlinecap\n";
-		else if( m_lineEnd == Qt::FlatCap )
+		else if (m_lineEnd == Qt::FlatCap)
 			m_stream << "0 setlinecap\n";
 		else
 			m_stream << "0 setlinecap\n";
 
-		if( m_lineJoin == Qt::RoundJoin )
+		if (m_lineJoin == Qt::RoundJoin)
 			m_stream << "1 setlinejoin\n";
-		else if( m_lineJoin == Qt::BevelJoin )
+		else if (m_lineJoin == Qt::BevelJoin)
 			m_stream << "2 setlinejoin\n";
-		else if( m_lineJoin == Qt::MiterJoin )
+		else if (m_lineJoin == Qt::MiterJoin)
 			m_stream << "0 setlinejoin\n";
 		else
 			m_stream << "0 setlinejoin\n";
@@ -469,12 +470,12 @@ void ScPainterEx_Ps2::putColor(ScColorShade& colorShade, bool doFill)
 			m_stream << QString("%1 setgray stroke\n").arg(gray);
 		return;
 	}
-	else if (m_options.hProfile && m_options.rgbToOutputColorTransform && m_options.cmykToOutputColorTransform)
+	if (m_options.hProfile && m_options.rgbToOutputColorTransform && m_options.cmykToOutputColorTransform)
 	{
 		unsigned long colorIn[4];
 		unsigned long colorOut[4];
 		ScColorTransform cmsTranform = nullptr;
-		if( colorShade.color.getColorModel() == colorModelRGB )
+		if (colorShade.color.getColorModel() == colorModelRGB)
 		{
 			RGBColorF rgb;
 			ScColorEngine::getShadeColorRGB(colorShade.color, m_options.document, rgb, colorShade.shade);
@@ -695,12 +696,12 @@ bool ScPainterEx_Ps2::hasAlphaChannel( ScImage* image )
 	bool   hasAlpha = false;
 	int    width = image->width();
 	int    height = image->height();
-	for( int y = 0; y < height; y++ )
+	for (int y = 0; y < height; y++)
 	{
 		QRgb* imageBits = (QRgb*)(image->qImage().scanLine(y));
-		for( int x = 0; x < width; ++x )
+		for (int x = 0; x < width; ++x)
 		{
-			if( qAlpha(*imageBits) != 255 )
+			if (qAlpha(*imageBits) != 255)
 			{
 				hasAlpha = true;
 				break;
@@ -719,10 +720,10 @@ void ScPainterEx_Ps2::writeMaskToStream( QImage* image )
 	int    height = image->height();
 	if ((image->width() % 8) != 0)
 		width++;
-	for( int y = 0; y < height; ++y )
+	for (int y = 0; y < height; ++y)
 	{
 		unsigned char* imageBits = image->scanLine(y);
-		for( int x = 0; x < width; x++ )
+		for (int x = 0; x < width; x++)
 		{
 			length++;
 			bits = imageBits[x];
@@ -745,10 +746,10 @@ void ScPainterEx_Ps2::writeRGBImageToStream_Ascii85( ScImage* image )
 
 	int width = image->width();
 	int height = image->height();
-	for( int y = 0; y < height; ++y )
+	for (int y = 0; y < height; ++y)
 	{
 		QRgb* imageBits = (QRgb*)(image->qImage().scanLine(y));
-		for( int x = 0; x < width; ++x )
+		for (int x = 0; x < width; ++x)
 		{
 			cindex = 0;
 			while (cindex < 3)
@@ -798,10 +799,10 @@ void ScPainterEx_Ps2::writeRGBImageToStream_AsciiHex ( ScImage* image )
 	int  length = 0;
 	int  width = image->width();
 	int  height = image->height();
-	for( int y = 0; y < height; ++y )
+	for (int y = 0; y < height; ++y)
 	{
 		QRgb* imageBits = (QRgb*)(image->qImage().scanLine(y));
-		for( int x = 0; x < width; ++x )
+		for (int x = 0; x < width; ++x)
 		{
 			length++;
 			uchar r = (uchar) qRed(*imageBits);
@@ -828,10 +829,10 @@ void ScPainterEx_Ps2::writeCMYKImageToStream_Ascii85( ScImage* image )
 
 	int width = image->width();
 	int height = image->height();
-	for( int y = 0; y < height; y++ )
+	for (int y = 0; y < height; y++)
 	{
 		QRgb* imageBits = (QRgb*)(image->qImage().scanLine(y));
-		for( int x = 0; x < width; x++ )
+		for (int x = 0; x < width; x++)
 		{
 			four_tuple[0] = (uchar) qRed(*imageBits);
 			four_tuple[1] = (uchar) qGreen(*imageBits);
@@ -860,10 +861,10 @@ void ScPainterEx_Ps2::writeCMYKImageToStream_AsciiHex( ScImage* image )
 	int length = 0;
 	int width = image->width();
 	int height = image->height();
-	for( int y = 0; y < height; ++y )
+	for (int y = 0; y < height; ++y)
 	{
 		QRgb* imageBits = (QRgb*)(image->qImage().scanLine(y));
-		for( int x = 0; x < width; ++x )
+		for (int x = 0; x < width; ++x)
 		{
 			length++;
 			uchar c = (uchar) qRed(*imageBits);
@@ -998,7 +999,7 @@ void ScPainterEx_Ps2::drawLinearGradient_RGB( VGradientEx& gradient, const QRect
 	RGBColorF rgb;
 	FPoint p1, p2;
 
-	if (gradient.Stops() < 2) 
+	if (gradient.stops() < 2) 
 		return;
 
 	clipBoxWidth = rect.width();
@@ -1031,7 +1032,7 @@ void ScPainterEx_Ps2::drawLinearGradient_RGB( VGradientEx& gradient, const QRect
 	rgb.getValues(r1, g1, b1);
 	m_stream << QString("%1 %2 %3 setrgbcolor fill\n").arg(r1/255.0).arg(g1/255.0).arg(b1/255.0);
 
-	for (uint index = 1; index < gradient.Stops(); index++)
+	for (int index = 1; index < gradient.stops(); index++)
 	{
 		stop2 = *colorStops[index];
 		ramp2 = stop2.rampPoint;
@@ -1097,7 +1098,7 @@ void ScPainterEx_Ps2::drawLinearGradient_CMYK(VGradientEx& gradient, const QRect
 	CMYKColorF cmyk;
 	FPoint p1, p2;
 
-	if ( gradient.Stops() < 2 ) 
+	if ( gradient.stops() < 2 ) 
 		return;
 
 	clipBoxWidth = rect.width();
@@ -1131,7 +1132,7 @@ void ScPainterEx_Ps2::drawLinearGradient_CMYK(VGradientEx& gradient, const QRect
 	m_stream << QString("/DeviceCMYK setcolorspace\n");
 	m_stream << QString("%1 %2 %3 %4 setcolor fill\n").arg(c1).arg(m1).arg(j1).arg(n1);
 
-	for( uint index = 1; index < gradient.Stops(); index++)
+	for (int index = 1; index < gradient.stops(); index++)
 	{
 		stop2 = *colorStops[index];
 		ramp2 = stop2.rampPoint;
@@ -1203,8 +1204,8 @@ void ScPainterEx_Ps2::drawCircularGradient_RGB( VGradientEx& gradient, const QRe
 	double ramp1, ramp2;
 	int clipBoxWidth, clipBoxHeight, maxDim;
 	QList<VColorStopEx*> colorStops = gradient.colorStops();
-	VColorStopEx stop1( *colorStops[gradient.Stops() - 1] );
-	VColorStopEx stop2( *colorStops[gradient.Stops() - 1] );
+	VColorStopEx stop1( *colorStops[gradient.stops() - 1] );
+	VColorStopEx stop2( *colorStops[gradient.stops() - 1] );
 	RGBColorF rgb;
 
 	clipBoxWidth = rect.width();
@@ -1230,9 +1231,9 @@ void ScPainterEx_Ps2::drawCircularGradient_RGB( VGradientEx& gradient, const QRe
 	ScColorEngine::getShadeColorRGB(stop2.color, m_options.document, rgb, stop2.shade);
 	rgb.getValues(r2, g2, b2);
 	m_stream << QString("%1 %2 %3 setrgbcolor fill\n").arg(r2).arg(g2).arg(b2);
-	if ( gradient.Stops() < 2 ) return;
+	if ( gradient.stops() < 2 ) return;
 
-	for( int index = gradient.Stops() - 2; index >= 0; index--)
+	for (int index = gradient.stops() - 2; index >= 0; index--)
 	{
 		stop1 = *colorStops[index];
 		ramp1 = stop1.rampPoint;
@@ -1285,8 +1286,8 @@ void ScPainterEx_Ps2::drawCircularGradient_CMYK( VGradientEx& gradient, const QR
 	double ramp1, ramp2;
 	int clipBoxWidth, clipBoxHeight, maxDim;
 	QList<VColorStopEx*> colorStops = gradient.colorStops();
-	VColorStopEx stop1( *colorStops[gradient.Stops() - 1] );
-	VColorStopEx stop2( *colorStops[gradient.Stops() - 1] );
+	VColorStopEx stop1( *colorStops[gradient.stops() - 1] );
+	VColorStopEx stop2( *colorStops[gradient.stops() - 1] );
 	CMYKColorF cmyk;
 
 	clipBoxWidth = rect.width();
@@ -1313,9 +1314,9 @@ void ScPainterEx_Ps2::drawCircularGradient_CMYK( VGradientEx& gradient, const QR
 	cmyk.getValues(c2, m2, y2, k2);
 	m_stream << QString("/DeviceCMYK setcolorspace\n");
 	m_stream << QString("%0 %1 %2 %3 setcolor fill\n").arg(c2).arg(m2).arg(y2).arg(k2);
-	if (gradient.Stops() < 2) return;
+	if (gradient.stops() < 2) return;
 
-	for (int index = gradient.Stops() - 2; index >= 0; index--)
+	for (int index = gradient.stops() - 2; index >= 0; index--)
 	{
 		stop1 = *colorStops[index];
 		ramp1 = stop1.rampPoint;
@@ -1378,13 +1379,13 @@ void ScPainterEx_Ps2::getPathBoundingBox(const FPointArray* points, QRect& r )
 	for (int i = 0; i < points->size(); i++ )
 	{
 		point = points->point(i);
-		if( points->isMarker(i) )
+		if (points->isMarker(i))
 			continue;
 		transformPoint(point, point);
-		if( point.x() < left ) left = point.x();
-		if( point.x() > right ) right = point.x();
-		if( point.y() < bottom ) bottom = point.y();
-		if( point.y() > top ) top = point.y();
+		if (point.x() < left) left = point.x();
+		if (point.x() > right) right = point.x();
+		if (point.y() < bottom) bottom = point.y();
+		if (point.y() > top) top = point.y();
 	}
 	r.setCoords( qRound(left), qRound(bottom), qRound(right), qRound(top) );
 }

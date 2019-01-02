@@ -20,11 +20,13 @@ for which a new license (GPL+exception) is in place.
 #include <QFileInfo>
 #include <QString>
 #include <QProcess>
+#include <QScopedPointer>
 #include <QTemporaryFile>
 
 #include "fileloader.h"
 #include "loadsaveplugin.h"
 #include "prefsmanager.h"
+#include "scpaths.h"
 #include "scribusdoc.h"
 #include "scstreamfilter.h"
 #include "selection.h"
@@ -114,8 +116,7 @@ bool copyFileAtomic(const QString& source, const QString& target)
 			success = QFile::rename(tempFileName, target);
 		}
 	}
-	if (tempFile)
-		delete tempFile;
+	delete tempFile;
 	return success;
 }
 
@@ -216,9 +217,9 @@ bool fileInPath(const QString& filename)
 	}
 
 	//Get $PATH
-	QStringList env = QProcess::systemEnvironment();
 	QString path;
-	foreach (const QString& line, env)
+	const QStringList env = QProcess::systemEnvironment();
+	for (const QString& line : env)
 	{
 		if (line.indexOf("PATH") == 0)
 		{
@@ -226,13 +227,10 @@ bool fileInPath(const QString& filename)
 			break;
 		}
 	}
-	QStringList splitpath;
-	#if defined(Q_OS_WIN32) || defined (Q_OS_OS2)
-		splitpath = path.split(';', QString::SkipEmptyParts);
-	#else
-		splitpath = path.split(':', QString::SkipEmptyParts);
-	#endif
-	foreach (const QString& dir, splitpath)
+
+	QChar envPathSeparator(ScPaths::envPathSeparator);
+	const QStringList splitpath = path.split(envPathSeparator, QString::SkipEmptyParts);
+	for (const QString& dir : splitpath)
 	{
 		QFileInfo info(dir, file);
 		if (info.exists())
@@ -241,46 +239,49 @@ bool fileInPath(const QString& filename)
 	return false;
 }
 
-PageItem*  getVectorFileFromData(ScribusDoc *doc, QByteArray &data, QString ext, double x, double y, double w, double h)
+PageItem* getVectorFileFromData(ScribusDoc *doc, QByteArray &data, const QString& ext, double x, double y, double w, double h)
 {
 	PageItem* retObj = nullptr;
-	QTemporaryFile *tempFile = new QTemporaryFile(QDir::tempPath() + "/scribus_temp_XXXXXX." + ext);
-	if (tempFile->open())
+
+	QScopedPointer<QTemporaryFile> tempFile(new QTemporaryFile(QDir::tempPath() + "/scribus_temp_XXXXXX." + ext));
+	if (!tempFile->open())
+		return nullptr;
+
+	QString fileName = getLongPathName(tempFile->fileName());
+	if (fileName.isEmpty())
+		return nullptr;
+
+	tempFile->write(data);
+	tempFile->close();
+
+	FileLoader *fileLoader = new FileLoader(fileName);
+	int testResult = fileLoader->testFile();
+	delete fileLoader;
+
+	if (testResult == -1)
+		return nullptr;
+
+	const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
+	if (!fmt)
+		return nullptr;
+
+	doc->m_Selection->clear();
+	doc->m_Selection->delaySignalsOn();
+	fmt->setupTargets(doc, nullptr, nullptr, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+	fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
+	if (!doc->m_Selection->isEmpty())
 	{
-		QString fileName = getLongPathName(tempFile->fileName());
-		if (!fileName.isEmpty())
-		{
-			tempFile->write(data);
-			tempFile->close();
-			FileLoader *fileLoader = new FileLoader(fileName);
-			int testResult = fileLoader->testFile();
-			delete fileLoader;
-			if (testResult != -1)
-			{
-				const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-				if( fmt )
-				{
-					doc->m_Selection->clear();
-					doc->m_Selection->delaySignalsOn();
-					fmt->setupTargets(doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
-					fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
-					if (doc->m_Selection->count() > 0)
-					{
-						retObj = doc->groupObjectsSelection();
-						retObj->setTextFlowMode(PageItem::TextFlowUsesBoundingBox);
-						retObj->setXYPos(x, y, true);
-						if ((w >= 0) && (h >= 0))
-							retObj->setWidthHeight(w, h, true);
-						retObj->updateClip();
-						retObj->update();
-					}
-					doc->m_Selection->clear();
-					doc->m_Selection->delaySignalsOff();
-				}
-			}
-		}
+		retObj = doc->groupObjectsSelection();
+		retObj->setTextFlowMode(PageItem::TextFlowUsesBoundingBox);
+		retObj->setXYPos(x, y, true);
+		if ((w >= 0) && (h >= 0))
+			retObj->setWidthHeight(w, h, true);
+		retObj->updateClip();
+		retObj->update();
 	}
-	delete tempFile;
+	doc->m_Selection->clear();
+	doc->m_Selection->delaySignalsOff();
+
 	return retObj;
 }
 
@@ -289,22 +290,23 @@ bool checkFileHash(const QString& directory, const QString& filename, const QStr
 	//In a single directory, make a hash of filename, and compare it to the string for that file in hashFilename
 	//Assumption is that the hash file only has one line for now
 	QByteArray ba_hash;
-	if (loadRawText(directory + hashFilename, ba_hash))
+	if (!loadRawText(directory + hashFilename, ba_hash))
 	{
-		QFile source(directory + filename);
-		if (source.open(QIODevice::ReadOnly))
-		{
-			ba_hash = ba_hash.simplified();
-			QList<QByteArray> fileData(ba_hash.split(' '));
-			QCryptographicHash ch(method);
-			ch.addData(&source);
-			source.close();
-			if (fileData[0] == ch.result().toHex() && fileData[1] == filename)
-				return true;
-			qDebug()<<"checkFileHash: checksum failed for"<<directory<<filename;
-		}
+		qDebug() << "checkFileHash: loadRawText file unsuccessful";
+		return false;
 	}
-	else
-		qDebug()<<"checkFileHash: loadRawText file unsuccessful";
+
+	QFile source(directory + filename);
+	if (source.open(QIODevice::ReadOnly))
+	{
+		ba_hash = ba_hash.simplified();
+		QList<QByteArray> fileData(ba_hash.split(' '));
+		QCryptographicHash ch(method);
+		ch.addData(&source);
+		source.close();
+		if (fileData[0] == ch.result().toHex() && fileData[1] == filename)
+			return true;
+		qDebug()<<"checkFileHash: checksum failed for"<<directory<<filename;
+	}
 	return false;
 }

@@ -16,8 +16,8 @@ for which a new license (GPL+exception) is in place.
 #include "units.h"
 
 
-SMCStyleWidget::SMCStyleWidget(QWidget *parent) : QWidget(),
-	m_Doc(0)
+SMCStyleWidget::SMCStyleWidget(QWidget *parent) :
+	m_Doc(nullptr)
 {
 	setupUi(this);
 
@@ -135,12 +135,13 @@ void SMCStyleWidget::fillLangCombo(QMap<QString,QString> langMap)
 		tmpView->setMinimumWidth(tmpWidth + 24);
 }
 */
-void SMCStyleWidget::fillLangComboFromList(QStringList langList)
+void SMCStyleWidget::fillLangComboFromList(const QStringList& langList)
 {
 	language_->clear();
 	language_->addItems(langList);
 
-	QListView *tmpView = dynamic_cast<QListView*>(language_->view()); Q_ASSERT(tmpView);
+	QListView *tmpView = dynamic_cast<QListView*>(language_->view());
+	Q_ASSERT(tmpView);
 	int tmpWidth = tmpView->sizeHintForColumn(0);
 	if (tmpWidth > 0)
 		tmpView->setMinimumWidth(tmpWidth + 24);
@@ -168,7 +169,7 @@ void SMCStyleWidget::handleUpdateRequest(int updateFlags)
 		fillColorCombo(m_Doc->PageColors);
 }
 
-void SMCStyleWidget::slotEnableFontFeatures(QString s)
+void SMCStyleWidget::slotEnableFontFeatures(const QString& s)
 {
 	const ScFace& font = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[s];
 	fontfeaturesSetting->enableFontFeatures(font.fontFeatures());
@@ -187,7 +188,7 @@ void SMCStyleWidget::setDoc(ScribusDoc *doc)
 	LanguageManager::instance()->fillInstalledStringList(&languageList);
 	fillLangComboFromList(languageList);
 	fillColorCombo(m_Doc->PageColors);
-	fontFace_->RebuildList(m_Doc);
+	fontFace_->rebuildList(m_Doc);
 
 	connect(m_Doc->scMW(), SIGNAL(UpdateRequest(int)), this , SLOT(handleUpdateRequest(int)));
 }
@@ -197,7 +198,7 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 	disconnect(effects_, SIGNAL(State(int)), this, SLOT(slotColorChange()));
 	parentCombo->setEnabled(!cstyle->isDefaultStyle());
 	const CharStyle *parent = dynamic_cast<const CharStyle*>(cstyle->parentStyle());
-	bool hasParent =  cstyle->hasParent() && parent != 0 && parent->hasName() && cstyle->parent() != "";
+	bool hasParent =  cstyle->hasParent() && parent != nullptr && parent->hasName() && cstyle->parent() != "";
 	if (hasParent)
 	{
 		fontSize_->setValue(cstyle->fontSize() / 10.0, cstyle->isInhFontSize());
@@ -380,8 +381,7 @@ void SMCStyleWidget::showSizeAndPosition(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->fontSize();
+		d = cstyles[i]->fontSize();
 	}
 	if (d == -30000)
 		fontSize_->clear();
@@ -396,8 +396,7 @@ void SMCStyleWidget::showSizeAndPosition(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->scaleH();
+		d = cstyles[i]->scaleH();
 	}
 	if (d == -30000)
 		fontHScale_->clear();
@@ -412,8 +411,7 @@ void SMCStyleWidget::showSizeAndPosition(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->scaleV();
+		d = cstyles[i]->scaleV();
 	}
 	if (d == -30000)
 		fontVScale_->clear();
@@ -428,8 +426,7 @@ void SMCStyleWidget::showSizeAndPosition(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->baselineOffset();
+		d = cstyles[i]->baselineOffset();
 	}
 	if (d == -30000)
 		baselineOffset_->clear();
@@ -444,8 +441,7 @@ void SMCStyleWidget::showSizeAndPosition(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->tracking();
+		d = cstyles[i]->tracking();
 	}
 	if (d == -30000)
 		tracking_->clear();
@@ -460,8 +456,7 @@ void SMCStyleWidget::showSizeAndPosition(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->wordTracking();
+		d = cstyles[i]->wordTracking();
 	}
 	if (d == -30000)
 		widthSpaceSpin->clear();
@@ -479,8 +474,7 @@ void SMCStyleWidget::showEffects(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = static_cast<int>(cstyles[i]->effects());
+		d = static_cast<int>(cstyles[i]->effects());
 	}
 	if (d == -30000)
 		effects_->setStyle(0);
@@ -510,8 +504,7 @@ void SMCStyleWidget::showColors(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->fillShade();
+		d = cstyles[i]->fillShade();
 	}
 	if (d == -30000)
 		fillShade_->setText( tr("Shade"));
@@ -526,8 +519,7 @@ void SMCStyleWidget::showColors(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->strokeShade();
+		d = cstyles[i]->strokeShade();
 	}
 	if (d == -30000)
 	{
@@ -545,8 +537,7 @@ void SMCStyleWidget::showColors(const QList<CharStyle*> &cstyles)
 			d = -30000;
 			break;
 		}
-		else
-			d = cstyles[i]->backShade();
+		d = cstyles[i]->backShade();
 	}
 	if (d == -30000)
 	{
@@ -565,8 +556,7 @@ void SMCStyleWidget::showColors(const QList<CharStyle*> &cstyles)
 			s = emptyString;
 			break;
 		}
-		else
-			s = cstyles[i]->fillColor();
+		s = cstyles[i]->fillColor();
 	}
 	if (s.isEmpty())
 	{
@@ -585,8 +575,7 @@ void SMCStyleWidget::showColors(const QList<CharStyle*> &cstyles)
 			s = emptyString;
 			break;
 		}
-		else
-			s = cstyles[i]->strokeColor();
+		s = cstyles[i]->strokeColor();
 	}
 	if (s.isEmpty())
 	{
@@ -605,8 +594,7 @@ void SMCStyleWidget::showColors(const QList<CharStyle*> &cstyles)
 			s = emptyString;
 			break;
 		}
-		else
-			s = cstyles[i]->backColor();
+		s = cstyles[i]->backColor();
 	}
 	if (s.isEmpty())
 	{
@@ -629,8 +617,7 @@ void SMCStyleWidget::showLanguage(const QList<CharStyle*> &cstyles, const QStrin
 			s = emptyString;
 			break;
 		}
-		else
-			s = cstyles[i]->language();
+		s = cstyles[i]->language();
 	}
 	if (s.isEmpty())
 	{
@@ -653,8 +640,7 @@ void SMCStyleWidget::showSmallestWord(const QList<CharStyle *> &cstyles)
 			s = tmp;
 			break;
 		}
-		else
-			s = cstyles[i]->hyphenWordMin();
+		s = cstyles[i]->hyphenWordMin();
 	}
 	smallestWordSpinBox->setValue(s);
 }
@@ -670,8 +656,7 @@ void SMCStyleWidget::showHyphenChar(const QList<CharStyle *> &cstyles)
 			ch = empty;
 			break;
 		}
-		else
-			ch = cstyles[i]->hyphenChar();
+		ch = cstyles[i]->hyphenChar();
 	}
 	hyphenCharLineEdit->setValue(QString::fromUcs4(&ch, 1));
 }
@@ -695,11 +680,8 @@ void SMCStyleWidget::showFontFeatures(const QList<CharStyle *> &cstyles)
 			featuresList = tmp2;
 			break;
 		}
-		else
-		{
-			fontfeatures = cstyles[i]->fontFeatures();
-			featuresList = cstyles[i]->font().fontFeatures();
-		}
+		fontfeatures = cstyles[i]->fontFeatures();
+		featuresList = cstyles[i]->font().fontFeatures();
 	}
 	fontfeaturesSetting->setFontFeatures(fontfeatures, featuresList);
 }
@@ -712,11 +694,7 @@ void SMCStyleWidget::clearAll()
 void SMCStyleWidget::slotColorChange()
 {
 	int s = effects_->getStyle();
-	bool enabled;
-	if ((s & 4) || (s & 256))
-		enabled = true;
-	else
-		enabled = false;
+	bool enabled= (s & 4) || (s & 256);
 	StrokeIcon->setEnabled(enabled);
 	strokeShade_->setEnabled(enabled);
 	strokeColor_->setEnabled(enabled);

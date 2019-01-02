@@ -51,8 +51,6 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
 PmPlug::PmPlug(ScribusDoc* doc, int flags)
 {
 	baseX = baseY = 0;
@@ -66,7 +64,7 @@ PmPlug::PmPlug(ScribusDoc* doc, int flags)
 	cancel = false;
 }
 
-QImage PmPlug::readThumbnail(QString fName)
+QImage PmPlug::readThumbnail(const QString& fName)
 {
 	QFileInfo fi = QFileInfo(fName);
 	double b, h;
@@ -79,7 +77,7 @@ QImage PmPlug::readThumbnail(QString fName)
 	m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 	m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
 	m_Doc->addPage(0);
-	m_Doc->setGUI(false, ScCore->primaryMainWindow(), 0);
+	m_Doc->setGUI(false, ScCore->primaryMainWindow(), nullptr);
 	baseX = m_Doc->currentPage()->xOffset();
 	baseY = m_Doc->currentPage()->yOffset();
 	Elements.clear();
@@ -116,26 +114,22 @@ QImage PmPlug::readThumbnail(QString fName)
 		delete m_Doc;
 		return tmpImage;
 	}
-	else
-	{
-		QDir::setCurrent(CurDirP);
-		m_Doc->DoDrawing = true;
-		m_Doc->scMW()->setScriptRunning(false);
-		delete m_Doc;
-	}
+	QDir::setCurrent(CurDirP);
+	m_Doc->DoDrawing = true;
+	m_Doc->scMW()->setScriptRunning(false);
+	delete m_Doc;
 	return QImage();
 }
 
-bool PmPlug::import(QString fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
+bool PmPlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
-	QString fName = fNameIn;
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 	importerFlags = flags;
 	cancel = false;
 	double b, h;
 	bool ret = false;
-	QFileInfo fi = QFileInfo(fName);
+	QFileInfo fi = QFileInfo(fNameIn);
 	if ( !ScCore->usingGUI() )
 	{
 		interactive = false;
@@ -143,7 +137,7 @@ bool PmPlug::import(QString fNameIn, const TransactionSettings& trSettings, int 
 	}
 	if ( showProgress )
 	{
-		ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 		progressDialog = new MultiProgressDialog( tr("Importing: %1").arg(fi.fileName()), CommonStrings::tr_Cancel, mw );
 		QStringList barNames, barTexts;
 		barNames << "GI";
@@ -221,7 +215,7 @@ bool PmPlug::import(QString fNameIn, const TransactionSettings& trSettings, int 
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString CurDirP = QDir::currentPath();
 	QDir::setCurrent(fi.path());
-	if (convert(fName))
+	if (convert(fNameIn))
 	{
 		tmpSel->clear();
 		QDir::setCurrent(CurDirP);
@@ -255,29 +249,29 @@ bool PmPlug::import(QString fNameIn, const TransactionSettings& trSettings, int 
 			else
 			{
 				m_Doc->DragP = true;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 				m_Doc->m_Selection->delaySignalsOn();
-				for (int dre=0; dre<Elements.count(); ++dre)
+				for (int i=0; i<Elements.count(); ++i)
 				{
-					tmpSel->addItem(Elements.at(dre), true);
+					tmpSel->addItem(Elements.at(i), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				if (importedPatterns.count() != 0)
 				{
-					for (int cd = 0; cd < importedPatterns.count(); cd++)
+					for (int i = 0; i < importedPatterns.count(); i++)
 					{
-						m_Doc->docPatterns.remove(importedPatterns[cd]);
+						m_Doc->docPatterns.remove(importedPatterns[i]);
 					}
 				}
 				if (importedColors.count() != 0)
 				{
-					for (int cd = 0; cd < importedColors.count(); cd++)
+					for (int i = 0; i < importedColors.count(); i++)
 					{
-						m_Doc->PageColors.remove(importedColors[cd]);
+						m_Doc->PageColors.remove(importedColors[i]);
 					}
 				}
 				m_Doc->m_Selection->delaySignalsOff();
@@ -286,7 +280,7 @@ bool PmPlug::import(QString fNameIn, const TransactionSettings& trSettings, int 
 				TransactionSettings* transacSettings = new TransactionSettings(trSettings);
 				m_Doc->view()->handleObjectImport(md, transacSettings);
 				m_Doc->DragP = false;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 			}
 		}
@@ -321,12 +315,11 @@ bool PmPlug::import(QString fNameIn, const TransactionSettings& trSettings, int 
 
 PmPlug::~PmPlug()
 {
-	if (progressDialog)
-		delete progressDialog;
+	delete progressDialog;
 	delete tmpSel;
 }
 
-bool PmPlug::convert(QString fn)
+bool PmPlug::convert(const QString& fn)
 {
 	importedColors.clear();
 	importedPatterns.clear();
@@ -350,7 +343,7 @@ bool PmPlug::convert(QString fn)
 			progressDialog->close();
 		if (importerFlags & LoadSavePlugin::lfCreateDoc)
 		{
-			ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+			ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 			qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 			ScMessageBox::warning(mw, CommonStrings::trWarning, tr("Parsing failed!\n\nPlease submit your file (if possible) to the\nDocument Liberation Project http://www.documentliberation.org"));
 			qApp->changeOverrideCursor(QCursor(Qt::WaitCursor));
@@ -361,16 +354,16 @@ bool PmPlug::convert(QString fn)
 	{
 		if (importedColors.count() != 0)
 		{
-			for (int cd = 0; cd < importedColors.count(); cd++)
+			for (int i = 0; i < importedColors.count(); i++)
 			{
-				m_Doc->PageColors.remove(importedColors[cd]);
+				m_Doc->PageColors.remove(importedColors[i]);
 			}
 		}
 		if (importedPatterns.count() != 0)
 		{
-			for (int cd = 0; cd < importedPatterns.count(); cd++)
+			for (int i = 0; i < importedPatterns.count(); i++)
 			{
-				m_Doc->docPatterns.remove(importedPatterns[cd]);
+				m_Doc->docPatterns.remove(importedPatterns[i]);
 			}
 		}
 	}

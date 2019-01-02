@@ -8,12 +8,12 @@ for which a new license (GPL+exception) is in place.
 #include <QFileInfo>
 #include "scimgdataloader_gimp.h"
 
-ScImgDataLoader_GIMP::ScImgDataLoader_GIMP(void) : ScImgDataLoader()
+ScImgDataLoader_GIMP::ScImgDataLoader_GIMP()
 {
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_GIMP::initSupportedFormatList(void)
+void ScImgDataLoader_GIMP::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	m_supportedFormats.append( "pat" );
@@ -44,7 +44,7 @@ bool ScImgDataLoader_GIMP::loadPicture(const QString& fn, int /*page*/, int /*re
 		s >> patternHeight;
 		s >> patternType;
 		QString magic = "";
-		for( int i = 0; i < 4; i++ )
+		for (int i = 0; i < 4; i++)
 		{
 			s >> magicKey[i];
 			magic += QChar(magicKey[i]);

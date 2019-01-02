@@ -146,7 +146,6 @@ void BookMView::getTextAndTitle(PageItem* item, QString& text, QString& title)
 	text.clear();
 	title.clear();
 
-	const StoryText& itemText = item->itemText;
 	for (int i = 0; i < item->itemText.length(); ++i)
 	{
 		ch = item->itemText.text(i);
@@ -252,7 +251,7 @@ void BookMView::rebuildTree()
 	emit changed();
 }
 
-void BookMView::addItem(QString text, QString Tit, PageItem *PageObject)
+void BookMView::addItem(const QString& text, const QString& Tit, PageItem *PageObject)
 {
 	BookMItem * ite = new BookMItem(this, NrItems+1, PageObject);
 	ite->setText(0, text);
@@ -277,7 +276,7 @@ void BookMView::deleteItem(PageItem *pObject)
 	rebuildTree();
 }
 
-void BookMView::setAction(PageItem *currItem, QString Act)
+void BookMView::setAction(PageItem *currItem, const QString& Act)
 {
 	BookMItem *ite;
 	QTreeWidgetItemIterator it(this);

@@ -47,7 +47,7 @@ for which a new license (GPL+exception) is in place.
 
 using namespace std;
 
-PageItem_Spiral::PageItem_Spiral(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
+PageItem_Spiral::PageItem_Spiral(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline)
 	: PageItem(pa, PageItem::Spiral, x, y, w, h, w2, fill, outline)
 {
 	spiralStartAngle = m_Doc->itemToolPrefs().spiralStartAngle;
@@ -124,7 +124,7 @@ void PageItem_Spiral::DrawObj_Item(ScPainter *p, QRectF /*e*/)
 					gradientStrokeVal = "";
 				if (!(gradientStrokeVal.isEmpty()) && (m_Doc->docGradients.contains(gradientStrokeVal)))
 					stroke_gradient = m_Doc->docGradients[gradientStrokeVal];
-				if (stroke_gradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+				if (stroke_gradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 				{
 					if (lineColor() != CommonStrings::None)
 					{
@@ -345,7 +345,7 @@ void PageItem_Spiral::applicableActions(QStringList & actionList)
 	actionList << "itemConvertToPolygon";
 }
 
-QString PageItem_Spiral::infoDescription()
+QString PageItem_Spiral::infoDescription() const
 {
 	return QString();
 }
@@ -354,7 +354,7 @@ void PageItem_Spiral::getBoundingRect(double *x1, double *y1, double *x2, double
 {
 	PageItem::getBoundingRect(x1, y1, x2, y2);
 	QRectF totalRect = QRectF(QPointF(*x1, *y1), QPointF(*x2, *y2));
-	if (m_startArrowIndex != 0 && PoLine.size() > 0)
+	if (m_startArrowIndex != 0 && !PoLine.empty())
 	{
 		QTransform arrowTrans;
 		FPointArray arrow = m_Doc->arrowStyles().at(m_startArrowIndex-1).points.copy();
@@ -429,7 +429,7 @@ void PageItem_Spiral::getVisualBoundingRect(double * x1, double * y1, double * x
 {
 	PageItem::getVisualBoundingRect(x1, y1, x2, y2);
 	QRectF totalRect(QPointF(*x1, *y1), QPointF(*x2, *y2));
-	if (m_startArrowIndex != 0 && PoLine.size() > 0)
+	if (m_startArrowIndex != 0 && !PoLine.empty())
 	{
 		QTransform arrowTrans;
 		FPointArray arrow = m_Doc->arrowStyles().at(m_startArrowIndex-1).points.copy();

@@ -21,4 +21,20 @@ for which a new license (GPL+exception) is in place.
 #define POPPLER_CONST
 #endif
 
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 70, 0)
+#define POPPLER_CONST_070 const
+#else
+#define POPPLER_CONST_070
+#endif
+
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 71, 0)
+#define GBool  bool
+#define gTrue  true
+#define gFalse false
+#endif
+
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 72, 0)
+#define getCString  c_str
+#endif
+
 #endif

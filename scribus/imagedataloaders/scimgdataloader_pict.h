@@ -25,14 +25,14 @@ protected:
 	void initSupportedFormatList();
 
 public:
-	ScImgDataLoader_PICT(void);
+	ScImgDataLoader_PICT();
 
 	virtual bool preloadAlphaChannel(const QString& fn, int page, int res, bool& hasAlpha);
 	virtual void loadEmbeddedProfile(const QString& fn, int page = 0);
 	virtual bool loadPicture(const QString& fn, int page, int res, bool thumbnail);
 
 private:
-	void parseHeader(QString fName, double &x, double &y, double &w, double &h);
+	void parseHeader(const QString& fName, double &x, double &y, double &w, double &h);
 	void parsePict(QDataStream &ts);
 	void alignStreamToWord(QDataStream &ts, uint len);
 	void handleColor(QDataStream &ts, bool back);
@@ -50,7 +50,7 @@ private:
 	void handleDHText(QDataStream &ts);
 	void handleDVText(QDataStream &ts);
 	void handleDHVText(QDataStream &ts);
-	void createTextPath(QByteArray textString);
+	void createTextPath(const QByteArray& textString);
 	void handlePenMode(QDataStream &ts);
 	void handlePenSize(QDataStream &ts);
 	void handleOvalSize(QDataStream &ts);

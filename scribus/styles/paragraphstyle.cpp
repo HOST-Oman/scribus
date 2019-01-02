@@ -27,7 +27,7 @@ bool ParagraphStyle::TabRecord::operator==(const TabRecord& other) const
 	return isequiv(tabPosition, other.tabPosition) && tabType==other.tabType && tabFillChar == other.tabFillChar;
 }
 
-ParagraphStyle::ParagraphStyle() : BaseStyle(), m_cstyleContext(nullptr), m_cstyleContextIsInh(true), m_cstyle()
+ParagraphStyle::ParagraphStyle() : m_cstyleContext(nullptr), m_cstyleContextIsInh(true)
 {
 	setParent("");
 	m_cstyleContext.setDefaultStyle( &m_cstyle );
@@ -73,8 +73,7 @@ QString ParagraphStyle::displayName() const
 		return name();
 	//	else if ( inheritsAll() )
 	//		return parent()->displayName();
-	else 
-		return parentStyle()->displayName() + "+";
+	return parentStyle()->displayName() + "+";
 }
 
 
@@ -379,7 +378,7 @@ using namespace desaxe;
 
 const Xml_string ParagraphStyle::saxxDefaultElem("style");
 
-void ParagraphStyle::desaxeRules(const Xml_string& prefixPattern, Digester& ruleset, Xml_string elemtag)
+void ParagraphStyle::desaxeRules(const Xml_string& prefixPattern, Digester& ruleset, const Xml_string& elemtag)
 {
 	typedef ParagraphStyle::TabRecord TabRecord;
 		

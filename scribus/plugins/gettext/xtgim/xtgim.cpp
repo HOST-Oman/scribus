@@ -29,7 +29,7 @@ for which a new license (GPL+exception) is in place.
 
 QString FileFormatName()
 {
-    return QObject::tr("Quark XPress Tags Document");
+	return QObject::tr("Quark XPress Tags Document");
 }
 
 QStringList FileExtensions()
@@ -37,21 +37,31 @@ QStringList FileExtensions()
 	return QStringList("xtg");
 }
 
-void GetText2(QString filename, QString encoding, bool textOnly, bool prefix, bool append, PageItem *textItem)
+void GetText2(const QString& filename, const QString& encoding, bool textOnly, bool prefix, bool append, PageItem *textItem)
 {
-	XtgIm* xtgim = new XtgIm(filename, textItem, textOnly, prefix, append);
+	XtgIm* xtgim = new XtgIm(textItem, textOnly, prefix, append);
+	xtgim->import(filename);
 	delete xtgim;
 }
 
 /********************************Class XtgIm***********************************/
 
-XtgIm::XtgIm(QString fileName, PageItem *textItem, bool textOnly, bool prefix, bool append)
+XtgIm::XtgIm(PageItem *textItem, bool textOnly, bool prefix, bool append)
 {
-	XtgScanner *scanner = new XtgScanner(fileName, textItem, textOnly, prefix, append);
-	scanner->xtgParse();
-	delete scanner;
+	m_scanner = new XtgScanner(textItem, textOnly, prefix, append);
 }
 
 XtgIm::~XtgIm()
 {
+	delete m_scanner;
+}
+
+bool XtgIm::import(const QString& fileName)
+{
+	if (!m_scanner)
+		return false;
+	if (!m_scanner->open(fileName))
+		return false;
+	m_scanner->xtgParse();
+	return true;
 }

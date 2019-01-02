@@ -18,10 +18,8 @@ PyObject *scribus_messagebartext(PyObject* /* self */, PyObject* args)
 {
 	char *aText;
 	if (!PyArg_ParseTuple(args, "es", "utf-8", &aText))
-		return NULL;
+		return nullptr;
 	ScCore->primaryMainWindow()->setStatusBarInfoText(QString::fromUtf8(aText));
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -29,8 +27,6 @@ PyObject *scribus_progressreset(PyObject* /* self */)
 {
 	ScCore->primaryMainWindow()->mainWindowProgressBar->reset();
 	qApp->processEvents();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -38,12 +34,10 @@ PyObject *scribus_progresssettotalsteps(PyObject* /* self */, PyObject* args)
 {
 	int steps;
 	if (!PyArg_ParseTuple(args, "i", &steps))
-		return NULL;
+		return nullptr;
 	ScCore->primaryMainWindow()->mainWindowProgressBar->setMaximum(steps);
 	ScCore->primaryMainWindow()->mainWindowProgressBar->setValue(0);
 	qApp->processEvents();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -51,16 +45,14 @@ PyObject *scribus_progresssetprogress(PyObject* /* self */, PyObject* args)
 {
 	int position;
 	if (!PyArg_ParseTuple(args, "i", &position))
-		return NULL;
+		return nullptr;
 	if (position > ScCore->primaryMainWindow()->mainWindowProgressBar->maximum())
 	{
 		PyErr_SetString(PyExc_ValueError, QString("Tried to set progress > maximum progress").toLocal8Bit().constData());
-		return NULL;
+		return nullptr;
 	}
 	ScCore->primaryMainWindow()->mainWindowProgressBar->setValue(position);
 	qApp->processEvents();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -70,13 +62,11 @@ PyObject *scribus_setcursor(PyObject* /* self */, PyObject* args)
 	char *aCursor;
 	qDebug("WARNING! SetCursor() is not stable!");
 	if (!PyArg_ParseTuple(args, "es", "ascii", &aCursor))
-		return NULL;
+		return nullptr;
 	if (strcmp(aCursor, "wait") == 0)
 		qApp->changeOverrideCursor(Qt::WaitCursor);
 //	else
 //		qApp->restoreOverrideCursor();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -84,17 +74,15 @@ PyObject *scribus_docchanged(PyObject* /* self */, PyObject* args)
 {
 	int aValue;
 	if (!PyArg_ParseTuple(args, "i", &aValue))
-		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
 	ScCore->primaryMainWindow()->slotDocCh(static_cast<bool>(aValue));
 	/*
 	if (aValue>0)
 		ScCore->primaryMainWindow()->slotDocCh(true);
 	else
 		ScCore->primaryMainWindow()->slotDocCh(false);*/
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -102,18 +90,16 @@ PyObject *scribus_zoomdocument(PyObject* /* self */, PyObject* args)
 {
 	double zoomFactor;
 	if (!PyArg_ParseTuple(args, "d", &zoomFactor))
-		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
 	if (zoomFactor > 0.0 || zoomFactor == -100.0)
 		ScCore->primaryMainWindow()->slotZoom(zoomFactor);
 	else
 	{
 		PyErr_SetString(PyExc_ValueError, QString("The zoom factor should be greater than 0.0 or equal to -100.0. See help(zoomFactor).").toLocal8Bit().constData());
-		return NULL;
+		return nullptr;
 	}
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -124,10 +110,10 @@ PyObject *scribus_zoomdocument(PyObject* /* self */, PyObject* args)
 PyObject *scribus_scrolldocument(PyObject*,PyObject* args)
 {
 	int moveX = 0, moveY = 0;
-	if(!PyArg_ParseTuple(args, "ii", &moveX, &moveY))
-		return NULL;
-	if(!checkHaveDocument())
-		return NULL;
+	if (!PyArg_ParseTuple(args, "ii", &moveX, &moveY))
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
 	ScCore->primaryMainWindow()->view->scrollBy(moveX,moveY);
 	Py_RETURN_NONE;
 }

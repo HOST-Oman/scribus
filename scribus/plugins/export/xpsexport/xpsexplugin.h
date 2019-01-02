@@ -44,7 +44,7 @@ public:
 	\param filename a file to export to
 	\retval bool true
 	*/
-	virtual bool run(ScribusDoc* doc=0, QString filename = QString::null);
+	virtual bool run(ScribusDoc* doc=0, const QString& filename = QString::null);
 	virtual const QString fullTrName() const;
 	virtual const AboutData* getAboutData() const;
 	virtual void deleteAboutData(const AboutData* about) const;
@@ -70,7 +70,7 @@ public:
 	XPSExPlug(ScribusDoc* doc, int output_res);
 	~XPSExPlug();
 
-	bool doExport(QString fName);
+	bool doExport(const QString& fName);
 
 private:
 	void writePages(QDomElement &root);
@@ -89,12 +89,12 @@ private:
 	void processSymbolStroke(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void processArrows(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root);
 	void drawArrow(double xOffset, double yOffset, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, FPointArray &arrow);
-	QString embedFont(const ScFace font, QDomElement &rel_root);
+	QString embedFont(const ScFace& font, QDomElement &rel_root);
 	void GetMultiStroke(struct SingleLine *sl, QDomElement &parentElem);
 	void getStrokeStyle(PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, double xOffset, double yOffset, bool forArrow = false);
 	void getFillStyle(PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, double xOffset, double yOffset, bool withTransparency = true);
 	void handleMask(int type, PageItem *Item, QDomElement &parentElem, QDomElement &rel_root, double xOffset, double yOffset);
-	QString SetColor(QString farbe, int shad, double transparency);
+	QString SetColor(const QString& farbe, int shad, double transparency);
 	void    SetClipAttr(QDomElement &elem, FPointArray *ite, bool fillRule);
 	QString SetClipPath(FPointArray *ite, bool closed);
 	void writeDocRels();

@@ -61,9 +61,9 @@ void Prefs_ExternalTools::restoreDefaults(struct ApplicationPrefs *prefsData)
 	latexForceDPICheckBox->setCheckState(prefsData->extToolPrefs.latexForceDpi?Qt::Checked:Qt::Unchecked);
 	latexEmptyFrameCheckBox->setCheckState(prefsData->extToolPrefs.latexStartWithEmptyFrames?Qt::Checked:Qt::Unchecked);
 	latexConfigsListWidget->clear();
-	QStringList configs = prefsData->extToolPrefs.latexConfigs;
+	const QStringList configs = prefsData->extToolPrefs.latexConfigs;
 	commands = prefsData->extToolPrefs.latexCommands;
-	foreach (const QString& config, configs)
+	for (const QString& config : configs)
 		insertConfigItem(config);
 	latexConfigsListWidget->setCurrentRow(0);
 	pdfViewerLineEdit->setText(QDir::toNativeSeparators(prefsData->extToolPrefs.pdfViewerExecutable));
@@ -164,7 +164,7 @@ void Prefs_ExternalTools::rescanForTools()
 			uniconvertorLineEdit->setText("uniconv");
 		else
 		{
-			ScMessageBox::warning(0, CommonStrings::trWarning, tr("Uniconvertor executable not found!"));
+			ScMessageBox::warning(nullptr, CommonStrings::trWarning, tr("Uniconvertor executable not found!"));
 			uniconvertorLineEdit->setText("");
 		}
 	}
@@ -285,7 +285,7 @@ void Prefs_ExternalTools::changeLatexPath()
 	}
 }
 
-void Prefs_ExternalTools::insertConfigItem(QString config, int row)
+void Prefs_ExternalTools::insertConfigItem(const QString& config, int row)
 {
 	QListWidgetItem *item = new QListWidgetItem();
 	item->setData(Qt::UserRole, config);
@@ -306,9 +306,7 @@ void Prefs_ExternalTools::setConfigItemText(QListWidgetItem *item)
 		item->setText(description);
 	else
 	{
-		item->setText(QString("%1 (" + tr("Command: ") + "%2)" ).
-			arg(description).
-			arg(QDir::toNativeSeparators(QDir::cleanPath(command))));
+		item->setText(QString("%1 (" + tr("Command: ") + "%2)" ).arg(description, QDir::toNativeSeparators(QDir::cleanPath(command))));
 	}
 }
 

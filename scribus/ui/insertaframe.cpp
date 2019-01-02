@@ -102,7 +102,7 @@ InsertAFrame::InsertAFrame(QWidget* parent, ScribusDoc *doc) :
 
 	sourceDocLineEdit->setText("");
 	
-	if (m_Doc!=0)
+	if (m_Doc!=nullptr)
 	{
 		pageItemMap=m_Doc->getDocItemNames(PageItem::TextFrame);
 		comboBoxLinkToExistingFrameName->addItems(pageItemMap.values());
@@ -180,7 +180,7 @@ void InsertAFrame::getNewFrameProperties(InsertAFrameData &iafData)
 {
 	int type=typeButtonGroup->checkedId();
 	iafData.source="";
-	switch(type)
+	switch (type)
 	{
 		case 0:
 			iafData.frameType=PageItem::TextFrame;
@@ -250,7 +250,7 @@ void InsertAFrame::locateDocFile()
 
 void InsertAFrame::slotCreatePageNumberRange( )
 {
-	if (m_Doc!=0)
+	if (m_Doc!=nullptr)
 	{
 		CreateRange cr(placementPagesLineEdit->text(), m_Doc->Pages->count(), this);
 		if (cr.exec())

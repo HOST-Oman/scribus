@@ -50,10 +50,10 @@ void pathconnect_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-PathConnectPlugin::PathConnectPlugin() : ScActionPlugin(),
-	m_item1(0),
-	m_item2(0),
-	m_doc(0),
+PathConnectPlugin::PathConnectPlugin() :
+	m_item1(nullptr),
+	m_item2(nullptr),
+	m_doc(nullptr),
 	originalXPos(0.0),
 	originalYPos(0.0),
 	firstUpdate(false)
@@ -117,11 +117,11 @@ void PathConnectPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool PathConnectPlugin::run(ScribusDoc* doc, QString)
+bool PathConnectPlugin::run(ScribusDoc* doc, const QString&)
 {
 	m_doc = doc;
 	firstUpdate = true;
-	if (m_doc == 0)
+	if (m_doc == nullptr)
 		m_doc = ScCore->primaryMainWindow()->doc;
 	if (m_doc->m_Selection->count() > 1)
 	{
@@ -332,10 +332,10 @@ FPointArray PathConnectPlugin::reversePath(FPointArray &path)
 	FPointArray result;
 	for (int a = path.size()-4; a > -1; a -= 4)
 	{
-		FPoint p1 = path.point(a);
-		FPoint p2 = path.point(a+1);
-		FPoint p3 = path.point(a+2);
-		FPoint p4 = path.point(a+3);
+		const FPoint& p1 = path.point(a);
+		const FPoint& p2 = path.point(a+1);
+		const FPoint& p3 = path.point(a+2);
+		const FPoint& p4 = path.point(a+3);
 		result.addQuadPoint(p3, p4, p1, p2);
 	}
 	return result;

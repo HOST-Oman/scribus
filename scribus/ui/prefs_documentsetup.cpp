@@ -260,7 +260,7 @@ void Prefs_DocumentSetup::setupPageSets()
 		else
 		{
 		layoutFirstPageIsComboBox->setEnabled(true);
-		for(QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames )
+		for (QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames)
 			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
 		layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
 		}
@@ -293,7 +293,7 @@ void Prefs_DocumentSetup::setupPageSizes(struct ApplicationPrefs *prefsData)
 	QMap<QString, QString> insertMap;
 	for (int i = 0; i < insertTrList.count(); ++i)
 	{
-		QString key = insertTrList.at(i);
+		const QString& key = insertTrList.at(i);
 		insertMap[key] = insertList.at(i);
 	}
 	insertTrList.sort();
@@ -301,7 +301,7 @@ void Prefs_DocumentSetup::setupPageSizes(struct ApplicationPrefs *prefsData)
 	pageSizeComboBox->clear();
 	for (int i = 0; i < insertList.count(); ++i)
 	{
-		QString key = insertTrList.at(i);
+		const QString& key = insertTrList.at(i);
 		pageSizeComboBox->addItem(key, insertMap[key]);
 	}
 	pageSizeComboBox->addItem(CommonStrings::trCustomPageSize, CommonStrings::customPageSize);

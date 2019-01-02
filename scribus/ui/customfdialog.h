@@ -64,8 +64,9 @@ class SCRIBUS_API FDialogPreview : public QLabel
 public:
 	FDialogPreview(QWidget *pa);
 	~FDialogPreview() {};
-	void updtPix();
-	void GenPreview(QString name);
+
+	void updatePix();
+	void genPreview(const QString& name);
 };
 
 typedef enum {
@@ -96,60 +97,65 @@ public:
 	\param filter a mask/filter. E.g.: *.txt
 	\param flags combination of fdFlags, default to fdExistingFiles
 	*/
-	CustomFDialog(QWidget *parent, QString wDir, QString caption = "",  QString filter = "", int flags = fdExistingFiles);
+	CustomFDialog(QWidget *parent, const QString& wDir, const QString& caption = "",  const QString& filter = "", int flags = fdExistingFiles);
 	~CustomFDialog();
 
 	/*! \brief Set the default extension of the resulting file name.
 	\param e string extension without any "."
 	*/
-	void setExtension(QString e);
+	void setExtension(const QString& e);
 	/*! \brief Get the file extension
 	\retval QString see setExtension(QString e) */
 	QString extension();
 	/*! \brief Set the "compress" extension of the resulting file name.
 	\param e string extension without any "."
 	*/
-	void setZipExtension(QString e);
+	void setZipExtension(const QString& e);
 	/*! \brief Get the zipped file extension
 	\retval QString see setZipExtension(QString e) */
 	QString zipExtension();
 
-	QCheckBox* SaveZip;
-	QCheckBox* WithFonts;
-	QCheckBox* WithProfiles;
+	QCheckBox* saveZip;
+	QCheckBox* withFonts;
+	QCheckBox* withProfiles;
 	QFrame* Layout;
 	QFrame* LayoutC;
-	QComboBox *TxCodeM;
-	QLabel *TxCodeT;
+	QComboBox *optionCombo;
+	QLabel *optionLabel;
 	ScFileWidget *fileDialog;
-	FDialogPreview *pw;
+	FDialogPreview *filePreview;
 	QCheckBox *showPreview;
-	QPushButton* OKButton;
-	QPushButton* CancelB;
-	void setSelection(QString );
+	QPushButton* okButton;
+	QPushButton* cancelButton;
+
+	void setSelection(const QString& );
 	QString selectedFile();
 	void addWidgets(QWidget *widgets);
+
 private slots:
 	//! \brief Go to the document home dir.
 	void fileClicked(const QString &path);
 	void okClicked();
 	void togglePreview();
+
 public slots:
 	//! \brief Switch the filename extensions by compress checkbox state.
 	void handleCompress();
+
 protected:
 	QVBoxLayout *vboxLayout;
 	QVBoxLayout *vboxLayout1;
 	QHBoxLayout *hboxLayout;
 	QHBoxLayout* Layout1;
 	QHBoxLayout* Layout1C;
+
 	//! \brief Property with default extension
-	QString ext;
+	QString m_ext;
 	//! \brief Property with default compress extension
-	QString extZip;
+	QString m_extZip;
 	//! \brief Option flags given by user in ctore
-	int optionFlags;
-	bool previewIsShown;
+	int  m_optionFlags;
+	bool m_previewIsShown;
 };
 
 #endif

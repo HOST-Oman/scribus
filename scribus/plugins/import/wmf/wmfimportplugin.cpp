@@ -57,7 +57,7 @@ void wmfimplugin_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-WMFImportPlugin::WMFImportPlugin() : LoadSavePlugin(),
+WMFImportPlugin::WMFImportPlugin() :
 	importAction(new ScrAction(ScrAction::DLL, "", QKeySequence(), this))
 {
 	// Set action info in languageChange, so we only have to do
@@ -133,9 +133,9 @@ bool WMFImportPlugin::import(QString filename, int flags)
 {
 	if (!checkFlags(flags))
 		return false;
-	if (m_Doc == 0)
+	if (m_Doc == nullptr)
 		m_Doc = ScCore->primaryMainWindow()->doc;
-	ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+	ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 	if (filename.isEmpty())
 	{
 		flags |= lfInteractive;
@@ -185,7 +185,7 @@ bool WMFImportPlugin::import(QString filename, int flags)
 
 QImage WMFImportPlugin::readThumbnail(const QString& fileName)
 {
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 		return QImage();
 	UndoManager::instance()->setUndoEnabled(false);
 	m_Doc = nullptr;

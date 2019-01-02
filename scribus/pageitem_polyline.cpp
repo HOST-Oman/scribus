@@ -46,7 +46,7 @@ for which a new license (GPL+exception) is in place.
 
 using namespace std;
 
-PageItem_PolyLine::PageItem_PolyLine(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
+PageItem_PolyLine::PageItem_PolyLine(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline)
 	: PageItem(pa, PageItem::PolyLine, x, y, w, h, w2, fill, outline)
 {
 }
@@ -119,7 +119,7 @@ void PageItem_PolyLine::DrawObj_Item(ScPainter *p, QRectF /*e*/)
 					gradientStrokeVal = "";
 				if (!(gradientStrokeVal.isEmpty()) && (m_Doc->docGradients.contains(gradientStrokeVal)))
 					stroke_gradient = m_Doc->docGradients[gradientStrokeVal];
-				if (stroke_gradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+				if (stroke_gradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 				{
 					if (lineColor() != CommonStrings::None)
 					{
@@ -210,7 +210,7 @@ void PageItem_PolyLine::applicableActions(QStringList & actionList)
 	actionList << "itemConvertToPolygon";
 }
 
-QString PageItem_PolyLine::infoDescription()
+QString PageItem_PolyLine::infoDescription() const
 {
 	return QString();
 }
@@ -219,7 +219,7 @@ void PageItem_PolyLine::getBoundingRect(double *x1, double *y1, double *x2, doub
 {
 	PageItem::getBoundingRect(x1, y1, x2, y2);
 	QRectF totalRect = QRectF(QPointF(*x1, *y1), QPointF(*x2, *y2));
-	if (m_startArrowIndex != 0 && PoLine.size() > 0)
+	if (m_startArrowIndex != 0 && !PoLine.empty())
 	{
 		QTransform arrowTrans;
 		FPointArray arrow = m_Doc->arrowStyles().at(m_startArrowIndex-1).points.copy();
@@ -294,7 +294,7 @@ void PageItem_PolyLine::getVisualBoundingRect(double * x1, double * y1, double *
 {
 	PageItem::getVisualBoundingRect(x1, y1, x2, y2);
 	QRectF totalRect(QPointF(*x1, *y1), QPointF(*x2, *y2));
-	if (m_startArrowIndex != 0 && PoLine.size() > 0)
+	if (m_startArrowIndex != 0 && !PoLine.empty())
 	{
 		QTransform arrowTrans;
 		FPointArray arrow = m_Doc->arrowStyles().at(m_startArrowIndex-1).points.copy();

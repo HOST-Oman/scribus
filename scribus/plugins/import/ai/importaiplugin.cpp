@@ -45,7 +45,7 @@ void importai_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-ImportAIPlugin::ImportAIPlugin() : LoadSavePlugin(),
+ImportAIPlugin::ImportAIPlugin() :
 	importAction(new ScrAction(ScrAction::DLL, "", QKeySequence(), this))
 {
 	// Set action info in languageChange, so we only have to do it in one
@@ -122,7 +122,7 @@ bool ImportAIPlugin::import(QString fileName, int flags)
 {
 	if (!checkFlags(flags))
 		return false;
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 	{
 		flags |= lfInteractive;
 		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("importai");
@@ -229,7 +229,7 @@ bool ImportAIPlugin::import(QString fileName, int flags)
 
 QImage ImportAIPlugin::readThumbnail(const QString& fileName)
 {
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 		return QImage();
 	UndoManager::instance()->setUndoEnabled(false);
 	m_Doc = nullptr;
@@ -243,7 +243,7 @@ QImage ImportAIPlugin::readThumbnail(const QString& fileName)
 
 bool ImportAIPlugin::readColors(const QString& fileName, ColorList &colors)
 {
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 		return false;
 	UndoManager::instance()->setUndoEnabled(false);
 	m_Doc = nullptr;

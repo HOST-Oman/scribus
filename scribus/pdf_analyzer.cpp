@@ -65,7 +65,7 @@ static void generateKWNameMap()
 }
 
 
-PDFAnalyzer::PDFAnalyzer(QString & filename) : QObject()
+PDFAnalyzer::PDFAnalyzer(QString & filename)
 {
 	static bool nameMapInited = false;
 	if (!nameMapInited)
@@ -74,7 +74,7 @@ PDFAnalyzer::PDFAnalyzer(QString & filename) : QObject()
 		nameMapInited = true;
 	}
 
-	m_doc = 0;
+	m_doc = nullptr;
 
 	PdfError::EnableDebug( false );
 	try {
@@ -90,8 +90,7 @@ PDFAnalyzer::PDFAnalyzer(QString & filename) : QObject()
 
 PDFAnalyzer::~PDFAnalyzer()
 {
-	if (m_doc)
-		delete m_doc;
+	delete m_doc;
 }
 
 bool PDFAnalyzer::inspectPDF(int pageNum, QList<PDFColorSpace> & usedColorSpaces, bool & hasTransparency, QList<PDFFont> & usedFonts, QList<PDFImage> & imgs)
@@ -108,12 +107,12 @@ PDFColorSpace PDFAnalyzer::getCSType(PdfObject* cs)
 		// colorspace is either a name or an array
 		if (cs && cs->IsName())
 		{
-			PdfName csName = cs->GetName();
+			const PdfName& csName = cs->GetName();
 			if (csName == "DeviceGray")
 				return CS_DeviceGray;
-			else if (csName == "DeviceRGB")
+			if (csName == "DeviceRGB")
 				return CS_DeviceRGB;
-			else if (csName == "DeviceCMYK")
+			if (csName == "DeviceCMYK")
 				return CS_DeviceCMYK;
 		}
 		else if (cs && cs->IsArray())
@@ -122,16 +121,16 @@ PDFColorSpace PDFAnalyzer::getCSType(PdfObject* cs)
 			PdfObject csTypePdfName = csArr[0];
 			if (csTypePdfName.IsName())
 			{
-				PdfName csTypeName = csTypePdfName.GetName();
+				const PdfName& csTypeName = csTypePdfName.GetName();
 				if (csTypeName == "ICCBased")
 					return CS_ICCBased;
-				else if (csTypeName == "CalGray")
+				if (csTypeName == "CalGray")
 					return CS_CalGray;
-				else if (csTypeName == "CalRGB")
+				if (csTypeName == "CalRGB")
 					return CS_CalRGB;
-				else if (csTypeName == "Lab")
+				if (csTypeName == "Lab")
 					return CS_Lab;
-				else if (csTypeName == "Indexed")
+				if (csTypeName == "Indexed")
 				{
 					PdfObject base = cs->GetArray()[1];
 					PdfObject* pBase = &base;
@@ -142,11 +141,11 @@ PDFColorSpace PDFAnalyzer::getCSType(PdfObject* cs)
 					pBase->SetOwner(cs->GetOwner());
 					return getCSType(pBase);
 				}
-				else if (csTypeName == "Separation")
+				if (csTypeName == "Separation")
 					return CS_Separation;
-				else if (csTypeName == "DeviceN")
+				if (csTypeName == "DeviceN")
 					return CS_DeviceN;
-				else if (csTypeName == "Pattern")
+				if (csTypeName == "Pattern")
 					return CS_Pattern;
 			}
 		}
@@ -239,7 +238,7 @@ bool PDFAnalyzer::inspectCanvas(PdfCanvas* canvas, QList<PDFColorSpace> & usedCo
 			else if (t == ePdfContentsType_Keyword)
 			{
 				QString kw(kwText);
-				switch(kwNameMap.value(kw, KW_Undefined))
+				switch (kwNameMap.value(kw, KW_Undefined))
 				{
 				case KW_q:
 					gsStack.push(currGS);

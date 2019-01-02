@@ -69,9 +69,6 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 
-
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
 OdgPlug::OdgPlug(ScribusDoc* doc, int flags)
 {
 	tmpSel = new Selection(this, false);
@@ -82,7 +79,7 @@ OdgPlug::OdgPlug(ScribusDoc* doc, int flags)
 	uz = nullptr;
 }
 
-QImage OdgPlug::readThumbnail(QString fName)
+QImage OdgPlug::readThumbnail(const QString& fName)
 {
 	QImage tmp;
 	if (!QFile::exists(fName))
@@ -113,10 +110,10 @@ QImage OdgPlug::readThumbnail(QString fName)
 			{
 				QDomDocument designMapDom;
 				QByteArray f;
-				if(designMapDom.setContent(f))
+				if (designMapDom.setContent(f))
 				{
 					QDomElement docElem = designMapDom.documentElement();
-					for(QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
+					for (QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
 					{
 						if (drawPag.tagName() == "sl:slprint-info")
 						{
@@ -135,9 +132,8 @@ QImage OdgPlug::readThumbnail(QString fName)
 	return tmp;
 }
 
-bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
+bool OdgPlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
-	QString fName = fNameIn;
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 	importerFlags = flags;
@@ -146,7 +142,7 @@ bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 	firstPage = true;
 	pagecount = 1;
 	mpagecount = 0;
-	QFileInfo fi = QFileInfo(fName);
+	QFileInfo fi = QFileInfo(fNameIn);
 	if ( !ScCore->usingGUI() )
 	{
 		interactive = false;
@@ -154,7 +150,7 @@ bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 	}
 	if ( showProgress )
 	{
-		ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 		progressDialog = new MultiProgressDialog( tr("Importing: %1").arg(fi.fileName()), CommonStrings::tr_Cancel, mw );
 		QStringList barNames, barTexts;
 		barNames << "GI";
@@ -226,7 +222,7 @@ bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString CurDirP = QDir::currentPath();
 	QDir::setCurrent(fi.path());
-	if (convert(fName))
+	if (convert(fNameIn))
 	{
 		tmpSel->clear();
 		QDir::setCurrent(CurDirP);
@@ -260,7 +256,7 @@ bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 			else
 			{
 				m_Doc->DragP = true;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 				m_Doc->m_Selection->delaySignalsOn();
 				for (int dre=0; dre<Elements.count(); ++dre)
@@ -268,7 +264,7 @@ bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 					tmpSel->addItem(Elements.at(dre), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				if ((importedColors.count() != 0) && (!((flags & LoadSavePlugin::lfKeepGradients) || (flags & LoadSavePlugin::lfKeepColors) || (flags & LoadSavePlugin::lfKeepPatterns))))
@@ -291,7 +287,7 @@ bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 				TransactionSettings* transacSettings = new TransactionSettings(trSettings);
 				m_Doc->view()->handleObjectImport(md, transacSettings);
 				m_Doc->DragP = false;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 			}
 		}
@@ -328,12 +324,11 @@ bool OdgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 
 OdgPlug::~OdgPlug()
 {
-	if (progressDialog)
-		delete progressDialog;
+	delete progressDialog;
 	delete tmpSel;
 }
 
-bool OdgPlug::convert(QString fn)
+bool OdgPlug::convert(const QString& fn)
 {
 	bool retVal = true;
 	importedColors.clear();
@@ -341,7 +336,7 @@ bool OdgPlug::convert(QString fn)
 	m_Styles.clear();
 	m_Layers.clear();
 	firstLayer = true;
-	if(progressDialog)
+	if (progressDialog)
 	{
 		progressDialog->setOverallProgress(2);
 		progressDialog->setLabel("GI", tr("Generating Items"));
@@ -405,7 +400,7 @@ bool OdgPlug::convert(QString fn)
 	return retVal;
 }
 
-bool OdgPlug::parseStyleSheets(QString designMap)
+bool OdgPlug::parseStyleSheets(const QString& designMap)
 {
 	QByteArray f;
 	QDomDocument designMapDom;
@@ -429,11 +424,11 @@ bool OdgPlug::parseStyleSheets(QString designMap)
 bool OdgPlug::parseStyleSheetsXML(QDomDocument &designMapDom)
 {
 	QDomElement docElem = designMapDom.documentElement();
-	for(QDomElement sp = docElem.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement() )
+	for (QDomElement sp = docElem.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement())
 	{
 		if (sp.tagName() == "office:font-face-decls")
 		{
-			for(QDomElement spf = sp.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+			for (QDomElement spf = sp.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 			{
 				if (spf.tagName() == "style:font-face")
 				{
@@ -447,7 +442,7 @@ bool OdgPlug::parseStyleSheetsXML(QDomDocument &designMapDom)
 		if (sp.tagName() == "office:master-styles")
 		{
 			DrawStyle currStyle;
-			for(QDomElement spf = sp.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+			for (QDomElement spf = sp.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 			{
 				if (spf.tagName() == "style:master-page")
 				{
@@ -484,7 +479,7 @@ bool OdgPlug::parseStyleSheetsXML(QDomDocument &designMapDom)
 							PageItem *retObj = m_Doc->Items->at(z);
 							finishItem(retObj, tmpBStyle);
 						}
-						for(QDomElement spm = spf.firstChildElement(); !spm.isNull(); spm = spm.nextSiblingElement() )
+						for (QDomElement spm = spf.firstChildElement(); !spm.isNull(); spm = spm.nextSiblingElement())
 						{
 							PageItem* retObj = parseObj(spm);
 							if (retObj != nullptr)
@@ -498,7 +493,7 @@ bool OdgPlug::parseStyleSheetsXML(QDomDocument &designMapDom)
 				{
 					if (importerFlags & LoadSavePlugin::lfCreateDoc)
 					{
-						for(QDomElement spp = spf.firstChildElement(); !spp.isNull(); spp = spp.nextSiblingElement() )
+						for (QDomElement spp = spf.firstChildElement(); !spp.isNull(); spp = spp.nextSiblingElement())
 						{
 							if (spp.tagName() == "draw:layer")
 							{
@@ -532,7 +527,7 @@ bool OdgPlug::parseStyleSheetsXML(QDomDocument &designMapDom)
 	return true;
 }
 
-bool OdgPlug::parseDocReference(QString designMap)
+bool OdgPlug::parseDocReference(const QString& designMap)
 {
 	QByteArray f;
 	QDomDocument designMapDom;
@@ -556,11 +551,11 @@ bool OdgPlug::parseDocReference(QString designMap)
 bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 {
 	QDomElement docElem = designMapDom.documentElement();
-	for(QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
+	for (QDomElement drawPag = docElem.firstChildElement(); !drawPag.isNull(); drawPag = drawPag.nextSiblingElement())
 	{
 		if (drawPag.tagName() == "office:font-face-decls")
 		{
-			for(QDomElement spf = drawPag.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+			for (QDomElement spf = drawPag.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
 			{
 				if (spf.tagName() == "style:font-face")
 				{
@@ -573,7 +568,7 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 			parseStyles(drawPag);
 		if (drawPag.tagName() == "office:master-styles")
 		{
-			for(QDomElement spf = drawPag.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement() )
+			for (QDomElement spf = drawPag.firstChildElement(); !spf.isNull(); spf = spf.nextSiblingElement())
 			{
 				if (spf.tagName() == "style:master-page")
 				{
@@ -610,7 +605,7 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 							PageItem *retObj = m_Doc->Items->at(z);
 							finishItem(retObj, tmpBStyle);
 						}
-						for(QDomElement spm = spf.firstChildElement(); !spm.isNull(); spm = spm.nextSiblingElement() )
+						for (QDomElement spm = spf.firstChildElement(); !spm.isNull(); spm = spm.nextSiblingElement())
 						{
 							PageItem* retObj = parseObj(spm);
 							if (retObj != nullptr)
@@ -624,7 +619,7 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 				{
 					if (importerFlags & LoadSavePlugin::lfCreateDoc)
 					{
-						for(QDomElement spp = spf.firstChildElement(); !spp.isNull(); spp = spp.nextSiblingElement() )
+						for (QDomElement spp = spf.firstChildElement(); !spp.isNull(); spp = spp.nextSiblingElement())
 						{
 							if (spp.tagName() == "draw:layer")
 							{
@@ -656,11 +651,11 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 		}
 		else if (drawPag.tagName() == "office:body")
 		{
-			for(QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement() )
+			for (QDomElement sp = drawPag.firstChildElement(); !sp.isNull(); sp = sp.nextSiblingElement())
 			{
 				if ((sp.tagName() == "office:drawing") || (sp.tagName() == "office:presentation"))
 				{
-					for(QDomElement spp = sp.firstChildElement(); !spp.isNull(); spp = spp.nextSiblingElement() )
+					for (QDomElement spp = sp.firstChildElement(); !spp.isNull(); spp = spp.nextSiblingElement())
 					{
 						if (spp.tagName() == "draw:page")
 						{
@@ -710,7 +705,7 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 							firstPage = false;
 							baseX = m_Doc->currentPage()->xOffset();
 							baseY = m_Doc->currentPage()->yOffset();
-							for(QDomElement spe = spp.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+							for (QDomElement spe = spp.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 							{
 								PageItem* retObj = parseObj(spe);
 								if (retObj != nullptr)
@@ -738,7 +733,7 @@ PageItem* OdgPlug::parseObj(QDomElement &draw)
 	{
 		QList<PageItem*> GElements;
 		int gLayer = -1;
-		for(QDomElement spd = draw.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement() )
+		for (QDomElement spd = draw.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement())
 		{
 			PageItem* ite = parseObj(spd);
 			if (ite != nullptr)
@@ -883,7 +878,7 @@ PageItem* OdgPlug::parseCustomShape(QDomElement &e)
 	resovleStyle(tmpOStyle, "standard");
 	resovleStyle(tmpOStyle, getStyleName(e));
 	bool has_Text = false;
-	for(QDomElement p = e.firstChildElement(); !p.isNull(); p = p.nextSiblingElement())
+	for (QDomElement p = e.firstChildElement(); !p.isNull(); p = p.nextSiblingElement())
 	{
 		if (p.tagName() == "text:p")
 		{
@@ -894,7 +889,7 @@ PageItem* OdgPlug::parseCustomShape(QDomElement &e)
 	if ((tmpOStyle.fill_type == 0) && (tmpOStyle.stroke_type == 0) && (!has_Text))
 		return retObj;
 	QPolygonF texAreaPoints;
-	for(QDomElement p = e.firstChildElement(); !p.isNull(); p = p.nextSiblingElement())
+	for (QDomElement p = e.firstChildElement(); !p.isNull(); p = p.nextSiblingElement())
 	{
 		if (p.tagName() == "draw:enhanced-geometry")
 		{
@@ -943,7 +938,7 @@ PageItem* OdgPlug::parseCustomShape(QDomElement &e)
 			if (p.hasChildNodes())
 			{
 				QMap<QString, QString> formulaMap;
-				for(QDomElement f = p.firstChildElement(); !f.isNull(); f = f.nextSiblingElement())
+				for (QDomElement f = p.firstChildElement(); !f.isNull(); f = f.nextSiblingElement())
 				{
 					if (f.tagName() == "draw:equation")
 					{
@@ -968,7 +963,7 @@ PageItem* OdgPlug::parseCustomShape(QDomElement &e)
 						{
 							double erg = 0;
 							int ret = fpa.Parse(itf.value().toStdString(), "", false);
-							if(ret < 0)
+							if (ret < 0)
 							{
 								QString formNam = itf.key();
 								erg = fpa.Eval(nullptr);
@@ -1600,7 +1595,7 @@ PageItem* OdgPlug::parseFrame(QDomElement &e)
 			}
 			else if (n.hasChildNodes())
 			{
-				for(QDomElement nc = n.firstChildElement(); !nc.isNull(); nc = nc.nextSiblingElement())
+				for (QDomElement nc = n.firstChildElement(); !nc.isNull(); nc = nc.nextSiblingElement())
 				{
 					if (nc.tagName() == "office:binary-data")
 					{
@@ -1695,7 +1690,7 @@ void OdgPlug::parseText(QDomElement &elem, PageItem* item, ObjStyle& tmpOStyle)
 	ObjStyle pStyle = tmpOStyle;
 	if (elem.hasAttribute("text:style-name"))
 		resovleStyle(pStyle, elem.attribute("text:style-name"));
-	for(QDomElement para = elem.firstChildElement(); !para.isNull(); para = para.nextSiblingElement())
+	for (QDomElement para = elem.firstChildElement(); !para.isNull(); para = para.nextSiblingElement())
 	{
 		pStyle = tmpOStyle;
 		if ((para.tagName() != "text:p") && (para.tagName() != "text:list") && (para.tagName() != "text:h"))
@@ -1717,7 +1712,7 @@ void OdgPlug::parseText(QDomElement &elem, PageItem* item, ObjStyle& tmpOStyle)
 			}
 			else
 			{
-				for(QDomNode spn = para.firstChild(); !spn.isNull(); spn = spn.nextSibling())
+				for (QDomNode spn = para.firstChild(); !spn.isNull(); spn = spn.nextSibling())
 				{
 					CharStyle tmpCStyle = tmpStyle.charStyle();
 					QDomElement sp = spn.toElement();
@@ -1753,14 +1748,14 @@ void OdgPlug::parseText(QDomElement &elem, PageItem* item, ObjStyle& tmpOStyle)
 						}
 						else if (sp.tagName() == "text:list-item")
 						{
-							for(QDomElement paral = sp.firstChildElement(); !paral.isNull(); paral = paral.nextSiblingElement())
+							for (QDomElement paral = sp.firstChildElement(); !paral.isNull(); paral = paral.nextSiblingElement())
 							{
 								ObjStyle plStyle = tmpOStyle;
 								if (paral.hasAttribute("text:style-name"))
 									resovleStyle(plStyle, paral.attribute("text:style-name"));
 								ParagraphStyle tmpStyle = newStyle;
 								applyParagraphStyle(tmpStyle, plStyle);
-								for(QDomNode spnl = paral.firstChild(); !spnl.isNull(); spnl = spnl.nextSibling())
+								for (QDomNode spnl = paral.firstChild(); !spnl.isNull(); spnl = spnl.nextSibling())
 								{
 									CharStyle tmpCStyle = tmpStyle.charStyle();
 									QDomElement spl = spnl.toElement();
@@ -1929,15 +1924,15 @@ void OdgPlug::parseTransform(const QString &transform, double *rotation, double 
 		subtransform[1] = subtransform[1].simplified();
 		QRegExp reg("[,( ]");
 		QStringList params = subtransform[1].split(reg, QString::SkipEmptyParts);
-		if(subtransform[0].startsWith(";") || subtransform[0].startsWith(","))
+		if (subtransform[0].startsWith(";") || subtransform[0].startsWith(","))
 			subtransform[0] = subtransform[0].right(subtransform[0].length() - 1);
-		if(subtransform[0] == "rotate")
+		if (subtransform[0] == "rotate")
 		{
 			*rotation = -parseUnit(params[0]) * 180 / M_PI;
 		}
-		else if(subtransform[0] == "translate")
+		else if (subtransform[0] == "translate")
 		{
-			if(params.count() == 2)
+			if (params.count() == 2)
 			{
 				dx = parseUnit(params[0]);
 				dy = parseUnit(params[1]);
@@ -1967,17 +1962,17 @@ void OdgPlug::parseTransform(FPointArray *composite, const QString &transform)
 		subtransform[1] = subtransform[1].simplified();
 		QRegExp reg("[,( ]");
 		QStringList params = subtransform[1].split(reg, QString::SkipEmptyParts);
-		if(subtransform[0].startsWith(";") || subtransform[0].startsWith(","))
+		if (subtransform[0].startsWith(";") || subtransform[0].startsWith(","))
 			subtransform[0] = subtransform[0].right(subtransform[0].length() - 1);
-		if(subtransform[0] == "rotate")
+		if (subtransform[0] == "rotate")
 		{
 			result = QTransform();
 			result.rotate(-parseUnit(params[0]) * 180 / M_PI);
 			composite->map(result);
 		}
-		else if(subtransform[0] == "translate")
+		else if (subtransform[0] == "translate")
 		{
-			if(params.count() == 2)
+			if (params.count() == 2)
 			{
 				dx = parseUnit(params[0]);
 				dy = parseUnit(params[1]);
@@ -1991,13 +1986,13 @@ void OdgPlug::parseTransform(FPointArray *composite, const QString &transform)
 			result.translate(dx, dy);
 			composite->map(result);
 		}
-		else if(subtransform[0] == "skewx")
+		else if (subtransform[0] == "skewx")
 		{
 			result = QTransform();
 			result.shear(-tan(ScCLocale::toDoubleC(params[0])), 0.0);
 			composite->map(result);
 		}
-		else if(subtransform[0] == "skewy")
+		else if (subtransform[0] == "skewy")
 		{
 			result = QTransform();
 			result.shear(0.0, -tan(ScCLocale::toDoubleC(params[0])));
@@ -2008,7 +2003,7 @@ void OdgPlug::parseTransform(FPointArray *composite, const QString &transform)
 
 void OdgPlug::parseViewBox( const QDomElement& object, double *x, double *y, double *w, double *h )
 {
-	if( !object.attribute( "svg:viewBox" ).isEmpty() )
+	if (!object.attribute( "svg:viewBox" ).isEmpty())
 	{
 		QString viewbox( object.attribute( "svg:viewBox" ) );
 		QStringList points = viewbox.replace( QRegExp(","), " ").simplified().split( ' ', QString::SkipEmptyParts );
@@ -2035,7 +2030,7 @@ void OdgPlug::appendPoints(FPointArray *composite, const QDomElement& object, bo
 	QStringList ptList = object.attribute( "draw:points" ).split( ' ', QString::SkipEmptyParts );
 	FPoint point, firstP;
 	bool bFirst = true;
-	for( QStringList::Iterator it = ptList.begin(); it != ptList.end(); ++it )
+	for ( QStringList::Iterator it = ptList.begin(); it != ptList.end(); ++it)
 	{
 		point = FPoint(ScCLocale::toDoubleC((*it).section( ',', 0, 0 )), ScCLocale::toDoubleC((*it).section( ',', 1, 1 )));
 		if (bFirst)
@@ -2066,7 +2061,7 @@ void OdgPlug::appendPoints(FPointArray *composite, const QDomElement& object, bo
 
 void OdgPlug::parseStyles(QDomElement &sp)
 {
-	for(QDomElement spd = sp.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement() )
+	for (QDomElement spd = sp.firstChildElement(); !spd.isNull(); spd = spd.nextSiblingElement())
 	{
 		if (spd.tagName() == "draw:marker")
 		{
@@ -2154,7 +2149,7 @@ void OdgPlug::parseStyles(QDomElement &sp)
 			{
 				if (spd.hasChildNodes())
 				{
-					for(QDomElement nc = spd.firstChildElement(); !nc.isNull(); nc = nc.nextSiblingElement())
+					for (QDomElement nc = spd.firstChildElement(); !nc.isNull(); nc = nc.nextSiblingElement())
 					{
 						if (nc.tagName() == "office:binary-data")
 							currStyle.patternData = AttributeValue(nc.text());
@@ -2171,7 +2166,7 @@ void OdgPlug::parseStyles(QDomElement &sp)
 		else if (spd.tagName() == "style:style")
 		{
 			DrawStyle currStyle;
-			for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+			for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 			{
 				if (spe.tagName() == "style:graphic-properties")
 				{
@@ -2250,7 +2245,7 @@ void OdgPlug::parseStyles(QDomElement &sp)
 		else if (spd.tagName() == "style:page-layout")
 		{
 			DrawStyle currStyle;
-			for(QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement() )
+			for (QDomElement spe = spd.firstChildElement(); !spe.isNull(); spe = spe.nextSiblingElement())
 			{
 				if (spe.tagName() == "style:page-layout-properties")
 				{
@@ -2278,7 +2273,7 @@ QString OdgPlug::getStyleName(QDomElement &e)
 	return styleName;
 }
 
-void OdgPlug::resovleStyle(ObjStyle &tmpOStyle, QString pAttrs)
+void OdgPlug::resovleStyle(ObjStyle &tmpOStyle, const QString& pAttrs)
 {
 	if (m_Styles.contains(pAttrs))
 	{
@@ -2775,30 +2770,30 @@ double OdgPlug::parseUnit(const QString &unit)
 	QString unitval=unit;
 	if (unit.isEmpty())
 		return 0.0;
-	if( unit.right( 2 ) == "pt" )
+	if (unit.right( 2 ) == "pt")
 		unitval.replace( "pt", "" );
-	else if( unit.right( 2 ) == "cm" )
+	else if (unit.right( 2 ) == "cm")
 		unitval.replace( "cm", "" );
-	else if( unit.right( 2 ) == "mm" )
+	else if (unit.right( 2 ) == "mm")
 		unitval.replace( "mm" , "" );
-	else if( unit.right( 2 ) == "in" )
+	else if (unit.right( 2 ) == "in")
 		unitval.replace( "in", "" );
-	else if( unit.right( 2 ) == "px" )
+	else if (unit.right( 2 ) == "px")
 		unitval.replace( "px", "" );
-	else if( unit.right( 1 ) == "%" )
+	else if (unit.right( 1 ) == "%")
 		unitval.replace( "%", "" );
 	double value = ScCLocale::toDoubleC(unitval);
-	if( unit.right( 2 ) == "pt" )
+	if (unit.right( 2 ) == "pt")
 		{}/* value = value; */ //no change
-	else if( unit.right( 2 ) == "cm" )
+	else if (unit.right( 2 ) == "cm")
 		value = ( value / 2.54 ) * 72;
-	else if( unit.right( 2 ) == "mm" )
+	else if (unit.right( 2 ) == "mm")
 		value = ( value / 25.4 ) * 72;
-	else if( unit.right( 2 ) == "in" )
+	else if (unit.right( 2 ) == "in")
 		value = value * 72;
-	else if( unit.right( 2 ) == "px" )
+	else if (unit.right( 2 ) == "px")
 		{}/* value = value; */ //no change
-	else if( unit.right( 1 ) == "%" )
+	else if (unit.right( 1 ) == "%")
 		value = value / 100.0;
 	return value;
 }
@@ -2817,39 +2812,39 @@ const char * OdgPlug::getCoord( const char *ptr, double &number )
 	expsign = 1;
 
 	// read the sign
-	if(*ptr == '+')
+	if (*ptr == '+')
 		ptr++;
-	else if(*ptr == '-')
+	else if (*ptr == '-')
 	{
 		ptr++;
 		sign = -1;
 	}
 
 	// read the integer part
-	while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+	while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 		integer = (integer * 10) + *(ptr++) - '0';
-	if(*ptr == '.') // read the decimals
+	if (*ptr == '.') // read the decimals
 	{
 		ptr++;
-		while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+		while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 			decimal += (*(ptr++) - '0') * (frac *= 0.1);
 	}
 
-	if(*ptr == 'e' || *ptr == 'E') // read the exponent part
+	if (*ptr == 'e' || *ptr == 'E') // read the exponent part
 	{
 		ptr++;
 
 		// read the sign of the exponent
-		if(*ptr == '+')
+		if (*ptr == '+')
 			ptr++;
-		else if(*ptr == '-')
+		else if (*ptr == '-')
 		{
 			ptr++;
 			expsign = -1;
 		}
 
 		exponent = 0;
-		while(*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
+		while (*ptr != '\0' && *ptr >= '0' && *ptr <= '9')
 		{
 			exponent *= 10;
 			exponent += *ptr - '0';
@@ -2860,7 +2855,7 @@ const char * OdgPlug::getCoord( const char *ptr, double &number )
 	number *= sign * pow( static_cast<double>(10), static_cast<double>( expsign * exponent ) );
 
 	// skip the following space
-	if(*ptr == ' ')
+	if (*ptr == ' ')
 		ptr++;
 
 	return ptr;
@@ -2873,7 +2868,7 @@ bool OdgPlug::parseEnhPath(const QString& svgPath, FPointArray &result, bool &fi
 	bool ret = false;
 	fill = true;
 	stroke = true;
-	if( !d.isEmpty() )
+	if (!d.isEmpty())
 	{
 		bool xDir = true;
 		bool yDir = false;
@@ -2888,11 +2883,11 @@ bool OdgPlug::parseEnhPath(const QString& svgPath, FPointArray &result, bool &fi
 		int moveCount = 0;
 		result.svgInit();
 		char command = *(ptr++), lastCommand = ' ';
-		while( ptr < end )
+		while (ptr < end)
 		{
-			if( *ptr == ' ' )
+			if (*ptr == ' ')
 				ptr++;
-			switch( command )
+			switch (command)
 			{
 			case 'A':
 			case 'B':
@@ -3043,10 +3038,10 @@ bool OdgPlug::parseEnhPath(const QString& svgPath, FPointArray &result, bool &fi
 				}
 			}
 			lastCommand = command;
-			if(*ptr == '+' || *ptr == '-' || (*ptr >= '0' && *ptr <= '9'))
+			if (*ptr == '+' || *ptr == '-' || (*ptr >= '0' && *ptr <= '9'))
 			{
 				// there are still coords in this command
-				if(command == 'M')
+				if (command == 'M')
 					command = 'L';
 			}
 			else
@@ -3116,7 +3111,6 @@ void OdgPlug::arcTo(QPainterPath &path, QPointF startpoint, double rx, double ry
 	{
 		path.cubicTo(curvePoints[i], curvePoints[i+1], curvePoints[i+2]);
 	}
-	return;
 }
 
 int OdgPlug::arcToCurve(double rx, double ry, double startAngle, double sweepAngle, const QPointF & offset, QPointF * curvePoints)
@@ -3214,7 +3208,7 @@ PageItem* OdgPlug::groupObjects(QList<PageItem *> &GElements)
 	return retObj;
 }
 
-QString OdgPlug::modifyColor(QString name, bool darker, int amount)
+QString OdgPlug::modifyColor(const QString& name, bool darker, int amount)
 {
 	const ScColor& col = m_Doc->PageColors[name];
 	QColor c = ScColorEngine::getShadeColorProof(col, m_Doc, 100);
@@ -3246,24 +3240,24 @@ QString OdgPlug::parseColor( const QString &s )
 	QString ret = CommonStrings::None;
 	if ((s == "") || s.isEmpty())
 		return ret;
-	if( s.startsWith( "rgb(" ) )
+	if (s.startsWith( "rgb(" ))
 	{
 		QString parse = s.trimmed();
 		QStringList colors = parse.split( ',', QString::SkipEmptyParts );
 		QString r = colors[0].right( ( colors[0].length() - 4 ) );
 		QString g = colors[1];
 		QString b = colors[2].left( ( colors[2].length() - 1 ) );
-		if( r.contains( "%" ) )
+		if (r.contains( "%" ))
 		{
 			r.chop(1);
 			r = QString::number( static_cast<int>( ( static_cast<double>( 255 * ScCLocale::toDoubleC(r) ) / 100.0 ) ) );
 		}
-		if( g.contains( "%" ) )
+		if (g.contains( "%" ))
 		{
 			g.chop(1);
 			g = QString::number( static_cast<int>( ( static_cast<double>( 255 * ScCLocale::toDoubleC(g) ) / 100.0 ) ) );
 		}
-		if( b.contains( "%" ) )
+		if (b.contains( "%" ))
 		{
 			b.chop(1);
 			b = QString::number( static_cast<int>( ( static_cast<double>( 255 * ScCLocale::toDoubleC(b) ) / 100.0 ) ) );
@@ -3273,7 +3267,7 @@ QString OdgPlug::parseColor( const QString &s )
 	else
 	{
 		QString rgbColor = s.trimmed();
-		if( rgbColor.startsWith( "#" ) )
+		if (rgbColor.startsWith( "#" ))
 			c.setNamedColor( rgbColor );
 		else
 			c = parseColorN( rgbColor );
@@ -3289,9 +3283,9 @@ QString OdgPlug::parseColor( const QString &s )
 	return ret;
 }
 
-QString OdgPlug::constructFontName(QString fontBaseName, QString fontStyle)
+QString OdgPlug::constructFontName(const QString& fontBaseName, const QString& fontStyle)
 {
-	QString fontName = "";
+	QString fontName;
 	bool found = false;
 	SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
 	for ( ; it.hasNext(); it.next())
@@ -3342,7 +3336,7 @@ QString OdgPlug::constructFontName(QString fontBaseName, QString fontStyle)
 			if (!PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(family))
 			{
 				qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
-				MissingFont *dia = new MissingFont(0, family, m_Doc);
+				MissingFont *dia = new MissingFont(nullptr, family, m_Doc);
 				dia->exec();
 				fontName = dia->getReplacementFont();
 				delete dia;

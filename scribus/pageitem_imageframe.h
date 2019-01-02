@@ -36,7 +36,7 @@ class SCRIBUS_API PageItem_ImageFrame : public PageItem
 	Q_OBJECT
 
 public:
-	PageItem_ImageFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_ImageFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	PageItem_ImageFrame(const PageItem & p) : PageItem(p) {}
 	~PageItem_ImageFrame();
 
@@ -48,7 +48,7 @@ public:
 	
 	virtual bool createInfoGroup(QFrame *, QGridLayout *);
 	virtual void applicableActions(QStringList& actionList);
-	virtual QString infoDescription();
+	virtual QString infoDescription() const;
 	
 protected:
 	virtual void DrawObj_Item(ScPainter *p, QRectF e);

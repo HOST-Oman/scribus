@@ -24,7 +24,7 @@
 #include "prefsmanager.h"
 #include "scpaths.h"
 
-IconManager* IconManager::m_instance = 0;
+IconManager* IconManager::m_instance = nullptr;
 
 IconManager::IconManager(QObject *parent)
  : QObject(parent)
@@ -37,7 +37,7 @@ IconManager::~IconManager()
 
 IconManager* IconManager::instance()
 {
-	if (m_instance == 0)
+	if (m_instance == nullptr)
 		m_instance = new IconManager();
 
 	return m_instance;
@@ -45,9 +45,8 @@ IconManager* IconManager::instance()
 
 void IconManager::deleteInstance()
 {
-	if (m_instance)
-		delete m_instance;
-	m_instance = 0;
+	delete m_instance;
+	m_instance = nullptr;
 }
 
 bool IconManager::setup()
@@ -64,9 +63,7 @@ bool IconManager::setup()
 bool IconManager::initIcons()
 {
 	readIconConfigFiles();
-	if (m_iconSets.isEmpty() || m_activeSetBasename.isEmpty())
-		return false;
-	return true;
+	return !(m_iconSets.isEmpty() || m_activeSetBasename.isEmpty());
 }
 
 void IconManager::readIconConfigFiles()
@@ -112,10 +109,10 @@ void IconManager::readIconConfigFiles()
 			QDomElement docElem = xmlData.documentElement();
 			QDomNode n = docElem.firstChild();
 			ScIconSetData isd;
-			while( !n.isNull() )
+			while (!n.isNull())
 			{
 				QDomElement e = n.toElement();
-				if( !e.isNull() )
+				if (!e.isNull())
 				{
 					//qDebug()<<e.tagName()<<e.text();
 					if (e.tagName()=="path")
@@ -190,17 +187,17 @@ void IconManager::readIconConfigFiles()
 	}
 }
 
-QCursor IconManager::loadCursor(const QString nam, int hotX, int hotY, bool forceUseColor)
+QCursor IconManager::loadCursor(const QString& nam, int hotX, int hotY, bool forceUseColor)
 {
 	return QCursor(loadPixmap(nam, forceUseColor), hotX, hotY);
 }
 
-QIcon IconManager::loadIcon(const QString nam, bool forceUseColor)
+QIcon IconManager::loadIcon(const QString& nam, bool forceUseColor)
 {
 	return QIcon(loadPixmap(nam, forceUseColor));
 }
 
-QPixmap IconManager::loadPixmap(const QString nam, bool forceUseColor, bool rtlFlip)
+QPixmap IconManager::loadPixmap(const QString& nam, bool forceUseColor, bool rtlFlip)
 {
 	if (m_pxCache.contains(nam))
 		return *m_pxCache[nam];
@@ -242,7 +239,7 @@ void IconManager::iconToGrayscale(QPixmap* pm)
 	*pm=QPixmap::fromImage(qi);
 }
 
-bool IconManager::setActiveFromPrefs(QString prefsSet)
+bool IconManager::setActiveFromPrefs(const QString& prefsSet)
 {
 	//qDebug()<<"setting active from prefs to"<<prefsSet;
 	if (m_iconSets.contains(prefsSet))
@@ -254,7 +251,7 @@ bool IconManager::setActiveFromPrefs(QString prefsSet)
 	return false;
 }
 
-QString IconManager::baseNameForTranslation(QString transName) const
+QString IconManager::baseNameForTranslation(const QString& transName) const
 {
 	QString name;
 	for (const ScIconSetData& value : m_iconSets)
@@ -270,7 +267,7 @@ QString IconManager::baseNameForTranslation(QString transName) const
 	return name;
 }
 
-QString IconManager::pathForIcon(const QString nam)
+QString IconManager::pathForIcon(const QString& nam)
 {
 	//QString iconset(PrefsManager::instance()->appPrefs.uiPrefs.iconSet);
 	QString iconSubdir(m_iconSets[m_activeSetBasename].path+"/");
@@ -302,7 +299,7 @@ QStringList IconManager::pathList() const
 	return paths;
 }
 
-QStringList IconManager::nameList(QString language) const
+QStringList IconManager::nameList(const QString& language) const
 {
 	QStringList names;
 	for (const ScIconSetData& value : m_iconSets)

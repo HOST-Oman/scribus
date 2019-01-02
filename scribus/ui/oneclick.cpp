@@ -24,7 +24,7 @@ for which a new license (GPL+exception) is in place.
 #include "units.h"
 
 
-OneClick::OneClick( QWidget* parent, QString titel, int unitIndex, double defW, double defH, bool remember, int origin, int mode ) : QDialog( parent )
+OneClick::OneClick( QWidget* parent, const QString& titel, int unitIndex, double defW, double defH, bool remember, int origin, int mode ) : QDialog( parent )
 {
 	double m_unitRatio = unitGetRatioFromIndex(unitIndex);
 	QString m_suffix = unitGetSuffixFromIndex(unitIndex);
@@ -90,7 +90,7 @@ OneClick::OneClick( QWidget* parent, QString titel, int unitIndex, double defW, 
 	}
 	SizeGroupLayout->addWidget( spinHeight, 1, 1 );
 	
-	linkSize = 0;
+	linkSize = nullptr;
 	if (mode == 0)
 	{
 		linkSize = new LinkButton( SizeGroup );

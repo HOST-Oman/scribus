@@ -72,7 +72,7 @@ for which a new license (GPL+exception) is in place.
 
 using namespace std;
 
-PageItem_TextFrame::PageItem_TextFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
+PageItem_TextFrame::PageItem_TextFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline)
 	: PageItem(pa, PageItem::TextFrame, x, y, w, h, w2, fill, outline)
 {
 	init();
@@ -95,7 +95,7 @@ void PageItem_TextFrame::init()
 	verticalAlign = 0;
 	incompleteLines = 0;
 	maxY = 0.0;
-	connect(&itemText,SIGNAL(changed(int, int)), this, SLOT(slotInvalidateLayout(int, int)));
+	connect(&itemText,SIGNAL(changed(int,int)), this, SLOT(slotInvalidateLayout(int,int)));
 }
 
 static QRegion itemShape(PageItem* docItem, double xOffset, double yOffset)
@@ -117,13 +117,13 @@ static QRegion itemShape(PageItem* docItem, double xOffset, double yOffset)
 		}
 		res = QRegion(bb.toRect());
 	}
-	else if ((docItem->textFlowUsesImageClipping()) && (docItem->imageClip.size() != 0))
+	else if ((docItem->textFlowUsesImageClipping()) && (!docItem->imageClip.empty()))
 	{
 		QList<uint> Segs;
 		QPolygon Clip2 = FlattenPath(docItem->imageClip, Segs);
 		res = QRegion(pp.map(Clip2)).intersected(QRegion(pp.map(docItem->Clip)));
 	}
-	else if ((docItem->textFlowUsesContourLine()) && (docItem->ContourLine.size() != 0))
+	else if ((docItem->textFlowUsesContourLine()) && (!docItem->ContourLine.empty()))
 	{
 		QList<uint> Segs;
 		QPolygon Clip2 = FlattenPath(docItem->ContourLine, Segs);
@@ -207,9 +207,9 @@ QRegion PageItem_TextFrame::calcAvailableRegion()
 
 		int LayerLev = m_Doc->layerLevelFromID(LayerID);
 		int docItemsCount = m_Doc->Items->count();
-		ScPage* Mp=0;
-		ScPage* Dp=0;
-		PageItem* docItem=0;
+		ScPage* Mp=nullptr;
+		ScPage* Dp=nullptr;
+		PageItem* docItem=nullptr;
 		int LayerLevItem;
 		QList<PageItem*> thisList;
 		if (!OnMasterPage.isEmpty())
@@ -1158,10 +1158,9 @@ static int allowedCJKBreakBefore(QChar ch) {
 }
 
 static bool implicitBreak(QChar f, QChar s) {
-	if (SpecialChars::isCJK(f.unicode()) && SpecialChars::isCJK(s.unicode())) {
+	if (SpecialChars::isCJK(f.unicode()) && SpecialChars::isCJK(s.unicode()))
 		return allowedCJKBreakAfter(f) && allowedCJKBreakBefore(s);
-	} else
-		return false;
+	return false;
 }
 
 static double findRealOverflowEnd(const QRegion& shape, QRect pt, double maxX)
@@ -1351,7 +1350,7 @@ void PageItem_TextFrame::layout()
 	TabControl tabs;
 	tabs.active    = false;     // RTab
 	tabs.status    = TabNONE;   // TabCode
-	tabs.tabGlyph  = 0;         // was int charIndex ~ StartRT
+	tabs.tabGlyph  = nullptr;         // was int charIndex ~ StartRT
 	tabs.xPos      = 0;         // RTabX
 
 	QList<ParagraphStyle::TabRecord> tTabValues;
@@ -1423,7 +1422,7 @@ void PageItem_TextFrame::layout()
 		return;
 	}
 
-	if ((itLen != 0)) // || (NextBox != 0))
+	if ((itLen != 0)) // || (NextBox != nullptr))
 	{
 		// determine layout area
 		m_availableRegion = calcAvailableRegion();
@@ -1613,8 +1612,7 @@ void PageItem_TextFrame::layout()
 					current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
 					continue;
 				}
-				else
-					current.glyphs[currentIndex].clearFlag(ScLayout_SuppressSpace);
+				current.glyphs[currentIndex].clearFlag(ScLayout_SuppressSpace);
 			}
 			else // from 134 on use NBSPACE for this effect
 			{
@@ -1623,8 +1621,7 @@ void PageItem_TextFrame::layout()
 					current.glyphs[currentIndex].setFlag(ScLayout_SuppressSpace);
 					continue;
 				}
-				else
-					current.glyphs[currentIndex].clearFlag(ScLayout_SuppressSpace);
+				current.glyphs[currentIndex].clearFlag(ScLayout_SuppressSpace);
 			}
 			if (current.isEmpty)
 			{
@@ -1644,7 +1641,7 @@ void PageItem_TextFrame::layout()
 				if (current.startOfCol && !current.afterOverflow && current.recalculateY)
 					current.yPos = qMax(current.yPos, m_textDistanceMargins.top());
 				// more about par gap and dropcaps
-				if ((a > firstInFrame() && itemText.isBlockStart(a)) || (a == 0 && BackBox == 0 && current.startOfCol))
+				if ((a > firstInFrame() && itemText.isBlockStart(a)) || (a == 0 && BackBox == nullptr && current.startOfCol))
 				{
 					if (!current.afterOverflow && current.recalculateY && !current.startOfCol)
 						current.yPos += style.gapBefore();
@@ -1672,17 +1669,18 @@ void PageItem_TextFrame::layout()
 				double realCharHeight = 0.0, realCharAscent = 0.0;
 				const QList<GlyphLayout>& glyphs = current.glyphs[currentIndex].glyphs();
 				for (const GlyphLayout& gl : glyphs) {
-					GlyphMetrics gm = font.glyphBBox(gl.glyph);
+					GlyphMetrics gm = font.glyphBBox(gl.glyph, style.charStyle().fontSize() / 10.0);
 					realCharHeight = qMax(realCharHeight, gm.ascent + gm.descent);
 					realCharAscent = qMax(realCharAscent, gm.ascent);
 				}
-				double fontAscent = font.ascent(style.charStyle().fontSize() / 10.0);
 				if (realCharHeight == 0.0)
 					realCharHeight = font.height(style.charStyle().fontSize() / 10.0);
 				if (realCharAscent == 0.0)
-					realCharAscent = fontAscent;
-				chsd = (10 * ((DropCapDrop + fontAscent) / realCharHeight));
-				chs  = (10 * ((DropCapDrop + fontAscent) / realCharAscent));
+					realCharAscent = font.ascent(style.charStyle().fontSize() / 10.0);
+				if (current.startOfCol && (firstLineOffsetP == FLOPFontAscent))
+					realCharAscent = font.ascent(hlcsize10);
+				chsd = ((DropCapDrop + realCharAscent) / realCharHeight) * style.charStyle().fontSize();
+				chs  = ((DropCapDrop + realCharAscent) / realCharAscent) * style.charStyle().fontSize();
 				current.glyphs[currentIndex].setFlag(ScLayout_DropCap);
 				if (HasObject)
 				{
@@ -1748,13 +1746,13 @@ void PageItem_TextFrame::layout()
 				}
 				else
 				{
-					double realCharHeight = 0.0;
+					double realCharHeight = 0.0, realCharAscent = 0.0;
 					wide = 0.0; realAsce = 0.0;
 					const QList<GlyphLayout>& glyphs = glyphCluster.glyphs();
 					for (const GlyphLayout& gl : glyphs) {
-						GlyphMetrics gm;
-						gm = font.glyphBBox(gl.glyph, charStyle.fontSize() / 10.0);
+						GlyphMetrics gm = font.glyphBBox(gl.glyph, charStyle.fontSize() / 10.0);
 						realCharHeight = qMax(realCharHeight, gm.ascent + gm.descent);
+						realCharAscent = qMax(realCharAscent, gm.ascent);
 						gm = font.glyphBBox(gl.glyph, chsd / 10.0);
 						realAsce = qMax(realAsce, gm.ascent + gm.descent);
 						wide += gm.width;
@@ -1763,7 +1761,11 @@ void PageItem_TextFrame::layout()
 					realAsce = realAsce  * scaleV + offset;
 					if (realCharHeight == 0)
 						realCharHeight = font.height(style.charStyle().fontSize() / 10.0);
-					asce = font.ascent(hlcsize10);
+					if (realCharAscent == 0)
+						realCharAscent = font.ascent(style.charStyle().fontSize() / 10.0);
+					asce = realCharAscent;
+					if (current.startOfCol && (firstLineOffsetP == FLOPFontAscent))
+						asce = font.ascent(hlcsize10);
 					glyphCluster.setScaleH(glyphCluster.scaleH() / glyphCluster.scaleV());
 					glyphCluster.setScaleV(realAsce / realCharHeight);
 					glyphCluster.setScaleH(glyphCluster.scaleH() * glyphCluster.scaleV());
@@ -1899,7 +1901,7 @@ void PageItem_TextFrame::layout()
 				}
 			}
 			current.recalculateY = true;
-			maxYAsc = 0.0, maxYDesc = 0.0;
+			maxYAsc = maxYDesc = 0.0;
 			double addAsce = 0.0;
 			if (current.startOfCol)
 			{
@@ -2042,11 +2044,8 @@ void PageItem_TextFrame::layout()
 							newColumn = true;
 							break;
 						}
-						else
-						{
-							MaxChars = a;
-							goto NoRoom;
-						}
+						MaxChars = a;
+						goto NoRoom;
 					}
 				}
 				if (newColumn)
@@ -2869,11 +2868,8 @@ void PageItem_TextFrame::layout()
 						i = current.restartLine(false,true);
 						continue;
 					}
-					else
-					{
-//						qDebug() << "breakline B no more text @" << i;
-						current.breakLine(i);
-					}
+//					qDebug() << "breakline B no more text @" << i;
+					current.breakLine(i);
 				}
 			}
 		}
@@ -3094,13 +3090,13 @@ void PageItem_TextFrame::invalidateLayout(bool wholeChain)
 	if (wholeChain)
 	{
 		PageItem *prevFrame = this->prevInChain();
-		while (prevFrame != 0)
+		while (prevFrame != nullptr)
 		{
 			prevFrame->invalid = true;
 			prevFrame = prevFrame->prevInChain();
 		}
 		PageItem *nextFrame = this->nextInChain();
-		while (nextFrame != 0)
+		while (nextFrame != nullptr)
 		{
 			nextFrame->invalid = true;
 			nextFrame = nextFrame->nextInChain();
@@ -3213,61 +3209,63 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			}
 		}
 		p->save();
-		if ((annotation().Bwid() > 0) && (annotation().borderColor() != CommonStrings::None) && (annotation().Type() != Annotation::Text))
+		if ((annotation().borderWidth() > 0) && (annotation().borderColor() != CommonStrings::None) && (annotation().Type() != Annotation::Text))
 		{
 			QColor tmp;
 			SetQColor(&tmp, annotation().borderColor(), 100);
-			int BStyle = annotation().Bsty();
+			int borderStyle = annotation().borderStyle();
 			if (annotation().IsOn())
 			{
 				if (annotation().Feed() == 2)
 					tmp = QColor(255 - tmp.red(), 255 - tmp.green(), 255 - tmp.blue(), tmp.alpha());
 				if (annotation().Feed() == 3)
-					BStyle = 4;
+					borderStyle = 4;
 			}
 			if (annotation().Type() == Annotation::RadioButton)
 			{
-				double bwh = annotation().Bwid() / 2.0;
+				double bwh = annotation().borderWidth() / 2.0;
 				if (annotation().IsOn())
 				{
-					if (BStyle == 4)
-						BStyle = 3;
+					if (borderStyle == 4)
+						borderStyle = 3;
 					else
-						BStyle = 4;
+						borderStyle = 4;
 				}
-				if ((BStyle == 0) || (BStyle == 1))
+				if ((borderStyle == 0) || (borderStyle == 1))
 				{
 					QPainterPath clp;
-					clp.addEllipse(QRectF(bwh, bwh, m_width - annotation().Bwid(), m_height - annotation().Bwid()));
+					clp.addEllipse(QRectF(bwh, bwh, m_width - annotation().borderWidth(), m_height - annotation().borderWidth()));
 					FPointArray clpArr;
 					clpArr.fromQPainterPath(clp);
 					p->setupPolygon(&clpArr);
-					p->setPen(tmp, annotation().Bwid(), BStyle == 0 ? Qt::SolidLine : Qt::DashLine, Qt::FlatCap, Qt::MiterJoin);
+					p->setPen(tmp, annotation().borderWidth(), borderStyle == 0 ? Qt::SolidLine : Qt::DashLine, Qt::FlatCap, Qt::MiterJoin);
 					p->setFillMode(ScPainter::None);
 					p->setStrokeMode(ScPainter::Solid);
 					p->strokePath();
 				}
-				else if (BStyle == 3)
-					p->drawShadeCircle(QRectF(0, 0, m_width, m_height), tmp, false, annotation().Bwid());
-				else if (BStyle == 4)
-					p->drawShadeCircle(QRectF(0, 0, m_width, m_height), tmp, true, annotation().Bwid());
+				else if (borderStyle == 3)
+					p->drawShadeCircle(QRectF(0, 0, m_width, m_height), tmp, false, annotation().borderWidth());
+				else if (borderStyle == 4)
+					p->drawShadeCircle(QRectF(0, 0, m_width, m_height), tmp, true, annotation().borderWidth());
 			}
 			else
 			{
 				if ((annotation().Type() == Annotation::Checkbox) && annotation().IsOn())
 				{
-					if (BStyle == 4)
-						BStyle = 3;
+					if (borderStyle == 4)
+						borderStyle = 3;
 					else
-						BStyle = 4;
+						borderStyle = 4;
 				}
-				if (BStyle == 3)
-					p->drawShadePanel(QRectF(0, 0, m_width, m_height), tmp, false, annotation().Bwid());
-				else if (BStyle == 4)
-					p->drawShadePanel(QRectF(0, 0, m_width, m_height), tmp, true, annotation().Bwid());
+				if (borderStyle == 2)
+					p->drawUnderlinedRect(QRectF(0, 0, m_width, m_height), tmp, annotation().borderWidth());
+				else if (borderStyle == 3)
+					p->drawShadePanel(QRectF(0, 0, m_width, m_height), tmp, false, annotation().borderWidth());
+				else if (borderStyle == 4)
+					p->drawShadePanel(QRectF(0, 0, m_width, m_height), tmp, true, annotation().borderWidth());
 				else
 				{
-					p->setPen(tmp, annotation().Bwid(), BStyle == 0 ? Qt::SolidLine : Qt::DashLine, Qt::FlatCap, Qt::MiterJoin);
+					p->setPen(tmp, annotation().borderWidth(), borderStyle == 0 ? Qt::SolidLine : Qt::DashLine, Qt::FlatCap, Qt::MiterJoin);
 					p->setStrokeMode(ScPainter::Solid);
 					p->drawRect(0, 0, m_width, m_height);
 				}
@@ -3275,7 +3273,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		}
 		if (annotation().Type() == Annotation::Button)
 		{
-			int wdt = annotation().Bwid();
+			int wdt = annotation().borderWidth();
 			QPainterPath clp;
 			clp.addRect(QRectF(wdt, wdt, m_width - (2 * wdt), m_height - (2 * wdt)));
 			FPointArray clpArr;
@@ -3307,9 +3305,9 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 			p->restore();
 			return;
 		}
-		else if (annotation().Type() == Annotation::Textfield)
+		if (annotation().Type() == Annotation::Textfield)
 		{
-			int wdt = annotation().Bwid();
+			int wdt = annotation().borderWidth();
 			m_textDistanceMargins.set(wdt, wdt, wdt, wdt);
 			invalid = true;
 			layout();
@@ -3454,7 +3452,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		}
 		else if (annotation().Type() == Annotation::Combobox)
 		{
-			int wdt = annotation().Bwid();
+			int wdt = annotation().borderWidth();
 			if (m_width > 2 * wdt + 15)
 			{
 				if (!bmUtf16.isEmpty())
@@ -3476,7 +3474,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 				p->setStrokeMode(ScPainter::None);
 				p->setBrush(QColor(200, 200, 200));
 				QRectF bi;
-				if ((annotation().Bsty() == 3) || (annotation().Bsty() == 4))
+				if ((annotation().borderStyle() == 3) || (annotation().borderStyle() == 4))
 					bi = QRectF(m_width - wdt - 15, wdt, 15, m_height - (2 * wdt));
 				else
 					bi = QRectF(m_width - (wdt / 2.0) - 15, wdt / 2.0, 15, m_height - wdt);
@@ -3498,7 +3496,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		}
 		else if (annotation().Type() == Annotation::Listbox)
 		{
-			int wdt = annotation().Bwid();
+			int wdt = annotation().borderWidth();
 			if (m_width > 2 * wdt + 15)
 			{
 				if (!bmUtf16.isEmpty())
@@ -3690,7 +3688,7 @@ void PageItem_TextFrame::DrawObj_Post(ScPainter *p)
 						gradientStrokeVal = "";
 					if (!(gradientStrokeVal.isEmpty()) && (m_Doc->docGradients.contains(gradientStrokeVal)))
 						stroke_gradient = m_Doc->docGradients[gradientStrokeVal];
-					if (stroke_gradient.Stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
+					if (stroke_gradient.stops() < 2) // fall back to solid stroking if there are not enough colorstops in the gradient.
 					{
 						if (lineColor() != CommonStrings::None)
 						{
@@ -3756,7 +3754,7 @@ void PageItem_TextFrame::DrawObj_Post(ScPainter *p)
 
 void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 {
-	//#12405 if (isAnnotation() && ((annotation().Type() > 1) && (annotation().Type() < 7)) && (annotation().Bwid() > 0))
+	//#12405 if (isAnnotation() && ((annotation().Type() > 1) && (annotation().Type() < 7)) && (annotation().borderWidth() > 0))
 	//	return;
 	p->save();
 //	p->setAntialiasing(false);
@@ -3771,7 +3769,7 @@ void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 			p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			if ((isBookmark) || (m_isAnnotation))
 				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameAnnotationColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
-			if ((BackBox != 0) || (NextBox != 0))
+			if ((BackBox != nullptr) || (NextBox != nullptr))
 				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameLinkColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			if (m_Locked)
 				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameLockColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
@@ -3780,7 +3778,7 @@ void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 			p->setupSharpPolygon(&PoLine);
 			p->strokePath();
 		}
-		if ((m_Doc->guidesPrefs().framesShown) && textFlowUsesContourLine() && (ContourLine.size() != 0))
+		if ((m_Doc->guidesPrefs().framesShown) && textFlowUsesContourLine() && (!ContourLine.empty()))
 		{
 			p->setPen(Qt::darkGray, 0, Qt::DotLine, Qt::FlatCap, Qt::MiterJoin);
 			p->setupSharpPolygon(&ContourLine);
@@ -3835,7 +3833,7 @@ void PageItem_TextFrame::clearContents()
 		return;
 
 	PageItem *nextItem = this;
-	while (nextItem->prevInChain() != 0)
+	while (nextItem->prevInChain() != nullptr)
 		nextItem = nextItem->prevInChain();
 
 	ParagraphStyle defaultStyle = nextItem->itemText.defaultStyle();
@@ -3848,7 +3846,7 @@ void PageItem_TextFrame::clearContents()
 		nextItem->itemText.setDefaultStyle(defaultStyle);
 	}
 
-	while (nextItem != 0)
+	while (nextItem != nullptr)
 	{
 		nextItem->invalid = true;
 		nextItem = nextItem->nextInChain();
@@ -4002,7 +4000,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 					conv = 32;
 				if (UndoManager::undoEnabled())
 				{
-					ScItemState<ParagraphStyle> *ip = 0;
+					ScItemState<ParagraphStyle> *ip = nullptr;
 					SimpleState *ss = dynamic_cast<SimpleState*>(undoManager->getLastUndo());
 					UndoObject *undoTarget = this;
 					int cursorPos = itemText.cursorPosition();
@@ -4126,7 +4124,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 					ExpandSel(oldPos);
 				}
 				else
-					if ((textLayout.lines() > 0) && (oldPos >= textLayout.line(textLayout.lines()-1)->firstChar()) && (itemText.cursorPosition() >= lastInFrame()) && (NextBox != 0))
+					if ((textLayout.lines() > 0) && (oldPos >= textLayout.line(textLayout.lines()-1)->firstChar()) && (itemText.cursorPosition() >= lastInFrame()) && (NextBox != nullptr))
 					{
 						if (NextBox->frameDisplays(itemText.cursorPosition()))
 						{
@@ -4139,7 +4137,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			}
 			else
 			{
-				if (NextBox != 0)
+				if (NextBox != nullptr)
 				{
 					if (NextBox->frameDisplays(lastInFrame()+1))
 					{
@@ -4177,7 +4175,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 					ExpandSel(oldPos);
 				}
 				else
-					if ((textLayout.lines() > 0) && (oldPos <= textLayout.line(0)->lastChar()) && (itemText.cursorPosition()  == firstInFrame()) && (BackBox != 0))
+					if ((textLayout.lines() > 0) && (oldPos <= textLayout.line(0)->lastChar()) && (itemText.cursorPosition()  == firstInFrame()) && (BackBox != nullptr))
 					{
 						view->Deselect(true);
 						// TODO position at the right place in previous frame
@@ -4188,7 +4186,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			else
 			{
 				itemText.setCursorPosition( firstInFrame() );
-				if (BackBox != 0)
+				if (BackBox != nullptr)
 				{
 					view->Deselect(true);
 					BackBox->itemText.setCursorPosition( BackBox->lastInFrame() );
@@ -4201,7 +4199,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		m_Doc->scMW()->setTBvals(this);
 		break;
 	case Qt::Key_PageUp:
-		if (itemText.cursorPosition() == firstInFrame() && BackBox != 0)
+		if (itemText.cursorPosition() == firstInFrame() && BackBox != nullptr)
 		{
 			view->Deselect(true);
 			BackBox->itemText.setCursorPosition( BackBox->firstInFrame() );
@@ -4215,7 +4213,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		m_Doc->scMW()->setTBvals(this);
 		break;
 	case Qt::Key_PageDown:
-		if (!frameDisplays(itemText.length()-1) && itemText.cursorPosition() >= lastInFrame() && NextBox != 0)
+		if (!frameDisplays(itemText.length()-1) && itemText.cursorPosition() >= lastInFrame() && NextBox != nullptr)
 		{
 			view->Deselect(true);
 			itemText.setCursorPosition( NextBox->lastInFrame() );
@@ -4246,7 +4244,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			if (itemText.cursorPosition() < firstInFrame())
 			{
 				itemText.setCursorPosition( firstInFrame() );
-				if (BackBox != 0)
+				if (BackBox != nullptr)
 				{
 					view->Deselect(true);
 					BackBox->itemText.setCursorPosition( BackBox->lastInFrame() );
@@ -4286,7 +4284,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			{
 //				--CPos;
 				itemText.setCursorPosition(lastInFrame() + 1);
-				if (NextBox != 0)
+				if (NextBox != nullptr)
 				{
 					if (NextBox->frameDisplays(itemText.cursorPosition()))
 					{
@@ -4347,7 +4345,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		else
 		{
 			layout();
-			if (oldLast != lastInFrame() && NextBox != 0 && NextBox->invalid)
+			if (oldLast != lastInFrame() && NextBox != nullptr && NextBox->invalid)
 				NextBox->updateLayout();
 		}
 //		Tinput = false;
@@ -4404,13 +4402,13 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		else
 		{
 			layout();
-			if (oldLast != lastInFrame() && NextBox != 0 && NextBox->invalid)
+			if (oldLast != lastInFrame() && NextBox != nullptr && NextBox->invalid)
 				NextBox->updateLayout();
 		}
 		if (itemText.cursorPosition() < firstInFrame())
 		{
 			itemText.setCursorPosition( firstInFrame() );
-			if (BackBox != 0)
+			if (BackBox != nullptr)
 			{
 				view->Deselect(true);
 				if (BackBox->invalid)
@@ -4493,7 +4491,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		{
 			if (UndoManager::undoEnabled())
 			{
-				ScItemState<ParagraphStyle> *ip = 0;
+				ScItemState<ParagraphStyle> *ip = nullptr;
 				SimpleState *ss = dynamic_cast<SimpleState*>(undoManager->getLastUndo());
 				UndoObject *undoTarget = this;
 				int cursorPos = itemText.cursorPosition();
@@ -4571,12 +4569,12 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			}
 			else
 				update();
-			if (oldLast != lastInFrame() && NextBox != 0 && NextBox->invalid)
+			if (oldLast != lastInFrame() && NextBox != nullptr && NextBox->invalid)
 				NextBox->updateLayout();
 		}
 		//check if cursor need to jump to next linked frame
 		//but not for notes frames can`t be updated as may disapper during update
-		if ((itemText.cursorPosition() > lastInFrame() + 1) && (lastInFrame() < (itemText.length() - 2)) && NextBox != 0)
+		if ((itemText.cursorPosition() > lastInFrame() + 1) && (lastInFrame() < (itemText.length() - 2)) && NextBox != nullptr)
 		{
 			view->Deselect(true);
 			NextBox->update();
@@ -4966,10 +4964,10 @@ void PageItem_TextFrame::deselectAll()
 	{
 		itemText.deselectAll();
 		PageItem *item = this;
-		while( item->prevInChain() )
-			item=item->prevInChain();
+		while (item->prevInChain())
+			item = item->prevInChain();
 
-		while ( item )
+		while (item)
 		{
 			item->HasSel = false;
 			item = item->nextInChain();
@@ -5004,7 +5002,7 @@ void PageItem_TextFrame::drawOverflowMarker(ScPainter *p)
 	QColor color(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor);
 	if ((isBookmark) || (m_isAnnotation))
 		color = PrefsManager::instance()->appPrefs.displayPrefs.frameAnnotationColor;
-	if ((BackBox != 0) || (NextBox != 0))
+	if ((BackBox != nullptr) || (NextBox != nullptr))
 		color = PrefsManager::instance()->appPrefs.displayPrefs.frameLinkColor;
 	if (m_Locked)
 		color = PrefsManager::instance()->appPrefs.displayPrefs.frameLockColor;
@@ -5041,7 +5039,7 @@ void PageItem_TextFrame::drawColumnBorders(ScPainter *p)
 		p->drawSharpLine(FPoint(m_textDistanceMargins.left() + lineCorr, m_textDistanceMargins.top() + lineCorr), FPoint(m_width - m_textDistanceMargins.right() - lineCorr, m_textDistanceMargins.top() + lineCorr));
 	if (m_textDistanceMargins.bottom() + lineCorr!=0.0)
 		p->drawSharpLine(FPoint(m_textDistanceMargins.left() + lineCorr, m_height - m_textDistanceMargins.bottom() - lineCorr), FPoint(m_width - m_textDistanceMargins.right() - lineCorr, m_height - m_textDistanceMargins.bottom() - lineCorr));
-	while(curCol < Cols)
+	while (curCol < Cols)
 	{
 		colLeft=(colWidth + ColGap) * curCol + m_textDistanceMargins.left() + lineCorr;
 		if (colLeft != 0.0)
@@ -5072,7 +5070,7 @@ bool PageItem_TextFrame::createInfoGroup(QFrame *infoGroup, QGridLayout *infoGro
 	QLabel *charCT = new QLabel(infoGroup);
 	QLabel *charT = new QLabel(infoGroup);
 
-	if ((nextInChain() != 0) || (prevInChain() != 0))
+	if ((nextInChain() != nullptr) || (prevInChain() != nullptr))
 		infoCT->setText(tr("Linked Text"));
 	else
 		infoCT->setText(tr("Text Frame"));
@@ -5157,7 +5155,7 @@ void PageItem_TextFrame::applicableActions(QStringList & actionList)
 		else
 			actionList << "itemPDFFieldProps";
 	}
-	if ((prevInChain() == 0) && (nextInChain() == 0))
+	if ((prevInChain() == nullptr) && (nextInChain() == nullptr))
 	{
 		actionList << "itemConvertToImageFrame";
 		actionList << "itemConvertToPolygon";
@@ -5511,7 +5509,7 @@ void PageItem_TextFrame::setTextAnnotationOpen(bool open)
 	}
 }
 
-QString PageItem_TextFrame::infoDescription()
+QString PageItem_TextFrame::infoDescription() const
 {
 	return QString();
 }
@@ -5555,18 +5553,15 @@ bool PageItem_TextFrame::hasNoteFrame(NotesStyle *NS, bool inChain)
 	{ //check if any notes are in frame or whole chain
 		if (!inChain)
 			return !m_notesFramesMap.isEmpty();
-		else
+		PageItem* item = this;
+		item = firstInChain();
+		while (item != nullptr)
 		{
-			PageItem* item = this;
-			item = firstInChain();
-			while (item != nullptr)
-			{
-				if (item->asTextFrame()->hasNoteFrame(nullptr, false))
-					return true;
-				item = item->nextInChain();
-			}
-			return false;
+			if (item->asTextFrame()->hasNoteFrame(nullptr, false))
+				return true;
+			item = item->nextInChain();
 		}
+		return false;
 	}
 	PageItem* item = this;
 	if (inChain)
@@ -5961,7 +5956,7 @@ void PageItem_TextFrame::setTextFrameHeight()
 	if (textLayout.lines() <= 0)
 		return;
 
-	if (NextBox == 0) // Vertical alignment is not used inside a text chain
+	if (NextBox == nullptr) // Vertical alignment is not used inside a text chain
 	{
 		textLayout.box()->moveTo(textLayout.box()->x(), 0);
 		double newHeight = textLayout.box()->naturalHeight();

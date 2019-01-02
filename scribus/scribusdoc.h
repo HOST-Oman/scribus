@@ -419,7 +419,7 @@ public:
 	 * @param color color of the marker
 	 * @return Success or failure
 	 */
-	bool setLayerMarker(const int layerID, QColor color);
+	bool setLayerMarker(const int layerID, const QColor& color);
 	/**
 	 * @brief returns the layer marker color
 	 * @param layerID ID of the layer
@@ -594,7 +594,7 @@ public:
 		ResourceCollection m_newNames;
 	};
 	void replaceNamedResources(ResourceCollection& newNames);
-	bool styleExists(QString styleName);
+	bool styleExists(const QString& styleName);
 	
 	QList<int> getSortedStyleList();
 	QList<int> getSortedCharStyleList();
@@ -661,7 +661,7 @@ public:
 	 */
 	QStringList getItemAttributeNames();
 
-	bool AddFont(QString name, int fsize = 10);
+	bool AddFont(const QString& name, int fsize = 10);
 	/*!
 	 * @brief TODO: Reorganise the fonts.. how? Moved from scribus.cpp
 	 * CB: almost the same as getUsedFonts???
@@ -698,7 +698,7 @@ public:
 	* @brief Set the patterns for a document
 	*/
 	bool addPattern(QString &name, ScPattern& pattern);
-	void removePattern(QString name);
+	void removePattern(const QString& name);
 	void setPatterns(const QHash<QString, ScPattern> &patterns);
 	/*!
 	* @brief Check pattern with specified name and return it if valid
@@ -709,13 +709,13 @@ public:
 	*/
 	QStringList getUsedPatterns() const;
 	QStringList getUsedPatternsSelection(Selection* customSelection) const;
-	QStringList getUsedPatternsHelper(QString pattern, QStringList &results) const;
-	QStringList getPatternDependencyList(QStringList used) const;
+	QStringList getUsedPatternsHelper(const QString& pattern, QStringList &results) const;
+	QStringList getPatternDependencyList(const QStringList& used) const;
 	/*!
 	* @brief Builds a QStringList of the symbols used within the document
 	*/
 	QStringList getUsedSymbols() const;
-	QStringList getUsedSymbolsHelper(QString pattern, QStringList &results) const;
+	QStringList getUsedSymbolsHelper(const QString& pattern, QStringList &results) const;
 
 	/*!
 	* @brief Check if document use Acrobat Form Fields
@@ -827,7 +827,7 @@ public:
 
 	int getItemNrfromUniqueID(uint unique);
 	//return pointer to item
-	PageItem* getItemFromName(QString name);
+	PageItem* getItemFromName(const QString& name);
 	//itemDelete
 	//itemBlah...
 
@@ -851,7 +851,7 @@ public:
 	 * @param reload 
 	 * @return 
 	 */
-	bool loadPict(QString fn, PageItem *pageItem, bool reload = false, bool showMsg = false);
+	bool loadPict(const QString& fn, PageItem *pageItem, bool reload = false, bool showMsg = false);
 	/**
 	 * \brief Handle image with color profiles
 	 * @param Pr profile
@@ -917,7 +917,7 @@ public:
 	 * @author Craig Ringer
 	 ** CB Moved from PageItem
 	 */
-	bool itemNameExists(const QString itemName);
+	bool itemNameExists(const QString& itemName);
 	
 	/**
 	 * @brief Set the doc into Master page mode
@@ -930,7 +930,7 @@ public:
 	/**
 	 * @brief Set the doc into symbol edit mode
 	 */
-	void setSymbolEditMode(bool mode, QString symbolName = "");
+	void setSymbolEditMode(bool mode, const QString& symbolName = "");
 
 	/*** Is the document in symbol edit mode? */
 	bool symbolEditMode() const { return m_symbolEditMode; }
@@ -1015,7 +1015,7 @@ public:
 	 * @param y Yellow component
 	 * @param k Black component
 	 */
-	void insertColor(QString nam, double c, double m, double y, double k);
+	void insertColor(const QString& name, double c, double m, double y, double k);
 	
 	QMap<QString, double>& constants() { return m_constants; }
 	/**
@@ -1048,7 +1048,7 @@ public:
 	void itemSelection_convertItemsToSymbol(QString& patternName);
 	void itemSelection_ApplyParagraphStyle(const ParagraphStyle & newstyle, Selection* customSelection = nullptr, bool rmDirectFormatting = false);
 	void itemSelection_SetParagraphStyle(const ParagraphStyle & newstyle, Selection* customSelection = nullptr);
-	void itemSelection_ApplyCharStyle(const CharStyle & newstyle, Selection* customSelection = nullptr, QString ETEA = "");
+	void itemSelection_ApplyCharStyle(const CharStyle & newstyle, Selection* customSelection = nullptr, const QString& ETEA = "");
 	void itemSelection_SetCharStyle(const CharStyle & newstyle, Selection* customSelection = nullptr);
 	void itemSelection_EraseParagraphStyle(Selection* customSelection = nullptr);
 	void itemSelection_EraseCharStyle(Selection* customSelection = nullptr);
@@ -1067,9 +1067,10 @@ public:
 	void itemSelection_SetDirection(int w, Selection* customSelection = nullptr);
 	void itemSelection_SetLineSpacing(double w, Selection* customSelection = nullptr);
 	void itemSelection_SetLineSpacingMode(int w, Selection* customSelection = nullptr);
-	void itemSelection_SetLanguage(QString w, Selection* customSelection = nullptr);
-	void itemSetFont(const QString& newFont);
-	void itemSelection_SetFont(QString fon, Selection* customSelection = nullptr);
+	void itemSelection_SetLanguage(const QString& w, Selection* customSelection = nullptr);
+	void itemSelection_SetFont(const QString& font, Selection* customSelection = nullptr);
+	void itemSelection_SetFontSize(int size, Selection* customSelection = nullptr);
+	void itemSelection_SetFontFeatures(const QString& fontfeature, Selection* customSelection = nullptr);
 	void itemSelection_SetParBackgroundColor(QString farbe, Selection* customSelection = nullptr);
 	void itemSelection_SetParBackgroundShade(int sha, Selection* customSelection = nullptr);
 	void itemSelection_SetBackgroundColor(QString farbe, Selection* customSelection = nullptr);
@@ -1093,7 +1094,6 @@ public:
 	void itemSelection_SetCompressionMethod(int cmIndex, Selection* customSelection = nullptr);
 	void itemSelection_SetCompressionQuality(int cqIndex, Selection* customSelection = nullptr);
 	void itemSelection_SetTracking(int us, Selection* customSelection = nullptr);
-	void itemSelection_SetFontSize(int size, Selection* customSelection = nullptr);
 	void MirrorPolyH(PageItem *currItem);
 	void MirrorPolyV(PageItem *currItem);
 	bool getItem(PageItem **currItem, int nr = -1);
@@ -1173,13 +1173,13 @@ public:
 	bool ApplyGuides(FPoint* point, bool elementSnap = false);
 	bool moveItem(double newX, double newY, PageItem* ite);
 	void rotateItem(double win, PageItem *currItem);
-	void moveRotated(PageItem *currItem, FPoint npv);
+	void moveRotated(PageItem *currItem, const FPoint& npv);
 	bool sizeItem(double newX, double newY, PageItem *pi, bool fromMP = false, bool DoUpdateClip = true, bool redraw = true);
-	bool moveSizeItem(FPoint newX, FPoint newY, PageItem* currItem, bool fromMP = false, bool constrainRotation = false);
+	bool moveSizeItem(const FPoint& newX, const FPoint& newY, PageItem* currItem, bool fromMP = false, bool constrainRotation = false);
 	void adjustItemSize(PageItem *currItem, bool includeGroup = false, bool moveInGroup = true);
 	void moveGroup(double x, double y, Selection* customSelection = nullptr);
 	void rotateGroup(double angle, Selection* customSelection = nullptr);
-	void rotateGroup(double angle, FPoint RCenter, Selection* customSelection = nullptr);
+	void rotateGroup(double angle, const FPoint& RCenter, Selection* customSelection = nullptr);
 	void scaleGroup(double scx, double scy, bool scaleText=true, Selection* customSelection = nullptr, bool scaleLine = false);
 	//! \brief Get a list of frames of certain type
 	QHash<PageItem*, QString> getDocItemNames(PageItem::ItemType itemType);
@@ -1445,7 +1445,7 @@ public slots:
 	void itemSelection_TogglePrintEnabled();
 	void itemSelection_ToggleBookMark(Selection* customSelection = nullptr);
 	void itemSelection_ToggleAnnotation(Selection* customSelection = nullptr);
-	void itemSelection_Transform(int nrOfCopies, QTransform matrix, int basepoint);
+	void itemSelection_Transform(int nrOfCopies, const QTransform& matrix, int basepoint);
 	void itemSelection_ChangePreviewResolution(int id);
 
 	/*! \brief Change display quality of all images in document.
@@ -1461,7 +1461,6 @@ public slots:
 	//! Delete the items in the current selection. When force is true, we do not warn the user and make SE happy too. Force is used from @sa Page::restorePageItemCreation
 	void itemSelection_DeleteItem(Selection* customSelection = nullptr, bool forceDeletion=false);
 	void itemSelection_SetItemFillTransparency(double t);
-	void itemSelection_SetFontFeatures(QString fontfeature, Selection* customSelection = nullptr);
 	void itemSelection_SetHyphenWordMin(int wordMin, Selection* customSelection = nullptr);
 	void itemSelection_SetHyphenConsecutiveLines(int consecutiveLines, Selection* customSelection = nullptr);
 	void itemSelection_SetHyphenChar(uint hyphenChar, Selection* customSelection = nullptr);
@@ -1478,7 +1477,6 @@ public slots:
 	void itemSelection_Rotate(double angle, Selection* customSelection = nullptr);
 	void itemSelection_DoHyphenate();
 	void itemSelection_DoDeHyphenate();
-	void itemSelection_UnlinkTextFrameAndKeepText(Selection* customSelection = nullptr, bool cutText=false);
 	void itemSelection_UnlinkTextFrameAndCutText(Selection* customSelection = nullptr);
 	void itemSelection_SendToLayer(int layerID);
 	void itemSelection_SetImageOffset(double x, double y, Selection* customSelection = nullptr);
@@ -1674,9 +1672,9 @@ public slots:
 	void undoRedoDone();
 
 	void updatePic();
-	void updatePict(QString name);
-	void updatePictDir(QString name);
-	void removePict(QString name);
+	void updatePict(const QString& name);
+	void updatePictDir(const QString& name);
+	void removePict(const QString& name);
 
 // Marks and notes
 public:
@@ -1719,7 +1717,7 @@ public:
 	QStringList marksLabelsList(MarkType type);
 
 	//return mark with given label and given type
-	Mark* getMark(QString label, MarkType type); //returns mark with label and type (labels are unique only for same type marks)
+	Mark* getMark(const QString& label, MarkType type); //returns mark with label and type (labels are unique only for same type marks)
 	Mark* newMark(Mark* mrk = nullptr);
 	TextNote* newNote(NotesStyle* NS);
 	
@@ -1735,17 +1733,17 @@ public:
 	bool invalidateVariableTextFrames(Mark* mrk, bool forceUpdate = false); //returns if any text was changed
 
 	//for foot/endnotes
-	NotesStyle* newNotesStyle(NotesStyle NS);
-	void renameNotesStyle(NotesStyle* NS, QString newName);
+	NotesStyle* newNotesStyle(const NotesStyle& NS);
+	void renameNotesStyle(NotesStyle* NS, const QString& newName);
 	//delete whole notes style with its notesframes and notes
-	void deleteNotesStyle(QString nsName);
+	void deleteNotesStyle(const QString& nsName);
 	void undoSetNotesStyle(SimpleState* ss, NotesStyle* ns);
-	NotesStyle* getNotesStyle(QString nsName);
+	NotesStyle* getNotesStyle(const QString& nsName);
 	//delete note, if fromText than marks for given note will be removed
 	void deleteNote(TextNote* note);
 	void setUndoDelNote(TextNote* note);
 	PageItem_NoteFrame* createNoteFrame(PageItem_TextFrame* inFrame, NotesStyle *nStyle, int index = -1);
-	PageItem_NoteFrame* createNoteFrame(NotesStyle *nStyle, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_NoteFrame* createNoteFrame(NotesStyle *nStyle, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	//delete noteframe
 	void delNoteFrame(PageItem_NoteFrame *nF, bool removeMarks=true, bool forceDeletion = true);
 	//renumber notes for given notes style
@@ -1754,7 +1752,7 @@ public:
 	//set new text styles for notes marks
 	void updateNotesFramesStyles(NotesStyle* nStyle);
 	//check conflicts beetween notes styles
-	bool validateNSet(NotesStyle NS, QString newName = "");
+	bool validateNSet(const NotesStyle& NS, QString newName = "");
 	//update layout remove empty notesframes
 	bool notesFramesUpdate();
 	//update notesframes after changing automatic features of notes style
@@ -1822,8 +1820,8 @@ public:
 	QMap<QString, NumStruct*> numerations;
 	QStringList orgNumNames; //orgNumerations keeps original settings read from paragraph styles for reset settings overrided localy
 	void setupNumerations(); //read styles for used auto-numerations, initialize numCounters
-	QString getNumberStr(QString numName, int level, bool reset, const ParagraphStyle &style);
-	void setNumerationCounter(QString numName, int level, int number);
+	QString getNumberStr(const QString& numName, int level, bool reset, const ParagraphStyle &style);
+	void setNumerationCounter(const QString& numName, int level, int number);
 	bool flag_Renumber;
 	bool flag_NumUpdateRequest;
 	// for local numeration of paragraphs

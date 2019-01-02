@@ -36,7 +36,7 @@ class SCRIBUS_API PageItem_Arc : public PageItem
 	Q_OBJECT
 
 public:
-	PageItem_Arc(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_Arc(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	PageItem_Arc(const PageItem & p) : PageItem(p) {}
 	~PageItem_Arc() {};
 
@@ -44,7 +44,7 @@ public:
 	virtual bool isArc() const { return true; }
 	virtual ItemType realItemType() const { return PageItem::Arc; }
 	virtual void applicableActions(QStringList& actionList);
-	virtual QString infoDescription();
+	virtual QString infoDescription() const;
 	void recalcPath();
 	double arcHeight; //! height of the circumfering ellipse
 	double arcWidth;  //! width of the circumfering ellipse

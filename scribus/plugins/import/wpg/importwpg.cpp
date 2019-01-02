@@ -16,7 +16,7 @@ for which a new license (GPL+exception) is in place.
 #include <QDebug>
 
 #include <cstdlib>
-#include <stdio.h>
+#include <cstdio>
 
 #include "importwpg.h"
 
@@ -50,11 +50,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_formats.h"
 #include "util_math.h"
 
-
-
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
-ScrPainter::ScrPainter(): libwpg::WPGPaintInterface()
+ScrPainter::ScrPainter()
 {
 }
 
@@ -88,7 +84,7 @@ void ScrPainter::startGraphics(double width, double height)
 		else
 			m_Doc->setPageOrientation(0);
 		m_Doc->setPageSize("Custom");
-		m_Doc->changePageProperties(0, 0, 0, 0, 72 * height, 72 * width, 72 * height, 72 * width, m_Doc->pageOrientation(), m_Doc->pageSize(), m_Doc->currentPage()->pageNr(), 0);
+		m_Doc->changePageProperties(0, 0, 0, 0, 72 * height, 72 * width, 72 * height, 72 * width, m_Doc->pageOrientation(), m_Doc->pageSize(), m_Doc->currentPage()->pageNr(), false);
 	}
 	firstLayer = true;
 }
@@ -131,10 +127,10 @@ void ScrPainter::setPen(const libwpg::WPGPen& pen)
 		importedColors.append(newColorName);
 	CurrColorStroke = fNam;
 	CurrStrokeTrans = pen.foreColor.alpha / 255.0;
-	if(!pen.solid)
+	if (!pen.solid)
 	{
 		dashArray.clear();
-		for(unsigned i = 0; i < pen.dashArray.count(); i++)
+		for (unsigned i = 0; i < pen.dashArray.count(); i++)
 		{
 			dashArray.append(pen.dashArray.at(i)*LineW);
 		}
@@ -179,7 +175,7 @@ void ScrPainter::setBrush(const libwpg::WPGBrush& brush)
 	CurrColorFill = "Black";
 	CurrFillShade = 100.0;
 	int Rc, Gc, Bc;
-	if(brush.style == libwpg::WPGBrush::Solid)
+	if (brush.style == libwpg::WPGBrush::Solid)
 	{
 		Rc = brush.foreColor.red;
 		Gc = brush.foreColor.green;
@@ -200,7 +196,7 @@ void ScrPainter::setBrush(const libwpg::WPGBrush& brush)
 		isGradient = true;
 		currentGradient = VGradient(VGradient::linear);
 		currentGradient.clearStops();
-		for(unsigned c = 0; c < brush.gradient.count(); c++)
+		for (unsigned c = 0; c < brush.gradient.count(); c++)
 		{
 			QString currStopColor = CommonStrings::None;
 			Rc = brush.gradient.stopColor(c).red;
@@ -226,7 +222,7 @@ void ScrPainter::setBrush(const libwpg::WPGBrush& brush)
 
 void ScrPainter::setFillRule(FillRule rule)
 {
-	if(rule == libwpg::WPGPaintInterface::WindingFill)
+	if (rule == libwpg::WPGPaintInterface::WindingFill)
 		fillrule = false;
 	else
 		fillrule = true;
@@ -265,19 +261,19 @@ void ScrPainter::drawEllipse(const libwpg::WPGPoint& center, double rx, double r
 
 void ScrPainter::drawPolygon(const libwpg::WPGPointArray& vertices, bool closed)
 {
-	if(vertices.count() < 2)
+	if (vertices.count() < 2)
 		return;
 	Coords.resize(0);
 	Coords.svgInit();
 	PageItem *ite;
 	Coords.svgMoveTo(72 * vertices[0].x, 72 * vertices[0].y);
-	for(unsigned i = 1; i < vertices.count(); i++)
+	for (unsigned i = 1; i < vertices.count(); i++)
 	{
 		Coords.svgLineTo(72 * vertices[i].x, 72 * vertices[i].y);
 	}
 	if (closed)
 		Coords.svgClosePath();
-	if (Coords.size() > 0)
+	if (!Coords.empty())
 	{
 		int z;
 		if (closed)
@@ -297,7 +293,7 @@ void ScrPainter::drawPath(const libwpg::WPGPath& path)
 	Coords.resize(0);
 	Coords.svgInit();
 	PageItem *ite;
-	for(unsigned i = 0; i < path.count(); i++)
+	for (unsigned i = 0; i < path.count(); i++)
 	{
 		libwpg::WPGPathElement element = path.element(i);
 		libwpg::WPGPoint point = element.point;
@@ -316,7 +312,7 @@ void ScrPainter::drawPath(const libwpg::WPGPath& path)
 				break;
 		}
 	}
-	if (Coords.size() > 0)
+	if (!Coords.empty())
 	{
 		int z;
 		if (fillSet)
@@ -329,7 +325,7 @@ void ScrPainter::drawPath(const libwpg::WPGPath& path)
 			if (!path.framed)
 				CurrColorStroke = CommonStrings::None;
 		}
-		if(path.closed)
+		if (path.closed)
 		{
 			Coords.svgClosePath();
 			z = m_Doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, baseX, baseY, 10, 10, LineW, CurrColorFill, CurrColorStroke);
@@ -386,9 +382,9 @@ void ScrPainter::finishItem(PageItem* ite)
 void ScrPainter::drawBitmap(const libwpg::WPGBitmap& bitmap, double hres, double vres)
 {
 	QImage image = QImage(bitmap.width(), bitmap.height(), QImage::Format_RGB32);
-	for(int x = 0; x < bitmap.width(); x++)
+	for (int x = 0; x < bitmap.width(); x++)
 	{
-		for(int y = 0; y < bitmap.height(); y++)
+		for (int y = 0; y < bitmap.height(); y++)
 		{
 			libwpg::WPGColor color = bitmap.pixel(x, y);
 			image.setPixel(x, y, qRgb(color.red, color.green, color.blue));
@@ -435,7 +431,7 @@ WpgPlug::WpgPlug(ScribusDoc* doc, int flags)
 	cancel = false;
 }
 
-QImage WpgPlug::readThumbnail(QString fName)
+QImage WpgPlug::readThumbnail(const QString& fName)
 {
 	QFileInfo fi = QFileInfo(fName);
 	double b, h;
@@ -448,7 +444,7 @@ QImage WpgPlug::readThumbnail(QString fName)
 	m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 	m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
 	m_Doc->addPage(0);
-	m_Doc->setGUI(false, ScCore->primaryMainWindow(), 0);
+	m_Doc->setGUI(false, ScCore->primaryMainWindow(), nullptr);
 	baseX = m_Doc->currentPage()->xOffset();
 	baseY = m_Doc->currentPage()->yOffset();
 	Elements.clear();
@@ -485,26 +481,22 @@ QImage WpgPlug::readThumbnail(QString fName)
 		delete m_Doc;
 		return tmpImage;
 	}
-	else
-	{
-		QDir::setCurrent(CurDirP);
-		m_Doc->DoDrawing = true;
-		m_Doc->scMW()->setScriptRunning(false);
-		delete m_Doc;
-	}
+	QDir::setCurrent(CurDirP);
+	m_Doc->DoDrawing = true;
+	m_Doc->scMW()->setScriptRunning(false);
+	delete m_Doc;
 	return QImage();
 }
 
-bool WpgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
+bool WpgPlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
-	QString fName = fNameIn;
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
 	importerFlags = flags;
 	cancel = false;
 	double b, h;
 	bool ret = false;
-	QFileInfo fi = QFileInfo(fName);
+	QFileInfo fi = QFileInfo(fNameIn);
 	if ( !ScCore->usingGUI() )
 	{
 		interactive = false;
@@ -512,7 +504,7 @@ bool WpgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 	}
 	if ( showProgress )
 	{
-		ScribusMainWindow* mw=(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		ScribusMainWindow* mw=(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 		progressDialog = new MultiProgressDialog( tr("Importing: %1").arg(fi.fileName()), CommonStrings::tr_Cancel, mw );
 		QStringList barNames, barTexts;
 		barNames << "GI";
@@ -590,7 +582,7 @@ bool WpgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
 	QString CurDirP = QDir::currentPath();
 	QDir::setCurrent(fi.path());
-	if (convert(fName))
+	if (convert(fNameIn))
 	{
 		tmpSel->clear();
 		QDir::setCurrent(CurDirP);
@@ -624,7 +616,7 @@ bool WpgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 			else
 			{
 				m_Doc->DragP = true;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 				m_Doc->m_Selection->delaySignalsOn();
 				for (int dre=0; dre<Elements.count(); ++dre)
@@ -632,7 +624,7 @@ bool WpgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 					tmpSel->addItem(Elements.at(dre), true);
 				}
 				tmpSel->setGroupRect();
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_Doc, tmpSel);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_Doc, tmpSel);
 				m_Doc->itemSelection_DeleteItem(tmpSel);
 				m_Doc->view()->updatesOn(true);
 				m_Doc->m_Selection->delaySignalsOff();
@@ -641,7 +633,7 @@ bool WpgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 				TransactionSettings* transacSettings = new TransactionSettings(trSettings);
 				m_Doc->view()->handleObjectImport(md, transacSettings);
 				m_Doc->DragP = false;
-				m_Doc->DraggedElem = 0;
+				m_Doc->DraggedElem = nullptr;
 				m_Doc->DragElements.clear();
 			}
 		}
@@ -676,12 +668,11 @@ bool WpgPlug::import(QString fNameIn, const TransactionSettings& trSettings, int
 
 WpgPlug::~WpgPlug()
 {
-	if (progressDialog)
-		delete progressDialog;
+	delete progressDialog;
 	delete tmpSel;
 }
 
-bool WpgPlug::convert(QString fn)
+bool WpgPlug::convert(const QString& fn)
 {
 	importedColors.clear();
 

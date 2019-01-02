@@ -48,12 +48,9 @@ for which a new license (GPL+exception) is in place.
 #include "util_math.h"
 #include "rawpainter.h"
 
-
-extern SCRIBUS_API ScribusQApp * ScQApp;
-
 #if HAVE_REVENGE
 
-RawPainterPres::RawPainterPres(ScribusDoc* Doc, double x, double y, double w, double h, int iflags, QList<PageItem*> *Elem, QStringList *iColors, QStringList *iPatterns, Selection* tSel, QString fTyp) : librevenge::RVNGRawTextGenerator(false)
+RawPainterPres::RawPainterPres(ScribusDoc* Doc, double x, double y, double w, double h, int iflags, QList<PageItem*> *Elem, QStringList *iColors, QStringList *iPatterns, Selection* tSel, const QString& fTyp) : librevenge::RVNGRawTextGenerator(false)
 {
 	painter = new RawPainter(Doc, x, y, w, h, iflags, Elem, iColors, iPatterns, tSel, fTyp);
 	mElements = Elem;
@@ -431,7 +428,7 @@ RawPainterPrivate::RawPainterPrivate()
 {
 }
 
-RawPainter::RawPainter(ScribusDoc* Doc, double x, double y, double w, double h, int iflags, QList<PageItem*> *Elem, QStringList *iColors, QStringList *iPatterns, Selection* tSel, QString fTyp) : m_pImpl(new RawPainterPrivate())
+RawPainter::RawPainter(ScribusDoc* Doc, double x, double y, double w, double h, int iflags, QList<PageItem*> *Elem, QStringList *iColors, QStringList *iPatterns, Selection* tSel, const QString& fTyp) : m_pImpl(new RawPainterPrivate())
 {
 	m_Doc = Doc;
 	baseX = x;
@@ -691,18 +688,18 @@ void RawPainter::setStyle(const librevenge::RVNGPropertyList &propList)
 	m_style.clear();
 	m_style = propList;
 	isGradient = false;
-	if(propList["draw:fill"] && propList["draw:fill"]->getStr() == "none")
+	if (propList["draw:fill"] && propList["draw:fill"]->getStr() == "none")
 		CurrColorFill = CommonStrings::None;
-	else if(propList["draw:fill"] && propList["draw:fill"]->getStr() == "solid")
+	else if (propList["draw:fill"] && propList["draw:fill"]->getStr() == "solid")
 	{
 		if (propList["draw:fill-color"])
 		{
 			CurrColorFill = parseColor(QString(propList["draw:fill-color"]->getStr().cstr()));
-			if(propList["draw:opacity"])
+			if (propList["draw:opacity"])
 				CurrFillTrans = 1.0 - qMin(1.0, qMax(fromPercentage(QString(propList["draw:opacity"]->getStr().cstr())), 0.0));
 		}
 	}
-	if(propList["draw:fill"] && propList["draw:fill"]->getStr() == "gradient")
+	if (propList["draw:fill"] && propList["draw:fill"]->getStr() == "gradient")
 	{
 	//	double angle = 0;
 	//	if (propList["draw:angle"])
@@ -731,10 +728,10 @@ void RawPainter::setStyle(const librevenge::RVNGPropertyList &propList)
 				{
 					QString stopName = parseColor(QString(grad["svg:stop-color"]->getStr().cstr()));
 					double rampPoint = dr * c;
-					if(grad["svg:offset"])
+					if (grad["svg:offset"])
 						rampPoint = fromPercentage(QString(grad["svg:offset"]->getStr().cstr()));
 					const ScColor& gradC = m_Doc->PageColors[stopName];
-					if(grad["svg:stop-opacity"])
+					if (grad["svg:stop-opacity"])
 						opacity = qMin(1.0, qMax(fromPercentage(QString(grad["svg:stop-opacity"]->getStr().cstr())), 0.0));
 					currentGradient.addStop( ScColorEngine::getRGBColor(gradC, m_Doc), rampPoint, 0.5, opacity, stopName, 100 );
 					if (c == 0)
@@ -751,7 +748,7 @@ void RawPainter::setStyle(const librevenge::RVNGPropertyList &propList)
 					}
 				}
 			}
-			if (currentGradient.Stops() > 1)
+			if (currentGradient.stops() > 1)
 				isGradient = true;
 		}
 		else
@@ -784,7 +781,7 @@ void RawPainter::setStyle(const librevenge::RVNGPropertyList &propList)
 			}
 		}
 	}
-	if(propList["svg:fill-rule"])
+	if (propList["svg:fill-rule"])
 	{
 		if (QString(propList["svg:fill-rule"]->getStr().cstr()) == "nonzero")
 			fillrule = false;
@@ -802,7 +799,7 @@ void RawPainter::setStyle(const librevenge::RVNGPropertyList &propList)
 			if (propList["svg:stroke-color"])
 			{
 				CurrColorStroke = parseColor(QString(propList["svg:stroke-color"]->getStr().cstr()));
-				if(propList["svg:stroke-opacity"])
+				if (propList["svg:stroke-opacity"])
 					CurrStrokeTrans = 1.0 - qMin(1.0, qMax(fromPercentage(QString(propList["svg:stroke-opacity"]->getStr().cstr())), 0.0));
 			}
 			if (propList["draw:stroke"]->getStr() == "dash")
@@ -839,11 +836,11 @@ void RawPainter::setStyle(const librevenge::RVNGPropertyList &propList)
 	if (propList["svg:stroke-linecap"])
 	{
 		QString params = QString(propList["svg:stroke-linecap"]->getStr().cstr());
-		if( params == "butt" )
+		if (params == "butt")
 			lineEnd = Qt::FlatCap;
-		else if( params == "round" )
+		else if (params == "round")
 			lineEnd = Qt::RoundCap;
-		else if( params == "square" )
+		else if (params == "square")
 			lineEnd = Qt::SquareCap;
 		else
 			lineEnd = Qt::FlatCap;
@@ -851,11 +848,11 @@ void RawPainter::setStyle(const librevenge::RVNGPropertyList &propList)
 	if (propList["svg:stroke-linejoin"])
 	{
 		QString params = QString(propList["svg:stroke-linejoin"]->getStr().cstr());
-		if( params == "miter" )
+		if (params == "miter")
 			lineJoin = Qt::MiterJoin;
-		else if( params == "round" )
+		else if (params == "round")
 			lineJoin = Qt::RoundJoin;
-		else if( params == "bevel" )
+		else if (params == "bevel")
 			lineJoin = Qt::BevelJoin;
 		else
 			lineJoin = Qt::MiterJoin;
@@ -909,7 +906,7 @@ void RawPainter::drawPolyline(const librevenge::RVNGPropertyList &propList)
 	if (!doProcessing)
 		return;
 	librevenge::RVNGPropertyListVector vertices = *propList.child("svg:points");
-	if(vertices.count() < 2)
+	if (vertices.count() < 2)
 		return;
 	if ((fileType == "pmd") || (fileType == "pm5") || (fileType == "p65"))
 		setStyle(propList);
@@ -917,11 +914,11 @@ void RawPainter::drawPolyline(const librevenge::RVNGPropertyList &propList)
 	Coords.svgInit();
 	PageItem *ite;
 	Coords.svgMoveTo(valueAsPoint(vertices[0]["svg:x"]), valueAsPoint(vertices[0]["svg:y"]));
-	for(unsigned i = 1; i < vertices.count(); i++)
+	for (unsigned i = 1; i < vertices.count(); i++)
 	{
 		Coords.svgLineTo(valueAsPoint(vertices[i]["svg:x"]), valueAsPoint(vertices[i]["svg:y"]));
 	}
-	if (Coords.size() > 0)
+	if (!Coords.empty())
 	{
 		int z = m_Doc->itemAdd(PageItem::PolyLine, PageItem::Unspecified, baseX, baseY, 10, 10, LineW, CommonStrings::None, CurrColorStroke);
 		ite = m_Doc->Items->at(z);
@@ -936,7 +933,7 @@ void RawPainter::drawPolygon(const librevenge::RVNGPropertyList &propList)
 	if (!doProcessing)
 		return;
 	librevenge::RVNGPropertyListVector vertices = *propList.child("svg:points");
-	if(vertices.count() < 2)
+	if (vertices.count() < 2)
 		return;
 	if ((fileType == "pmd") || (fileType == "pm5") || (fileType == "p65"))
 		setStyle(propList);
@@ -944,14 +941,14 @@ void RawPainter::drawPolygon(const librevenge::RVNGPropertyList &propList)
 	Coords.svgInit();
 	PageItem *ite=nullptr;
 	Coords.svgMoveTo(valueAsPoint(vertices[0]["svg:x"]), valueAsPoint(vertices[0]["svg:y"]));
-	for(unsigned i = 1; i < vertices.count(); i++)
+	for (unsigned i = 1; i < vertices.count(); i++)
 	{
 		Coords.svgLineTo(valueAsPoint(vertices[i]["svg:x"]), valueAsPoint(vertices[i]["svg:y"]));
 	}
 	Coords.svgClosePath();
-	if (Coords.size() > 0)
+	if (!Coords.empty())
 	{
-		if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
+		if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
 		{
 		  if (m_style["draw:fill-image"] && m_style["librevenge:mime-type"])
 		  {
@@ -994,9 +991,9 @@ void RawPainter::drawPolygon(const librevenge::RVNGPropertyList &propList)
 					  if (testResult != -1)
 					  {
 						  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-						  if( fmt )
+						  if (fmt)
 						  {
-							  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							  fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 							  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							  if (m_Doc->m_Selection->count() > 0)
 							  {
@@ -1079,7 +1076,7 @@ void RawPainter::drawPath(const librevenge::RVNGPropertyList &propList)
 	librevenge::RVNGPropertyListVector path = *propList.child("svg:d");
 	bool isClosed = false;
 	QString svgString;
-	for(unsigned i=0; i < path.count(); i++)
+	for (unsigned i=0; i < path.count(); i++)
 	{
 		librevenge::RVNGPropertyList pList = path[i];
 		if (pList["librevenge:path-action"] && pList["librevenge:path-action"]->getStr() == "M")
@@ -1104,7 +1101,7 @@ void RawPainter::drawPath(const librevenge::RVNGPropertyList &propList)
 	PageItem *ite=nullptr;
 	if (isClosed)
 	{
-		if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
+		if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
 		{
 		  if (m_style["draw:fill-image"] && m_style["librevenge:mime-type"])
 		  {
@@ -1147,9 +1144,9 @@ void RawPainter::drawPath(const librevenge::RVNGPropertyList &propList)
 					  if (testResult != -1)
 					  {
 						  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-						  if( fmt )
+						  if (fmt)
 						  {
-							  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							  fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 							  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							  if (m_Doc->m_Selection->count() > 0)
 							  {
@@ -1289,9 +1286,9 @@ void RawPainter::drawGraphicObject(const librevenge::RVNGPropertyList &propList)
 					if (testResult != -1)
 					{
 						const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-						if( fmt )
+						if (fmt)
 						{
-							fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 							fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							if (m_Doc->m_Selection->count() > 0)
 							{
@@ -1672,7 +1669,7 @@ void RawPainter::openSpan(const librevenge::RVNGPropertyList &propList)
 	if (propList["style:text-position"])
 	{
 		QStringList pos = QString(propList["style:text-position"]->getStr().cstr()).split(' ', QString::SkipEmptyParts);
-		if (pos.size() > 0)
+		if (!pos.empty())
 		{
 			if (pos[0] == "super")
 				styleEffects |= ScStyle_Superscript;
@@ -1832,7 +1829,7 @@ double RawPainter::valueAsPoint(const librevenge::RVNGProperty *prop)
 
 void RawPainter::applyFill(PageItem* ite)
 {
-	if(isGradient)
+	if (isGradient)
 	{
 		QString gradMode = "normal";
 		if (m_style["libmspub:shade"])
@@ -1887,7 +1884,7 @@ void RawPainter::applyFill(PageItem* ite)
 			ite->setDiamondGeometry(FPoint(0, 0), FPoint(ite->width(), 0), FPoint(ite->width(), ite->height()), FPoint(0, ite->height()), cp);
 			ite->fill_gradient.clearStops();
 			QList<VColorStop*> colorStops = currentGradient.colorStops();
-			for( int a = 0; a < colorStops.count() ; a++ )
+			for (int a = 0; a < colorStops.count() ; a++)
 			{
 				ite->fill_gradient.addStop(colorStops[a]->color, 1.0 - colorStops[a]->rampPoint, colorStops[a]->midPoint, colorStops[a]->opacity, colorStops[a]->name, colorStops[a]->shade);
 			}
@@ -1910,7 +1907,7 @@ void RawPainter::applyFill(PageItem* ite)
 			ite->setDiamondGeometry(FPoint(0, 0), FPoint(ite->width(), 0), FPoint(ite->width(), ite->height()), FPoint(0, ite->height()), cp);
 			ite->fill_gradient.clearStops();
 			QList<VColorStop*> colorStops = currentGradient.colorStops();
-			for( int a = 0; a < colorStops.count() ; a++ )
+			for (int a = 0; a < colorStops.count() ; a++)
 			{
 				ite->fill_gradient.addStop(colorStops[a]->color, 1.0 - colorStops[a]->rampPoint, colorStops[a]->midPoint, colorStops[a]->opacity, colorStops[a]->name, colorStops[a]->shade);
 			}
@@ -1931,10 +1928,10 @@ void RawPainter::applyFill(PageItem* ite)
 						points.setMarker();
 						continue;
 					}
-					FPoint base = gpath.point(a);
-					FPoint c1 = gpath.point(a+1);
-					FPoint base2 =  gpath.point(a+2);
-					FPoint c2 = gpath.point(a+3);
+					const FPoint& base = gpath.point(a);
+					const FPoint& c1 = gpath.point(a+1);
+					const FPoint& base2 =  gpath.point(a+2);
+					const FPoint& c2 = gpath.point(a+3);
 					FPoint cn1 = (1.0 - nearT) * base + nearT * c1;
 					FPoint cn2 = (1.0 - nearT) * cn1 + nearT * ((1.0 - nearT) * c1 + nearT * c2);
 					FPoint cn3 = (1.0 - nearT) * ((1.0 - nearT) * c1 + nearT * c2) + nearT * ((1.0 - nearT) * c2 + nearT * base2);
@@ -2128,7 +2125,7 @@ void RawPainter::applyFill(PageItem* ite)
 			ite->GrType = 12;
 		}
 	}
-	if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
+	if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
 	{
 		QByteArray ba(m_style["draw:fill-image"]->getStr().cstr());
 		QByteArray imageData = QByteArray::fromBase64(ba);
@@ -2385,18 +2382,18 @@ void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXProperty
 	m_style.clear();
 	m_style = propList;
 	isGradient = false;
-	if(propList["draw:fill"] && propList["draw:fill"]->getStr() == "none")
+	if (propList["draw:fill"] && propList["draw:fill"]->getStr() == "none")
 		CurrColorFill = CommonStrings::None;
-	else if(propList["draw:fill"] && propList["draw:fill"]->getStr() == "solid")
+	else if (propList["draw:fill"] && propList["draw:fill"]->getStr() == "solid")
 	{
 		if (propList["draw:fill-color"])
 		{
 			CurrColorFill = parseColor(QString(propList["draw:fill-color"]->getStr().cstr()));
-			if(propList["draw:opacity"])
+			if (propList["draw:opacity"])
 				CurrFillTrans = 1.0 - qMin(1.0, qMax(fromPercentage(QString(propList["draw:opacity"]->getStr().cstr())), 0.0));
 		}
 	}
-	if(propList["draw:fill"] && propList["draw:fill"]->getStr() == "gradient")
+	if (propList["draw:fill"] && propList["draw:fill"]->getStr() == "gradient")
 	{
 		if (gradient.count() > 1)
 		{
@@ -2412,10 +2409,10 @@ void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXProperty
 				{
 					QString stopName = parseColor(QString(grad["svg:stop-color"]->getStr().cstr()));
 					double rampPoint = dr * c;
-					if(grad["svg:offset"])
+					if (grad["svg:offset"])
 						rampPoint = fromPercentage(QString(grad["svg:offset"]->getStr().cstr()));
 					const ScColor& gradC = m_Doc->PageColors[stopName];
-					if(grad["svg:stop-opacity"])
+					if (grad["svg:stop-opacity"])
 						opacity = qMin(1.0, qMax(fromPercentage(QString(grad["svg:stop-opacity"]->getStr().cstr())), 0.0));
 					currentGradient.addStop( ScColorEngine::getRGBColor(gradC, m_Doc), rampPoint, 0.5, opacity, stopName, 100 );
 					if (c == 0)
@@ -2432,7 +2429,7 @@ void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXProperty
 					}
 				}
 			}
-			if (currentGradient.Stops() > 1)
+			if (currentGradient.stops() > 1)
 				isGradient = true;
 		}
 		else
@@ -2465,7 +2462,7 @@ void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXProperty
 			}
 		}
 	}
-	if(propList["svg:fill-rule"])
+	if (propList["svg:fill-rule"])
 	{
 		if (QString(propList["svg:fill-rule"]->getStr().cstr()) == "nonzero")
 			fillrule = false;
@@ -2483,7 +2480,7 @@ void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXProperty
 			if (propList["svg:stroke-color"])
 			{
 				CurrColorStroke = parseColor(QString(propList["svg:stroke-color"]->getStr().cstr()));
-				if(propList["svg:stroke-opacity"])
+				if (propList["svg:stroke-opacity"])
 					CurrStrokeTrans = 1.0 - qMin(1.0, qMax(fromPercentage(QString(propList["svg:stroke-opacity"]->getStr().cstr())), 0.0));
 			}
 			if (propList["draw:stroke"]->getStr() == "dash")
@@ -2520,11 +2517,11 @@ void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXProperty
 	if (propList["svg:stroke-linecap"])
 	{
 		QString params = QString(propList["svg:stroke-linecap"]->getStr().cstr());
-		if( params == "butt" )
+		if (params == "butt")
 			lineEnd = Qt::FlatCap;
-		else if( params == "round" )
+		else if (params == "round")
 			lineEnd = Qt::RoundCap;
-		else if( params == "square" )
+		else if (params == "square")
 			lineEnd = Qt::SquareCap;
 		else
 			lineEnd = Qt::FlatCap;
@@ -2532,11 +2529,11 @@ void RawPainter::setStyle(const ::WPXPropertyList &propList, const ::WPXProperty
 	if (propList["svg:stroke-linejoin"])
 	{
 		QString params = QString(propList["svg:stroke-linejoin"]->getStr().cstr());
-		if( params == "miter" )
+		if (params == "miter")
 			lineJoin = Qt::MiterJoin;
-		else if( params == "round" )
+		else if (params == "round")
 			lineJoin = Qt::RoundJoin;
-		else if( params == "bevel" )
+		else if (params == "bevel")
 			lineJoin = Qt::BevelJoin;
 		else
 			lineJoin = Qt::MiterJoin;
@@ -2595,7 +2592,7 @@ void RawPainter::drawPolyline(const ::WPXPropertyListVector &vertices)
 	Coords.svgInit();
 	PageItem *ite;
 	Coords.svgMoveTo(valueAsPoint(vertices[0]["svg:x"]), valueAsPoint(vertices[0]["svg:y"]));
-	for(unsigned i = 1; i < vertices.count(); i++)
+	for (unsigned i = 1; i < vertices.count(); i++)
 	{
 		Coords.svgLineTo(valueAsPoint(vertices[i]["svg:x"]), valueAsPoint(vertices[i]["svg:y"]));
 	}
@@ -2613,12 +2610,12 @@ void RawPainter::drawPolygon(const ::WPXPropertyListVector &vertices)
 {
 	if (!doProcessing)
 		return;
-	if(vertices.count() < 2)
+	if (vertices.count() < 2)
 		return;
 	Coords.resize(0);
 	Coords.svgInit();
 	Coords.svgMoveTo(valueAsPoint(vertices[0]["svg:x"]), valueAsPoint(vertices[0]["svg:y"]));
-	for(unsigned i = 1; i < vertices.count(); i++)
+	for (unsigned i = 1; i < vertices.count(); i++)
 	{
 		Coords.svgLineTo(valueAsPoint(vertices[i]["svg:x"]), valueAsPoint(vertices[i]["svg:y"]));
 	}
@@ -2627,7 +2624,7 @@ void RawPainter::drawPolygon(const ::WPXPropertyListVector &vertices)
 		return;
 	PageItem *ite = nullptr;
 	int z = 0;
-	if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
+	if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
 	{
 		if (m_style["draw:fill-image"] && m_style["libwpg:mime-type"])
 		{
@@ -2670,7 +2667,7 @@ void RawPainter::drawPolygon(const ::WPXPropertyListVector &vertices)
 				  if (testResult != -1)
 				  {
 					  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-					  if( fmt )
+					  if (fmt)
 					  {
 						  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 						  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
@@ -2749,7 +2746,7 @@ void RawPainter::drawPath(const ::WPXPropertyListVector &path)
 		return;
 	bool isClosed = false;
 	QString svgString;
-	for(unsigned i=0; i < path.count(); i++)
+	for (unsigned i=0; i < path.count(); i++)
 	{
 		WPXPropertyList propList = path[i];
 		if (propList["libwpg:path-action"] && propList["libwpg:path-action"]->getStr() == "M")
@@ -2775,7 +2772,7 @@ void RawPainter::drawPath(const ::WPXPropertyListVector &path)
 	int z;
 	if (isClosed)
 	{
-		if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
+		if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap" && m_style["style:repeat"] && m_style["style:repeat"]->getStr() == "stretch")
 		{
 		  if (m_style["draw:fill-image"] && m_style["libwpg:mime-type"])
 		  {
@@ -2818,7 +2815,7 @@ void RawPainter::drawPath(const ::WPXPropertyListVector &path)
 					  if (testResult != -1)
 					  {
 						  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-						  if( fmt )
+						  if (fmt)
 						  {
 							  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 							  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
@@ -2953,7 +2950,7 @@ void RawPainter::drawGraphicObject(const ::WPXPropertyList &propList, const ::WP
 					if (testResult != -1)
 					{
 						const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-						if( fmt )
+						if (fmt)
 						{
 							fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 							fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
@@ -3237,7 +3234,7 @@ double RawPainter::valueAsPoint(const WPXProperty *prop)
 
 void RawPainter::applyFill(PageItem* ite)
 {
-	if(isGradient)
+	if (isGradient)
 	{
 		QString gradMode = "normal";
 		if (m_style["libmspub:shade"])
@@ -3292,7 +3289,7 @@ void RawPainter::applyFill(PageItem* ite)
 			ite->setDiamondGeometry(FPoint(0, 0), FPoint(ite->width(), 0), FPoint(ite->width(), ite->height()), FPoint(0, ite->height()), cp);
 			ite->fill_gradient.clearStops();
 			QList<VColorStop*> colorStops = currentGradient.colorStops();
-			for( int a = 0; a < colorStops.count() ; a++ )
+			for (int a = 0; a < colorStops.count() ; a++)
 			{
 				ite->fill_gradient.addStop(colorStops[a]->color, 1.0 - colorStops[a]->rampPoint, colorStops[a]->midPoint, colorStops[a]->opacity, colorStops[a]->name, colorStops[a]->shade);
 			}
@@ -3315,7 +3312,7 @@ void RawPainter::applyFill(PageItem* ite)
 			ite->setDiamondGeometry(FPoint(0, 0), FPoint(ite->width(), 0), FPoint(ite->width(), ite->height()), FPoint(0, ite->height()), cp);
 			ite->fill_gradient.clearStops();
 			QList<VColorStop*> colorStops = currentGradient.colorStops();
-			for( int a = 0; a < colorStops.count() ; a++ )
+			for(int a = 0; a < colorStops.count() ; a++)
 			{
 				ite->fill_gradient.addStop(colorStops[a]->color, 1.0 - colorStops[a]->rampPoint, colorStops[a]->midPoint, colorStops[a]->opacity, colorStops[a]->name, colorStops[a]->shade);
 			}
@@ -3359,7 +3356,7 @@ void RawPainter::applyFill(PageItem* ite)
 			ite->GrType = 12;
 		}
 	}
-	if(m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
+	if (m_style["draw:fill"] && m_style["draw:fill"]->getStr() == "bitmap")
 	{
 		QByteArray ba(m_style["draw:fill-image"]->getStr().cstr());
 		QByteArray imageData = QByteArray::fromBase64(ba);
@@ -3431,7 +3428,7 @@ void RawPainter::applyFill(PageItem* ite)
 }
 #endif
 
-QString RawPainter::constructFontName(QString fontBaseName, QString fontStyle)
+QString RawPainter::constructFontName(const QString& fontBaseName, const QString& fontStyle)
 {
 	QString fontName;
 	bool found = false;
@@ -3484,7 +3481,7 @@ QString RawPainter::constructFontName(QString fontBaseName, QString fontStyle)
 			if (!PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(family))
 			{
 				qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
-				MissingFont *dia = new MissingFont(0, family, m_Doc);
+				MissingFont *dia = new MissingFont(nullptr, family, m_Doc);
 				dia->exec();
 				fontName = dia->getReplacementFont();
 				delete dia;
@@ -3508,8 +3505,7 @@ double RawPainter::fromPercentage( const QString &s )
 		s1.chop(1);
 		return ScCLocale::toDoubleC(s1) / 100.0;
 	}
-	else
-		return ScCLocale::toDoubleC(s1) / 100.0;
+	return ScCLocale::toDoubleC(s1) / 100.0;
 }
 
 QColor RawPainter::parseColorN( const QString &rgbColor )
@@ -3570,7 +3566,7 @@ QString RawPainter::parseColor( const QString &s )
 	return ret;
 }
 
-void RawPainter::insertImage(PageItem* ite, QString imgExt, QByteArray &imageData)
+void RawPainter::insertImage(PageItem* ite, const QString& imgExt, QByteArray &imageData)
 {
 	QTemporaryFile *tempFile = new QTemporaryFile(QDir::tempPath() + QString("/scribus_temp_%1_XXXXXX.").arg(fileType) + imgExt);
 	tempFile->setAutoRemove(false);
@@ -3627,7 +3623,7 @@ void RawPainter::applyShadow(PageItem* ite)
 {
 	if (ite == nullptr)
 		return;
-	if(m_style["draw:shadow"] && m_style["draw:shadow"]->getStr() == "visible")
+	if (m_style["draw:shadow"] && m_style["draw:shadow"]->getStr() == "visible")
 	{
 		double xof = 0.0;
 		double yof = 0.0;
@@ -3640,7 +3636,7 @@ void RawPainter::applyShadow(PageItem* ite)
 		if (m_style["draw:shadow-color"])
 		{
 			shadowColor = parseColor(QString(m_style["draw:shadow-color"]->getStr().cstr()));
-			if(m_style["draw:shadow-opacity"])
+			if (m_style["draw:shadow-opacity"])
 				shadowTrans = 1.0 - qMin(1.0, qMax(fromPercentage(QString(m_style["draw:shadow-opacity"]->getStr().cstr())), 0.0));
 		}
 		ite->setHasSoftShadow(true);
@@ -3669,7 +3665,7 @@ void RawPainter::applyFlip(PageItem* ite)
 	}
 }
 
-void RawPainter::recolorItem(PageItem* ite, QString efVal)
+void RawPainter::recolorItem(PageItem* ite, const QString& efVal)
 {
 	if (ite->itemType() != PageItem::Group)
 	{

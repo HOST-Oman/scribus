@@ -37,7 +37,7 @@ for which a new license (GPL+exception) is in place.
 #include "util_os.h"
 
 
-PagePalette_MasterPages::PagePalette_MasterPages( QWidget* parent, ScribusView *pCurrentView, QString masterPageName) : QWidget(parent)
+PagePalette_MasterPages::PagePalette_MasterPages( QWidget* parent, ScribusView *pCurrentView, const QString& masterPageName) : QWidget(parent)
 {
 	m_doc  = pCurrentView->Doc;
 	m_view = pCurrentView;
@@ -66,14 +66,14 @@ PagePalette_MasterPages::PagePalette_MasterPages( QWidget* parent, ScribusView *
 	connectSignals();
 }
 
-void PagePalette_MasterPages::setView(ScribusView* view, QString masterPageName)
+void PagePalette_MasterPages::setView(ScribusView* view, const QString& masterPageName)
 {
 //	ScribusView* oldView = m_view;
 //	QString oldPage = m_currentPage;
 
 	disconnectSignals();
 	m_view = view;
-	m_doc = m_view ? m_view->Doc : 0;
+	m_doc = m_view ? m_view->Doc : nullptr;
 
 	if (!view)
 	{
@@ -300,8 +300,8 @@ void PagePalette_MasterPages::duplicateMasterPage()
 			if (m_doc->m_Selection->count() != 0)
 			{
 				ScriXmlDoc ss;
-				QString buffer = ss.WriteElem(m_doc, m_doc->m_Selection);
-				ss.ReadElemToLayer(buffer, prefsManager->appPrefs.fontPrefs.AvailFonts, m_doc, destination->xOffset(), destination->yOffset(), false, true, prefsManager->appPrefs.fontPrefs.GFontSub, it->ID);
+				QString buffer = ss.writeElem(m_doc, m_doc->m_Selection);
+				ss.readElemToLayer(buffer, prefsManager->appPrefs.fontPrefs.AvailFonts, m_doc, destination->xOffset(), destination->yOffset(), false, true, prefsManager->appPrefs.fontPrefs.GFontSub, it->ID);
 				m_doc->m_Selection->clear();
 			}
 		}
@@ -424,7 +424,7 @@ void PagePalette_MasterPages::selectMasterPage(QListWidgetItem *item)
 	this->setEnabled(true);
 }
 
-void PagePalette_MasterPages::selectMasterPage(QString name)
+void PagePalette_MasterPages::selectMasterPage(const QString& name)
 {
 	if (!m_doc || !m_view)
 		return;
@@ -462,7 +462,7 @@ void PagePalette_MasterPages::selectMasterPage(QString name)
 	this->setEnabled(true);
 }
 
-void PagePalette_MasterPages::updateMasterPageList(void)
+void PagePalette_MasterPages::updateMasterPageList()
 {
 	QString masterPageName = (m_doc->MasterNames.contains(m_currentPage)) ? m_currentPage : CommonStrings::masterPageNormal;
 	updateMasterPageList(masterPageName);
@@ -495,7 +495,7 @@ void PagePalette_MasterPages::updateMasterPageList(QString masterPageName)
 		mpItem->setData(Qt::UserRole, it.key());
 		masterPageListBox->addItem(mpItem);
 	}
-	deleteButton->setEnabled(m_doc->MasterNames.count() == 1 ? false : true);
+	deleteButton->setEnabled(m_doc->MasterNames.count() != 1);
 	if (masterPageName == CommonStrings::masterPageNormal)
 	{
 		masterPageName = CommonStrings::trMasterPageNormal;
@@ -557,7 +557,7 @@ void PagePalette_MasterPages::changeEvent(QEvent *e)
 		languageChange();
 		return;
 	}
-	else if (e->type() == QEvent::StyleChange)
+	if (e->type() == QEvent::StyleChange)
 	{
 		styleChange();
 		return;

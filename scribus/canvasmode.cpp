@@ -75,7 +75,6 @@
 #include <QPointF>
 
 CanvasMode::CanvasMode (ScribusView* view) :
-	QObject(),
 	m_view(view),
 	m_canvas(view->m_canvas),
 	m_doc(view->Doc),
@@ -108,8 +107,7 @@ CanvasMode::CanvasMode (ScribusView* view) :
 
 CanvasMode::~CanvasMode()
 {
-	if (m_panGesture)
-		delete m_panGesture;
+	delete m_panGesture;
 }
 
 CanvasMode* CanvasMode::createForAppMode(ScribusView* view, int appMode)
@@ -285,20 +283,20 @@ void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 	psx->setClipRegion(QRegion ( m_canvas->exposedRect() ) );
 	if (m_doc->m_Selection->isMultipleSelection())
 	{
-		PageItem *curItem(0);
+		PageItem *curItem(nullptr);
 		for(int a=0; a<m_doc->m_Selection->count(); ++a)
 		{
 			curItem = m_doc->m_Selection->itemAt(a);
 			
-			if(drawHandles)
+			if (drawHandles)
 				drawHandles = !curItem->locked();
 		}
 		// items inside a a multi
 		if (m_doc->m_Selection->count() > 1)
 		{
-			uint docSelectionCount = m_doc->m_Selection->count();
+			int docSelectionCount = m_doc->m_Selection->count();
 			PageItem *currItem;
-			for (uint a=0; a<docSelectionCount; ++a)
+			for (int a=0; a<docSelectionCount; ++a)
 			{
 				currItem = m_doc->m_Selection->itemAt(a);
 				if (!m_doc->Items->contains(currItem))
@@ -350,15 +348,15 @@ void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 		psx->setPen(m_pen["selection-group"]);
 		psx->setBrush(m_brush["selection-group"]);
 		psx->drawRect(QRectF(x, y, w, h));
-		if(drawHandles)
+		if (drawHandles)
 			drawSelectionHandles(psx, QRectF(x, y, w, h), false);
 		psx->restore();
 	}
 	else if (m_doc->m_Selection->count() != 0)
 	{
-		uint docSelectionCount = m_doc->m_Selection->count();
+		int docSelectionCount = m_doc->m_Selection->count();
 		PageItem *currItem;
-		for (uint a = 0; a < docSelectionCount; ++a)
+		for (int a = 0; a < docSelectionCount; ++a)
 		{
 			currItem = m_doc->m_Selection->itemAt(a);
 			psx->save();
@@ -432,15 +430,15 @@ void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 				{
 					psx->setPen(ba);
 					psx->drawRect(QRectF(x, y, w, h));
-					if(drawHandles && !currItem->locked() && !currItem->isLine())
+					if (drawHandles && !currItem->locked() && !currItem->isLine())
 						drawSelectionHandles(psx, QRectF(x, y, w, h), true);
 					psx->setPen(m_pen["selection"]);
 					psx->setBrush(m_brush["selection"]);
 					psx->drawRect(QRectF(x, y, w, h));
 				}
-				if(drawHandles && !currItem->locked())
+				if (drawHandles && !currItem->locked())
 				{
-					if(currItem->asLine())
+					if (currItem->asLine())
 					{
 						const double markWidth = 4.0 / m_canvas->scale();
 						QRectF handleRect = QRectF(0, 0, markWidth, markWidth);
@@ -484,7 +482,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 	{
 		PageItem *currItem = m_doc->m_Selection->itemAt(0);
 				
-		if((scalex != 1.0) || (scaley != 1.0)) // changing size of page item
+		if ((scalex != 1.0) || (scaley != 1.0)) // changing size of page item
 		{
 			p->setBrush(m_brush["outline"]);
 			p->setPen(m_pen["outline"]);
@@ -529,9 +527,9 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 //			QRectF br(currItem->getVisualBoundingRect());
 #ifdef GESTURE_FRAME_PREVIEW
 			QImage *pixItem(0);
-			if( m_pixmapCache.contains(currItem) )
+			if ( m_pixmapCache.contains(currItem) )
 			{
-				if( m_pixmapCache.value(currItem)->isReady() )
+				if ( m_pixmapCache.value(currItem)->isReady() )
 					pixItem = m_pixmapCache.value(currItem)->getImage();
 			}
 			else
@@ -539,7 +537,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 				m_pixmapCache[currItem] = new PageItemPreview(currItem);
 			}
 
-			if(pixItem)
+			if (pixItem)
 			{
 				p->save();
 				p->translate(br.x(),br.y());
@@ -578,7 +576,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 					p->setClipping(true);
 					p->setClipRect(QRectF(0.0, 0.0, currItem->visualWidth(), currItem->visualHeight()));
 					PageItem_Group* gItem = currItem->asGroupFrame();
-					uint itemCountG = gItem->groupItemList.count();
+					int itemCountG = gItem->groupItemList.count();
 					if (itemCountG < m_canvas->moveWithFullOutlinesThreshold)
 					{
 						if (gItem->imageFlippedH())
@@ -592,7 +590,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 							p->scale(1, -1);
 						}
 						p->scale(gItem->width() / gItem->groupWidth, gItem->height() / gItem->groupHeight);
-						for (uint cg = 0; cg < itemCountG; cg++)
+						for (int cg = 0; cg < itemCountG; cg++)
 						{
 							p->save();
 							currItem = gItem->groupItemList.at(cg);
@@ -656,12 +654,12 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 		double x, y, w, h;
 		m_doc->m_Selection->setGroupRect();
 		m_doc->m_Selection->getGroupRect(&x, &y, &w, &h);
-		uint docSelectionCount = m_doc->m_Selection->count();
+		int docSelectionCount = m_doc->m_Selection->count();
 		if (docSelectionCount < m_canvas->moveWithBoxesOnlyThreshold)
 		{
 			PageItem *currItem;
 // 			p->translate(x, y);
-			for (uint a=0; a<docSelectionCount; ++a)
+			for (int a=0; a<docSelectionCount; ++a)
 			{
 				currItem = m_doc->m_Selection->itemAt(a);
 				if (!m_doc->Items->contains(currItem))
@@ -669,7 +667,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 				p->save();
 				if (docSelectionCount < m_canvas->moveWithFullOutlinesThreshold /*&& currItem->rotation() == 0*/)
 				{
-					if((scalex != 1.0) || (scaley != 1.0))
+					if ((scalex != 1.0) || (scaley != 1.0))
 					{
 						p->setBrush(m_brush["outline"]);
 						p->setPen(m_pen["outline"]);
@@ -688,9 +686,9 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 //						QRectF br(currItem->getVisualBoundingRect());
 #ifdef GESTURE_FRAME_PREVIEW
 						QImage *pixItem(0);
-						if( m_pixmapCache.contains(currItem) )
+						if ( m_pixmapCache.contains(currItem) )
 						{
-							if( m_pixmapCache.value(currItem)->isReady() )
+							if ( m_pixmapCache.value(currItem)->isReady() )
 								pixItem = m_pixmapCache.value(currItem)->getImage();
 						}
 						else
@@ -699,7 +697,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 						}
 			
 
-						if(pixItem)
+						if (pixItem)
 						{
 							p->save();
 //							p->translate(br.x() /*- x*/, br.y() /*- y*/);
@@ -933,11 +931,11 @@ void CanvasMode::setModeCursor()
 #ifdef GESTURE_FRAME_PREVIEW
 void CanvasMode::clearPixmapCache()
 {
-	if(m_pixmapCache.count())
+	if (m_pixmapCache.count())
 	{
 		foreach(PageItemPreview* ip, m_pixmapCache)
 		{
-			if(ip)
+			if (ip)
 				delete ip;
 		}
 		m_pixmapCache.clear();
@@ -1389,7 +1387,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 					else
 					{
 						//CB If in EditContour mode, allow contour line to be scaled with arrow keys too
-						if(m_doc->nodeEdit.isContourLine())
+						if (m_doc->nodeEdit.isContourLine())
 							m_view->TransformPoly(10, 0, resizeBy/unitGetRatioFromIndex(m_doc->unitIndex()));
 						else if (!currItem->sizeLocked())
 						{
@@ -1479,7 +1477,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 					else
 					{
 						//CB If in EditContour mode, allow contour line to be scaled with arrow keys too
-						if(m_doc->nodeEdit.isContourLine())
+						if (m_doc->nodeEdit.isContourLine())
 							m_view->TransformPoly(11, 0, resizeBy/unitGetRatioFromIndex(m_doc->unitIndex()));
 						else if (!currItem->sizeLocked())
 						{
@@ -1569,7 +1567,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 					else
 					{
 						//CB If in EditContour mode, allow contour line to be scaled with arrow keys too
-						if(m_doc->nodeEdit.isContourLine())
+						if (m_doc->nodeEdit.isContourLine())
 							m_view->TransformPoly(12, 0, resizeBy/unitGetRatioFromIndex(m_doc->unitIndex()));
 						else if (!currItem->sizeLocked())
 						{
@@ -1659,7 +1657,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 					else
 					{
 						//CB If in EditContour mode, allow contour line to be scaled with arrow keys too
-						if(m_doc->nodeEdit.isContourLine())
+						if (m_doc->nodeEdit.isContourLine())
 							m_view->TransformPoly(13, 0, resizeBy/unitGetRatioFromIndex(m_doc->unitIndex()));
 						else if (!currItem->sizeLocked())
 						{
@@ -1697,7 +1695,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 			}
 		}
 	}
-	switch(kk)
+	switch (kk)
 	{
 		case Qt::Key_Left:
 		case Qt::Key_Right:

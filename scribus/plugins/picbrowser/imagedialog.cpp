@@ -9,7 +9,7 @@ for which a new license (GPL+exception) is in place.
 #include <QApplication>
 #include <QDesktopWidget>
 
-Imagedialog::Imagedialog ( const QString imageFile, ScribusDoc* doc , QWidget *parent ) : QDialog ( parent )
+Imagedialog::Imagedialog ( const QString& imageFile, ScribusDoc* doc , QWidget *parent ) : QDialog ( parent )
 {
 	setupUi ( this );
 	setAttribute ( Qt::WA_DeleteOnClose );
@@ -32,10 +32,10 @@ Imagedialog::Imagedialog ( const QString imageFile, ScribusDoc* doc , QWidget *p
 		pView->fitImage();
 		pView->setKeepFitted(true);
 
-		connect ( fitToWindowRadiobutton, SIGNAL ( toggled ( bool ) ), this, SLOT ( fitToWindowRadiobuttonToggled ( bool ) ) );
-		connect ( zoomRadiobutton, SIGNAL ( toggled ( bool ) ), this, SLOT ( zoomRadiobuttonToggled ( bool ) ) );
-		connect ( zoomSpinbox, SIGNAL ( valueChanged ( int ) ), this, SLOT ( zoomSpinboxValueChanged ( int ) ) );
-		connect ( showOriginalSizeButton, SIGNAL ( clicked() ), this, SLOT ( showOriginalSizeButtonClicked() ) );
+		connect(fitToWindowRadiobutton, SIGNAL(toggled(bool)), this, SLOT(fitToWindowRadiobuttonToggled(bool)));
+		connect(zoomRadiobutton, SIGNAL(toggled(bool)), this, SLOT(zoomRadiobuttonToggled(bool)));
+		connect(zoomSpinbox, SIGNAL(valueChanged(int)), this, SLOT(zoomSpinboxValueChanged(int)));
+		connect(showOriginalSizeButton, SIGNAL(clicked()), this, SLOT(showOriginalSizeButtonClicked()));
 	}
 	else
 	{
@@ -45,12 +45,10 @@ Imagedialog::Imagedialog ( const QString imageFile, ScribusDoc* doc , QWidget *p
 }
 
 
-void Imagedialog::resizeEvent ( QResizeEvent * event )
+void Imagedialog::resizeEvent(QResizeEvent* event)
 {
-	if ( fitToWindowRadiobutton->isChecked() )
-	{
+	if (fitToWindowRadiobutton->isChecked())
 		zoomSpinbox->setValue ( qRound ( pView->getZoom() * 100  * m_hRatio) );
-	}
 }
 
 

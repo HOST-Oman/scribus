@@ -36,7 +36,7 @@ class SCRIBUS_API PageItem_Group : public PageItem
 	Q_OBJECT
 
 public:
-	PageItem_Group(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_Group(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	PageItem_Group(const PageItem & p) : PageItem(p) {}
 	~PageItem_Group();
 
@@ -50,7 +50,7 @@ public:
 	virtual void getNamedResources(ResourceCollection& lists) const;
 	virtual void replaceNamedResources(ResourceCollection& newNames);
 	virtual void applicableActions(QStringList& actionList);
-	virtual QString infoDescription();
+	virtual QString infoDescription() const;
 
 	/// Retrieve child items of this item
 	virtual QList<PageItem*> getChildren() const { return groupItemList; }

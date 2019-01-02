@@ -16,14 +16,14 @@ for which a new license (GPL+exception) is in place.
 
 PyObject *scribus_actualpage(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	return PyInt_FromLong(static_cast<long>(ScCore->primaryMainWindow()->doc->currentPageNumber() + 1));
 }
 
 PyObject *scribus_redraw(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	ScCore->primaryMainWindow()->view->DrawNew();
 	qApp->processEvents();
@@ -37,7 +37,7 @@ PyObject *scribus_pageposition(PyObject* /* self */, PyObject* args)
 	int e;
 	if (!PyArg_ParseTuple(args, "i", &e))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	e--;
 	if ((e < 0) || (e > static_cast<int>(ScCore->primaryMainWindow()->doc->Pages->count())-1))
@@ -53,7 +53,7 @@ PyObject *scribus_savepageeps(PyObject* /* self */, PyObject* args)
 	char *Name;
 	if (!PyArg_ParseTuple(args, "es", "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	QString epsError;
 	bool ret = ScCore->primaryMainWindow()->DoSaveAsEps(QString::fromUtf8(Name), epsError);
@@ -76,7 +76,7 @@ PyObject *scribus_deletepage(PyObject* /* self */, PyObject* args)
 	int e;
 	if (!PyArg_ParseTuple(args, "i", &e))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	e--;
 	if ((e < 0) || (e > static_cast<int>(ScCore->primaryMainWindow()->doc->Pages->count())-1))
@@ -95,7 +95,7 @@ PyObject *scribus_gotopage(PyObject* /* self */, PyObject* args)
 	int e;
 	if (!PyArg_ParseTuple(args, "i", &e))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	e--;
 	if ((e < 0) || (e > static_cast<int>(ScCore->primaryMainWindow()->doc->Pages->count())-1))
@@ -116,13 +116,16 @@ PyObject *scribus_newpage(PyObject* /* self */, PyObject* args)
 	QString qName(CommonStrings::trMasterPageNormal);
 	if (!PyArg_ParseTuple(args, "i|es", &e, "utf-8", &name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 
-	int loc = (e > -1) ? e : ScCore->primaryMainWindow()->doc->Pages->count();
-	if (ScCore->primaryMainWindow()->doc->pageSets()[ScCore->primaryMainWindow()->doc->pagePositioning()].Columns != 1)
+	ScribusMainWindow* mainWin = ScCore->primaryMainWindow();
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
+	int loc = (e > -1) ? e : currentDoc->Pages->count();
+	if (currentDoc->pageSets()[currentDoc->pagePositioning()].Columns != 1)
 	{
-		switch (ScCore->primaryMainWindow()->doc->locationOfPage(loc))
+		switch (currentDoc->locationOfPage(loc))
 		{
 			case LeftPage:
 				qName = CommonStrings::trMasterPageNormalLeft;
@@ -138,13 +141,13 @@ PyObject *scribus_newpage(PyObject* /* self */, PyObject* args)
 	if (QString(name).length() != 0)
 		qName = QString::fromUtf8(name);
 
-	if (!ScCore->primaryMainWindow()->doc->MasterNames.contains(qName))
+	if (!currentDoc->MasterNames.contains(qName))
 	{
 		PyErr_SetString(PyExc_IndexError, QObject::tr("Given master page name does not match any existing.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
 	if (e < 0)
-		ScCore->primaryMainWindow()->slotNewPageP(loc, qName);
+		mainWin->slotNewPageP(loc, qName);
 	else
 	{
 		e--;
@@ -153,7 +156,7 @@ PyObject *scribus_newpage(PyObject* /* self */, PyObject* args)
 			PyErr_SetString(PyExc_IndexError, QObject::tr("Page number out of range.","python error").toLocal8Bit().constData());
 			return nullptr;
 		}
-		ScCore->primaryMainWindow()->slotNewPageP(e, qName);
+		mainWin->slotNewPageP(e, qName);
 	}
 // 	Py_INCREF(Py_None);
  //	return Py_None;
@@ -162,20 +165,22 @@ PyObject *scribus_newpage(PyObject* /* self */, PyObject* args)
 
 PyObject *scribus_pagecount(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	return PyInt_FromLong(static_cast<long>(ScCore->primaryMainWindow()->doc->Pages->count()));
 }
 
 PyObject *scribus_pagedimension(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
 	PyObject *t;
 	t = Py_BuildValue(
 			"(dd)",
-			PointToValue(ScCore->primaryMainWindow()->doc->pageWidth()), // it's just view scale... * ScCore->primaryMainWindow()->doc->Scale),
-			PointToValue(ScCore->primaryMainWindow()->doc->pageHeight())  // * ScCore->primaryMainWindow()->doc->Scale)
+			PointToValue(currentDoc->pageWidth()), // it's just view scale... * ScCore->primaryMainWindow()->doc->Scale),
+			PointToValue(currentDoc->pageHeight())  // * ScCore->primaryMainWindow()->doc->Scale)
 		);
 	return t;
 }
@@ -185,10 +190,12 @@ PyObject *scribus_pagensize(PyObject* /* self */, PyObject* args)
 	int e;
 	if (!PyArg_ParseTuple(args, "i", &e))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
 	e--;
-	if ((e < 0) || (e > static_cast<int>(ScCore->primaryMainWindow()->doc->Pages->count())-1))
+	if ((e < 0) || (e > static_cast<int>(currentDoc->Pages->count())-1))
 	{
 		PyErr_SetString(PyExc_IndexError, QObject::tr("Page number out of range.","python error").toLocal8Bit().constData());
 		return nullptr;
@@ -196,8 +203,8 @@ PyObject *scribus_pagensize(PyObject* /* self */, PyObject* args)
 	PyObject *t;
 	t = Py_BuildValue(
 			"(dd)",
-			PointToValue(ScCore->primaryMainWindow()->doc->Pages->at(e)->width()),
-			PointToValue(ScCore->primaryMainWindow()->doc->Pages->at(e)->height())
+			PointToValue(currentDoc->Pages->at(e)->width()),
+			PointToValue(currentDoc->Pages->at(e)->height())
 		);
 	return t;
 }
@@ -207,46 +214,50 @@ PyObject *scribus_pagenmargins(PyObject* /* self */, PyObject* args)
 	int e;
 	if (!PyArg_ParseTuple(args, "i", &e))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
 	e--;
-	if ((e < 0) || (e > static_cast<int>(ScCore->primaryMainWindow()->doc->Pages->count())-1))
+	if ((e < 0) || (e > static_cast<int>(currentDoc->Pages->count())-1))
 	{
 		PyErr_SetString(PyExc_IndexError, QObject::tr("Page number out of range.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
 	PyObject *margins = nullptr;
-	margins = Py_BuildValue("ffff", PointToValue(ScCore->primaryMainWindow()->doc->Pages->at(e)->Margins.top()),
-									PointToValue(ScCore->primaryMainWindow()->doc->Pages->at(e)->Margins.left()),
-									PointToValue(ScCore->primaryMainWindow()->doc->Pages->at(e)->Margins.right()),
-									PointToValue(ScCore->primaryMainWindow()->doc->Pages->at(e)->Margins.bottom()));
+	margins = Py_BuildValue("ffff", PointToValue(currentDoc->Pages->at(e)->Margins.top()),
+									PointToValue(currentDoc->Pages->at(e)->Margins.left()),
+									PointToValue(currentDoc->Pages->at(e)->Margins.right()),
+									PointToValue(currentDoc->Pages->at(e)->Margins.bottom()));
 	return margins;
 }
 
 PyObject *scribus_getpageitems(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
-	if (ScCore->primaryMainWindow()->doc->Items->count() == 0)
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
+	if (currentDoc->Items->count() == 0)
 		return Py_BuildValue((char*)"[]");
 	uint counter = 0;
-	int pageNr = ScCore->primaryMainWindow()->doc->currentPageNumber();
-	for (int lam2 = 0; lam2 < ScCore->primaryMainWindow()->doc->Items->count(); ++lam2)
+	int pageNr = currentDoc->currentPageNumber();
+	for (int lam2 = 0; lam2 < currentDoc->Items->count(); ++lam2)
 	{
-		if (pageNr == ScCore->primaryMainWindow()->doc->Items->at(lam2)->OwnPage)
+		if (pageNr == currentDoc->Items->at(lam2)->OwnPage)
 			counter++;
 	}
 	PyObject *l = PyList_New(counter);
 	PyObject *row;
 	counter = 0;
-	for (int i = 0; i<ScCore->primaryMainWindow()->doc->Items->count(); ++i)
+	for (int i = 0; i<currentDoc->Items->count(); ++i)
 	{
-		if (pageNr == ScCore->primaryMainWindow()->doc->Items->at(i)->OwnPage)
+		if (pageNr == currentDoc->Items->at(i)->OwnPage)
 		{
 			row = Py_BuildValue((char*)"(sii)",
-			                    ScCore->primaryMainWindow()->doc->Items->at(i)->itemName().toUtf8().constData(),
-			                    ScCore->primaryMainWindow()->doc->Items->at(i)->itemType(),
-								ScCore->primaryMainWindow()->doc->Items->at(i)->uniqueNr
+			                    currentDoc->Items->at(i)->itemName().toUtf8().constData(),
+			                    currentDoc->Items->at(i)->itemType(),
+								currentDoc->Items->at(i)->uniqueNr
 			                   );
 			PyList_SetItem(l, counter, row);
 			counter++;
@@ -257,7 +268,7 @@ PyObject *scribus_getpageitems(PyObject* /* self */)
 
 PyObject *scribus_getHguides(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	Guides g = ScCore->primaryMainWindow()->doc->currentPage()->guides.horizontals(GuideManagerCore::Standard);
 	int n = g.count();//ScCore->primaryMainWindow()->doc->currentPage->YGuides.count();
@@ -281,8 +292,10 @@ PyObject *scribus_setHguides(PyObject* /* self */, PyObject* args)
 	PyObject *l;
 	if (!PyArg_ParseTuple(args, "O", &l))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
 	if (!PyList_Check(l))
 	{
 		PyErr_SetString(PyExc_TypeError, QObject::tr("argument is not list: must be list of float values.","python error").toLocal8Bit().constData());
@@ -291,7 +304,7 @@ PyObject *scribus_setHguides(PyObject* /* self */, PyObject* args)
 	int i, n;
 	n = PyList_Size(l);
 	double guide;
-	ScCore->primaryMainWindow()->doc->currentPage()->guides.clearHorizontals(GuideManagerCore::Standard);
+	currentDoc->currentPage()->guides.clearHorizontals(GuideManagerCore::Standard);
 	for (i=0; i<n; i++)
 	{
 		if (!PyArg_Parse(PyList_GetItem(l, i), "d", &guide))
@@ -299,7 +312,7 @@ PyObject *scribus_setHguides(PyObject* /* self */, PyObject* args)
 			PyErr_SetString(PyExc_TypeError, QObject::tr("argument contains non-numeric values: must be list of float values.","python error").toLocal8Bit().constData());
 			return nullptr;
 		}
-		ScCore->primaryMainWindow()->doc->currentPage()->guides.addHorizontal(ValueToPoint(guide), GuideManagerCore::Standard);
+		currentDoc->currentPage()->guides.addHorizontal(ValueToPoint(guide), GuideManagerCore::Standard);
 	}
  	Py_INCREF(Py_None);
  	return Py_None;
@@ -308,7 +321,7 @@ PyObject *scribus_setHguides(PyObject* /* self */, PyObject* args)
 
 PyObject *scribus_getVguides(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	Guides g = ScCore->primaryMainWindow()->doc->currentPage()->guides.verticals(GuideManagerCore::Standard);
 	int n = g.count();//ScCore->primaryMainWindow()->doc->currentPage->XGuides.count();
@@ -332,8 +345,10 @@ PyObject *scribus_setVguides(PyObject* /* self */, PyObject* args)
 	PyObject *l;
 	if (!PyArg_ParseTuple(args, "O", &l))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
 	if (!PyList_Check(l))
 	{
 		PyErr_SetString(PyExc_TypeError, QObject::tr("argument is not list: must be list of float values.","python error").toLocal8Bit().constData());
@@ -342,7 +357,7 @@ PyObject *scribus_setVguides(PyObject* /* self */, PyObject* args)
 	int i, n;
 	n = PyList_Size(l);
 	double guide;
-	ScCore->primaryMainWindow()->doc->currentPage()->guides.clearVerticals(GuideManagerCore::Standard);
+	currentDoc->currentPage()->guides.clearVerticals(GuideManagerCore::Standard);
 	for (i=0; i<n; i++)
 	{
 		if (!PyArg_Parse(PyList_GetItem(l, i), "d", &guide))
@@ -350,7 +365,7 @@ PyObject *scribus_setVguides(PyObject* /* self */, PyObject* args)
 			PyErr_SetString(PyExc_TypeError, QObject::tr("argument contains no-numeric values: must be list of float values.","python error").toLocal8Bit().constData());
 			return nullptr;
 		}
-		ScCore->primaryMainWindow()->doc->currentPage()->guides.addVertical(ValueToPoint(guide), GuideManagerCore::Standard);
+		currentDoc->currentPage()->guides.addVertical(ValueToPoint(guide), GuideManagerCore::Standard);
 	}
 // 	Py_INCREF(Py_None);
 // 	return Py_None;
@@ -360,12 +375,14 @@ PyObject *scribus_setVguides(PyObject* /* self */, PyObject* args)
 PyObject *scribus_getpagemargins(PyObject* /* self */)
 {
 	PyObject *margins = nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
-	margins = Py_BuildValue("ffff", PointToValue(ScCore->primaryMainWindow()->doc->margins()->top()),
-									PointToValue(ScCore->primaryMainWindow()->doc->margins()->left()),
-									PointToValue(ScCore->primaryMainWindow()->doc->margins()->right()),
-									PointToValue(ScCore->primaryMainWindow()->doc->margins()->bottom()));
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
+	margins = Py_BuildValue("ffff", PointToValue(currentDoc->margins()->top()),
+									PointToValue(currentDoc->margins()->left()),
+									PointToValue(currentDoc->margins()->right()),
+									PointToValue(currentDoc->margins()->bottom()));
 	return margins;
 }
 
@@ -378,20 +395,23 @@ PyObject *scribus_getpagemargins(PyObject* /* self */)
  \retval void
  */
 // This function is used by scribus_importpage() to add new pages
-void import_addpages(int total, int pos) {
+void import_addpages(int total, int pos)
+{
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
 	for (int i=0; i<total; i++)
 	{
 		int locreal = pos + i;
 		int loc = pos + i + 1;
 
-		if (loc > ScCore->primaryMainWindow()->doc->Pages->count())
-			loc = ScCore->primaryMainWindow()->doc->Pages->count();
+		if (loc > currentDoc->Pages->count())
+			loc = currentDoc->Pages->count();
 
 		QString qName(CommonStrings::trMasterPageNormal);
 
-		if (ScCore->primaryMainWindow()->doc->pageSets()[ScCore->primaryMainWindow()->doc->pagePositioning()].Columns != 1) {
-			ScCore->primaryMainWindow()->doc->locationOfPage(loc);
-			switch (ScCore->primaryMainWindow()->doc->locationOfPage(loc))
+		if (currentDoc->pageSets()[currentDoc->pagePositioning()].Columns != 1) {
+			currentDoc->locationOfPage(loc);
+			switch (currentDoc->locationOfPage(loc))
 			{
 				case LeftPage:
 					qName = CommonStrings::trMasterPageNormalLeft;
@@ -426,7 +446,7 @@ PyObject *scribus_importpage(PyObject* /* self */, PyObject* args)
 
 	if (!PyArg_ParseTuple(args, "sO|iii", &doc, &pages, &createPageI, &importWhere, &importWherePage))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 
 	if (!PyTuple_Check(pages))
@@ -457,7 +477,8 @@ PyObject *scribus_importpage(PyObject* /* self */, PyObject* args)
 	int startPage=0, nrToImport=pageNs.size();
 	bool doIt = true;
 
-	if (ScCore->primaryMainWindow()->doc->masterPageMode())
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	if (currentDoc->masterPageMode())
 	{
 		if (nrToImport > 1)
 			ScCore->primaryMainWindow()->loadPage(fromDoc, pageNs[0] - 1, false);
@@ -470,17 +491,17 @@ PyObject *scribus_importpage(PyObject* /* self */, PyObject* args)
 		else if (importWhere == 1) //After page
 			startPage = importWherePage + 1;
 		else //at end
-			startPage = ScCore->primaryMainWindow()->doc->DocPages.count();// + 1;
+			startPage = currentDoc->DocPages.count();// + 1;
 
 		import_addpages(nrToImport, startPage);
 	}
 	else
 	{
-		startPage = ScCore->primaryMainWindow()->doc->currentPage()->pageNr() + 1;
-		if (nrToImport > (ScCore->primaryMainWindow()->doc->DocPages.count() - ScCore->primaryMainWindow()->doc->currentPage()->pageNr()))
+		startPage = currentDoc->currentPage()->pageNr() + 1;
+		if (nrToImport > (currentDoc->DocPages.count() - currentDoc->currentPage()->pageNr()))
 		{
-			int tmp=nrToImport - (ScCore->primaryMainWindow()->doc->DocPages.count() - ScCore->primaryMainWindow()->doc->currentPage()->pageNr());
-			import_addpages(tmp, ScCore->primaryMainWindow()->doc->DocPages.count());
+			int tmp=nrToImport - (currentDoc->DocPages.count() - currentDoc->currentPage()->pageNr());
+			import_addpages(tmp, currentDoc->DocPages.count());
 		}
 	}
 

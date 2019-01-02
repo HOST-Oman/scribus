@@ -83,7 +83,7 @@ public slots:
 	void showCharStyle(const QString& name);
 	void showFontFace(const QString&);
 	void showFontSize(double s);
-	void showLanguage(QString w);
+	void showLanguage(const QString& w);
 	void showFirstLinePolicy(FirstLineOffsetPolicy);
 	void showLineSpacing(double r);
 	void showParStyle(const QString& name);
@@ -99,7 +99,7 @@ public slots:
 	void updateTextStyles();
 	
 	void handleLineSpacingMode(int id);
-	void handleTextFont(QString);
+	void handleTextFont(const QString&);
 
 	// update widget layout
 	void updateTreeLayout();

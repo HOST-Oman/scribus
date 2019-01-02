@@ -20,7 +20,7 @@ variable est utile pour afficher la version &agrave; l'utilisateur, par exemple 
 	<p><code>scribus_version_info</code> est un vecteur semblable au vecteur <code>sys.version_info</code> fourni par Python. 
 C'est un vecteur de la forme (majorversion, minorversion, patchlevel,
 extraversion, build), par exemple 1.2.1cvs correspond &agrave;
-<code>(1,2,1,'cvs',0)</code> et 1.3.2 correspond &agrave; <code>(1,3,2,'',0)<code> . Ces vecteurs sont id&eacute;aux pour v&eacute;rifier les versions minimum, etc., parce que Python compare les vecteurs &eacute;l&eacute;ment par &eacute;l&eacute;ment, de gauche &agrave; droite. Par exemple :</p>
+<code>(1,2,1,'cvs',0)</code> et 1.3.2 correspond &agrave; <code>(1,3,2,'',0)</code> . Ces vecteurs sont id&eacute;aux pour v&eacute;rifier les versions minimum, etc., parce que Python compare les vecteurs &eacute;l&eacute;ment par &eacute;l&eacute;ment, de gauche &agrave; droite. Par exemple :</p>
 <pre>
 if scribus.scribus_version_info[:3] &lt; (1,2,2):
     messageBox("Scribus - script Python",
@@ -31,6 +31,7 @@ if scribus.scribus_version_info[:3] &lt; (1,2,2):
 </pre>
 
 <h4>Constantes d'&eacute;num&eacute;ration d'unit&eacute;s : </h4>
+<table><tr><td>
 <dl>
 	<dt>UNIT_POINTS</dt>
 	<dd>Unit&eacute; de mesure point = 0</dd>
@@ -41,100 +42,159 @@ if scribus.scribus_version_info[:3] &lt; (1,2,2):
 	<dt>UNIT_PICAS</dt>
 	<dd>Unit&eacute; de mesure pica = 3</dd>
 </dl>
+</td></tr></table>
 
 <h4>Constantes de conversion d'unit&eacute;s</h4>
 
 <p>Ces facteurs de conversion peuvent &ecirc;tre utilis&eacute;s pour convertir les unit&eacute;s en points et vice versa.
 Ainsi, pour convertir les pouces en points, il suffit d'&eacute;crire 'valeur/inch'; pour convertir les points en pouces vous &eacute;crirez 'valeur*inch', et pour convertir les pouces en mm vous &eacute;crirez 'valeur*mm/inch'.</p>
 
+<table><tr><td>
 <dl>
 	<dt>pt</dt>
 	<dd>points dans 1 pt</dd>
 	<dt>inch</dt>
 	<dd>pouces dans 1 pt</dt>
 	<dt>p</dt>
-	<dt>pica dans 1 pt</dt>
+	<dd>pica dans 1 pt</dd>
 	<dt>cm<dt>
-	<dt>centim&egrave;tres dans 1 pt</dt>
+	<dd>centim&egrave;tres dans 1 pt</dd>
 	<dt>mm</dt>
-	<dt>millim&egrave;tres dans 1 pt</dt>
+	<dd>millim&egrave;tres dans 1 pt</dd>
 	<dt>...</dt>
-	<dt>D'autres constantes seront fournies si le coeur de Scribus les reconna&icirc;t.</dt>
+	<dd>D'autres constantes seront fournies si le coeur de Scribus les reconna&icirc;t.</dd>
 </dl>
+</td></tr></table>
 
 <h4>D&eacute;finitions d'orientation de page :</h4>
+<table><tr><td>
 <dl>
 	<dt>PORTRAIT</dt>
-	<dd>Pageformat Portrait = 0</dd>
+	<dd>Orientation Portrait = 0</dd>
 	<dt>LANDSCAPE</dt>
-	<dd>Pageformat Landscape = 1</dd>
+	<dd>Orientation Landscape = 1</dd>
 </dl>
+</td></tr></table>
 
 <h4>R&eacute;glages de format de page : </h4>
+<table><tr>
+<td>
 <dl>
 	<dt>PAPER_A0</dt>
-	<dd>Paperformat A0 = 2380 x 3368 Points</dd>
+	<dd>Format papier A0 = 2380 x 3368 Points</dd>
 	<dt>PAPER_A1</dt>
-	<dd>Paperformat A1 = 1684 x 2380 Points</dd>
+	<dd>Format papier A1 = 1684 x 2380 Points</dd>
 	<dt>PAPER_A2</dt>
-	<dd>Paperformat A2 = 1190 x 1684 Points</dd>
+	<dd>Format papier A2 = 1190 x 1684 Points</dd>
 	<dt>PAPER_A3</dt>
-	<dd>Paperformat A3 = 842 x 1190 Points</dd>
+	<dd>Format papier A3 = 842 x 1190 Points</dd>
 	<dt>PAPER_A4</dt>
-	<dd>Paperformat A4 = 595 x 842 Points</dd>
+	<dd>Format papier A4 = 595 x 842 Points</dd>
 	<dt>PAPER_A5</dt>
-	<dd>Paperformat A5 = 421 x 595 Points</dd>
+	<dd>Format papier A5 = 421 x 595 Points</dd>
 	<dt>PAPER_A6</dt>
-	<dd>Paperformat A6 = 297 x 421 Points</dd>
+	<dd>Format papier A6 = 297 x 421 Points</dd>
 	<dt>PAPER_A7</dt>
-	<dd>Paperformat A7 = 210 x 297 Points</dd>
+	<dd>Format papier A7 = 210 x 297 Points</dd>
 	<dt>PAPER_A8</dt>
-	<dd>Paperformat A8 = 148 x 210 Points</dd>
+	<dd>Format papier A8 = 148 x 210 Points</dd>
 	<dt>PAPER_A9</dt>
-	<dd>Paperformat A9 = 105 x 148 Points</dd>
+	<dd>Format papier A9 = 105 x 148 Points</dd></dl></td>
+<td>
+<dl>
+	<dt>PAPER_A0_MM</dt>
+	<dd>Format papier A0 = 841 x 1189 Millim&egrave;tres</dd>
+	<dt>PAPER_A1_MM</dt>
+	<dd>Format papier A1 = 594 x 841 Millim&egrave;tres</dd>
+	<dt>PAPER_A2_MM</dt>
+	<dd>Format papier A2 = 420 x 594 Millim&egrave;tres</dd>
+	<dt>PAPER_A3_MM</dt>
+	<dd>Format papier A3 = 297 x 420 Millim&egrave;tres</dd>
+	<dt>PAPER_A4_MM</dt>
+	<dd>Format papier A4 = 210 x 297 Millim&egrave;tres</dd>
+	<dt>PAPER_A5_MM</dt>
+	<dd>Format papier A5 = 148 x 210 Millim&egrave;tres</dd>
+	<dt>PAPER_A6_MM</dt>
+	<dd>Format papier A6 = 105 x 148 Millim&egrave;tres</dd>
+	<dt>PAPER_A7_MM</dt>
+	<dd>Format papier A7 = 74 x 105 Millim&egrave;tres</dd>
+	<dt>PAPER_A8_MM</dt>
+	<dd>Format papier A8 = 52 x 74 Millim&egrave;tres</dd>
+	<dt>PAPER_A9_MM</dt>
+	<dd>Format papier A9 = 37 x 52 Millim&egrave;tres</dd></dl></td></tr>
+<tr><td>
+<dl>
 	<dt>PAPER_B0</dt>
-	<dd>Paperformat B0 = 2836 x 4008 Points</dd>
+	<dd>Format papier B0 = 2836 x 4008 Points</dd>
 	<dt>PAPER_B1</dt>
-	<dd>Paperformat B1 = 2004 x 2836 Points</dd>
+	<dd>Format papier B1 = 2004 x 2836 Points</dd>
 	<dt>PAPER_B2</dt>
-	<dd>Paperformat B2 = 1418 x 2004 Points</dd>
+	<dd>Format papier B2 = 1418 x 2004 Points</dd>
 	<dt>PAPER_B3</dt>
-	<dd>Paperformat B3 = 1002 x 1418 Points</dd>
+	<dd>Format papier B3 = 1002 x 1418 Points</dd>
 	<dt>PAPER_B4</dt>
-	<dd>Paperformat B4 = 709 x 1002 Points</dd>
+	<dd>Format papier B4 = 709 x 1002 Points</dd>
 	<dt>PAPER_B5</dt>
-	<dd>Paperformat B5 = 501 x 709 Points</dd>
+	<dd>Format papier B5 = 501 x 709 Points</dd>
 	<dt>PAPER_B6</dt>
-	<dd>Paperformat B6 = 355 x 501 Points</dd>
+	<dd>Format papier B6 = 355 x 501 Points</dd>
 	<dt>PAPER_B7</dt>
-	<dd>Paperformat B7 = 250 x 355 Points</dd>
+	<dd>Format papier B7 = 250 x 355 Points</dd>
 	<dt>PAPER_B8</dt>
-	<dd>Paperformat B8 = 178 x 250 Points</dd>
+	<dd>Format papier B8 = 178 x 250 Points</dd>
 	<dt>PAPER_B9</dt>
-	<dd>Paperformat B9 = 125 x 178 Points</dd>
+	<dd>Format papier B9 = 125 x 178 Points</dd>
 	<dt>PAPER_B10</dt>
-	<dd>Paperformat B10 = 89 x 125 Points</dd>
+	<dd>Format papier B10 = 89 x 125 Points</dd></dl></td>
+<td>
+<dl>
+	<dt>PAPER_B0_MM</dt>
+	<dd>Format papier B0 = 1000 x 1414 Millim&egrave;tres</dd>
+	<dt>PAPER_B1_MM</dt>
+	<dd>Format papier B1 = 707 x 1000 Millim&egrave;tres</dd>
+	<dt>PAPER_B2_MM</dt>
+	<dd>Format papier B2 = 500 x 707 Millim&egrave;tres</dd>
+	<dt>PAPER_B3_MM</dt>
+	<dd>Format papier B3 = 353 x 500 Millim&egrave;tres</dd>
+	<dt>PAPER_B4_MM</dt>
+	<dd>Format papier B4 = 250 x 353 Millim&egrave;tres</dd>
+	<dt>PAPER_B5_MM</dt>
+	<dd>Format papier B5 = 176 x 250 Millim&egrave;tres</dd>
+	<dt>PAPER_B6_MM</dt>
+	<dd>Format papier B6 = 125 x 176 Millim&egrave;tres</dd>
+	<dt>PAPER_B7_MM</dt>
+	<dd>Format papier B7 = 88 x 125 Millim&egrave;tres</dd>
+	<dt>PAPER_B8_MM</dt>
+	<dd>Format papier B8 = 62 x 88 Millim&egrave;tres</dd>
+	<dt>PAPER_B9_MM</dt>
+	<dd>Format papier B9 = 44 x 62 Millim&egrave;tres</dd>
+	<dt>PAPER_B10_MM</dt>
+	<dd>Format papier B10 = 31 x 44 Millim&egrave;tres</dd></dl></td></tr>
+<tr><td>
+<dl>
 	<dt>PAPER_C5E</dt>
-	<dd>Paperformat C5E = 462 x 649 Points</dd>
+	<dd>Format papier C5E = 462 x 649 Points</dd>
 	<dt>PAPER_COMM10E</dt>
-	<dd>Paperformat Comm10E = 298 x 683 Points</dd>
+	<dd>Format papier Comm10E = 298 x 683 Points</dd>
 	<dt>PAPER_DLE</dt>
-	<dd>Paperformat DLE = 312 x 624 Points</dd>
+	<dd>Format papier DLE = 312 x 624 Points</dd>
 	<dt>PAPER_EXECUTIVE</dt>
-	<dd>Paperformat Executive = 542 x 720 Points</dd>
+	<dd>Format papier Executive = 542 x 720 Points</dd>
 	<dt>PAPER_FOLIO</dt>
-	<dd>Paperformat Folio = 595 x 935 Points</dd>
+	<dd>Format papier Folio = 595 x 935 Points</dd>
 	<dt>PAPER_LEDGER</dt>
-	<dd>Paperformat Ledger = 1224 x 792 Points</dd>
+	<dd>Format papier Ledger = 1224 x 792 Points</dd>
 	<dt>PAPER_LEGAL</dt>
-	<dd>Paperformat Legal = 612 x 1008 Points</dd>
+	<dd>Format papier Legal = 612 x 1008 Points</dd>
 	<dt>PAPER_LETTER</dt>
-	<dd>Paperformat Letter = 612 x 792 Points</dd>
+	<dd>Format papier Letter = 612 x 792 Points</dd>
 	<dt>PAPER_TABLOID</dt>
-	<dd>Paperformat Tabloid = 792 x 1224 Points</dd>
-</dl>
+	<dd>Format papier Tabloid = 792 x 1224 Points</dd>
+</dl></td></tr>
+</table>
 
 <h4>R&eacute;glages de la disposition du document :</h4>
+<table><tr><td>
 <dl>
 	<dt>FACINGPAGES</dt>
 	<dd>Disposition avec des pages en regard.</dd>
@@ -145,10 +205,12 @@ Ainsi, pour convertir les pouces en points, il suffit d'&eacute;crire 'valeur/in
 	<dt>FIRSTPAGERIGHT</dt>
 	<dd>La premi&egrave;re page du document est une premi&egrave;re de droite.</dd>
 </dl>
+</td></tr></table>
 
-<h4>R&eacute;glages d'alignement</h4>
+<h4>R&eacute;glages de l'alignement :</h4>
+<table><tr><td>
 <dl>
-	<dt>ALIGN_LEFTK</dt>
+	<dt>ALIGN_LEFT</dt>
 	<dd>Le texte est align&eacute; &agrave; gauche.</dd>
 	<dt>ALIGN_CENTERED</dt>
 	<dd>Le texte est centr&eacute; dans le cadre de texte.</dd>
@@ -159,23 +221,53 @@ Ainsi, pour convertir les pouces en points, il suffit d'&eacute;crire 'valeur/in
   	<dt>ALIGN_BLOCK</dt>
 	<dd>Le texte a un alignement bloqu&eacute;.</dd>
 </dl>
+</td></tr></table>
 
-<h4>R&eacute;glages relatifs aux lignes : </h4>
+<h4>R&eacute;glages de l'alignement vertical :</h4>
+<table><tr><td>
+<dl>
+	<dt>ALIGNV_TOP</dt>
+	<dd>Le texte est align&eacute; verticalement en haut.</dd>
+	<dt>ALIGNV_CENTERED</dt>
+	<dd>Le texte est align&eacute; verticalement au centre.</dd>
+	<dt>ALIGNV_BOTTOM</dt>
+	<dd>Le texte est align&eacute; verticalement en bas.</dd>
+</dl>
+</td></tr></table>
+
+<h4>R&eacute;glages relatifs aux lignes :</h4>
+<table><tr><td>
 <dl>
     <dt>LINE_DASH</dt>
     <dt>LINE_DASHDOT</dt>
     <dt>LINE_DASHDOTDOT</dt>
     <dt>LINE_DOT</dt>
     <dt>LINE_SOLID</dt>
+    <dt><p/></dt>
     <dt>JOIN_BEVEL</dt>
     <dt>JOIN_MITTER</dt>
     <dt>JOIN_ROUND</dt>
+    <dt><p/></dt>
     <dt>CAP_FLAT</dt>
     <dt>CAP_ROUND</dt>
     <dt>CAP_SQUARE</dt>
 </dl>
+</td></tr></table>
 
-<h4>R&eacute;glages relatifs au fond : </h4>
+<h4>D&eacute;finitions d'espaces de couleur: </h4>
+<table><tr><td>
+<dl>
+	<dt>CSPACE_UNDEFINED</dt>
+	<dt>CSPACE_RGB</dt>
+	<dt>CSPACE_CMYK</dt>
+	<dt>CSPACE_GRAY</dt>
+	<dt>CSPACE_DUOTONE</dt>
+	<dt>CSPACE_MONOCHROME</dt>
+</dl>
+</td></tr></table>
+
+<h4>R&eacute;glages relatifs au fond :</h4>
+<table><tr><td>
 <dl>
 	<dt>FILL_NOG</dt>
     <dd>Pas de d&eacute;grad&eacute;, couleur unie</dd>
@@ -185,8 +277,10 @@ Ainsi, pour convertir les pouces en points, il suffit d'&eacute;crire 'valeur/in
 	<dt>FILL_CROSSDIAGONALG</dt>
 	<dt>FILL_RADIALG</dt>
 </dl>
+</td></tr></table>
 
 <h4>Boutons de dialogue</h4>
+<table><tr><td>
 <dl>
     <dt>BUTTON_ABORT</dt>
     <dt>BUTTON_CANCEL</dt>
@@ -197,14 +291,17 @@ Ainsi, pour convertir les pouces en points, il suffit d'&eacute;crire 'valeur/in
     <dt>BUTTON_RETRY</dt>
     <dt>BUTTON_YES</dt>
 </dl>
+</td></tr></table>
 
 <h4>Ic&ocirc;nes de dialogue</h4>
+<table><tr><td>
 <dl>
     <dt>ICON_CRITICAL</dt>
     <dt>ICON_INFORMATION</dt>
     <dt>ICON_NONE</dt>
     <dt>ICON_WARNING</dt>
 </dl>
+</td></tr></table>
 
 </body>
 </html>

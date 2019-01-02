@@ -36,7 +36,7 @@ class SCRIBUS_API PageItem_RegularPolygon : public PageItem
 	Q_OBJECT
 
 public:
-	PageItem_RegularPolygon(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_RegularPolygon(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	PageItem_RegularPolygon(const PageItem & p) : PageItem(p) {}
 	~PageItem_RegularPolygon() {};
 
@@ -44,7 +44,8 @@ public:
 	virtual bool isRegularPolygon() const { return true; }
 	virtual ItemType realItemType() const { return PageItem::RegularPolygon; }
 	virtual void applicableActions(QStringList& actionList);
-	virtual QString infoDescription();
+	virtual QString infoDescription() const;
+
 	void recalcPath();
 	/* Regular Polygon Tool */
 	int polyCorners;  //! Number of corners for a polygon

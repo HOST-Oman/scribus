@@ -136,7 +136,7 @@ void HTMLReader::startElement(void*, const xmlChar * fullname, const xmlChar ** 
 	QXmlAttributes attrs;
 	if (atts)
 	{
-		for(const xmlChar** cur = atts; cur && *cur; cur += 2)
+		for (const xmlChar** cur = atts; cur && *cur; cur += 2)
 			attrs.append(QString((char*)*cur), nullptr, QString((char*)*cur), QString((char*)*(cur + 1)));
 	}
 	hreader->startElement(nullptr, nullptr, name, attrs);
@@ -262,7 +262,7 @@ bool HTMLReader::characters(const QString &ch)
 		// must be ignored, not exactly that, but better than nothing
 		if (elemJustStarted  || elemJustFinished)
 		{
-			while( !tmp.isEmpty() && (tmp[0] == '\r' || tmp[0] == '\n') )
+			while (!tmp.isEmpty() && (tmp[0] == '\r' || tmp[0] == '\n'))
 				tmp = tmp.right(tmp.length() - 1);
 			elemJustStarted = elemJustFinished = false;
 			if (tmp.isEmpty())
@@ -616,7 +616,7 @@ void HTMLReader::unSetBoldFont()
 	pstylepre->getFont()->setWeight(defaultWeight);
 }
 
-void HTMLReader::parse(QString filename)
+void HTMLReader::parse(const QString& filename)
 {
 #if defined(_WIN32)
 	QString fname = QDir::toNativeSeparators(filename);

@@ -151,7 +151,7 @@ void CanvasMode_Normal::deactivate(bool forGesture)
 
 void CanvasMode_Normal::mouseDoubleClickEvent(QMouseEvent *m)
 {
-	PageItem *currItem = 0;
+	PageItem *currItem = nullptr;
 	m->accept();
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	if (m_doc->drawAsPreview)
@@ -203,12 +203,10 @@ void CanvasMode_Normal::mouseDoubleClickEvent(QMouseEvent *m)
 			if (currItem->imageVisible())
 				m_view->requestMode(modeEdit);
 		}
-#ifdef HAVE_OSG
 		else if (currItem->asOSGFrame())
 		{
 			m_view->requestMode(submodeEditExternal);
 		}
-#endif
 		else if ((currItem->itemType() == PageItem::Polygon) || (currItem->itemType() == PageItem::PolyLine) || (currItem->itemType() == PageItem::Group) || (currItem->itemType() == PageItem::ImageFrame) || (currItem->itemType() == PageItem::PathText))
 		{
 			if (currItem->locked()) //|| (!currItem->ScaleType))
@@ -226,10 +224,10 @@ void CanvasMode_Normal::mouseDoubleClickEvent(QMouseEvent *m)
 					m_view->requestMode(submodeStatusPic);
 				else if (currItem->imageVisible())
 					m_view->requestMode(modeEdit);
- 			}
- 			else if (currItem->itemType() == PageItem::TextFrame)
+			}
+			else if (currItem->itemType() == PageItem::TextFrame)
 			{
- 				m_view->requestMode(modeEdit);
+				m_view->requestMode(modeEdit);
 			}
 			else
 			{
@@ -480,7 +478,7 @@ void CanvasMode_Normal::mouseMoveEvent(QMouseEvent *m)
 				m_doc->DragElements.clear();
 				for (int dre=0; dre<m_doc->m_Selection->count(); ++dre)
 					m_doc->DragElements.append(m_doc->m_Selection->itemAt(dre));
-				ScElemMimeData* md = ScriXmlDoc::WriteToMimeData(m_doc, m_doc->m_Selection);
+				ScElemMimeData* md = ScriXmlDoc::writeToMimeData(m_doc, m_doc->m_Selection);
 				QDrag* dr = new QDrag(m_view);
 				dr->setMimeData(md);
 				const QPixmap& pm = IconManager::instance()->loadPixmap("dragpix.png");
@@ -492,7 +490,7 @@ void CanvasMode_Normal::mouseMoveEvent(QMouseEvent *m)
 				m_doc->DragP = false;
 				m_doc->leaveDrag = false;
 				m_canvas->m_viewMode.m_MouseButtonPressed = false;
-				m_doc->DraggedElem = 0;
+				m_doc->DraggedElem = nullptr;
 				m_doc->DragElements.clear();
 				m_view->setCursor(QCursor(Qt::ArrowCursor));
 				m_view->updateContents();
@@ -537,8 +535,8 @@ void CanvasMode_Normal::mouseMoveEvent(QMouseEvent *m)
 							if (abs(dX) > abs(dY))
 								dY=0;
 							else
-							if (abs(dY) > abs(dX))
-								dX=0;
+								if (abs(dY) > abs(dX))
+									dX=0;
 							erf=false;
 							dX+=qRound(m_dragConstrainInitPtX-currItem->xPos());
 							dY+=qRound(m_dragConstrainInitPtY-currItem->yPos());
@@ -632,8 +630,8 @@ void CanvasMode_Normal::mouseMoveEvent(QMouseEvent *m)
 						if (abs(dX)>abs(dY))
 							dY=0;
 						else
-						if (abs(dY)>abs(dX))
-							dX=0;
+							if (abs(dY)>abs(dX))
+								dX=0;
 						erf=false;
 						dX+=m_dragConstrainInitPtX-qRound(gx);
 						dY+=m_dragConstrainInitPtY-qRound(gy);
@@ -930,7 +928,7 @@ void CanvasMode_Normal::mousePressEvent(QMouseEvent *m)
 				m_view->updatesOn(true);
 				m_doc->m_Selection->delaySignalsOff();
 			}
-			if ((currItem && !currItem->locked() && m_frameResizeHandle > 0) == false && (!m_doc->drawAsPreview))
+			if (!(currItem && !currItem->locked() && m_frameResizeHandle > 0) && (!m_doc->drawAsPreview))
 			{
 				m_mouseCurrentPoint = m_mousePressPoint = m_mouseSavedPoint = mousePointDoc;
 			}
@@ -1052,7 +1050,7 @@ void CanvasMode_Normal::mouseReleaseEvent(QMouseEvent *m)
 			// hm, I will try to be more explicit :) - pm
 			int itemIndex = m_doc->Items->count();
 			PageItem* underItem( m_canvas->itemUnderItem(currItem, itemIndex) );
-			while(underItem)
+			while (underItem)
 			{
 				if (underItem->asTextFrame())
 					underItem->asTextFrame()->invalidateLayout(false);
@@ -1175,16 +1173,23 @@ void CanvasMode_Normal::mouseReleaseEvent(QMouseEvent *m)
 		if (docItemCount != 0)
 		{
 			m_doc->m_Selection->delaySignalsOn();
+			// loop over all items and select
+			bool altPressed = m->modifiers() & Qt::AltModifier;
+			bool shiftPressed = m->modifiers() & Qt::ShiftModifier;
+
 			for (int a = 0; a < docItemCount; ++a)
 			{
 				PageItem* docItem = m_doc->Items->at(a);
 				if ((m_doc->masterPageMode()) && (docItem->OnMasterPage != m_doc->currentPage()->pageName()))
 					continue;
 				QRect  apr2 = m_canvas->canvasToLocal( docItem->getCurrentBoundingRect(docItem->lineWidth()) );
-				if ((localSele.contains(apr2)) && ((docItem->LayerID == m_doc->activeLayer()) || (m_doc->layerSelectable(docItem->LayerID))) && (!m_doc->layerLocked(docItem->LayerID)))
+				if (((docItem->LayerID == m_doc->activeLayer()) || (m_doc->layerSelectable(docItem->LayerID))) && (!m_doc->layerLocked(docItem->LayerID)))
 				{
-					bool redrawSelection=false;
-					m_view->SelectItemNr(a, redrawSelection);
+					bool redrawSelection = false;
+					bool select = altPressed ? localSele.intersects(apr2) :
+                                               localSele.contains(apr2);
+					if (select)
+						m_view->SelectItemNr(a, redrawSelection);
 				}
 			}
 			m_doc->m_Selection->delaySignalsOff();
@@ -1213,7 +1218,6 @@ void CanvasMode_Normal::mouseReleaseEvent(QMouseEvent *m)
 	}
 	if (GetItem(&currItem))
 	{
-	//	qApp->changeOverrideCursor(QCursor(Qt::OpenHandCursor));
 		if (m_doc->m_Selection->count() > 1)
 		{
 			m_doc->m_Selection->setGroupRect();
@@ -1221,10 +1225,7 @@ void CanvasMode_Normal::mouseReleaseEvent(QMouseEvent *m)
 			m_doc->m_Selection->getGroupRect(&x, &y, &w, &h);
 			m_canvas->m_viewMode.operItemMoving = false;
 			m_canvas->m_viewMode.operItemResizing = false;
-			m_view->updateContents(QRect(static_cast<int>(x-5), static_cast<int>(y-5), static_cast<int>(w+10), static_cast<int>(h+10)));
-			//Now unuseful as PropertiesPalette_XYZ::setCurrentItem() handles multiple selection
-			//m_ScMW->propertiesPalette->setXY(x,y);
-			//m_ScMW->propertiesPalette->setBH(w,h);
+			m_view->updateContents(QRect(static_cast<int>(x - 5), static_cast<int>(y - 5), static_cast<int>(w + 10), static_cast<int>(h + 10)));
 		}
 		/*else
 			currItem->emitAllToGUI();*/
@@ -1260,7 +1261,7 @@ void CanvasMode_Normal::mouseReleaseEvent(QMouseEvent *m)
 	m_view->m_ScMW->pageSelector->clearFocus();
 	if (m_doc->m_Selection->count() > 0)
 	{
-		if (m_doc->m_Selection->itemAt(0) != 0) // is there the old clip stored for the undo action
+		if (m_doc->m_Selection->itemAt(0) != nullptr) // is there the old clip stored for the undo action
 		{
 			currItem = m_doc->m_Selection->itemAt(0);
 			m_doc->nodeEdit.finishTransaction(currItem);
@@ -1614,13 +1615,10 @@ bool CanvasMode_Normal::SeleItem(QMouseEvent *m)
 				//	qDebug()<<"Out Of SeleItem"<<__LINE__;
 					return true;
 				}
-				else
-				{
 				// If we call startGesture now, a new guide is created each time.
 				// ### could be a weakness to avoid calling it tho.
 	 			//	m_view->startGesture(guideMoveGesture);
-					m_guideMoveGesture->mouseSelectGuide(m);
-				}
+				m_guideMoveGesture->mouseSelectGuide(m);
 			}
 		}
 	}
@@ -1763,13 +1761,10 @@ bool CanvasMode_Normal::SeleItem(QMouseEvent *m)
 			m_doc->m_Selection->connectItemToGUI();
 			return true;
 		}
-		else
-		{
-			// If we call startGesture now, a new guide is created each time.
-			// ### could be a weakness to avoid calling it tho.
-// 			m_view->startGesture(guideMoveGesture);
-			m_guideMoveGesture->mouseSelectGuide(m);
-		}
+		// If we call startGesture now, a new guide is created each time.
+		// ### could be a weakness to avoid calling it tho.
+		// 			m_view->startGesture(guideMoveGesture);
+		m_guideMoveGesture->mouseSelectGuide(m);
 	}
 	m_doc->m_Selection->connectItemToGUI();
 	if ( !(m->modifiers() & SELECT_MULTIPLE))
@@ -1794,7 +1789,7 @@ void CanvasMode_Normal::importToPage()
 	QStringList formats;
 	int fmtCode = FORMATID_FIRSTUSER;
 	const FileFormat *fmt = LoadSavePlugin::getFormatById(fmtCode);
-	while (fmt != 0)
+	while (fmt != nullptr)
 	{
 		if (fmt->load)
 		{
@@ -1860,12 +1855,12 @@ void CanvasMode_Normal::importToPage()
 		if (m_doc->m_Selection->count() > 0)
 		{
 			PageItem *newItem = m_doc->m_Selection->itemAt(0);
-			if (dia.TxCodeM->currentIndex() == 1)
+			if (dia.optionCombo->currentIndex() == 1)
 			{
 				if ((newItem->width() > m_doc->currentPage()->width()) || (newItem->height() > m_doc->currentPage()->height()))
 					m_doc->rescaleGroup(newItem, qMin(qMin(m_doc->currentPage()->width() / newItem->width(), m_doc->currentPage()->height() / newItem->height()), 1.0));
 			}
-			else if (dia.TxCodeM->currentIndex() == 2)
+			else if (dia.optionCombo->currentIndex() == 2)
 			{
 				m_doc->rescaleGroup(newItem, qMax(qMin(m_doc->currentPage()->width() / newItem->width(), m_doc->currentPage()->height() / newItem->height()), 1.0));
 			}

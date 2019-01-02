@@ -47,7 +47,7 @@ for which a new license (GPL+exception) is in place.
 
 using namespace std;
 
-PageItem_RegularPolygon::PageItem_RegularPolygon(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
+PageItem_RegularPolygon::PageItem_RegularPolygon(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline)
 	: PageItem(pa, PageItem::RegularPolygon, x, y, w, h, w2, fill, outline)
 {
 	polyCorners = m_Doc->itemToolPrefs().polyCorners;
@@ -86,7 +86,7 @@ void PageItem_RegularPolygon::applicableActions(QStringList & actionList)
 	actionList << "itemConvertToTextFrame";
 }
 
-QString PageItem_RegularPolygon::infoDescription()
+QString PageItem_RegularPolygon::infoDescription() const
 {
 	return QString();
 }

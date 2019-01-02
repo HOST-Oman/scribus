@@ -19,7 +19,7 @@ for which a new license (GPL+exception) is in place.
 #include "text/textshaper.h"
 #include "text/glyphcluster.h"
 
-#include <math.h>
+#include <cmath>
 #include <QDebug>
 
 ScPainter::ScPainter( QImage *target, int w, int h, double transparency, int blendmode )
@@ -158,9 +158,9 @@ void ScPainter::endLayer()
 	if (la.pushed)
 	{
 		cairo_pop_group_to_source (m_cr);
-		if (la.groupClip.size() != 0)
+		if (!la.groupClip.empty())
 		{
-			if( m_fillRule )
+			if( m_fillRule)
 				cairo_set_fill_rule (m_cr, CAIRO_FILL_RULE_EVEN_ODD);
 			else
 				cairo_set_fill_rule (m_cr, CAIRO_FILL_RULE_WINDING);
@@ -284,7 +284,7 @@ ScPainter::lineTo( const double &x, const double &y )
 	cairo_line_to( m_cr, x, y);
 }
 
-void ScPainter::curveTo( FPoint p1, FPoint p2, FPoint p3 )
+void ScPainter::curveTo(const FPoint& p1, const FPoint& p2, const FPoint& p3 )
 {
 	cairo_curve_to(m_cr, p1.x(), p1.y(), p2.x(), p2.y(), p3.x(), p3.y());
 }
@@ -314,7 +314,7 @@ void ScPainter::setStrokeMode( int stroke )
 	m_strokeMode = stroke;
 }
 
-void ScPainter::setGradient(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
+void ScPainter::setGradient(VGradient::VGradientType mode, const FPoint& orig, const FPoint& vec, const FPoint& foc, double scale, double skew)
 {
 	fill_gradient.setType(mode);
 	fill_gradient.setOrigin(orig);
@@ -342,7 +342,7 @@ void ScPainter::setMaskMode(int mask)
 	m_maskMode = mask;
 }
 
-void ScPainter::setGradientMask(VGradient::VGradientType mode, FPoint orig, FPoint vec, FPoint foc, double scale, double skew)
+void ScPainter::setGradientMask(VGradient::VGradientType mode, const FPoint& orig, const FPoint& vec, const FPoint& foc, double scale, double skew)
 {
 	mask_gradient.setType(mode);
 	mask_gradient.setOrigin(orig);
@@ -375,7 +375,7 @@ void ScPainter::setPatternMask(ScPattern *pattern, double scaleX, double scaleY,
 	m_mask_patternMirrorY = mirrorY;
 }
 
-void ScPainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4)
+void ScPainter::set4ColorGeometry(const FPoint& p1, const FPoint& p2, const FPoint& p3, const FPoint& p4, const FPoint& c1, const FPoint& c2, const FPoint& c3, const FPoint& c4)
 {
 	fill_gradient.setType(VGradient::fourcolor);
 	gradPatchP1 = p1;
@@ -388,7 +388,7 @@ void ScPainter::set4ColorGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FP
 	gradControlP4 = c4;
 }
 
-void ScPainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QColor col4)
+void ScPainter::set4ColorColors(const QColor& col1, const QColor& col2, const QColor& col3, const QColor& col4)
 {
 	gradPatchColor1 = col1;
 	gradPatchColor2 = col2;
@@ -396,7 +396,7 @@ void ScPainter::set4ColorColors(QColor col1, QColor col2, QColor col3, QColor co
 	gradPatchColor4 = col4;
 }
 
-void ScPainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, FPoint c1, FPoint c2, FPoint c3, FPoint c4, FPoint c5)
+void ScPainter::setDiamondGeometry(const FPoint& p1, const FPoint& p2, const FPoint& p3, const FPoint& p4, const FPoint& c1, const FPoint& c2, const FPoint& c3, const FPoint& c4, const FPoint& c5)
 {
 	fill_gradient.setType(VGradient::diamond);
 	gradPatchP1 = p1;
@@ -410,7 +410,7 @@ void ScPainter::setDiamondGeometry(FPoint p1, FPoint p2, FPoint p3, FPoint p4, F
 	gradControlP5 = c5;
 }
 
-void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<QList<MeshPoint> > meshArray)
+void ScPainter::setMeshGradient(const FPoint& p1, const FPoint& p2, const FPoint& p3, const FPoint& p4, const QList<QList<MeshPoint>>& meshArray)
 {
 	fill_gradient.setType(VGradient::mesh);
 	meshGradientArray = meshArray;
@@ -420,7 +420,7 @@ void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QLis
 	gradPatchP4 = p4;
 }
 
-void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QList<meshGradientPatch> meshPatches)
+void ScPainter::setMeshGradient(const FPoint& p1, const FPoint& p2, const FPoint& p3, const FPoint& p4, const QList<meshGradientPatch>& meshPatches)
 {
 	fill_gradient.setType(VGradient::freemesh);
 	meshGradientPatches = meshPatches;
@@ -430,7 +430,7 @@ void ScPainter::setMeshGradient(FPoint p1, FPoint p2, FPoint p3, FPoint p4, QLis
 	gradPatchP4 = p4;
 }
 
-void ScPainter::setHatchParameters(int mode, double distance, double angle, bool useBackground, QColor background, QColor foreground, double width, double height)
+void ScPainter::setHatchParameters(int mode, double distance, double angle, bool useBackground, const QColor& background, const QColor& foreground, double width, double height)
 {
 	m_hatchType = mode;
 	m_hatchDistance = distance;
@@ -450,7 +450,7 @@ void ScPainter::fillPath()
 
 void ScPainter::strokePath()
 {
-//	if( LineWidth == 0 )
+//	if (LineWidth == 0)
 //		return;
 	if (m_strokeMode != 0)
 		strokePathHelper();
@@ -631,7 +631,7 @@ cairo_pattern_t * ScPainter::getMaskPattern()
 			pat = cairo_pattern_create_radial (fx, fy, 0, x1, y1, sqrt(pow(x2 - x1, 2) + pow(y2 - y1,2)));
 		QList<VColorStop*> colorStops = mask_gradient.colorStops();
 		QColor qStopColor;
-		for( int offset = 0 ; offset < colorStops.count() ; offset++ )
+		for (int offset = 0 ; offset < colorStops.count() ; offset++)
 		{
 			qStopColor = colorStops[ offset ]->color;
 			double a = colorStops[offset]->opacity;
@@ -675,10 +675,10 @@ cairo_pattern_t * ScPainter::getMaskPattern()
 			int k;
 			QRgb *s;
 			QRgb r;
-			for( int yi=0; yi < h; ++yi )
+			for (int yi=0; yi < h; ++yi)
 			{
 				s = (QRgb*)(m_imageQ.scanLine( yi ));
-				for( int xi=0; xi < w; ++xi )
+				for (int xi=0; xi < w; ++xi)
 				{
 					r = *s;
 					if (qAlpha(r) == 0)
@@ -724,7 +724,7 @@ void ScPainter::fillPathHelper()
 {
 	cairo_save( m_cr );
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
-	if( m_fillRule )
+	if (m_fillRule)
 		cairo_set_fill_rule (m_cr, CAIRO_FILL_RULE_EVEN_ODD);
 	else
 		cairo_set_fill_rule (m_cr, CAIRO_FILL_RULE_WINDING);
@@ -819,7 +819,7 @@ void ScPainter::fillPathHelper()
 			QList<QColor> qStopColors;
 			QList<double> qStopRampPoints;
 			QColor qStopColor;
-			for( int offset = 0 ; offset < colorStops.count() ; offset++ )
+			for (int offset = 0 ; offset < colorStops.count() ; offset++)
 			{
 				qStopColor = colorStops[ offset ]->color;
 				qStopColor.setAlphaF(colorStops[offset]->opacity);
@@ -857,7 +857,7 @@ void ScPainter::fillPathHelper()
 			cairo_fill(cr);
 			cairo_set_operator(cr, CAIRO_OPERATOR_ADD);
 			mpat = cairo_pattern_create_mesh();
-			for( int offset = 1 ; offset < qStopRampPoints.count() ; offset++ )
+			for (int offset = 1 ; offset < qStopRampPoints.count() ; offset++)
 			{
 				QLineF e1 = edge1;
 				QLineF e1s = edge1;
@@ -1093,7 +1093,7 @@ void ScPainter::fillPathHelper()
 				cairo_pattern_set_extend(pat, CAIRO_EXTEND_PAD);
 			cairo_pattern_set_filter(pat, CAIRO_FILTER_GOOD);
 			QList<VColorStop*> colorStops = fill_gradient.colorStops();
-			for( int offset = 0 ; offset < colorStops.count() ; offset++ )
+			for (int offset = 0 ; offset < colorStops.count() ; offset++)
 			{
 				rampPoint  = colorStops[ offset ]->rampPoint;
 				if ((lastPoint == rampPoint) && (!isFirst))
@@ -1290,26 +1290,26 @@ void ScPainter::strokePathHelper()
 {
 	cairo_save( m_cr );
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
-	if( m_LineWidth == 0 )
+	if (m_LineWidth == 0)
 		cairo_set_line_width( m_cr, 1.0 / m_zoomFactor );
 	else
 		cairo_set_line_width( m_cr, m_LineWidth );
-	if( m_array.count() > 0 )
+	if (m_array.count() > 0)
 		cairo_set_dash( m_cr, m_array.data(), m_array.count(), m_offset);
 	else
 		cairo_set_dash( m_cr, nullptr, 0, 0 );
 	cairo_set_operator(m_cr, CAIRO_OPERATOR_OVER);
-	if( PLineEnd == Qt::RoundCap )
+	if (PLineEnd == Qt::RoundCap)
 		cairo_set_line_cap (m_cr, CAIRO_LINE_CAP_ROUND);
-	else if( PLineEnd == Qt::SquareCap )
+	else if (PLineEnd == Qt::SquareCap)
 		cairo_set_line_cap (m_cr, CAIRO_LINE_CAP_SQUARE);
-	else if( PLineEnd == Qt::FlatCap )
+	else if (PLineEnd == Qt::FlatCap )
 		cairo_set_line_cap (m_cr, CAIRO_LINE_CAP_BUTT);
-	if( PLineJoin == Qt::RoundJoin )
+	if (PLineJoin == Qt::RoundJoin)
 		cairo_set_line_join( m_cr, CAIRO_LINE_JOIN_ROUND );
-	else if( PLineJoin == Qt::BevelJoin )
+	else if (PLineJoin == Qt::BevelJoin)
 		cairo_set_line_join( m_cr, CAIRO_LINE_JOIN_BEVEL );
-	else if( PLineJoin == Qt::MiterJoin )
+	else if (PLineJoin == Qt::MiterJoin)
 		cairo_set_line_join( m_cr, CAIRO_LINE_JOIN_MITER );
 	if (m_strokeMode == 3)
 	{
@@ -1365,7 +1365,7 @@ void ScPainter::strokePathHelper()
 			cairo_pattern_set_extend(pat, CAIRO_EXTEND_PAD);
 		cairo_pattern_set_filter(pat, CAIRO_FILTER_GOOD);
 		QList<VColorStop*> colorStops = stroke_gradient.colorStops();
-		for( int offset = 0 ; offset < colorStops.count() ; offset++ )
+		for (int offset = 0 ; offset < colorStops.count() ; offset++)
 		{
 			rampPoint  = colorStops[ offset ]->rampPoint;
 			if ((lastPoint == rampPoint) && (!isFirst))
@@ -1582,7 +1582,7 @@ void ScPainter::drawPolyLine()
 	strokePath();
 }
 
-void ScPainter::drawLine(FPoint start, FPoint end)
+void ScPainter::drawLine(const FPoint& start, const FPoint& end)
 {
 	newPath();
 	moveTo(start.x(), start.y());
@@ -1647,7 +1647,7 @@ void ScPainter::drawSharpRect(double x, double y, double w, double h)
 	strokePath();
 }
 
-void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
+void ScPainter::drawText(QRectF area, const QString& text, bool filled, int align)
 {
 	cairo_text_extents_t extents;
 	cairo_font_extents_t extentsF;
@@ -1771,7 +1771,7 @@ void ScPainter::drawText(QRectF area, QString text, bool filled, int align)
 #endif
 }
 
-void ScPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunken, int lineWidth)
+void ScPainter::drawShadeCircle(const QRectF &re, const QColor& color, bool sunken, int lineWidth)
 {
 	setStrokeMode(1);
 	double bezierCircle = 0.55228475;
@@ -1819,7 +1819,7 @@ void ScPainter::drawShadeCircle(const QRectF &re, const QColor color, bool sunke
 	cairo_restore( m_cr );
 }
 
-void ScPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken, int lineWidth)
+void ScPainter::drawShadePanel(const QRectF &r, const QColor& color, bool sunken, int lineWidth)
 {
 	QColor shade;
 	QColor light;
@@ -1861,7 +1861,19 @@ void ScPainter::drawShadePanel(const QRectF &r, const QColor color, bool sunken,
 	fillPath();
 }
 
-void ScPainter::colorizeAlpha(QColor color)
+void ScPainter::drawUnderlinedRect(const QRectF &r, const QColor& color, int lineWidth)
+{
+	setPen(color, lineWidth, Qt::DashLine, Qt::FlatCap, Qt::MiterJoin);
+	setStrokeMode(ScPainter::Solid);
+	drawLine(r.bottomLeft(), r.topLeft());
+	drawLine(r.topLeft(), r.topRight());
+	drawLine(r.bottomRight(), r.topRight());
+
+	setPen(color, lineWidth, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	drawLine(r.bottomLeft(), r.bottomRight());
+}
+
+void ScPainter::colorizeAlpha(const QColor& color)
 {
 	cairo_surface_t *data = cairo_get_group_target(m_cr);
 	cairo_surface_flush(data);
@@ -1872,10 +1884,10 @@ void ScPainter::colorizeAlpha(QColor color)
 	int cr = color.red();
 	int cg = color.green();
 	int cb = color.blue();
-	for(int y = 0; y < h; ++y)
+	for (int y = 0; y < h; ++y)
 	{
 		QRgb *dst = (QRgb*)d;
-		for(int x = 0; x < w; ++x)
+		for (int x = 0; x < w; ++x)
 		{
 			if (qAlpha(*dst) > 0)
 				*dst = qRgba(cr, cg, cb, qAlpha(*dst));
@@ -1886,7 +1898,7 @@ void ScPainter::colorizeAlpha(QColor color)
 	cairo_surface_mark_dirty(data);
 }
 
-void ScPainter::colorize(QColor color)
+void ScPainter::colorize(const QColor& color)
 {
 	cairo_surface_t *data = cairo_get_group_target(m_cr);
 	cairo_surface_flush(data);
@@ -1900,10 +1912,10 @@ void ScPainter::colorize(QColor color)
 	int hu, sa, v;
 	int cc2, cm2, cy2, k2;
 	QColor tmpR;
-	for(int y = 0; y < h; ++y)
+	for (int y = 0; y < h; ++y)
 	{
 		QRgb *dst = (QRgb*)d;
-		for(int x = 0; x < w; ++x)
+		for (int x = 0; x < w; ++x)
 		{
 			if (qAlpha(*dst) > 0)
 			{
@@ -1946,7 +1958,7 @@ void ScPainter::blurAlpha(int radius)
 	}
 	yw = yi = 0;
 	int **stack = new int*[div];
-	for(int i = 0; i < div; ++i)
+	for (int i = 0; i < div; ++i)
 	{
 		stack[i] = new int[1];
 	}
@@ -1960,7 +1972,7 @@ void ScPainter::blurAlpha(int radius)
 	for (y = 0; y < h; ++y)
 	{
 		ainsum = aoutsum = asum = 0;
-		for(i = -radius; i <= radius; ++i)
+		for (i = -radius; i <= radius; ++i)
 		{
 			p = pix[yi+qMin(wm,qMax(i,0))];
 			sir = stack[i+radius];
@@ -1998,7 +2010,7 @@ void ScPainter::blurAlpha(int radius)
 	{
 		ainsum = aoutsum = asum = 0;
 		yp = -radius * w;
-		for(i = -radius; i <= radius; ++i)
+		for (i = -radius; i <= radius; ++i)
 		{
 			yi=qMax(0,yp)+x;
 			sir = stack[i+radius];
@@ -2041,7 +2053,7 @@ void ScPainter::blurAlpha(int radius)
 	delete [] a;
 	delete [] vmin;
 	delete [] dv;
-	for(int i = 0; i < div; ++i)
+	for (int i = 0; i < div; ++i)
 	{
 		delete [] stack[i];
 	}
@@ -2077,7 +2089,7 @@ void ScPainter::blur(int radius)
 	}
 	yw = yi = 0;
 	int **stack = new int*[div];
-	for(int i = 0; i < div; ++i)
+	for (int i = 0; i < div; ++i)
 	{
 		stack[i] = new int[4];
 	}
@@ -2091,7 +2103,7 @@ void ScPainter::blur(int radius)
 	for (y = 0; y < h; ++y)
 	{
 		rinsum = ginsum = binsum = ainsum = routsum = goutsum = boutsum = aoutsum = rsum = gsum = bsum = asum = 0;
-		for(i = -radius; i <= radius; ++i)
+		for (i = -radius; i <= radius; ++i)
 		{
 			p = pix[yi+qMin(wm,qMax(i,0))];
 			sir = stack[i+radius];
@@ -2171,7 +2183,7 @@ void ScPainter::blur(int radius)
 	{
 		rinsum = ginsum = binsum = ainsum = routsum = goutsum = boutsum = aoutsum = rsum = gsum = bsum = asum = 0;
 		yp =- radius * w;
-		for(i=-radius; i <= radius; ++i)
+		for (i=-radius; i <= radius; ++i)
 		{
 			yi=qMax(0,yp)+x;
 			sir = stack[i+radius];
@@ -2254,7 +2266,7 @@ void ScPainter::blur(int radius)
 	delete [] a;
 	delete [] vmin;
 	delete [] dv;
-	for(int i = 0; i < div; ++i)
+	for (int i = 0; i < div; ++i)
 	{
 		delete [] stack[i];
 	}

@@ -30,9 +30,9 @@ for which a new license (GPL+exception) is in place.
 #include <QProgressBar>
 #include <QString>
 
-CollectForOutput::CollectForOutput(ScribusDoc* doc, QString outputDirectory, bool withFonts, bool withProfiles, bool compressDoc)
+CollectForOutput::CollectForOutput(ScribusDoc* doc, const QString& outputDirectory, bool withFonts, bool withProfiles, bool compressDoc)
 	: QObject(ScCore),
-	m_Doc(0),
+	m_Doc(nullptr),
 	m_outputDirectory(QString::null),
 	profileCount(0),
 	itemCount(0),
@@ -285,7 +285,7 @@ void CollectForOutput::processItem(PageItem *ite)
 		// end of hack
 			if (itf.exists())
 			{
-				QString oldFile = ofName;
+				const QString& oldFile = ofName;
 				ite->Pfile = collectFile(oldFile, itf.fileName());
 				ScCore->fileWatcher->removeFile(oldFile);
 				ScCore->fileWatcher->addFile(ite->Pfile);
@@ -379,16 +379,16 @@ bool CollectForOutput::collectFonts()
 			QString fontDir  = itf.absolutePath();
 			QString fontFile = itf.fileName();
 			metrics += findFontMetrics(fontDir, fontFile);
-			if ( metrics.size() <= 0 )
+			if ( metrics.empty() )
 			{
 				QDir dir;
 				if (dir.exists(fontDir + "/AFMs"))
 					metrics += findFontMetrics(fontDir + "/AFMs", fontFile);
-				if (dir.exists(fontDir + "/afm") && metrics.size() <= 0)
+				if (dir.exists(fontDir + "/afm") && metrics.empty())
 					metrics += findFontMetrics(fontDir + "/afm", fontFile);
-				if (dir.exists(fontDir + "/Pfm") && metrics.size() <= 0)
+				if (dir.exists(fontDir + "/Pfm") && metrics.empty())
 					metrics += findFontMetrics(fontDir + "/Pfm", fontFile);
-				if (dir.exists(fontDir + "/pfm") && metrics.size() <= 0)
+				if (dir.exists(fontDir + "/pfm") && metrics.empty())
 					metrics += findFontMetrics(fontDir + "/pfm", fontFile);
 			}
 			for (int a = 0; a < metrics.size(); a++)
@@ -494,7 +494,7 @@ bool CollectForOutput::collectProfiles()
 	return true;
 }
 
-QString CollectForOutput::collectFile(QString oldFile, QString newFile)
+QString CollectForOutput::collectFile(const QString& oldFile, QString newFile)
 {
 	uint cnt = 1;
 	bool copy = true;

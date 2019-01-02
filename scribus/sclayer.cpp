@@ -17,7 +17,7 @@ for which a new license (GPL+exception) is in place.
 ScLayer::ScLayer()
 {
 	Name         = QObject::tr("New Layer");
-	ID          = 0;
+	ID           = 0;
 	Level        = 0;
 	isPrintable  = true;
 	isViewable   = true;
@@ -78,15 +78,11 @@ bool ScLayer::operator< (const ScLayer& other) const
 bool ScLayer::operator== (const ScLayer& other) const
 {
 	// ignore markerColor?
-	if (Name == other.Name && ID == other.ID && Level == other.Level      &&
-		isPrintable  == other.isPrintable  && isViewable  == other.isViewable  &&
-		flowControl  == other.flowControl  && outlineMode == other.outlineMode && 
+	return Name == other.Name && ID == other.ID && Level == other.Level &&
+		isPrintable  == other.isPrintable  && isViewable  == other.isViewable &&
+		flowControl  == other.flowControl  && outlineMode == other.outlineMode &&
 		transparency == other.transparency && isEditable == other.isEditable &&
-		blendMode   == other.blendMode)
-	{
-		return true;
-	}
-	return false;
+		blendMode   == other.blendMode;
 }
 
 int ScLayers::getMaxID()
@@ -152,7 +148,7 @@ ScLayer* ScLayers::byLevel(const int level)
 	ScLayers::Iterator itend = end();
 	for (ScLayers::Iterator it = nullptr; it != itend; ++it)
 	{
-		if( it->Level == level)
+		if (it->Level == level)
 			return &(*it);
 	}
 	return nullptr;
@@ -163,7 +159,7 @@ ScLayer* ScLayers::byID(const int nr)
 	ScLayers::Iterator itend = end();
 	for (ScLayers::Iterator it = nullptr; it != itend; ++it)
 	{
-		if( it->ID == nr)
+		if (it->ID == nr)
 			return &(*it);
 	}
 	return nullptr;
@@ -243,7 +239,7 @@ const ScLayer* ScLayers::layerByLevel (int level) const
 	for (int i = 0; i < this->count(); ++i)
 	{
 		layer = &this->at(i);
-		if( layer->Level == level)
+		if (layer->Level == level)
 			return layer;
 	}
 	return nullptr;
@@ -255,7 +251,7 @@ const ScLayer* ScLayers::layerByID (int nr) const
 	for (int i = 0; i < this->count(); ++i)
 	{
 		layer = &this->at(i);
-		if( layer->ID == nr)
+		if (layer->ID == nr)
 			return layer;
 	}
 	return nullptr;
@@ -267,7 +263,7 @@ const ScLayer* ScLayers::layerByName (const QString& name) const
 	for (int i = 0; i < this->count(); ++i)
 	{
 		layer = &this->at(i);
-		if( layer->Name == name)
+		if (layer->Name == name)
 			return layer;
 	}
 	return nullptr;
@@ -484,7 +480,7 @@ void ScLayers::sort()
 	int level = 0;
 	ScLayers::Iterator it, itend = end();
 	qStableSort(begin(), end());
-	for(it = begin(); it != itend; ++it, ++level)
+	for (it = begin(); it != itend; ++it, ++level)
 		it->Level = level;
 }
 

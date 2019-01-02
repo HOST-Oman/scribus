@@ -15,7 +15,7 @@ for which a new license (GPL+exception) is in place.
 #include "iconmanager.h"
 
 
-nftdialog::nftdialog(QWidget* parent, QString lang) : QDialog(parent)
+nftdialog::nftdialog(QWidget* parent, const QString& lang) : QDialog(parent)
 {
 	setupUi(this);
 	setModal(true);
@@ -29,9 +29,7 @@ nftdialog::nftdialog(QWidget* parent, QString lang) : QDialog(parent)
 
 bool nftdialog::isTemplateSelected()
 {
-	if (nftGui->currentDocumentTemplate)
-		return true;
-	return false;
+	return nftGui->currentDocumentTemplate != nullptr;
 }
 
 nfttemplate* nftdialog::currentTemplate()

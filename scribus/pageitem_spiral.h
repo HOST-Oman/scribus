@@ -36,7 +36,7 @@ class SCRIBUS_API PageItem_Spiral : public PageItem
 	Q_OBJECT
 
 public:
-	PageItem_Spiral(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_Spiral(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	PageItem_Spiral(const PageItem & p) : PageItem(p) {}
 	~PageItem_Spiral() {};
 
@@ -44,7 +44,7 @@ public:
 	virtual bool isSpiral() const { return true; }
 	virtual ItemType realItemType() const { return PageItem::Spiral; }
 	virtual void applicableActions(QStringList& actionList);
-	virtual QString infoDescription();
+	virtual QString infoDescription() const;
 	void recalcPath();
 	double spiralStartAngle;    //! angle where the spiral starts
 	double spiralEndAngle;    //! angle the spiral spans

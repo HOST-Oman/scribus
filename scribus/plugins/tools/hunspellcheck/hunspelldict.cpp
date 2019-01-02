@@ -15,8 +15,8 @@ for which a new license (GPL+exception) is in place.
 
 HunspellDict::HunspellDict(const QString& affPath, const QString& dictPath)
 {
-	m_hunspell = 0;
-	m_codec = 0;
+	m_hunspell = nullptr;
+	m_codec = nullptr;
 
 	QString encoding = "ISO8859-1";
 	m_hunspell = new Hunspell(affPath.toLocal8Bit().constData(), dictPath.toLocal8Bit().constData());
@@ -34,22 +34,19 @@ HunspellDict::HunspellDict(const QString& affPath, const QString& dictPath)
 
 HunspellDict::~HunspellDict()
 {
-	if (m_hunspell)
-	{
-		delete m_hunspell;
-		m_hunspell = 0;
-	}
+	delete m_hunspell;
+	m_hunspell = nullptr;
 }
 
 #ifndef HUNSPELL_NEWAPI
-int HunspellDict::spell(QString word)
+int HunspellDict::spell(const QString& word)
 {
 	if (m_hunspell)
 		return m_hunspell->spell(m_codec->fromUnicode(word).constData());
 	return -1;
 }
 
-QStringList HunspellDict::suggest(QString word)
+QStringList HunspellDict::suggest(const QString& word)
 {
 	char **sugglist = nullptr;
 	QStringList replacements;
@@ -62,7 +59,7 @@ QStringList HunspellDict::suggest(QString word)
 	return replacements;
 }
 #else
-int HunspellDict::spell(QString word)
+int HunspellDict::spell(const QString& word)
 {
 	if (!m_hunspell)
 		return -1;
@@ -70,7 +67,7 @@ int HunspellDict::spell(QString word)
 	return m_hunspell->spell(s);
 }
 
-QStringList HunspellDict::suggest(QString word)
+QStringList HunspellDict::suggest(const QString& word)
 {
 	QStringList replacements;
 	if (!m_hunspell)

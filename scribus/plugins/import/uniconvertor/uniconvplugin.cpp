@@ -41,7 +41,6 @@ ScPlugin* uniconvertorplugin_getPlugin()
 	UniconvImportPlugin* plug = new UniconvImportPlugin();
 	Q_CHECK_PTR(plug);
 	return plug;
-	return 0;
 }
 
 void uniconvertorplugin_freePlugin(ScPlugin* plugin)
@@ -51,7 +50,7 @@ void uniconvertorplugin_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-UniconvImportPlugin::UniconvImportPlugin() : LoadSavePlugin()
+UniconvImportPlugin::UniconvImportPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place. This includes registering file format
@@ -125,14 +124,14 @@ bool UniconvImportPlugin::loadFile(const QString & fileName,
 	return import(fileName, flags);
 }
 
-bool UniconvImportPlugin::import(QString fileName, int flags)
+bool UniconvImportPlugin::import(const QString& fileName, int flags)
 {
 	if (!checkFlags(flags))
 		return false;
 
 	m_Doc = ScCore->primaryMainWindow()->doc;
 	ScribusMainWindow *mw =
-		(m_Doc==0) ? ScCore->primaryMainWindow() : m_Doc->scMW();
+		(m_Doc==nullptr) ? ScCore->primaryMainWindow() : m_Doc->scMW();
 
 	//Get a temporary filename ending in .svg (sadly
 	//uniconvertor has no other way of specifying the output format

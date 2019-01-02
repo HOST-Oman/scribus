@@ -14,7 +14,7 @@
 ScDLThread::ScDLThread(QObject *parent) : QThread(parent),
 	m_downloadedCount(0), m_totalCount(0)
 {
-	m_currentDownload = 0;
+	m_currentDownload = nullptr;
 	connect(this, SIGNAL(runSignal()), this, SLOT(runSlot()));
 }
 
@@ -46,7 +46,7 @@ void ScDLThread::addURLs(const QStringList &urlList, bool overwrite, const QStri
 	QString l(QDir::cleanPath(location));
 	if (!l.endsWith("/"))
 		l += "/";
-	foreach (QString u, m_urlList)
+	for (const QString& u : m_urlList)
 	{
 		QUrl url(u);
 		if (!urlOK(u))
@@ -128,7 +128,7 @@ void ScDLThread::startNextDownload()
 	m_currentDownload = m_manager.get(request);
 	connect(m_currentDownload, SIGNAL(finished()), this, SLOT(downloadFinished()));
 	connect(m_currentDownload, SIGNAL(readyRead()), this, SLOT(downloadReadyRead()));
-	connect(m_currentDownload, SIGNAL(downloadProgress(qint64, qint64)), this, SIGNAL(fileDownloadProgress(qint64, qint64)));
+	connect(m_currentDownload, SIGNAL(downloadProgress(qint64,qint64)),this,SIGNAL(fileDownloadProgress(qint64,qint64)));
 
 	//qDebug()<<"Downloading:"<<urlPair.first.toEncoded().constData();
 }
@@ -204,15 +204,10 @@ void ScDLThread::runSlot()
 	startNextDownload();
 }
 
-bool ScDLThread::urlOK(QUrl url)
+bool ScDLThread::urlOK(const QUrl& url)
 {
 	//TODO: Add some more URL checks
-	if (!url.isValid() || url.isEmpty() || url.host().isEmpty())
-	{
-		//qDebug()<<"URL invalid:"<<url;
-		return false;
-	}
-	return true;
+	return !(!url.isValid() || url.isEmpty() || url.host().isEmpty());
 }
 
 

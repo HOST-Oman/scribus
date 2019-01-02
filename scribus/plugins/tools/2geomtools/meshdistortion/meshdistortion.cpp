@@ -51,10 +51,10 @@ void meshdistortion_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-MeshDistortionPlugin::MeshDistortionPlugin() : ScActionPlugin()
+MeshDistortionPlugin::MeshDistortionPlugin()
 {
-	m_doc = 0;
-	m_patternItem = 0;
+	m_doc = nullptr;
+	m_patternItem = nullptr;
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
 	languageChange();
@@ -113,10 +113,10 @@ void MeshDistortionPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool MeshDistortionPlugin::run(ScribusDoc* doc, QString)
+bool MeshDistortionPlugin::run(ScribusDoc* doc, const QString&)
 {
 	m_doc = doc;
-	if (m_doc == 0)
+	if (m_doc == nullptr)
 		m_doc = ScCore->primaryMainWindow()->doc;
 	if (m_doc->m_Selection->count() > 0)
 	{

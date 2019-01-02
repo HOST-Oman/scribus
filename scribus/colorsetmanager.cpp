@@ -110,9 +110,9 @@ void ColorSetManager::initialiseDefaultPrefs(struct ApplicationPrefs& appPrefs)
 						lf.fromQColor(QColor(pg.attribute("RGB")));
 					else
 					{
-						double L = pg.attribute("L", 0).toDouble();
-						double a = pg.attribute("A", 0).toDouble();
-						double b = pg.attribute("B", 0).toDouble();
+						double L = pg.attribute("L", nullptr).toDouble();
+						double a = pg.attribute("A", nullptr).toDouble();
+						double b = pg.attribute("B", nullptr).toDouble();
 						lf.setLabColor(L, a, b);
 					}
 					if (pg.hasAttribute("Spot"))
@@ -282,29 +282,27 @@ QString ColorSetManager::userPaletteFileFromName(const QString& paletteName)
 
 bool ColorSetManager::paletteLocationLocked(const QString& palettePath)
 {
-	return (paletteLocationLocks.contains(palettePath) && paletteLocationLocks.value(palettePath)==true);
+	return (paletteLocationLocks.contains(palettePath) && paletteLocationLocks.value(palettePath));
 }
 
 bool ColorSetManager::checkPaletteFormat(const QString& paletteFileName)
 {
 	QFile f(paletteFileName);
-	if(!f.open(QIODevice::ReadOnly))
+	if (!f.open(QIODevice::ReadOnly))
 		return false;
 	QDomDocument docu("scridoc");
 	QTextStream ts(&f);
 	ts.setCodec("UTF-8");
 	QString errorMsg;
 	int errorLine = 0, errorColumn = 0;
-	if( !docu.setContent(ts.readAll(), &errorMsg, &errorLine, &errorColumn) )
+	if (!docu.setContent(ts.readAll(), &errorMsg, &errorLine, &errorColumn))
 	{
 		f.close();
 		return false;
 	}
 	f.close();
 	QDomElement elem = docu.documentElement();
-	if (elem.tagName() != "SCRIBUSCOLORS")
-		return false;
-	return true;
+	return elem.tagName() == "SCRIBUSCOLORS";
 }
 
 bool ColorSetManager::loadPalette(const QString& paletteFileName, ScribusDoc *doc, ColorList &colors, QHash<QString,VGradient> &gradients, QHash<QString, ScPattern> &patterns, bool merge)
@@ -329,13 +327,14 @@ bool ColorSetManager::loadPalette(const QString& paletteFileName, ScribusDoc *do
 		const FileFormat *fmt = LoadSavePlugin::getFormatById(FORMATID_SLA150IMPORT);
 		if (fmt)
 		{
-			fmt->setupTargets(doc, 0, doc->scMW(), 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+			fmt->setupTargets(doc, nullptr, doc->scMW(), nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 			fmt->loadPalette(paletteFileName);
 		}
 		else
 			return false;
 		colors = doc->PageColors;
 		colors.setDocument(doc);
+		colors.ensureDefaultColors();
 		gradients = doc->docGradients;
 		patterns = doc->docPatterns;
 		doc->PageColors = colorListBack;
@@ -344,10 +343,9 @@ bool ColorSetManager::loadPalette(const QString& paletteFileName, ScribusDoc *do
 	}
 	else
 	{
-		if (importColorsFromFile(paletteFileName, colors, &gradients, merge))
-			colors.ensureDefaultColors();
-		else
+		if (!importColorsFromFile(paletteFileName, colors, &gradients, merge))
 			return false;
+		colors.ensureDefaultColors();
 	}
 	return true;
 }

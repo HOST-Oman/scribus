@@ -47,7 +47,7 @@ class SCRIBUS_API PageItem_TextFrame : public PageItem
 	Q_OBJECT
 
 public:
-	PageItem_TextFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline);
+	PageItem_TextFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
 	PageItem_TextFrame(const PageItem & p);
 	~PageItem_TextFrame() {}
 
@@ -100,7 +100,7 @@ protected:
 	void drawNoteIcon(ScPainter *p);
 	virtual bool createInfoGroup(QFrame *, QGridLayout *);
 	virtual void applicableActions(QStringList& actionList);
-	virtual QString infoDescription();
+	virtual QString infoDescription() const;
 	// Move incomplete lines from the previous frame if needed.
 	bool moveLinesFromPreviousFrame ();
 	void adjustParagraphEndings ();

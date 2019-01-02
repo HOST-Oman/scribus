@@ -46,7 +46,7 @@ void importcgm_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-ImportCgmPlugin::ImportCgmPlugin() : LoadSavePlugin(),
+ImportCgmPlugin::ImportCgmPlugin() :
 	importAction(new ScrAction(ScrAction::DLL, QPixmap(), QPixmap(), "", QKeySequence(), this))
 {
 	// Set action info in languageChange, so we only have to do it in one
@@ -121,7 +121,7 @@ bool ImportCgmPlugin::import(QString fileName, int flags)
 {
 	if (!checkFlags(flags))
 		return false;
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 	{
 		flags |= lfInteractive;
 		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("importcgm");
@@ -162,7 +162,7 @@ bool ImportCgmPlugin::import(QString fileName, int flags)
 
 QImage ImportCgmPlugin::readThumbnail(const QString& fileName)
 {
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 		return QImage();
 	UndoManager::instance()->setUndoEnabled(false);
 	m_Doc = nullptr;

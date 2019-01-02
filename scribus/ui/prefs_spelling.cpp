@@ -93,8 +93,8 @@ void Prefs_Spelling::downloadSpellDicts()
 			if (d.filetype=="plain")
 			{
 				//qDebug()<<d.url<<d.files;
-				QStringList plainURLs(d.files.split(";", QString::SkipEmptyParts));
-				foreach (const QString& s, plainURLs)
+				const QStringList plainURLs(d.files.split(";", QString::SkipEmptyParts));
+				for (const QString& s : plainURLs)
 				{
 					ScQApp->dlManager()->addURL(d.url+"/"+s, true, downloadLocation, userDictDir);
 					++i;
@@ -233,7 +233,7 @@ void Prefs_Spelling::updateProgressBar()
 	downloadProgressBar->setValue(downloadProgressBar->value()+1);
 }
 
-void Prefs_Spelling::setAvailDictsXMLFile(QString availDictsXMLDataFile)
+void Prefs_Spelling::setAvailDictsXMLFile(const QString& availDictsXMLDataFile)
 {
 	QFile dataFile(availDictsXMLDataFile);
 	if (!dataFile.exists())
@@ -259,9 +259,11 @@ void Prefs_Spelling::setAvailDictsXMLFile(QString availDictsXMLDataFile)
 	dictList.clear();
 	QDomElement docElem = doc.documentElement();
 	QDomNode n = docElem.firstChild();
-	while( !n.isNull() ) {
+	while (!n.isNull())
+	{
 		QDomElement e = n.toElement();
-		if( !e.isNull() ) {
+		if (!e.isNull())
+		{
 			if (e.tagName()=="dictionary")
 			{
 				if (e.hasAttribute("type") && e.hasAttribute("filetype"))
@@ -323,7 +325,7 @@ void Prefs_Spelling::setAvailDictsXMLFile(QString availDictsXMLDataFile)
 	spellDownloadButton->setEnabled(true);
 }
 
-QString Prefs_Spelling::affixFileName(QStringList files)
+QString Prefs_Spelling::affixFileName(const QStringList& files)
 {
 	for (int i = 0; i < files.count(); ++i)
 	{
@@ -334,7 +336,7 @@ QString Prefs_Spelling::affixFileName(QStringList files)
 	return QString();
 }
 
-QString Prefs_Spelling::dictFileName(QStringList files)
+QString Prefs_Spelling::dictFileName(const QStringList& files)
 {
 	for (int i = 0; i < files.count(); ++i)
 	{

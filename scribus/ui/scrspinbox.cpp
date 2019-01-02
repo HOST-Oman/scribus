@@ -41,7 +41,7 @@ void ScrSpinBox::init(int unitIndex)
 	setSuffix(unitGetSuffixFromIndex(m_unitIndex));
 	setDecimals(unitGetPrecisionFromIndex(m_unitIndex));
 	setSingleStep(1.0);
-	lineEdit()->setValidator(0);
+	lineEdit()->setValidator(nullptr);
 	disconnect(this, SIGNAL(valueChanged(const QString &)), this, SLOT(textChanged()));
 	connect(this, SIGNAL(valueChanged(const QString &)), this, SLOT(textChanged()));
 	installEventFilter(this);
@@ -245,7 +245,7 @@ double ScrSpinBox::valueFromText ( const QString & text ) const
 	{
 		QMap<QString, double>::ConstIterator itend = m_constants->constEnd();
 		QMap<QString, double>::ConstIterator it = m_constants->constBegin();
-		while(it != itend)
+		while (it != itend)
 		{
 			fp.AddConstant(it.key().toStdString(), it.value() * unitGetRatioFromIndex(m_unitIndex));
 			++it;
@@ -278,16 +278,10 @@ QString ScrSpinBox::textFromValue ( double value ) const
 
 QValidator::State ScrSpinBox::validate ( QString & input, int & pos ) const
 {
-	if (input.endsWith(FinishTag))
-	{
-//		qDebug() << "spinbox validate acceptable:" << input;
-		return QValidator::Acceptable;
-	}
-	else
-	{
 //		qDebug() << "spinbox validate intermediate:" << input;
-		return QValidator::Intermediate;
-	}
+	if (input.endsWith(FinishTag))
+		return QValidator::Acceptable;
+	return QValidator::Intermediate;
 }
 
 void ScrSpinBox::fixup ( QString & input ) const
@@ -373,22 +367,22 @@ bool ScrSpinBox::eventFilter( QObject* watched, QEvent* event )
 		if (shiftB && !altB)
 		{
 			setSingleStep(0.1);
-			retval=QWidget::event(event);
+			retval=QAbstractSpinBox::event(event);
 		} 
 		else if (!shiftB && altB)
 		{
 			setSingleStep(10.0);
-			retval=QWidget::event(event);
+			retval=QAbstractSpinBox::event(event);
 		}
 		else if (shiftB && altB)
 		{
 			setSingleStep(0.01);
-			retval=QWidget::event(event);
+			retval=QAbstractSpinBox::event(event);
 		}
 		else if (!shiftB && !altB)
 		{
 			setSingleStep(1.0);
-			retval=QWidget::event(event);
+			retval=QAbstractSpinBox::event(event);
 		}
 	}
 	else

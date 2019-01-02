@@ -97,9 +97,6 @@ for which a new license (GPL+exception) is in place.
 extern const char ARG_CONSOLE[] =  "--console";
 extern const char ARG_CONSOLE_SHORT[] = "-cl";
 
-extern ScribusQApp* ScQApp;
-extern ScribusCore* ScCore;
-
 bool ScribusQApp::useGUI=false;
 
 ScribusQApp::ScribusQApp( int & argc, char ** argv ) : QApplication(argc, argv),
@@ -116,10 +113,8 @@ ScribusQApp::ScribusQApp( int & argc, char ** argv ) : QApplication(argc, argv),
 
 ScribusQApp::~ScribusQApp()
 {
-	if (m_ScCore)
-		delete m_ScCore;
-	if (m_scDLMgr)
-		delete m_scDLMgr;
+	delete m_ScCore;
+	delete m_scDLMgr;
 	PrefsManager::deleteInstance();
 	LocaleManager::deleteInstance();
 	LanguageManager::deleteInstance();
@@ -165,7 +160,7 @@ void ScribusQApp::parseCommandLine()
 
 	useGUI = true;
 	int argi = 1;
-	for( ; argi < argsc; argi++)
+	for ( ; argi < argsc; argi++)
 	{ //handle options (not positional parameters)
 		arg = args[argi];
 		if (arg == ARG_PYTHONSCRIPT || arg == ARG_PYTHONSCRIPT_SHORT)
@@ -194,7 +189,7 @@ void ScribusQApp::parseCommandLine()
 			}
 			break;
 		}
-		else if ((arg == ARG_LANG || arg == ARG_LANG_SHORT))
+		if ((arg == ARG_LANG || arg == ARG_LANG_SHORT))
 		{
 			if  (++argi < argsc)
 				m_lang = args[argi];
@@ -208,7 +203,8 @@ void ScribusQApp::parseCommandLine()
 		{
 			header=true;
 			version=true;
-		} else if (arg == ARG_HELP || arg == ARG_HELP_SHORT)
+		}
+		else if (arg == ARG_HELP || arg == ARG_HELP_SHORT)
 		{
 			header=true;
 			usage=true;
@@ -227,7 +223,8 @@ void ScribusQApp::parseCommandLine()
 		{
 			header=true;
 			availlangs=true;
-		} else if (arg == ARG_UPGRADECHECK || arg == ARG_UPGRADECHECK_SHORT)
+		}
+		else if (arg == ARG_UPGRADECHECK || arg == ARG_UPGRADECHECK_SHORT)
 		{
 			header=true;
 			runUpgradeCheck=true;
@@ -371,8 +368,7 @@ int ScribusQApp::init()
 	 * and delete if (true)
 	 */
 	// if (useGUI)
-	if (true)
-		retVal=ScCore->startGUI(m_showSplash, m_showFontInfo, m_showProfileInfo, m_lang);
+	retVal=ScCore->startGUI(m_showSplash, m_showFontInfo, m_showProfileInfo, m_lang);
 
 	// A hook for plugins and scripts to trigger on. Some plugins and scripts
 	// require the app to be fully set up (in particular, the main window to be
@@ -410,8 +406,7 @@ QStringList ScribusQApp::getLang(QString lang)
 				PrefsContext* userprefsContext = prefsFile->getContext("user_preferences");
 				if (userprefsContext)
 				{
-					QString prefslang = userprefsContext->get("gui_language","");
-					prefslang = cleanupLang(prefslang);
+					QString prefslang(cleanupLang(userprefsContext->get("gui_language","")));
 					if (!prefslang.isEmpty())
 						langs.append(prefslang);
 				}
@@ -481,24 +476,24 @@ QStringList ScribusQApp::getLang(QString lang)
 
 void ScribusQApp::installTranslators(const QStringList & langs)
 {
-	static QTranslator *transQt = 0;
-	static QTranslator *trans = 0;
+	static QTranslator *transQt = nullptr;
+	static QTranslator *trans = nullptr;
 
 	if (transQt)
 	{
 		removeTranslator( transQt );
 		delete transQt;
-		transQt=0;
+		transQt=nullptr;
 	}
 	if (trans)
 	{
 		removeTranslator( trans );
 		delete trans;
-		trans=0;
+		trans=nullptr;
 	}
 
-	transQt = new QTranslator(0);
-	trans = new QTranslator(0);
+	transQt = new QTranslator(nullptr);
+	trans = new QTranslator(nullptr);
 	QString path(ScPaths::instance().translationDir());
 
 	bool loadedQt = false;
@@ -512,20 +507,18 @@ void ScribusQApp::installTranslators(const QStringList & langs)
 			m_GUILang=lang;
 			break;
 		}
-		else
+
+		//CB: This might need adjusting for qm files distribution locations
+		if (transQt->load("qt_" + lang,	QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
+			loadedQt = true;
+		if (trans->load(QString("scribus." + lang), path))
+			loadedScribus = true;
+		if (!loadedScribus)
 		{
-			//CB: This might need adjusting for qm files distribution locations
-			if (transQt->load("qt_" + lang,	QLibraryInfo::location(QLibraryInfo::TranslationsPath)))
-				loadedQt = true;
-			if (trans->load(QString("scribus." + lang), path))
-				loadedScribus = true;
-			if (!loadedScribus)
-			{
-				QString altLang(LanguageManager::instance()->getAlternativeAbbrevfromAbbrev(lang));
-				if (!altLang.isEmpty())
-					if (trans->load(QString("scribus." + altLang), path))
-						loadedScribus = true;
-			}
+			QString altLang(LanguageManager::instance()->getAlternativeAbbrevfromAbbrev(lang));
+			if (!altLang.isEmpty())
+				if (trans->load(QString("scribus." + altLang), path))
+					loadedScribus = true;
 		}
 	}
 	if (loadedQt)
@@ -572,7 +565,7 @@ void ScribusQApp::changeGUILanguage(const QString & newGUILang)
 
 /*! \brief Format an arguments line for printing
 Helper procedure */
-static void printArgLine(QTextStream & ts, const char * smallArg, const char* fullArg, const QString desc)
+static void printArgLine(QTextStream & ts, const char * smallArg, const char* fullArg, const QString& desc)
 {
 	ts << QString("     %1 %2 %3").arg(QString("%1,").arg(smallArg), -5).arg(fullArg, -32).arg(desc);
 	endl(ts);
@@ -591,11 +584,11 @@ void ScribusQApp::showUsage()
 	printArgLine(ts, ARG_AVAILLANG_SHORT, ARG_AVAILLANG, tr("List the currently installed interface languages") );
 	printArgLine(ts, ARG_NOSPLASH_SHORT, ARG_NOSPLASH, tr("Do not show the splashscreen on startup") );
 	printArgLine(ts, ARG_NEVERSPLASH_SHORT, ARG_NEVERSPLASH, tr("Stop showing the splashscreen on startup. Writes an empty file called .neversplash in ~/.config/scribus") );
-	printArgLine(ts, ARG_PREFS_SHORT, qPrintable(QString("%1 <%2>").arg(ARG_PREFS).arg(tr("path"))), tr("Use path for user given preferences location") );
+	printArgLine(ts, ARG_PREFS_SHORT, qPrintable(QString("%1 <%2>").arg(ARG_PREFS, tr("path"))), tr("Use path for user given preferences location") );
 	printArgLine(ts, ARG_PROFILEINFO_SHORT, ARG_PROFILEINFO, tr("Show location of ICC profile information on console while starting") );
 	printArgLine(ts, ARG_UPGRADECHECK_SHORT, ARG_UPGRADECHECK, tr("Download a file from the Scribus website and show the latest available version") );
 	printArgLine(ts, ARG_VERSION_SHORT, ARG_VERSION, tr("Output version information and exit") );
-	printArgLine(ts, ARG_PYTHONSCRIPT_SHORT, qPrintable(QString("%1 <%2> [%3] ").arg(ARG_PYTHONSCRIPT).arg(tr("script")).arg(tr("arguments ..."))), tr("Run script in Python [with optional arguments]. This option must be last option used") );
+	printArgLine(ts, ARG_PYTHONSCRIPT_SHORT, qPrintable(QString("%1 <%2> [%3] ").arg(ARG_PYTHONSCRIPT).arg(tr("script"), tr("arguments ..."))), tr("Run script in Python [with optional arguments]. This option must be last option used") );
 	printArgLine(ts, ARG_NOGUI_SHORT, ARG_NOGUI, tr("Do not start GUI") );
 	ts << (QString("     %1").arg(CMD_OPTIONS_END,-39)) << tr("Explicit end of command line options"); endl(ts);
  	

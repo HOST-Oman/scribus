@@ -26,7 +26,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "prefstable.h"
 
-PrefsTable::PrefsTable(QString tableName)
+PrefsTable::PrefsTable(const QString& tableName)
 {
 	m_name = tableName;
 	m_rowCount = 0;
@@ -152,7 +152,7 @@ int PrefsTable::find(int searchCol, const QString& what)
 	for (int i = 0; i < height(); ++i)
 	{
 		if ((get(i, searchCol, "__NOT__SET__") == what) &&
-		    (get(i, searchCol, "__NOT__SET__") != "__NOT__SET__"))
+				(get(i, searchCol, "__NOT__SET__") != "__NOT__SET__"))
 		{
 			rowi = i;
 			break;
@@ -181,7 +181,7 @@ void PrefsTable::removeRow(int colIndex, const QString& what)
 	}
 }
 
-void PrefsTable::checkSize(int rowIndex, int colIndex, QString defValue)
+void PrefsTable::checkSize(int rowIndex, int colIndex, const QString& defValue)
 {
 	checkHeight(rowIndex);
 	checkWidth(rowIndex, colIndex, defValue);
@@ -197,7 +197,7 @@ void PrefsTable::checkHeight(int rowIndex)
 	}
 }
 
-void PrefsTable::checkWidth(int rowIndex, int colIndex, QString defValue)
+void PrefsTable::checkWidth(int rowIndex, int colIndex, const QString& defValue)
 {
 	if (static_cast<int>(m_table[rowIndex].size()) <= (colIndex + 1))
 	{

@@ -27,7 +27,7 @@ imageCollection::imageCollection()
 }
 
 
-collections::collections ( QString collectionsName )
+collections::collections ( const QString& collectionsName )
 {
 	name = collectionsName;
 }
@@ -36,7 +36,7 @@ collections::collections ( QString collectionsName )
 collectionReaderThread::collectionReaderThread ( QString &xmlFile2, bool importCollection )
 {
 	categoriesCount = 0;
-	collection = 0;
+	collection = nullptr;
 	type = 0;
 	restartThread = false;
 
@@ -256,7 +256,7 @@ void collectionReaderThread::restart()
 
 collectionListReaderThread::collectionListReaderThread ( QStringList &xmlFiles2 )
 {
-	m_clrt = 0;
+	m_clrt = nullptr;
 	restartThread = false;
 
 	xmlFiles = xmlFiles2;
@@ -304,7 +304,7 @@ void collectionListReaderThread::collectionReaderThreadFinished()
 }
 
 
-collectionsWriterThread::collectionsWriterThread ( QString &xmlFile2, QList<collections *> saveCollections2 )
+collectionsWriterThread::collectionsWriterThread ( const QString& xmlFile2, QList<collections *> saveCollections2 )
 {
 	xmlFile = xmlFile2;
 	saveCollections = saveCollections2;

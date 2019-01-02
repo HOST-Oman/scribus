@@ -41,7 +41,7 @@ QStringList FileExtensions()
 	return QStringList("pdb");
 }
 
-void GetText(QString filename, QString encoding, bool /* textOnly */, gtWriter *writer)
+void GetText(const QString& filename, const QString& encoding, bool /* textOnly */, gtWriter *writer)
 {
 	if (filename.isNull())
 		return;
@@ -69,8 +69,7 @@ PdbIm::PdbIm(const QString& fname, const QString& enc, gtWriter *w)
 
 PdbIm::~PdbIm()
 {
-	if (m_buf)
-		delete m_buf;
+	delete m_buf;
 }
 
 void PdbIm::write()
@@ -89,7 +88,7 @@ void PdbIm::write()
 	writer->appendUnstyled(data);
 }
 
-void PdbIm::loadFile(QString fname)
+void PdbIm::loadFile(const QString& fname)
 {
 	FILE *m_pdfp = fopen(fname.toLocal8Bit(), "rb");
 	pdb_header m_header;
@@ -143,7 +142,7 @@ void PdbIm::loadFile(QString fname)
 		ScCore->primaryMainWindow()->mainWindowProgressBar->setValue(rec_num);
 		fseek( m_pdfp, PDB_HEADER_SIZE + PDB_RECORD_HEADER_SIZE * rec_num, SEEK_SET);
 		GET_DWord( m_pdfp, offset );
-		if( rec_num < num_records )
+		if (rec_num < num_records)
 		{
 			fseek( m_pdfp, PDB_HEADER_SIZE + PDB_RECORD_HEADER_SIZE * (rec_num + 1), SEEK_SET);
 			GET_DWord( m_pdfp, next_offset );
@@ -189,16 +188,14 @@ Word PdbIm::swap_Word( Word r )
 {
 	if (m_littlendian)
 		return (r >> 8) | (r << 8);
-	else
-		return r;
+	return r;
 }
 
 DWord PdbIm::swap_DWord( DWord r )
 {
 	if (m_littlendian)
 		return ( (r >> 24) & 0x00FF ) | (r << 24) | ( (r >> 8) & 0xFF00 ) | ( (r << 8) & 0xFF0000 );
-	else
-		return r;
+	return r;
 }
 
 void PdbIm::uncompress( buffer *m_buf )

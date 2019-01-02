@@ -82,8 +82,8 @@ class SCRIBUS_API Canvas : public QWidget
 	Q_OBJECT
 	
 public:	
-	static const uint moveWithFullOutlinesThreshold = 21;
-	static const uint moveWithBoxesOnlyThreshold = 41;
+	static const int moveWithFullOutlinesThreshold = 21;
+	static const int moveWithBoxesOnlyThreshold = 41;
 
 	Canvas(ScribusDoc* doc, ScribusView* parent);
 	
@@ -150,28 +150,28 @@ public:
 
 	double scale() const { return m_viewMode.scale; }
 	void setScale(double scale);
-	QPoint canvasToLocal(FPoint p) const;
-	QPoint canvasToGlobal(FPoint p) const;
+	QPoint canvasToLocal(const FPoint& p) const;
+	QPoint canvasToGlobal(const FPoint& p) const;
 	QPoint canvasToLocal(QPointF p) const;
 	QPoint canvasToGlobal(QPointF p) const;
-	QRect canvasToLocal(QRectF p) const;
-	QRectF canvasToLocalF(QRectF p) const;
-	QRect canvasToGlobal(QRectF p) const;
+	QRect canvasToLocal(const QRectF& p) const;
+	QRectF canvasToLocalF(const QRectF& p) const;
+	QRect canvasToGlobal(const QRectF& p) const;
 	FPoint localToCanvas(QPoint p) const;
 //	FPoint localToCanvas(QPointF p) const;
 	FPoint globalToCanvas(QPoint p) const;
 //	FPoint globalToCanvas(QPointF p) const;
 	QRectF globalToCanvas(QRect p) const;
 //	QRectF globalToCanvas(QRectF p) const;
-	bool hitsCanvasPoint(QPoint globalPoint, FPoint canvasPoint) const;
+	bool hitsCanvasPoint(QPoint globalPoint, const FPoint& canvasPoint) const;
 	bool hitsCanvasPoint(QPoint globalPoint, QPointF canvasPoint) const;
-	bool hitsCanvasPoint(FPoint globalPoint, QPointF canvasPoint) const;
+	bool hitsCanvasPoint(const FPoint& globalPoint, const QPointF& canvasPoint) const;
 	QRect exposedRect() const;
 	bool cursorOverTextFrameControl(QPoint globalPos, PageItem* frame);
-	bool cursorOverFrameControl(QPoint globalPos, QRectF targetRect, PageItem* frame);
+	bool cursorOverFrameControl(QPoint globalPos, const QRectF& targetRect, PageItem* frame);
 	/** Returns the framehandle or INSIDE if the position falls into the frame. */
 	FrameHandle frameHitTest(QPointF canvasPoint, PageItem* frame) const;
-	FrameHandle frameHitTest(QPointF point, QRectF frame) const;
+	FrameHandle frameHitTest(QPointF point, const QRectF& frame) const;
 	/**
 		Returns the item under the cursor or nullptr if none found.
 	 Does *not* change the selection.
@@ -181,7 +181,7 @@ public:
 	 (this flag is ignored in masterpage mode, since all items are masterpage items then).
 	 */
 	PageItem* itemUnderCursor(QPoint globalPos, PageItem* itemAbove=nullptr, bool allowInGroup=false, bool allowMasterItems=false) const;
-	PageItem* itemInGroup(PageItem* group, QRectF mouseArea) const;
+	PageItem* itemInGroup(PageItem* group, const QRectF& mouseArea) const;
 	PageItem* itemUnderItem(PageItem* item, int& index) const;
 	
 	const QPolygon& redrawPolygon() const { return m_viewMode.redrawPolygon; }
@@ -220,17 +220,17 @@ public:
 	
 private:
 	void DrawPageBorderSub(ScPainter *p, ScPage *page);
-	void DrawPageBorder(ScPainter *p, QRectF clip, bool master = false);
+	void DrawPageBorder(ScPainter *p, const QRectF& clip, bool master = false);
 	void DrawPageMarginsGridSub(ScPainter *p, ScPage *page);
-	void DrawPageMargins(ScPainter *p, QRectF clip, bool master = false);
+	void DrawPageMargins(ScPainter *p, const QRectF& clip, bool master = false);
 	void DrawPageBaselineGridSub(ScPainter *p, ScPage *page);
-	void DrawPageBaselineGrid(ScPainter *p, QRectF clip, bool master = false);
-	void DrawPageGridSub(ScPainter *p, ScPage *page, QRectF clip);
-	void DrawPageGrid(ScPainter *p, QRectF clip, bool master = false);
+	void DrawPageBaselineGrid(ScPainter *p, const QRectF& clip, bool master = false);
+	void DrawPageGridSub(ScPainter *p, ScPage *page, const QRectF& clip);
+	void DrawPageGrid(ScPainter *p, const QRectF& clip, bool master = false);
 	void DrawPageGuidesSub(ScPainter *p, ScPage *page);
-	void DrawPageGuides(ScPainter *p, QRectF clip, bool master = false);
+	void DrawPageGuides(ScPainter *p, const QRectF& clip, bool master = false);
 	void DrawPageIndicatorSub(ScPainter *p, ScPage *page);
-	void DrawPageIndicator(ScPainter *p, QRectF clip, bool master = false);
+	void DrawPageIndicator(ScPainter *p, const QRectF& clip, bool master = false);
 	void drawLinkFrameLine(ScPainter* painter, FPoint &start, FPoint &end);
 	void PaintSizeRect(QRect neu);
 	void PaintSizeRect(QPolygon neu);

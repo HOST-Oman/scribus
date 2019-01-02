@@ -33,7 +33,7 @@ for which a new license (GPL+exception) is in place.
 ScPattern::ScPattern()
 {
 	items.clear();
-	doc = 0;
+	doc = nullptr;
 	pattern = QImage();
 	scaleX = 1.0;
 	scaleY = 1.0;
@@ -61,7 +61,7 @@ QImage* ScPattern::getPattern()
 	return &pattern;
 }
 
-void ScPattern::setPattern(QString name)
+void ScPattern::setPattern(const QString& name)
 {
 	items.clear();
 	doc->setLoading(true);
@@ -90,15 +90,19 @@ void ScPattern::setPattern(QString name)
 void ScPattern::createPreview()
 {
 	double sc = 500.0 / qMax(width, height);
+
 	bool savedFlag = doc->guidesPrefs().framesShown;
+	bool savedDoDrawing = doc->DoDrawing;
 	doc->guidesPrefs().framesShown = false;
+	doc->DoDrawing = true;
+
 	pattern = QImage(qRound(width * sc), qRound(height * sc), QImage::Format_ARGB32_Premultiplied);
 	pattern.fill( qRgba(0, 0, 0, 0) );
 	ScPainter *painter = new ScPainter(&pattern, pattern.width(), pattern.height(), 1, 0);
 	painter->setZoomFactor(sc);
-	for (int em = 0; em < items.count(); ++em)
+	for (int i = 0; i < items.count(); ++i)
 	{
-		PageItem* embedded = items.at(em);
+		PageItem* embedded = items.at(i);
 		painter->save();
 		painter->translate(embedded->gXpos, embedded->gYpos);
 		embedded->isEmbedded = true;
@@ -109,5 +113,7 @@ void ScPattern::createPreview()
 	}
 	painter->end();
 	delete painter;
+
+	doc->DoDrawing = savedDoDrawing;
 	doc->guidesPrefs().framesShown = savedFlag;
 }

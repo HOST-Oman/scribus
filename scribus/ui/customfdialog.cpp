@@ -63,7 +63,7 @@ for which a new license (GPL+exception) is in place.
 
 extern QString DocDir;
 
-ImIconProvider::ImIconProvider() : QFileIconProvider()
+ImIconProvider::ImIconProvider()
 {
 	fmts.clear();
 	QString tmp[] = {"eps", "epsi", "gif", "png", "jpg", "jpeg", "xpm", "tif", "tiff", "bmp", "pbm", "pgm", "ppm", "xbm", "xpm", "psd", "pat"};
@@ -89,29 +89,24 @@ QIcon ImIconProvider::icon(const QFileInfo &fi) const
 		return QFileIconProvider::icon(fi);
 	if (fmts.contains(ext, Qt::CaseInsensitive))
 		return imagepm;
-	else
-	{
-		ext = fi.completeSuffix().toLower();
-		if (ext.endsWith("ps", Qt::CaseInsensitive))
-			return pspm;
-		else if (ext.endsWith("txt", Qt::CaseInsensitive))
-			return txtpm;
-		else if (ext.endsWith("scd", Qt::CaseInsensitive) || ext.endsWith("scd.gz", Qt::CaseInsensitive))
-			return docpm;
-		else if (ext.endsWith("sla", Qt::CaseInsensitive) || ext.endsWith("sla.gz", Qt::CaseInsensitive))
-			return docpm;
-		else if (ext.endsWith("pdf", Qt::CaseInsensitive))
-			return pdfpm;
-		else if (ext.endsWith("sxd", Qt::CaseInsensitive))
-			return oosxdpm;
-		else if (ext.endsWith("sxw", Qt::CaseInsensitive))
-			return oosxwpm;
-		else if (allFormatsV.contains(ext) || ext.endsWith("sce", Qt::CaseInsensitive) || ext.endsWith("shape", Qt::CaseInsensitive))
-			return vectorpm;
-		else
-			return QFileIconProvider::icon(fi);
-	}
-	return QIcon();
+	ext = fi.completeSuffix().toLower();
+	if (ext.endsWith("ps", Qt::CaseInsensitive))
+		return pspm;
+	if (ext.endsWith("txt", Qt::CaseInsensitive))
+		return txtpm;
+	if (ext.endsWith("scd", Qt::CaseInsensitive) || ext.endsWith("scd.gz", Qt::CaseInsensitive))
+		return docpm;
+	if (ext.endsWith("sla", Qt::CaseInsensitive) || ext.endsWith("sla.gz", Qt::CaseInsensitive))
+		return docpm;
+	if (ext.endsWith("pdf", Qt::CaseInsensitive))
+		return pdfpm;
+	if (ext.endsWith("sxd", Qt::CaseInsensitive))
+		return oosxdpm;
+	if (ext.endsWith("sxw", Qt::CaseInsensitive))
+		return oosxwpm;
+	if (allFormatsV.contains(ext) || ext.endsWith("sce", Qt::CaseInsensitive) || ext.endsWith("shape", Qt::CaseInsensitive))
+		return vectorpm;
+	return QFileIconProvider::icon(fi);
 }
 
 FDialogPreview::FDialogPreview(QWidget *pa) : QLabel(pa)
@@ -121,10 +116,10 @@ FDialogPreview::FDialogPreview(QWidget *pa) : QLabel(pa)
 	setScaledContents( false );
 	setFrameShape( QLabel::WinPanel );
 	setFrameShadow( QLabel::Sunken );
-	updtPix();
+	updatePix();
 }
 
-void FDialogPreview::updtPix()
+void FDialogPreview::updatePix()
 {
 	QPixmap pm;
 	QRect inside = contentsRect();
@@ -133,11 +128,11 @@ void FDialogPreview::updtPix()
 	setPixmap(pm);
 }
 
-void FDialogPreview::GenPreview(QString name)
+void FDialogPreview::genPreview(const QString& name)
 {
 	QPixmap pm;
 	QString Buffer = "";
-	updtPix();
+	updatePix();
 	if (name.isEmpty())
 		return;
 	QFileInfo fi = QFileInfo(name);
@@ -159,108 +154,103 @@ void FDialogPreview::GenPreview(QString name)
 	{
 		ScImage im;
 		//No doc to send data anyway, so no doc to get into scimage.
-		CMSettings cms(0, "", Intent_Perceptual);
+		CMSettings cms(nullptr, "", Intent_Perceptual);
 		cms.allowColorManagement(false);
-		if (im.loadPicture(name, 1, cms, ScImage::Thumbnail, 72, &mode))
+		if (!im.loadPicture(name, 1, cms, ScImage::Thumbnail, 72, &mode))
+			return;
+		int ix,iy;
+		if ((im.imgInfo.exifDataValid) && (!im.imgInfo.exifInfo.thumbnail.isNull()))
 		{
-			int ix,iy;
-			if ((im.imgInfo.exifDataValid) && (!im.imgInfo.exifInfo.thumbnail.isNull()))
-			{
-				ix = im.imgInfo.exifInfo.width;
-				iy = im.imgInfo.exifInfo.height;
-			}
-			else
-			{
-				ix = im.width();
-				iy = im.height();
-			}
-			int xres = im.imgInfo.xres;
-			int yres = im.imgInfo.yres;
-			QString tmp = "";
-			QString tmp2 = "";
-			QImage im2 = im.scaled(w - 5, h - 44, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-			QPainter p;
-			QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
-			// Qt4 FIXME imho should be better
-			pm = *pixmap();
-			p.begin(&pm);
-			p.fillRect(0, 0, w, h-44, b);
-			p.fillRect(0, h-44, w, 44, QColor(255, 255, 255));
-			p.drawImage((w - im2.width()) / 2, (h - 44 - im2.height()) / 2, im2);
-			p.drawText(2, h-29, tr("Size:")+" "+tmp.setNum(ix)+" x "+tmp2.setNum(iy));
-			if (!(extensionIndicatesPDF(ext) || extensionIndicatesEPSorPS(ext)))
-				p.drawText(2, h-17, tr("Resolution:")+" "+tmp.setNum(xres)+" x "+tmp2.setNum(yres)+" "+ tr("DPI"));
-			QString cSpace;
-			if ((extensionIndicatesPDF(ext) || extensionIndicatesEPSorPS(ext)) && (im.imgInfo.type != ImageType7))
-				cSpace = tr("Unknown");
-			else
-				cSpace=colorSpaceText(im.imgInfo.colorspace);
-			p.drawText(2, h-5, tr("Colorspace:")+" "+cSpace);
-			p.end();
-			setPixmap(pm);
-			repaint();
+			ix = im.imgInfo.exifInfo.width;
+			iy = im.imgInfo.exifInfo.height;
 		}
+		else
+		{
+			ix = im.width();
+			iy = im.height();
+		}
+		int xres = im.imgInfo.xres;
+		int yres = im.imgInfo.yres;
+		QString tmp = "";
+		QString tmp2 = "";
+		QImage im2 = im.scaled(w - 5, h - 44, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+		QPainter p;
+		QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
+		// Qt4 FIXME imho should be better
+		pm = *pixmap();
+		p.begin(&pm);
+		p.fillRect(0, 0, w, h-44, b);
+		p.fillRect(0, h-44, w, 44, QColor(255, 255, 255));
+		p.drawImage((w - im2.width()) / 2, (h - 44 - im2.height()) / 2, im2);
+		p.drawText(2, h-29, tr("Size:")+" "+tmp.setNum(ix)+" x "+tmp2.setNum(iy));
+		if (!(extensionIndicatesPDF(ext) || extensionIndicatesEPSorPS(ext)))
+			p.drawText(2, h-17, tr("Resolution:")+" "+tmp.setNum(xres)+" x "+tmp2.setNum(yres)+" "+ tr("DPI"));
+		QString cSpace;
+		if ((extensionIndicatesPDF(ext) || extensionIndicatesEPSorPS(ext)) && (im.imgInfo.type != ImageType7))
+			cSpace = tr("Unknown");
+		else
+			cSpace=colorSpaceText(im.imgInfo.colorspace);
+		p.drawText(2, h-5, tr("Colorspace:")+" "+cSpace);
+		p.end();
+		setPixmap(pm);
+		repaint();
 	}
 	else if (allFormatsV.contains(ext.toUtf8()))
 	{
 		FileLoader *fileLoader = new FileLoader(name);
 		int testResult = fileLoader->testFile();
 		delete fileLoader;
-		if ((testResult != -1) && (testResult >= FORMATID_FIRSTUSER))
-		{
-			const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-			if( fmt )
-			{
-				QImage im = fmt->readThumbnail(name);
-				if (!im.isNull())
-				{
-					QString desc = tr("Size:")+" ";
-					desc += value2String(im.text("XSize").toDouble(), PrefsManager::instance()->appPrefs.docSetupPrefs.docUnitIndex, true, true);
-					desc += " x ";
-					desc += value2String(im.text("YSize").toDouble(), PrefsManager::instance()->appPrefs.docSetupPrefs.docUnitIndex, true, true);
-					im = im.scaled(w - 5, h - 21, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-					QPainter p;
-					QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
-					pm = *pixmap();
-					p.begin(&pm);
-					p.fillRect(0, 0, w, h-21, b);
-					p.fillRect(0, h-21, w, 21, QColor(255, 255, 255));
-					p.drawImage((w - im.width()) / 2, (h - 21 - im.height()) / 2, im);
-					p.drawText(2, h-5, desc);
-					p.end();
-					setPixmap(pm);
-					repaint();
-				}
-			}
-		}
+		if ((testResult == -1) || (testResult < FORMATID_FIRSTUSER))
+			return;
+		const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
+		if (!fmt)
+			return;
+		QImage im = fmt->readThumbnail(name);
+		if (im.isNull())
+			return;
+		QString desc = tr("Size:")+" ";
+		desc += value2String(im.text("XSize").toDouble(), PrefsManager::instance()->appPrefs.docSetupPrefs.docUnitIndex, true, true);
+		desc += " x ";
+		desc += value2String(im.text("YSize").toDouble(), PrefsManager::instance()->appPrefs.docSetupPrefs.docUnitIndex, true, true);
+		im = im.scaled(w - 5, h - 21, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+		QPainter p;
+		QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
+		pm = *pixmap();
+		p.begin(&pm);
+		p.fillRect(0, 0, w, h-21, b);
+		p.fillRect(0, h-21, w, 21, QColor(255, 255, 255));
+		p.drawImage((w - im.width()) / 2, (h - 21 - im.height()) / 2, im);
+		p.drawText(2, h-5, desc);
+		p.end();
+		setPixmap(pm);
+		repaint();
 	}
 	else if (ext.toUtf8() == "sce")
 	{
 		QByteArray cf;
-		if (loadRawText(name, cf))
-		{
-			QString f;
-			if (cf.left(16) == "<SCRIBUSELEMUTF8")
-				f = QString::fromUtf8(cf.data());
-			else
-				f = cf.data();
-			ScPreview *pre = new ScPreview();
-			QImage im = pre->createPreview(f);
-			im = im.scaled(w - 5, h - 21, Qt::KeepAspectRatio, Qt::SmoothTransformation);
-			QPainter p;
-			QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
-			pm = *pixmap();
-			p.begin(&pm);
-			p.fillRect(0, 0, w, h-21, b);
-			p.fillRect(0, h-21, w, 21, QColor(255, 255, 255));
-			p.drawImage((w - im.width()) / 2, (h - 21 - im.height()) / 2, im);
-			QString desc = tr("Size:")+QString(" %1 x %2").arg(im.width()).arg(im.height());
-			p.drawText(2, h-5, desc);
-			p.end();
-			setPixmap(pm);
-			repaint();
-			delete pre;
-		}
+		if (!loadRawText(name, cf))
+			return;
+		QString f;
+		if (cf.left(16) == "<SCRIBUSELEMUTF8")
+			f = QString::fromUtf8(cf.data());
+		else
+			f = cf.data();
+		ScPreview *pre = new ScPreview();
+		QImage im = pre->createPreview(f);
+		im = im.scaled(w - 5, h - 21, Qt::KeepAspectRatio, Qt::SmoothTransformation);
+		QPainter p;
+		QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
+		pm = *pixmap();
+		p.begin(&pm);
+		p.fillRect(0, 0, w, h-21, b);
+		p.fillRect(0, h-21, w, 21, QColor(255, 255, 255));
+		p.drawImage((w - im.width()) / 2, (h - 21 - im.height()) / 2, im);
+		QString desc = tr("Size:")+QString(" %1 x %2").arg(im.width()).arg(im.height());
+		p.drawText(2, h-5, desc);
+		p.end();
+		setPixmap(pm);
+		repaint();
+		delete pre;
 	}
 	else
 	{
@@ -292,8 +282,8 @@ void FDialogPreview::GenPreview(QString name)
 	}
 }
 
-CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QString filter, int flags)
-			: QDialog(parent), optionFlags(flags)
+CustomFDialog::CustomFDialog(QWidget *parent, const QString& wDir, const QString& caption, const QString& filter, int flags)
+			: QDialog(parent), m_optionFlags(flags)
 {
 	setModal(true);
 	setWindowTitle(caption);
@@ -315,10 +305,10 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 	vboxLayout1->setMargin(0);
 	vboxLayout1->setContentsMargins(0, 37, 0, 0);
 	vboxLayout1->setAlignment( Qt::AlignTop );
-	pw = new FDialogPreview( this );
-	pw->setMinimumSize(QSize(200, 200));
-	pw->setMaximumSize(QSize(200, 200));
-	vboxLayout1->addWidget(pw);
+	filePreview = new FDialogPreview( this );
+	filePreview->setMinimumSize(QSize(200, 200));
+	filePreview->setMaximumSize(QSize(200, 200));
+	vboxLayout1->addWidget(filePreview);
 	hboxLayout->addLayout(vboxLayout1);
 	vboxLayout->addLayout(hboxLayout);
     QHBoxLayout *hboxLayout1 = new QHBoxLayout;
@@ -328,25 +318,25 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 	showPreview->setText( tr("Show Preview"));
 	showPreview->setToolTip( tr("Show a preview and information for the selected file"));
 	showPreview->setChecked(true);
-	previewIsShown = true;
+	m_previewIsShown = true;
 	hboxLayout1->addWidget(showPreview);
 	QSpacerItem *spacerItem = new QSpacerItem(2, 2, QSizePolicy::Expanding, QSizePolicy::Minimum);
 	hboxLayout1->addItem(spacerItem);
-	OKButton = new QPushButton( CommonStrings::tr_OK, this);
-	OKButton->setDefault( true );
-	hboxLayout1->addWidget( OKButton );
+	okButton = new QPushButton( CommonStrings::tr_OK, this);
+	okButton->setDefault( true );
+	hboxLayout1->addWidget( okButton );
 	if (flags & fdDisableOk)
-		OKButton->setEnabled(false);
-	CancelB = new QPushButton( CommonStrings::tr_Cancel, this);
-	CancelB->setAutoDefault( false );
-	hboxLayout1->addWidget( CancelB );
+		okButton->setEnabled(false);
+	cancelButton = new QPushButton( CommonStrings::tr_Cancel, this);
+	cancelButton->setAutoDefault( false );
+	hboxLayout1->addWidget( cancelButton );
 	vboxLayout->addLayout(hboxLayout1);
 
-	SaveZip=nullptr;
-	WithFonts=nullptr;
-	WithProfiles=nullptr;
-	TxCodeM = nullptr;
-	TxCodeT = nullptr;
+	saveZip = nullptr;
+	withFonts = nullptr;
+	withProfiles = nullptr;
+	optionCombo = nullptr;
+	optionLabel = nullptr;
 	Layout = LayoutC = nullptr;
 	Layout1 = Layout1C = nullptr;
 	if (flags & fdDirectoriesOnly)
@@ -355,8 +345,8 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 		Layout1 = new QHBoxLayout(Layout);
 		Layout1->setSpacing( 0 );
 		Layout1->setContentsMargins(9, 0, 0, 0);
-		SaveZip = new QCheckBox( tr( "&Compress File" ), Layout);
-		Layout1->addWidget(SaveZip, Qt::AlignLeft);
+		saveZip = new QCheckBox( tr( "&Compress File" ), Layout);
+		Layout1->addWidget(saveZip, Qt::AlignLeft);
 		QSpacerItem* spacer = new QSpacerItem( 2, 2, QSizePolicy::Expanding, QSizePolicy::Minimum );
 		Layout1->addItem( spacer );
 		vboxLayout->addWidget(Layout);
@@ -364,18 +354,19 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 		Layout1C = new QHBoxLayout(LayoutC);
 		Layout1C->setSpacing( 0 );
 		Layout1C->setContentsMargins(9, 0, 0, 0);
-		WithFonts = new QCheckBox( tr( "&Include Fonts" ), LayoutC);
-		Layout1C->addWidget(WithFonts, Qt::AlignLeft);
-		WithProfiles = new QCheckBox( tr( "&Include Color Profiles" ), LayoutC);
-		Layout1C->addWidget(WithProfiles, Qt::AlignLeft);
+		withFonts = new QCheckBox( tr( "&Include Fonts" ), LayoutC);
+		Layout1C->addWidget(withFonts, Qt::AlignLeft);
+		withProfiles = new QCheckBox( tr( "&Include Color Profiles" ), LayoutC);
+		Layout1C->addWidget(withProfiles, Qt::AlignLeft);
 		QSpacerItem* spacer2 = new QSpacerItem( 2, 2, QSizePolicy::Expanding, QSizePolicy::Minimum );
 		Layout1C->addItem( spacer2 );
 		vboxLayout->addWidget(LayoutC);
 		fileDialog->setFileMode(QFileDialog::DirectoryOnly);
-		pw->hide();
+		fileDialog->forceDoubleClickActivation(false);
+		filePreview->hide();
 		showPreview->setVisible(false);
 		showPreview->setChecked(false);
-		previewIsShown = false;
+		m_previewIsShown = false;
 	}
 	else
 	{
@@ -385,8 +376,8 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 			Layout1 = new QHBoxLayout(Layout);
 			Layout1->setSpacing( 5 );
 			Layout1->setContentsMargins(9, 0, 0, 0);
-			SaveZip = new QCheckBox( tr( "&Compress File" ), Layout);
-			Layout1->addWidget(SaveZip);
+			saveZip = new QCheckBox( tr( "&Compress File" ), Layout);
+			Layout1->addWidget(saveZip);
 			QSpacerItem* spacer = new QSpacerItem( 2, 2, QSizePolicy::Expanding, QSizePolicy::Minimum );
 			Layout1->addItem( spacer );
 		}
@@ -401,12 +392,12 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 				vboxLayout->addWidget(Layout);
 		}
 		
-		if (SaveZip!=nullptr)
-			SaveZip->setToolTip( "<qt>" + tr( "Compress the Scribus document on save" ) + "</qt>");
-		if (WithFonts!=nullptr)
-			WithFonts->setToolTip( "<qt>" + tr( "Include fonts when collecting files for the document. Be sure to know and understand licensing information for any fonts you collect and possibly redistribute." ) + "</qt>");
-		if (WithProfiles!=nullptr)
-			WithProfiles->setToolTip( "<qt>" + tr( "Include color profiles when collecting files for the document" ) + "</qt>");
+		if (saveZip != nullptr)
+			saveZip->setToolTip( "<qt>" + tr( "Compress the Scribus document on save" ) + "</qt>");
+		if (withFonts != nullptr)
+			withFonts->setToolTip( "<qt>" + tr( "Include fonts when collecting files for the document. Be sure to know and understand licensing information for any fonts you collect and possibly redistribute." ) + "</qt>");
+		if (withProfiles != nullptr)
+			withProfiles->setToolTip( "<qt>" + tr( "Include color profiles when collecting files for the document" ) + "</qt>");
 		
 		if (flags & fdShowCodecs)
 		{
@@ -414,11 +405,11 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 			Layout1C = new QHBoxLayout(LayoutC);
 			Layout1C->setSpacing( 0 );
 			Layout1C->setContentsMargins(9, 0, 0, 0);
-			TxCodeT = new QLabel(this);
-			TxCodeT->setText( tr("Encoding:"));
-			Layout1C->addWidget(TxCodeT);
-			TxCodeM = new ScComboBox(LayoutC);
-			TxCodeM->setEditable(false);
+			optionLabel = new QLabel(this);
+			optionLabel->setText( tr("Encoding:"));
+			Layout1C->addWidget(optionLabel);
+			optionCombo = new ScComboBox(LayoutC);
+			optionCombo->setEditable(false);
 			QString tmp_txc[] = {"ISO 8859-1", "ISO 8859-2", "ISO 8859-3",
 								"ISO 8859-4", "ISO 8859-5", "ISO 8859-6",
 								"ISO 8859-7", "ISO 8859-8", "ISO 8859-9",
@@ -429,27 +420,27 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 								"Apple Roman"};
 			size_t array = sizeof(tmp_txc) / sizeof(*tmp_txc);
 			for (uint a = 0; a < array; ++a)
-				TxCodeM->addItem(tmp_txc[a]);
+				optionCombo->addItem(tmp_txc[a]);
 			QString localEn = QTextCodec::codecForLocale()->name();
 			if (localEn == "ISO-10646-UCS-2")
 				localEn = "UTF-16";
 			bool hasIt = false;
-			for (int cc = 0; cc < TxCodeM->count(); ++cc)
+			for (int cc = 0; cc < optionCombo->count(); ++cc)
 			{
-				if (TxCodeM->itemText(cc) == localEn)
+				if (optionCombo->itemText(cc) == localEn)
 				{
-					TxCodeM->setCurrentIndex(cc);
+					optionCombo->setCurrentIndex(cc);
 					hasIt = true;
 					break;
 				}
 			}
 			if (!hasIt)
 			{
-				TxCodeM->addItem(localEn);
-				TxCodeM->setCurrentIndex(TxCodeM->count()-1);
+				optionCombo->addItem(localEn);
+				optionCombo->setCurrentIndex(optionCombo->count()-1);
 			}
-			TxCodeM->setMinimumSize(QSize(200, 0));
-			Layout1C->addWidget(TxCodeM);
+			optionCombo->setMinimumSize(QSize(200, 0));
+			Layout1C->addWidget(optionCombo);
 			QSpacerItem* spacer2 = new QSpacerItem( 2, 2, QSizePolicy::Expanding, QSizePolicy::Minimum );
 			Layout1C->addItem( spacer2 );
 			vboxLayout->addWidget(LayoutC);
@@ -460,17 +451,17 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 			Layout1C = new QHBoxLayout(LayoutC);
 			Layout1C->setSpacing( 0 );
 			Layout1C->setContentsMargins(9, 0, 0, 0);
-			TxCodeT = new QLabel(this);
-			TxCodeT->setText( tr("Import Option:"));
-			Layout1C->addWidget(TxCodeT);
-			TxCodeM = new ScComboBox(LayoutC);
-			TxCodeM->setEditable(false);
-			TxCodeM->addItem( tr("Keep original size"));
-			TxCodeM->addItem( tr("Downscale to page size"));
-			TxCodeM->addItem( tr("Upscale to page size"));
-			TxCodeM->setCurrentIndex(0);
-			TxCodeM->setMinimumSize(QSize(200, 0));
-			Layout1C->addWidget(TxCodeM);
+			optionLabel = new QLabel(this);
+			optionLabel->setText( tr("Import Option:"));
+			Layout1C->addWidget(optionLabel);
+			optionCombo = new ScComboBox(LayoutC);
+			optionCombo->setEditable(false);
+			optionCombo->addItem( tr("Keep original size"));
+			optionCombo->addItem( tr("Downscale to page size"));
+			optionCombo->addItem( tr("Upscale to page size"));
+			optionCombo->setCurrentIndex(0);
+			optionCombo->setMinimumSize(QSize(200, 0));
+			Layout1C->addWidget(optionCombo);
 			QSpacerItem* spacer2 = new QSpacerItem( 2, 2, QSizePolicy::Expanding, QSizePolicy::Minimum );
 			Layout1C->addItem( spacer2 );
 			vboxLayout->addWidget(LayoutC);
@@ -480,22 +471,23 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 		{
 			bool setter = flags & fdShowPreview;
 			showPreview->setChecked(setter);
-			previewIsShown = setter;
-			pw->setVisible(setter);
+			m_previewIsShown = setter;
+			filePreview->setVisible(setter);
 		}
 		else
 		{
 			showPreview->hide();
-			previewIsShown = false;
-			pw->setVisible(false);
+			m_previewIsShown = false;
+			filePreview->setVisible(false);
 		}
 		if (flags & fdCompressFile)
-			connect(SaveZip, SIGNAL(clicked()), this, SLOT(handleCompress()));
+			connect(saveZip, SIGNAL(clicked()), this, SLOT(handleCompress()));
 	}
+	fileDialog->forceDoubleClickActivation(m_previewIsShown);
 	fileDialog->setNameFilterDetailsVisible(false);
-	extZip = "gz";
-	connect(OKButton, SIGNAL(clicked()), this, SLOT(okClicked()));
-	connect(CancelB, SIGNAL(clicked()), this, SLOT(reject()));
+	m_extZip = "gz";
+	connect(okButton, SIGNAL(clicked()), this, SLOT(okClicked()));
+	connect(cancelButton, SIGNAL(clicked()), this, SLOT(reject()));
 	connect(showPreview, SIGNAL(clicked()), this, SLOT(togglePreview()));
 	connect(fileDialog, SIGNAL(currentChanged(const QString &)), this, SLOT(fileClicked(const QString &)));
 	connect(fileDialog, SIGNAL(filesSelected(const QStringList &)), this, SLOT(accept()));
@@ -507,10 +499,10 @@ CustomFDialog::CustomFDialog(QWidget *parent, QString wDir, QString caption, QSt
 
 void CustomFDialog::fileClicked(const QString &path)
 {
-	if (optionFlags & fdDisableOk)
-		OKButton->setEnabled(!path.isEmpty());
-	if (previewIsShown)
-		pw->GenPreview(path);
+	if (m_optionFlags & fdDisableOk)
+		okButton->setEnabled(!path.isEmpty());
+	if (m_previewIsShown)
+		filePreview->genPreview(path);
 }
 
 void CustomFDialog::okClicked()
@@ -527,29 +519,30 @@ void CustomFDialog::okClicked()
 
 void CustomFDialog::togglePreview()
 {
-	previewIsShown = !previewIsShown;
-	pw->setVisible(previewIsShown);
-	if (previewIsShown)
+	m_previewIsShown = !m_previewIsShown;
+	fileDialog->forceDoubleClickActivation(m_previewIsShown);
+	filePreview->setVisible(m_previewIsShown);
+	if (m_previewIsShown)
 	{
 		QStringList sel = fileDialog->selectedFiles();
 		if (!sel.isEmpty())
-			pw->GenPreview(QDir::fromNativeSeparators(sel[0]));
+			filePreview->genPreview(QDir::fromNativeSeparators(sel[0]));
 	}
 	// #11856: Hack to avoid file dialog widget turning black with Qt5
 	qApp->processEvents();
-	pw->setVisible(!previewIsShown);
+	filePreview->setVisible(!m_previewIsShown);
 	qApp->processEvents();
-	pw->setVisible(previewIsShown);
+	filePreview->setVisible(m_previewIsShown);
 	fileDialog->repaint();
 	qApp->processEvents();
 	repaint();
 }
 
-void CustomFDialog::setSelection(QString sel)
+void CustomFDialog::setSelection(const QString& sel)
 {
 	fileDialog->selectFile( QFileInfo(sel).fileName() );
-	if (previewIsShown)
-		pw->GenPreview(sel);
+	if (m_previewIsShown)
+		filePreview->genPreview(sel);
 }
 
 QString CustomFDialog::selectedFile()
@@ -583,35 +576,35 @@ void CustomFDialog::handleCompress()
 			continue;
 		if (fc.at(a).compare("gz", Qt::CaseInsensitive) == 0)
 			continue;
-		if (fc.at(a).compare(ext, Qt::CaseInsensitive) == 0)
+		if (fc.at(a).compare(m_ext, Qt::CaseInsensitive) == 0)
 			continue;
-		if (fc.at(a).compare(extZip, Qt::CaseInsensitive) == 0)
+		if (fc.at(a).compare(m_extZip, Qt::CaseInsensitive) == 0)
 			continue;
 		fileName += "." + fc[a];
 	}
-	if (SaveZip->isChecked())
-		tmp.setFile(fileName + "." + extZip);
+	if (saveZip->isChecked())
+		tmp.setFile(fileName + "." + m_extZip);
 	else
-		tmp.setFile(fileName + "." + ext);
+		tmp.setFile(fileName + "." + m_ext);
 	setSelection(tmp.fileName());
 }
 
-void CustomFDialog::setExtension(QString e)
+void CustomFDialog::setExtension(const QString& e)
 {
-	ext = e;
+	m_ext = e;
 }
 
 QString CustomFDialog::extension()
 {
-	return ext;
+	return m_ext;
 }
 
-void CustomFDialog::setZipExtension(QString e)
+void CustomFDialog::setZipExtension(const QString& e)
 {
-	extZip = e;
+	m_extZip = e;
 }
 
 QString CustomFDialog::zipExtension()
 {
-	return extZip;
+	return m_extZip;
 }

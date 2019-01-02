@@ -51,7 +51,7 @@ for which a new license (GPL+exception) is in place.
 #include "iconmanager.h"
 
 
-CMYKChoose::CMYKChoose( QWidget* parent, ScribusDoc* doc, ScColor orig, QString name, ColorList *Colors, bool newCol  )
+CMYKChoose::CMYKChoose( QWidget* parent, ScribusDoc* doc, ScColor orig, const QString& name, ColorList *Colors, bool newCol  )
 		: QDialog( parent ), CurrSwatch(doc)
 {
 	setModal(true);
@@ -1145,9 +1145,6 @@ void CMYKChoose::leave()
 			ColorName->setFocus();
 			return;
 		}
-		else
-			accept();
 	}
-	else
-		accept();
+	accept();
 }

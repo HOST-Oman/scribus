@@ -9,7 +9,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "scclocale.h"
 
-ScXmlStreamAttributes::ScXmlStreamAttributes(void) : QXmlStreamAttributes()
+ScXmlStreamAttributes::ScXmlStreamAttributes()
 {
 
 }
@@ -146,7 +146,7 @@ double ScXmlStreamAttributes::valueAsDouble (const QString& attrName, double def
 	return retValue;
 }
 
-QString ScXmlStreamAttributes::valueAsString (const char*    attrName, const QString def) const
+QString ScXmlStreamAttributes::valueAsString (const char*    attrName, const QString& def) const
 {
 	QString retValue = def;
 	QStringRef att = value(QLatin1String(attrName));
@@ -155,7 +155,7 @@ QString ScXmlStreamAttributes::valueAsString (const char*    attrName, const QSt
 	return retValue;
 }
 
-QString ScXmlStreamAttributes::valueAsString (const QString& attrName, const QString def) const
+QString ScXmlStreamAttributes::valueAsString (const QString& attrName, const QString& def) const
 {
 	QString retValue = def;
 	QStringRef att = value(attrName);
@@ -164,19 +164,19 @@ QString ScXmlStreamAttributes::valueAsString (const QString& attrName, const QSt
 	return retValue;
 }
 
-ScXmlStreamAttributes ScXmlStreamReader::scAttributes(void) const
+ScXmlStreamAttributes ScXmlStreamReader::scAttributes() const
 {
 	ScXmlStreamAttributes attrs(attributes());
 	return attrs;
 }
 
-void ScXmlStreamReader::readToElementEnd(void)
+void ScXmlStreamReader::readToElementEnd()
 {
 	if (!isStartElement())
 		return;
 	int count = 1;
 	QStringRef tagName = name();
-	while(!atEnd() && !hasError())
+	while (!atEnd() && !hasError())
 	{
 		readNext();
 		if (isStartElement() && (name() == tagName))

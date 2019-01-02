@@ -14,7 +14,7 @@ for which a new license (GPL+exception) is in place.
 // Please don't implement the functionality of your plugin here; do that
 // in mypluginimpl.h and mypluginimpl.cpp .
 
-HunspellPlugin::HunspellPlugin() : ScActionPlugin()
+HunspellPlugin::HunspellPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place.
@@ -74,7 +74,7 @@ void HunspellPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool HunspellPlugin::run(ScribusDoc* doc, QString target)
+bool HunspellPlugin::run(ScribusDoc* doc, const QString& target)
 {
 	HunspellPluginImpl *hunspellPluginImpl = new HunspellPluginImpl();
 	Q_CHECK_PTR(hunspellPluginImpl);
@@ -83,7 +83,7 @@ bool HunspellPlugin::run(ScribusDoc* doc, QString target)
 	return result;
 }
 
-bool HunspellPlugin::run(QWidget *parent, ScribusDoc *doc, QString target)
+bool HunspellPlugin::run(QWidget *parent, ScribusDoc *doc, const QString& target)
 {
 	HunspellPluginImpl *hunspellPluginImpl = new HunspellPluginImpl();
 	Q_CHECK_PTR(hunspellPluginImpl);

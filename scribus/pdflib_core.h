@@ -68,8 +68,8 @@ public:
 	~PDFLibCore();
 	bool doExport(const QString& fn, const QString& nam, int Components, const std::vector<int> & pageNs, const QMap<int, QImage> & thumbs);
 
-	const QString& errorMessage(void) const;
-	bool  exportAborted(void) const;
+	const QString& errorMessage() const;
+	bool  exportAborted() const;
 
 private:
 	struct ShIm
@@ -101,12 +101,12 @@ private:
 	PdfFont PDF_WriteType3Font(const QByteArray& name, ScFace& face, const QMap<uint,FPointArray>& RealGlyphs);
 	PdfFont PDF_WriteGlyphsAsXForms(const QByteArray& fontName, ScFace& face, const QMap<uint,FPointArray>& RealGlyphs);
 	
-	QByteArray PDF_GenerateSubsetTag(const QByteArray& fontName, QList<uint> usedGlyphs);
+	QByteArray PDF_GenerateSubsetTag(const QByteArray& fontName, const QList<uint>& usedGlyphs);
 	PdfId PDF_WriteFontDescriptor(const QByteArray& fontName, ScFace& face, ScFace::FontFormat fformat, PdfId embeddedFontObject);
 	PdfFont PDF_WriteTtfSubsetFont(const QByteArray& fontName, ScFace& face, const QMap<uint,FPointArray>& RealGlyphs);
 	PdfFont PDF_WriteCffSubsetFont(const QByteArray& fontName, ScFace& face, const QMap<uint,FPointArray>& RealGlyphs);
 	PdfFont PDF_EncodeSimpleFont(const QByteArray& fontname, ScFace& face,  const QByteArray& baseFont, const QByteArray& subtype, bool isEmbedded, PdfId fontDes, const ScFace::FaceEncoding& gl);
-	PdfFont PDF_EncodeCidFont(const QByteArray& fontname, ScFace& face, const QByteArray& baseFont, PdfId fontDes, const ScFace::FaceEncoding& gl, const QMap<uint,uint> glyphmap);
+	PdfFont PDF_EncodeCidFont(const QByteArray& fontname, ScFace& face, const QByteArray& baseFont, PdfId fontDes, const ScFace::FaceEncoding& gl, const QMap<uint,uint>& glyphmap);
 	PdfFont PDF_EncodeFormFont(const QByteArray& fontname, ScFace& face,  const QByteArray& baseFont, const QByteArray& subtype, PdfId fontDes);
 	PdfId PDF_EmbedFontObject(const QString& fontName, ScFace &face);
 	PdfId PDF_EmbedFontObject(const QByteArray& ttf, const QByteArray& subtype);
@@ -194,15 +194,15 @@ private:
 	uint       WritePDFStream(const QByteArray& cc, PdfId objId);
 	uint       WritePDFString(const QString& cc);
 	uint       WritePDFString(const QString& cc, PdfId objId);
-	void       writeXObject(uint objNr, QByteArray dictionary, QByteArray stream);
-	uint       writeObject(QByteArray type, QByteArray dictionary);
+	void       writeXObject(uint objNr, const QByteArray& dictionary, const QByteArray& stream);
+	uint       writeObject(const QByteArray& type, const QByteArray& dictionary);
 	uint       writeGState(QByteArray dictionary) { return writeObject("/ExtGState", dictionary); }
 	uint       writeActions(const Annotation&, uint annotationObj);
 //	QString    PDFEncode(const QString & in);
 //	QByteArray ComputeMD5(const QString& in);
 //	QByteArray ComputeRC4Key(PdfId ObjNum);
 
-	QByteArray PDF_PutSoftShadow(PageItem* ite, const ScPage* pag);
+	QByteArray PDF_PutSoftShadow(PageItem* ite);
 	bool    PDF_ProcessItem(QByteArray& output, PageItem* ite, const ScPage* pag, uint PNr, bool embedded = false, bool pattern = false);
 	void    PDF_Bookmark(PageItem *currItem, double ypos);
 	bool	PDF_HatchFill(QByteArray& output, PageItem *currItem);
@@ -218,10 +218,10 @@ private:
 	bool    PDF_3DAnnotation(PageItem *ite, uint PNr);
 #endif
 	void	PDF_RadioButtons();
-	uint    PDF_RadioButton(PageItem *ite, uint parent, QString parentName);
+	uint    PDF_RadioButton(PageItem *ite, uint parent, const QString& parentName);
 	bool    PDF_Annotation(PageItem *ite, uint PNr);
 	void    PDF_Form(const QByteArray& im);
-	void    PDF_xForm(uint objNr, double w, double h, QByteArray im);
+	void    PDF_xForm(uint objNr, double w, double h, const QByteArray& im);
 	bool    PDF_Image(PageItem* c, const QString& fn, double sx, double sy, double x, double y, bool fromAN = false, const QString& Profil = "", bool Embedded = false, eRenderIntent Intent = Intent_Relative_Colorimetric, QByteArray* output = nullptr);
 	bool    PDF_EmbeddedPDF(PageItem* c, const QString& fn, double sx, double sy, double x, double y, bool fromAN, ShIm& imgInfo, bool &fatalError);
 #if HAVE_PODOFO
@@ -231,7 +231,7 @@ private:
 
 	quint32 encode32dVal(double val);
 	quint16 encode16dVal(double val);
-	void    encodeColor(QDataStream &vs, QString colName, int colShade, QStringList &spotColorSet, bool spotMode);
+	void    encodeColor(QDataStream &vs, const QString& colName, int colShade, QStringList &spotColorSet, bool spotMode);
 
 	QByteArray drawArrow(PageItem *ite, QTransform &arrowTrans, int arrowIndex);
 	QByteArray createBorderAppearance(PageItem *ite);

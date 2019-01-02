@@ -40,7 +40,7 @@ for which a new license (GPL+exception) is in place.
 #include "latexhelpers.h"
 #include "util.h"
 
-PageItem_LatexFrame::PageItem_LatexFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, QString fill, QString outline)
+PageItem_LatexFrame::PageItem_LatexFrame(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline)
 		: PageItem_ImageFrame(pa, x, y, w, h, w2, fill, outline)
 {
 	setUPixmap(Um::ILatexFrame);
@@ -50,15 +50,15 @@ PageItem_LatexFrame::PageItem_LatexFrame(ScribusDoc *pa, double x, double y, dou
 	m_imgValid = false;
 	m_usePreamble = true;
 	m_err = 0;
-	internalEditor = 0;
+	internalEditor = nullptr;
 	m_killed = false;
 	
-	config = 0;
+	config = nullptr;
 	if (PrefsManager::instance()->latexConfigs().count() > 0)
 		setConfigFile(PrefsManager::instance()->latexConfigs()[0]);
 
 	latex = new QProcess();
-	connect(latex, SIGNAL(finished(int, QProcess::ExitStatus)), this, SLOT(updateImage(int, QProcess::ExitStatus)));
+	connect(latex, SIGNAL(finished(int,QProcess::ExitStatus)), this, SLOT(updateImage(int,QProcess::ExitStatus)));
 	connect(latex, SIGNAL(error(QProcess::ProcessError)), this, SLOT(latexError(QProcess::ProcessError)));
 	latex->setProcessChannelMode(QProcess::MergedChannels);
 	
@@ -80,14 +80,16 @@ PageItem_LatexFrame::PageItem_LatexFrame(ScribusDoc *pa, double x, double y, dou
 
 PageItem_LatexFrame::~PageItem_LatexFrame()
 {
-	if (internalEditor) delete internalEditor;
+	delete internalEditor;
 	
 	latex->disconnect();
-	if (latex->state() != QProcess::NotRunning) {
+	if (latex->state() != QProcess::NotRunning)
+	{
 		m_killed = true;
 		latex->terminate();
 		latex->waitForFinished(500);
-		if (latex->state() != QProcess::NotRunning) {
+		if (latex->state() != QProcess::NotRunning)
+		{
 			latex->kill();
 			latex->waitForFinished(500);
 		}
@@ -115,9 +117,9 @@ void PageItem_LatexFrame::deleteImageFile()
 	Q_ASSERT(!fi.fileName().isEmpty());
 	Q_ASSERT(!fi.fileName().contains("/"));
 	Q_ASSERT(!fi.fileName().contains("\\"));
-	QStringList files;
-	files = dir.entryList(filter);
-	foreach (const QString& file, files)
+
+	const QStringList files = dir.entryList(filter);
+	for (const QString& file : files)
 	{
 		Q_ASSERT(file.startsWith("scribus_temp"));
 		dir.remove(file);
@@ -154,6 +156,40 @@ void PageItem_LatexFrame::DrawObj_Item(ScPainter *p, QRectF e)
 		//Just pass it to ImageFrame
 		PageItem_ImageFrame::DrawObj_Item(p, e);
 	}
+}
+
+bool PageItem_LatexFrame::loadImage(const QString & filename, const bool reload, const int gsResolution, bool showMsg)
+{
+	//Save state and restore afterwards
+	double xres, yres;
+	if (imageIsAvailable)
+	{
+		xres = pixm.imgInfo.xres;
+		yres = pixm.imgInfo.yres;
+	}
+	else
+	{
+		xres = yres = realDpi();
+	}
+	double scaleX = m_imageXScale * xres;
+	double scaleY = m_imageYScale * yres;
+	double offX = m_imageXOffset / xres;
+	double offY = m_imageYOffset / yres;
+
+	bool imageLoaded = PageItem_ImageFrame::loadImage(imageFile, true, realDpi(), showMsg);
+	if (PrefsManager::instance()->latexForceDpi())
+	{
+		pixm.imgInfo.xres = pixm.imgInfo.yres = realDpi();
+	}
+	m_lastDpi = realDpi();
+
+	//Restore parameters, account for dpi changes
+	m_imageXScale = scaleX / pixm.imgInfo.xres;
+	m_imageYScale = scaleY / pixm.imgInfo.yres;
+	m_imageXOffset = offX  * pixm.imgInfo.xres;
+	m_imageYOffset = offY  * pixm.imgInfo.yres;
+
+	return imageLoaded;
 }
 
 void PageItem_LatexFrame::updateImage(int exitCode, QProcess::ExitStatus exitStatus)
@@ -195,39 +231,11 @@ void PageItem_LatexFrame::updateImage(int exitCode, QProcess::ExitStatus exitSta
 		update(); //Show error marker
 		return;
 	}
-	else
-	{
-		firstWarning = true;
-	}
+	firstWarning = true;
 	m_imgValid = true;
 
-	//Save state and restore afterwards
-	double xres, yres;
-	if (imageIsAvailable)
-	{
-		xres = pixm.imgInfo.xres;
-		yres = pixm.imgInfo.yres;
-	}
-	else
-	{
-		xres = yres = realDpi();
-	}
-	double scaleX = m_imageXScale * xres;
-	double scaleY = m_imageYScale * yres;
-	double offX   = m_imageXOffset / xres;
-	double offY   = m_imageYOffset / yres;
-	PageItem_ImageFrame::loadImage(imageFile, true, realDpi());
-	if (PrefsManager::instance()->latexForceDpi()) 
-	{
-		pixm.imgInfo.xres = pixm.imgInfo.yres = realDpi();
-	}
-	m_lastDpi = realDpi();
-	
-	//Restore parameters, account for dpi changes
-	m_imageXScale = scaleX / pixm.imgInfo.xres;
-	m_imageYScale = scaleY / pixm.imgInfo.yres;
-	m_imageXOffset = offX  * pixm.imgInfo.xres;
-	m_imageYOffset = offY  * pixm.imgInfo.yres;
+	loadImage(imageFile, true, realDpi(), false);
+
 	//emit imageOffsetScale(LocalScX, LocalScY, LocalX, LocalY);
 	update();
 }
@@ -254,7 +262,7 @@ void PageItem_LatexFrame::runApplication()
 		update(); //Show error marker
 		if (firstWarningTmpfile)
 		{
-			ScMessageBox::critical(0, tr("Error"), "<qt>" +
+			ScMessageBox::critical(nullptr, tr("Error"), "<qt>" +
 								  tr("Could not create a temporary file to run the application!") 
 								  + "</qt>");
 			firstWarningTmpfile = false;
@@ -263,18 +271,16 @@ void PageItem_LatexFrame::runApplication()
 		//Don't know how to continue as it's impossible to create tempfile
 		return;
 	}
-	else
-	{
-		firstWarningTmpfile = true;
-	}
+	firstWarningTmpfile = true;
 	
 	QString full_command = config->executable();
-	if (full_command.isEmpty()) {
+	if (full_command.isEmpty())
+	{
 		m_err = 0xffff;
 		update(); //Show error marker
 		if (firstWarningLatexMissing)
 		{
-			ScMessageBox::critical(0, tr("Error"),
+			ScMessageBox::critical(nullptr, tr("Error"),
 									 "<qt>" + tr("The config file didn't specify a executable path!") +
 									 "</qt>");
 			firstWarningLatexMissing = false;
@@ -282,17 +288,14 @@ void PageItem_LatexFrame::runApplication()
         qCritical() << "RENDER FRAME:" << tr("The config file didn't specify a executable path!");
 		return;
 	}
-	else
-	{
-		firstWarningLatexMissing = true;
-	}
+	firstWarningLatexMissing = true;
 
 	full_command.replace("%dpi", QString::number(realDpi()));
-	if (full_command.contains("%file")) {
+	if (full_command.contains("%file"))
 		full_command.replace("%file", QString("\"%1\"").arg(QDir::toNativeSeparators(tempFileBase)));
-	} else {
+	else
 		full_command = full_command + QString(" \"%1\"").arg(QDir::toNativeSeparators(tempFileBase));
-	}
+
 	full_command.replace("%dir", QString("\"%1\"").arg(QDir::toNativeSeparators(QDir::tempPath())));
 	latex->setWorkingDirectory(QDir::tempPath());
 
@@ -390,7 +393,7 @@ void PageItem_LatexFrame::writeFileContents(QFile *tempfile)
 	tempfile->write(tmp.toUtf8());
 }
 
-bool PageItem_LatexFrame::setFormula(QString formula, bool undoable)
+bool PageItem_LatexFrame::setFormula(const QString& formula, bool undoable)
 {
 	if (formula == formulaText) {
 		//Nothing changed
@@ -426,12 +429,12 @@ void PageItem_LatexFrame::latexError(QProcess::ProcessError error)
 	if (firstWarning)
 	{
 		if (latex->error() == QProcess::FailedToStart) {
-			ScMessageBox::critical(0, tr("Error"), "<qt>" +
+			ScMessageBox::critical(nullptr, tr("Error"), "<qt>" +
 								  tr("The application \"%1\" failed to start! Please check the path: ").
 								  arg(config->executable())
 								  + "</qt>");
 		} else {
-			ScMessageBox::critical(0, tr("Error"), "<qt>" +
+			ScMessageBox::critical(nullptr, tr("Error"), "<qt>" +
 					tr("The application \"%1\" crashed!").arg(config->executable())
 					+ "</qt>");
 		}
@@ -455,11 +458,9 @@ QString PageItem_LatexFrame::configFile() const
 
 int PageItem_LatexFrame::realDpi() const
 {
-	if (m_dpi) {
+	if (m_dpi)
 		return m_dpi;
-	} else {
-		return PrefsManager::instance()->latexResolution();
-	}
+	return PrefsManager::instance()->latexResolution();
 }
 
 void PageItem_LatexFrame::setDpi(int newDpi)
@@ -473,8 +474,8 @@ void PageItem_LatexFrame::setConfigFile(QString newConfig, bool relative)
 	if (relative)
 	{
 		QFileInfo fi;
-		QStringList configs = PrefsManager::instance()->latexConfigs();
-		foreach (const QString& config, configs)
+		const QStringList configs = PrefsManager::instance()->latexConfigs();
+		for (const QString& config : configs)
 		{
 			fi.setFile(config);
 			if (newConfig == fi.fileName())
@@ -527,19 +528,21 @@ void PageItem_LatexFrame::killProcess()
 void PageItem_LatexFrame::restore(UndoState *state, bool isUndo)
 {
 	SimpleState *ss = dynamic_cast<SimpleState*>(state);
-	if (!ss) {
+	if (!ss)
+	{
 		PageItem_ImageFrame::restore(state, isUndo);
 		return;
 	}
-	if (ss->contains("CHANGE_FORMULA")) {
+	if (ss->contains("CHANGE_FORMULA"))
+	{
 		if (isUndo)
 			setFormula(ss->get("OLD_FORMULA"), false);
 		else
 			setFormula(ss->get("NEW_FORMULA"), false);
 		rerunApplication(true);
-	} else {
-		PageItem_ImageFrame::restore(state, isUndo);
 	}
+	else
+		PageItem_ImageFrame::restore(state, isUndo);
 }
 
 
@@ -584,7 +587,7 @@ void PageItem_LatexFrame::applicableActions(QStringList & actionList)
 	}
 }
 
-QString PageItem_LatexFrame::infoDescription()
+QString PageItem_LatexFrame::infoDescription() const
 {
 	QString htmlText;
 	htmlText.append("<h2>"+tr("Render Frame") + "</h2><table>");

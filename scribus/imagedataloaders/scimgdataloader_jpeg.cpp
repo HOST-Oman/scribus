@@ -7,7 +7,7 @@ for which a new license (GPL+exception) is in place.
 #include <QFile>
 #include <QFileInfo>
 #include <QObject>
-#include <setjmp.h>
+#include <csetjmp>
 #include "scconfig.h"
 #include "colormgmt/sccolormgmtengine.h"
 #include "scimgdataloader_jpeg.h"
@@ -34,12 +34,12 @@ static void my_error_exit (j_common_ptr cinfo)
 #define MAX_DATA_BYTES_IN_MARKER  (MAX_BYTES_IN_MARKER - ICC_OVERHEAD_LEN)
 
 
-ScImgDataLoader_JPEG::ScImgDataLoader_JPEG(void)
+ScImgDataLoader_JPEG::ScImgDataLoader_JPEG()
 {
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_JPEG::initSupportedFormatList(void)
+void ScImgDataLoader_JPEG::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	m_supportedFormats.append( "jpg" );
@@ -78,7 +78,7 @@ void ScImgDataLoader_JPEG::loadEmbeddedProfile(const QString& fn, int /*page*/)
 	jpeg_read_header(&cinfo, true);
 	//jpeg_start_decompress(&cinfo);
 	unsigned int EmbedLen = 0;
-	unsigned char* EmbedBuffer = 0;
+	unsigned char* EmbedBuffer = nullptr;
 	if (read_jpeg_marker(ICC_MARKER, &cinfo, &EmbedBuffer, &EmbedLen))
 	{
 		bool profileIsValid = false;
@@ -317,7 +317,7 @@ bool ScImgDataLoader_JPEG::loadPicture(const QString& fn, int /*page*/, int res,
 	}
 
 	unsigned int PhotoshopLen = 0;
-	unsigned char * PhotoshopBuffer = 0;
+	unsigned char * PhotoshopBuffer = nullptr;
 	if (read_jpeg_marker(PHOTOSHOP_MARKER, &cinfo, &PhotoshopBuffer, &PhotoshopLen) )
 	{
 		bool savEx = m_imageInfoRecord.exifDataValid;
@@ -382,10 +382,10 @@ bool ScImgDataLoader_JPEG::loadPicture(const QString& fn, int /*page*/, int res,
 				m_image = m_imageInfoRecord.exifInfo.thumbnail.copy();
 			m_pixelFormat = Format_BGRA_8;
 		}
-		m_imageInfoRecord.valid = (m_imageInfoRecord.PDSpathData.size())>0?true:false; // The only interest is vectormask
+		m_imageInfoRecord.valid = (m_imageInfoRecord.PDSpathData.size())>0; // The only interest is vectormask
 		arrayPhot.clear();
 		free(PhotoshopBuffer );
-		PhotoshopBuffer = 0;
+		PhotoshopBuffer = nullptr;
 		if (m_imageInfoRecord.exifDataValid && !m_imageInfoRecord.exifInfo.thumbnail.isNull() && thumbnail)
 		{
 			jpeg_destroy_decompress(&cinfo);

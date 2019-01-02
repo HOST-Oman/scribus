@@ -34,15 +34,21 @@ for which a new license (GPL+exception) is in place.
 #include <QString>
 
 class StyleManager;
+class XtgScanner;
 
-extern "C" PLUGIN_API void GetText2(QString filename, QString encoding, bool textOnly, bool prefix, bool append, PageItem *textItem);
+extern "C" PLUGIN_API void GetText2(const QString& filename, const QString& encoding, bool textOnly, bool prefix, bool append, PageItem *textItem);
 extern "C" PLUGIN_API QString FileFormatName();
 extern "C" PLUGIN_API QStringList FileExtensions();
 
 class XtgIm
 {
 public:
-	XtgIm(QString fileName, PageItem *textItem, bool textOnly, bool prefix, bool append);
+	XtgIm(PageItem *textItem, bool textOnly, bool prefix, bool append);
 	~XtgIm();
+
+	bool import(const QString& fileName);
+
+protected:
+	XtgScanner* m_scanner;
 };
 #endif			/* XTGIM_H */

@@ -22,7 +22,7 @@ PyObject *scribus_loadimage(PyObject* /* self */, PyObject* args)
 	char *Image;
 	if (!PyArg_ParseTuple(args, "es|es", "utf-8", &Image, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
@@ -33,8 +33,6 @@ PyObject *scribus_loadimage(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	}
 	ScCore->primaryMainWindow()->doc->loadPict(QString::fromUtf8(Image), item);
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -44,7 +42,7 @@ PyObject *scribus_scaleimage(PyObject* /* self */, PyObject* args)
 	double x, y;
 	if (!PyArg_ParseTuple(args, "dd|es", &x, &y, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
@@ -56,27 +54,27 @@ PyObject *scribus_scaleimage(PyObject* /* self */, PyObject* args)
 	}
 
 	// Grab the old selection - but use it only where is there any
-	Selection tempSelection(*ScCore->primaryMainWindow()->doc->m_Selection);
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	ScribusView* currentView = ScCore->primaryMainWindow()->view;
+	Selection tempSelection(*currentDoc->m_Selection);
 	bool hadOrigSelection = (tempSelection.count() != 0);
 
-	ScCore->primaryMainWindow()->doc->m_Selection->clear();
+	currentDoc->m_Selection->clear();
 	// Clear the selection
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	// Select the item, which will also select its group if
 	// there is one.
-	ScCore->primaryMainWindow()->view->SelectItem(item);
+	currentView->SelectItem(item);
 
 	// scale
-	ScCore->primaryMainWindow()->doc->itemSelection_SetImageScale(x, y); //CB why when this is done above?
-	ScCore->primaryMainWindow()->doc->updatePic();
+	currentDoc->itemSelection_SetImageScale(x, y); //CB why when this is done above?
+	currentDoc->updatePic();
 
 	// Now restore the selection.
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	if (hadOrigSelection)
-		*ScCore->primaryMainWindow()->doc->m_Selection=tempSelection;
+		*currentDoc->m_Selection=tempSelection;
 
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -86,41 +84,41 @@ PyObject *scribus_setimagescale(PyObject* /* self */, PyObject* args)
 	double x, y;
 	if (!PyArg_ParseTuple(args, "dd|es", &x, &y, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
 		return nullptr;
-	if (! item->asImageFrame())
+	if (!item->asImageFrame())
 	{
 		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
 
 	// Grab the old selection - but use it only where is there any
-	Selection tempSelection(*ScCore->primaryMainWindow()->doc->m_Selection);
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	ScribusView* currentView = ScCore->primaryMainWindow()->view;
+	Selection tempSelection(*currentDoc->m_Selection);
 	bool hadOrigSelection = (tempSelection.count() != 0);
 
-	ScCore->primaryMainWindow()->doc->m_Selection->clear();
+	currentDoc->m_Selection->clear();
 	// Clear the selection
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	// Select the item, which will also select its group if
 	// there is one.
-	ScCore->primaryMainWindow()->view->SelectItem(item);
+	currentView->SelectItem(item);
 
 	// scale
 	double newScaleX = x / item->pixm.imgInfo.xres * 72.0;
 	double newScaleY = y / item->pixm.imgInfo.yres * 72.0;
-	ScCore->primaryMainWindow()->doc->itemSelection_SetImageScale(newScaleX, newScaleY); //CB why when this is done above?
-	ScCore->primaryMainWindow()->doc->updatePic();
+	currentDoc->itemSelection_SetImageScale(newScaleX, newScaleY); //CB why when this is done above?
+	currentDoc->updatePic();
 
 	// Now restore the selection.
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	if (hadOrigSelection)
-		*ScCore->primaryMainWindow()->doc->m_Selection=tempSelection;
+		*currentDoc->m_Selection=tempSelection;
 
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 PyObject *scribus_setimageoffset(PyObject* /* self */, PyObject* args)
@@ -129,41 +127,41 @@ PyObject *scribus_setimageoffset(PyObject* /* self */, PyObject* args)
 	double x, y;
 	if (!PyArg_ParseTuple(args, "dd|es", &x, &y, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
 		return nullptr;
-	if (! item->asImageFrame())
+	if (!item->asImageFrame())
 	{
 		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
 
 	// Grab the old selection - but use it only where is there any
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	ScribusView* currentView = ScCore->primaryMainWindow()->view;
 	Selection tempSelection(*ScCore->primaryMainWindow()->doc->m_Selection);
 	bool hadOrigSelection = (tempSelection.count() != 0);
 
-	ScCore->primaryMainWindow()->doc->m_Selection->clear();
+	currentDoc->m_Selection->clear();
 	// Clear the selection
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	// Select the item, which will also select its group if
 	// there is one.
-	ScCore->primaryMainWindow()->view->SelectItem(item);
+	currentView->SelectItem(item);
 
 	// offset
 	double newOffsetX = x / ((item->imageXScale() != 0.0) ? item->imageXScale() : 1);
 	double newOffsetY = y / ((item->imageYScale() != 0.0) ? item->imageYScale() : 1);
-	ScCore->primaryMainWindow()->doc->itemSelection_SetImageOffset(newOffsetX, newOffsetY); //CB why when this is done above?
-	ScCore->primaryMainWindow()->doc->updatePic();
+	currentDoc->itemSelection_SetImageOffset(newOffsetX, newOffsetY); //CB why when this is done above?
+	currentDoc->updatePic();
 
 	// Now restore the selection.
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	if (hadOrigSelection)
-		*ScCore->primaryMainWindow()->doc->m_Selection=tempSelection;
+		*currentDoc->m_Selection=tempSelection;
 
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -173,7 +171,7 @@ PyObject *scribus_setimagebrightness(PyObject* /* self */, PyObject* args)
 	double n;
 	if (!PyArg_ParseTuple(args, "d|es", &n, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
@@ -193,8 +191,6 @@ PyObject *scribus_setimagebrightness(PyObject* /* self */, PyObject* args)
 	item->pixm.applyEffect(item->effectsInUse, ScCore->primaryMainWindow()->doc->PageColors, false);
 	
 	ScCore->primaryMainWindow()->doc->updatePic();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -203,7 +199,7 @@ PyObject *scribus_setimagegrayscale(PyObject* /* self */, PyObject* args)
 	char *Name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "|es", "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
@@ -221,8 +217,6 @@ PyObject *scribus_setimagegrayscale(PyObject* /* self */, PyObject* args)
 	item->pixm.applyEffect(item->effectsInUse, ScCore->primaryMainWindow()->doc->PageColors, false);
 	
 	ScCore->primaryMainWindow()->doc->updatePic();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -232,35 +226,38 @@ PyObject *scribus_moveobjrel(PyObject* /* self */, PyObject* args)
 	double x, y;
 	if (!PyArg_ParseTuple(args, "dd|es", &x, &y, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item==nullptr)
 		return nullptr;
+
 	// Grab the old selection - but use it only where is there any
-	Selection tempSelection(*ScCore->primaryMainWindow()->doc->m_Selection);
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	ScribusView* currentView = ScCore->primaryMainWindow()->view;
+	Selection tempSelection(*currentDoc->m_Selection);
 	bool hadOrigSelection = (tempSelection.count() != 0);
 
-	ScCore->primaryMainWindow()->doc->m_Selection->clear();
+	currentDoc->m_Selection->clear();
 	// Clear the selection
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	// Select the item, which will also select its group if
 	// there is one.
-	ScCore->primaryMainWindow()->view->SelectItem(item);
+	currentView->SelectItem(item);
 	// Move the item, or items
-	if (ScCore->primaryMainWindow()->doc->m_Selection->count() > 1)
+	if (currentDoc->m_Selection->count() > 1)
 	{
-		ScCore->primaryMainWindow()->view->startGroupTransaction(Um::Move, "", Um::IMove);
-		ScCore->primaryMainWindow()->doc->moveGroup(ValueToPoint(x), ValueToPoint(y));
-		ScCore->primaryMainWindow()->view->endGroupTransaction();
+		currentView->startGroupTransaction(Um::Move, "", Um::IMove);
+		currentDoc->moveGroup(ValueToPoint(x), ValueToPoint(y));
+		currentView->endGroupTransaction();
 	}
 	else {
-		ScCore->primaryMainWindow()->doc->moveItem(ValueToPoint(x), ValueToPoint(y), item);
+		currentDoc->moveItem(ValueToPoint(x), ValueToPoint(y), item);
 		}
 	// Now restore the selection.
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	if (hadOrigSelection)
-		*ScCore->primaryMainWindow()->doc->m_Selection=tempSelection;
+		*currentDoc->m_Selection=tempSelection;
 	Py_RETURN_NONE;
 }
 
@@ -270,35 +267,38 @@ PyObject *scribus_moveobjabs(PyObject* /* self */, PyObject* args)
 	double x, y;
 	if (!PyArg_ParseTuple(args, "dd|es", &x, &y, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
 		return nullptr;
+
 	// Grab the old selection - but use it only where is there any
-	Selection tempSelection(*ScCore->primaryMainWindow()->doc->m_Selection);
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	ScribusView* currentView = ScCore->primaryMainWindow()->view;
+	Selection tempSelection(*currentDoc->m_Selection);
 	bool hadOrigSelection = (tempSelection.count() != 0);
 
 	// Clear the selection
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	// Select the item, which will also select its group if
 	// there is one.
-	ScCore->primaryMainWindow()->view->SelectItem(item);
+	currentView->SelectItem(item);
 	// Move the item, or items
-	if (ScCore->primaryMainWindow()->doc->m_Selection->count() > 1)
+	if (currentDoc->m_Selection->count() > 1)
 	{
-		ScCore->primaryMainWindow()->view->startGroupTransaction(Um::Move, "", Um::IMove);
+		currentView->startGroupTransaction(Um::Move, "", Um::IMove);
 		double x2, y2, w, h;
-		ScCore->primaryMainWindow()->doc->m_Selection->getGroupRect(&x2, &y2, &w, &h);
-		ScCore->primaryMainWindow()->doc->moveGroup(pageUnitXToDocX(x) - x2, pageUnitYToDocY(y) - y2);
-		ScCore->primaryMainWindow()->view->endGroupTransaction();
+		currentDoc->m_Selection->getGroupRect(&x2, &y2, &w, &h);
+		currentDoc->moveGroup(pageUnitXToDocX(x) - x2, pageUnitYToDocY(y) - y2);
+		currentView->endGroupTransaction();
 	}
 	else
-		ScCore->primaryMainWindow()->doc->moveItem(pageUnitXToDocX(x) - item->xPos(), pageUnitYToDocY(y) - item->yPos(), item);
+		currentDoc->moveItem(pageUnitXToDocX(x) - item->xPos(), pageUnitYToDocY(y) - item->yPos(), item);
 	// Now restore the selection.
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	if (hadOrigSelection)
-		*ScCore->primaryMainWindow()->doc->m_Selection=tempSelection;
+		*currentDoc->m_Selection=tempSelection;
 
 	Py_RETURN_NONE;
 }
@@ -309,14 +309,12 @@ PyObject *scribus_rotobjrel(PyObject* /* self */, PyObject* args)
 	double x;
 	if (!PyArg_ParseTuple(args, "d|es", &x, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
 		return nullptr;
 	ScCore->primaryMainWindow()->doc->rotateItem(item->rotation() - x, item);
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -326,14 +324,12 @@ PyObject *scribus_rotobjabs(PyObject* /* self */, PyObject* args)
 	double x;
 	if (!PyArg_ParseTuple(args, "d|es", &x, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
 		return nullptr;
 	ScCore->primaryMainWindow()->doc->rotateItem(x * -1.0, item);
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -343,35 +339,33 @@ PyObject *scribus_sizeobjabs(PyObject* /* self */, PyObject* args)
 	double x, y;
 	if (!PyArg_ParseTuple(args, "dd|es", &x, &y, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
 		return nullptr;
 	ScCore->primaryMainWindow()->doc->sizeItem(ValueToPoint(x), ValueToPoint(y), item);
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
 PyObject *scribus_groupobj(PyObject* /* self */, PyObject* args)
 {
 	char *Name = const_cast<char*>("");
-	PyObject *il = 0;
+	PyObject *il = nullptr;
 	if (!PyArg_ParseTuple(args, "|O", &il))
 		return nullptr;
 	if (!checkHaveDocument())
 		return nullptr;
-	if (il == 0 && ScCore->primaryMainWindow()->doc->m_Selection->count() < 2)
+	if (il == nullptr && ScCore->primaryMainWindow()->doc->m_Selection->count() < 2)
 	{
 		PyErr_SetString(PyExc_TypeError, QObject::tr("Need selection or argument list of items to group", "python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-	Selection *tempSelection=0;
-	Selection *finalSelection=0;
+	Selection *tempSelection=nullptr;
+	Selection *finalSelection=nullptr;
 	//uint ap = ScCore->primaryMainWindow()->doc->currentPage()->pageNr();
 	// If we were passed a list of items to group...
-	if (il != 0)
+	if (il != nullptr)
 	{
 		int len = PyList_Size(il);
 		tempSelection = new Selection(ScCore->primaryMainWindow(), false);
@@ -397,13 +391,13 @@ PyObject *scribus_groupobj(PyObject* /* self */, PyObject* args)
 	{
 		// We can't very well group only one item
 		PyErr_SetString(NoValidObjectError, QObject::tr("Cannot group less than two items", "python error").toLocal8Bit().constData());
-		finalSelection=0;
+		finalSelection=nullptr;
 		delete tempSelection;
 		return nullptr;
 	}
 
 	const PageItem* group = ScCore->primaryMainWindow()->doc->itemSelection_GroupObjects(false, false, finalSelection);
-	finalSelection=0;
+	finalSelection=nullptr;
 	delete tempSelection;
 	
 	return (group ? PyString_FromString(group->itemName().toUtf8()) : nullptr);
@@ -414,16 +408,17 @@ PyObject *scribus_ungroupobj(PyObject* /* self */, PyObject* args)
 	char *Name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "|es", "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *i = GetUniqueItem(QString::fromUtf8(Name));
 	if (i == nullptr)
 		return nullptr;
-	ScCore->primaryMainWindow()->view->Deselect();
-	ScCore->primaryMainWindow()->view->SelectItem(i);
-	ScCore->primaryMainWindow()->UnGroupObj();
-//	Py_INCREF(Py_None);
-//	return Py_None;
+
+	ScribusMainWindow* currentWin = ScCore->primaryMainWindow();
+	currentWin->view->Deselect();
+	currentWin->view->SelectItem(i);
+	currentWin->UnGroupObj();
+
 	Py_RETURN_NONE;
 }
 
@@ -433,7 +428,7 @@ PyObject *scribus_scalegroup(PyObject* /* self */, PyObject* args)
 	double sc;
 	if (!PyArg_ParseTuple(args, "d|es", &sc, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	if (sc == 0.0)
 	{
@@ -443,16 +438,18 @@ PyObject *scribus_scalegroup(PyObject* /* self */, PyObject* args)
 	PageItem *i = GetUniqueItem(QString::fromUtf8(Name));
 	if (i == nullptr)
 		return nullptr;
-	ScCore->primaryMainWindow()->view->Deselect();
-	ScCore->primaryMainWindow()->view->SelectItem(i);
-//	int h = ScCore->primaryMainWindow()->view->frameResizeHandle;
-//	ScCore->primaryMainWindow()->view->frameResizeHandle = 1;
-	ScCore->primaryMainWindow()->view->startGroupTransaction(Um::Resize, "", Um::IResize);
-	ScCore->primaryMainWindow()->doc->scaleGroup(sc, sc);
-	ScCore->primaryMainWindow()->view->endGroupTransaction();
-//	ScCore->primaryMainWindow()->view->frameResizeHandle = h;
-//	Py_INCREF(Py_None);
-//	return Py_None;
+
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	ScribusView* currentView = ScCore->primaryMainWindow()->view;
+
+	currentView->Deselect();
+	currentView->SelectItem(i);
+//	int h = currentView->frameResizeHandle;
+//	currentView->frameResizeHandle = 1;
+	currentView->startGroupTransaction(Um::Resize, "", Um::IResize);
+	currentDoc->scaleGroup(sc, sc);
+	currentView->endGroupTransaction();
+//	currentView->frameResizeHandle = h;
 	Py_RETURN_NONE;
 }
 
@@ -461,18 +458,17 @@ PyObject *scribus_getselobjnam(PyObject* /* self */, PyObject* args)
 	int i = 0;
 	if (!PyArg_ParseTuple(args, "|i", &i))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	if ((i < static_cast<int>(ScCore->primaryMainWindow()->doc->m_Selection->count())) && (i > -1))
 		return PyString_FromString(ScCore->primaryMainWindow()->doc->m_Selection->itemAt(i)->itemName().toUtf8());
-	else
-		// FIXME: Should probably return None if no selection?
-		return PyString_FromString("");
+	// FIXME: Should probably return None if no selection?
+	return PyString_FromString("");
 }
 
 PyObject *scribus_selcount(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	return PyInt_FromLong(static_cast<long>(ScCore->primaryMainWindow()->doc->m_Selection->count()));
 }
@@ -482,24 +478,20 @@ PyObject *scribus_selectobj(PyObject* /* self */, PyObject* args)
 	char *Name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "es", "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *i = GetUniqueItem(QString::fromUtf8(Name));
 	if (i == nullptr)
 		return nullptr;
 	ScCore->primaryMainWindow()->view->SelectItem(i);
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
 PyObject *scribus_deselect(PyObject* /* self */)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	ScCore->primaryMainWindow()->view->Deselect();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 
@@ -508,7 +500,7 @@ PyObject *scribus_lockobject(PyObject* /* self */, PyObject* args)
 	char *name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "|es", "utf-8", &name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(name));
 	if (item == nullptr)
@@ -526,7 +518,7 @@ PyObject *scribus_islocked(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	// FIXME: Rather than toggling the lock, we should probably let the user set the lock state
 	// and instead provide a different function like toggleLock()
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(name));
 	if (item == nullptr)
@@ -538,7 +530,7 @@ PyObject *scribus_islocked(PyObject* /* self */, PyObject* args)
 
 PyObject *scribus_setscaleframetoimage(PyObject* /* self */, PyObject* args)
 {
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	char *Name = const_cast<char*>("");
 	if (!PyArg_ParseTuple(args, "|es", "utf-8", &Name))
@@ -568,7 +560,7 @@ PyObject *scribus_setscaleimagetoframe(PyObject* /* self */, PyObject* args, PyO
 		const_cast<char*>("proportional"), const_cast<char*>("name"), nullptr};
 	if (!PyArg_ParseTupleAndKeywords(args, kw, "i|ies", kwargs, &scaleToFrame, &proportional, "utf-8", &name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(name));
 	if (item == nullptr)
@@ -593,8 +585,6 @@ PyObject *scribus_setscaleimagetoframe(PyObject* /* self */, PyObject* args, PyO
 	//ScCore->primaryMainWindow()->view->AdjustPictScale(item);
 
 	item->update();
-//	Py_INCREF(Py_None);
-//	return Py_None;
 	Py_RETURN_NONE;
 }
 PyObject *scribus_flipobject(PyObject* /* self */, PyObject* args)
@@ -603,37 +593,63 @@ PyObject *scribus_flipobject(PyObject* /* self */, PyObject* args)
 	double h, v;
 	if (!PyArg_ParseTuple(args, "dd|es", &h, &v, "utf-8", &Name))
 		return nullptr;
-	if(!checkHaveDocument())
+	if (!checkHaveDocument())
 		return nullptr;
 	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
 	if (item == nullptr)
 		return nullptr;
 	
 	// Grab the old selection - but use it only where is there any
-	Selection tempSelection(*ScCore->primaryMainWindow()->doc->m_Selection);
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	ScribusView* currentView = ScCore->primaryMainWindow()->view;
+	Selection tempSelection(*currentDoc->m_Selection);
 	bool hadOrigSelection = (tempSelection.count() != 0);
 
-	ScCore->primaryMainWindow()->doc->m_Selection->clear();
+	currentDoc->m_Selection->clear();
 	// Clear the selection
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	// Select the item, which will also select its group if
 	// there is one.
-	ScCore->primaryMainWindow()->view->SelectItem(item);
+	currentView->SelectItem(item);
 
 	// flip
-	if (h == 1) {
-		ScCore->primaryMainWindow()->doc->itemSelection_FlipH();
-		}
-	if (v == 1) {
-		ScCore->primaryMainWindow()->doc->itemSelection_FlipV();
-		}
+	if (h == 1)
+		currentDoc->itemSelection_FlipH();
+	if (v == 1)
+		currentDoc->itemSelection_FlipV();
 	// Now restore the selection.
-	ScCore->primaryMainWindow()->view->Deselect();
+	currentView->Deselect();
 	if (hadOrigSelection)
-		*ScCore->primaryMainWindow()->doc->m_Selection=tempSelection;
+		*currentDoc->m_Selection = tempSelection;
 
-//	Py_INCREF(Py_None);
-//	return Py_None;
+	Py_RETURN_NONE;
+}
+
+PyObject *scribus_combinepolygons(PyObject * /* self */)
+{
+	if (!checkHaveDocument())
+		return nullptr;
+
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	Selection* curSelection = currentDoc->m_Selection;
+	if (curSelection->count() <= 1)
+		Py_RETURN_NONE;
+
+	bool canUniteItems = true;
+	for (int i = 0; i < curSelection->count(); ++i)
+	{
+		PageItem* it = currentDoc->m_Selection->itemAt(i);
+		if ((!it->asPolygon()) || (!it->asPolyLine()))
+			canUniteItems = false;
+	}
+
+	if (!canUniteItems)
+	{
+		PyErr_SetString(WrongFrameTypeError, QObject::tr("Selection must contain only shapes or bezier curves.", "python error").toLocal8Bit().constData());
+		return nullptr;
+	}
+	currentDoc->itemSelection_UniteItems(nullptr);
+
 	Py_RETURN_NONE;
 }
 

@@ -5,11 +5,9 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 
-#include "docim.h"
-#include "gtwriter.h"
-#include "scpaths.h"
-#include "scribusstructs.h"
-#include "ui/scmessagebox.h"
+#include <chrono>
+#include <thread>
+
 #include <QObject>
 #include <QByteArray>
 #include <QMessageBox>
@@ -18,10 +16,11 @@ for which a new license (GPL+exception) is in place.
 #include <QStringList>
 #include <QTextCodec>
 
-#if defined(_WIN32) && !defined(usleep)
-#include <windows.h>
-#define usleep(t) Sleep((t > 1000) ? (t / 1000) : 1)
-#endif
+#include "docim.h"
+#include "gtwriter.h"
+#include "scpaths.h"
+#include "scribusstructs.h"
+#include "ui/scmessagebox.h"
 
 bool hasAntiword()
 {
@@ -39,7 +38,7 @@ bool hasAntiword()
 	{
 		found = true;
 		test->terminate();
-		usleep(5000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 		test->kill();	
 	}
 	delete test;
@@ -51,19 +50,17 @@ QString FileFormatName()
 {
 	if (hasAntiword())
 		return QObject::tr("Word Documents");
-	else
-		return QString::null;
+	return QString::null;
 }
 
 QStringList FileExtensions()
 {
 	if (hasAntiword())
 		return QStringList("doc");
-	else
-		return QStringList();
+	return QStringList();
 }
 
-void GetText(QString filename, QString encoding, bool textOnly, gtWriter *writer)
+void GetText(const QString& filename, const QString& encoding, bool textOnly, gtWriter *writer)
 {
 	if (!hasAntiword())
 		return;
@@ -71,12 +68,12 @@ void GetText(QString filename, QString encoding, bool textOnly, gtWriter *writer
 	DocIm *dim = new DocIm(filename, encoding, textOnly, writer);
 	while (dim->isRunning())
 	{
-		usleep(5000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
 	delete dim;
 }
 
-DocIm::DocIm(const QString& fname, const QString& enc, bool textO, gtWriter *w) : QObject(), textBuffer(this), errorBuffer(this)
+DocIm::DocIm(const QString& fname, const QString& enc, bool textO, gtWriter *w) : textBuffer(this), errorBuffer(this)
 {
 	filename = fname;
 	encoding = enc;
@@ -115,10 +112,10 @@ DocIm::DocIm(const QString& fname, const QString& enc, bool textO, gtWriter *w) 
 	}
 	while (proc->waitForReadyRead())
 	{
-		usleep(5000);
+		std::this_thread::sleep_for(std::chrono::milliseconds(5));
 	}
 
-	while(!proc->atEnd() || proc->state()==QProcess::Running)
+	while (!proc->atEnd() || proc->state() == QProcess::Running)
 	{
 		proc->setReadChannel(QProcess::StandardOutput);
 		if ( proc->canReadLine() )
@@ -138,7 +135,7 @@ DocIm::DocIm(const QString& fname, const QString& enc, bool textO, gtWriter *w) 
 			}
 			else
 			{
-				usleep(5000);
+				std::this_thread::sleep_for(std::chrono::milliseconds(5));
 			}
 		}
 	}
@@ -162,7 +159,7 @@ bool DocIm::isRunning()
 
 void DocIm::write()
 {
-	QTextCodec *codec = 0;
+	QTextCodec *codec = nullptr;
 
 #if defined(Q_OS_WIN32)
 	// #10258 : use UTF-8 whenever possible
@@ -177,10 +174,10 @@ void DocIm::write()
 
 	if (failed)
 	{
-		QString error = codec->toUnicode( errorBuffer.data() ); 
-		ScMessageBox::information(0, tr("Importing failed"),
-		                         tr("Importing Word document failed \n%1").arg(error),
-		                         QMessageBox::Ok);
+		QString error = codec->toUnicode( errorBuffer.data() );
+		ScMessageBox::information(nullptr, tr("Importing failed"),
+								  tr("Importing Word document failed \n%1").arg(error),
+								  QMessageBox::Ok);
 		return;
 	}
 

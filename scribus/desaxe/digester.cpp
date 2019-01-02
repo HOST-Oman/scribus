@@ -34,7 +34,7 @@ struct DFA_State
 	unsigned int ID;
 	std::vector<rule_t> rules;
 
-	DFA_State() : ID(0), rules() {}
+	DFA_State() : ID(0) {}
 };
 
 typedef DFA_State* dfa_state_t;
@@ -92,7 +92,7 @@ private:
 };
 
 
-Digester::Digester() : m_objects(), m_storage(), m_errors() 
+Digester::Digester()
 { 
 	m_state = new RuleState();
 	m_result_.ptr = nullptr;
@@ -202,22 +202,22 @@ Xml_string Digester::concat(const Xml_string& pattern1, const Xml_string& patter
 {
 	if (pattern1 == "")
 		return pattern2;
-	else if (pattern2 == "")
+	if (pattern2 == "")
 		return pattern1;
-	else if ( (pattern1[pattern1.length()-1] != '/') && (pattern2[0] != '/') )
+	if ( (pattern1[pattern1.length()-1] != '/') && (pattern2[0] != '/') )
 		// insert "/" as separator
 		return pattern1 + "/" + pattern2;
-	else if ( (pattern1[pattern1.length()-1]=='/') || (pattern2[0]=='/') )
+	if ( (pattern1[pattern1.length()-1]=='/') || (pattern2[0]=='/') )
 		return pattern1 + pattern2;
-	else // cut off one "/"
-		return pattern1 + QString::fromStdString(std::string(static_cast<const std::string&>(pattern2.toStdString()), 1, std::string::npos));
+	// cut off one "/"
+	return pattern1 + QString::fromStdString(std::string(static_cast<const std::string&>(pattern2.toStdString()), 1, std::string::npos));
 }
 
 
-RuleState::RuleState() : rules(), dfa(nullptr), stateStack(), valid(false)
+RuleState::RuleState() : dfa(nullptr), valid(false)
 {}
 
-RuleState::RuleState(const RuleState& other) : rules(other.rules), dfa(nullptr), stateStack(), valid(false)
+RuleState::RuleState(const RuleState& other) : rules(other.rules), dfa(nullptr), valid(false)
 {}
 
 RuleState::~RuleState()
@@ -225,13 +225,11 @@ RuleState::~RuleState()
 	if (dfa) 
 	{
 		std::set<dfa_state_t> morituri(dfa->states());
-		for (auto i = morituri.begin(); i != morituri.end(); ++i) {
+		for (auto i = morituri.begin(); i != morituri.end(); ++i)
 			delete *i;
-		}
 		delete dfa;
 	}
 }
-
 
 void RuleState::addRule(const Xml_string& pattern, Action action)
 {

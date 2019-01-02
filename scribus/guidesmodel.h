@@ -37,7 +37,7 @@ class GuidesModel : public QAbstractTableModel
 
 		QVariant headerData(int section, Qt::Orientation orientation, int role = Qt::DisplayRole) const;
 
-		void removeValues(const Guides & v);
+		void removeValues(const Guides & guides);
 		// qt4 api is "wrokarounded" with insertRow() and removeValues()
 		// these removeRows() and insertRows() does not handle margin items correctly
 // 		bool removeRows(int row, int count, const QModelIndex & parent = QModelIndex());
@@ -45,7 +45,7 @@ class GuidesModel : public QAbstractTableModel
 		void insertRow();
 
 		//! \brief Set new values into the model.
-		void setValues(Guides values);
+		void setValues(const Guides& values);
 		//! \brief Get values back to the app.
 		Guides values();
 

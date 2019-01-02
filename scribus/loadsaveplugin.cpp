@@ -15,8 +15,7 @@ for which a new license (GPL+exception) is in place.
 
 QList<FileFormat> LoadSavePlugin::formats;
 
-LoadSavePlugin::LoadSavePlugin()
-	: ScPlugin(),
+LoadSavePlugin::LoadSavePlugin() :
 	m_Doc(nullptr),
 	m_View(nullptr),
 	m_ScMW(nullptr),
@@ -41,8 +40,7 @@ const FileFormat * LoadSavePlugin::getFormatById(const int id)
 	QList<FileFormat>::iterator it(findFormat(id));
 	if (it == formats.end())
 		return nullptr;
-	else
-		return &(*it);
+	return &(*it);
 }
 
 FileFormat * LoadSavePlugin::getFormatByID(int id)
@@ -50,17 +48,15 @@ FileFormat * LoadSavePlugin::getFormatByID(int id)
 	QList<FileFormat>::iterator it(findFormat(id));
 	if (it == formats.end())
 		return nullptr;
-	else
-		return &(*it);
+	return &(*it);
 }
 
-FileFormat* LoadSavePlugin::getFormatByExt(const QString ext)
+FileFormat* LoadSavePlugin::getFormatByExt(const QString& ext)
 {
 	QList<FileFormat>::iterator it(findFormat(ext));
 	if (it == formats.end())
 		return nullptr;
-	else
-		return &(*it);
+	return &(*it);
 }
 
 const QStringList LoadSavePlugin::fileDialogLoadFilter()
@@ -224,22 +220,22 @@ bool LoadSavePlugin::saveFile(const QString & /* fileName */,
 	return false;
 }
 
-bool LoadSavePlugin::loadElements(const QString & data, QString fileDir, int toLayer, double Xp_in, double Yp_in, bool loc)
+bool LoadSavePlugin::loadElements(const QString &  /*data*/, const QString&  /*fileDir*/, int /*toLayer*/, double /*Xp_in*/, double /*Yp_in*/, bool /*loc*/)
 {
 	return false;
 }
 
-bool LoadSavePlugin::savePalette(const QString & fileName)
+bool LoadSavePlugin::savePalette(const QString &  /*fileName*/)
 {
 	return false;
 }
 
-QString LoadSavePlugin::saveElements(double xp, double yp, double wp, double hp, Selection* selection, QByteArray &prevData)
+QString LoadSavePlugin::saveElements(double /*xp*/, double /*yp*/, double /*wp*/, double  /*hp*/, Selection* /*selection*/, QByteArray & /*prevData*/)
 {
 	return "";
 }
 
-bool LoadSavePlugin::loadPalette(const QString & fileName)
+bool LoadSavePlugin::loadPalette(const QString &  /*fileName*/)
 {
 	return false;
 }
@@ -254,7 +250,7 @@ void LoadSavePlugin::setDomParsingError(const QString& msg, int line, int column
 	m_lastError = tr("An error occurred while parsing file at line %1, column %2 :\n%3").arg(line).arg(column).arg(msg);
 }
 
-const QString& LoadSavePlugin::lastSavedFile(void)
+const QString& LoadSavePlugin::lastSavedFile()
 {
 	return m_lastSavedFile;
 }
@@ -278,9 +274,7 @@ bool LoadSavePlugin::checkFlags(int flags)
 		numFlags++;
 	if( flags & lfInsertPage ) 
 		numFlags++;
-	if( numFlags > 1 )
-		return false;
-	return true;
+	return numFlags <= 1;
 }
 
 void LoadSavePlugin::registerFormat(FileFormat & fmt)
@@ -370,7 +364,7 @@ LoadSavePlugin::findFormat(unsigned int id, LoadSavePlugin* plug, QList<FileForm
 	QList<FileFormat>::iterator itEnd(formats.end());
 	for ( ; it != itEnd ; ++it)
 	{
-		if ((it->formatId == id) && ((plug == 0) || (plug == it->plug)))
+		if ((it->formatId == id) && ((plug == nullptr) || (plug == it->plug)))
 			return it;
 	}
 	return itEnd;
@@ -382,7 +376,7 @@ LoadSavePlugin::findFormat(const QString& extension, LoadSavePlugin* plug, QList
 	QList<FileFormat>::iterator itEnd(formats.end());
 	for ( ; it != itEnd ; ++it)
 	{
-		if ((it->fileExtensions.contains(extension.toLower())) && ((plug == 0) || (plug == it->plug)) )
+		if ((it->fileExtensions.contains(extension.toLower())) && ((plug == nullptr) || (plug == it->plug)) )
 			return it;
 	}
 	return itEnd;
@@ -402,7 +396,7 @@ void LoadSavePlugin::getReplacedFontData(bool & /*getNewReplacement*/, QMap<QStr
 {
 }
 
-bool LoadSavePlugin::loadPage(const QString & /*fileName*/, int /*pageNumber*/, bool /*Mpage*/, QString /*renamedPageName*/)
+bool LoadSavePlugin::loadPage(const QString& /*fileName*/, int /*pageNumber*/, bool /*Mpage*/, const QString& /*renamedPageName*/)
 {
 	return false;
 }
@@ -482,7 +476,7 @@ FileFormat::FileFormat() :
 	colorReading(false),
 	nativeScribus(false),
 	priority(0),
-	plug(0)
+	plug(nullptr)
 {
 }
 
@@ -498,7 +492,7 @@ FileFormat::FileFormat(LoadSavePlugin* plug) :
 {
 }
 
-bool FileFormat::loadElements(const QString & data, QString fileDir, int toLayer, double Xp_in, double Yp_in, bool loc) const
+bool FileFormat::loadElements(const QString& data, const QString& fileDir, int toLayer, double Xp_in, double Yp_in, bool loc) const
 {
 	return (plug && load) ? plug->loadElements(data, fileDir, toLayer, Xp_in, Yp_in, loc) : false;
 }
@@ -508,7 +502,7 @@ bool FileFormat::loadPalette(const QString & fileName) const
 	return (plug && load) ? plug->loadPalette(fileName) : false;
 }
 
-QString FileFormat::lastSavedFile(void) const
+QString FileFormat::lastSavedFile() const
 {
 	if (plug)
 		return plug->lastSavedFile();
@@ -527,7 +521,7 @@ void FileFormat::getReplacedFontData(bool & getNewReplacement, QMap<QString,QStr
 		plug->getReplacedFontData(getNewReplacement, getReplacedFonts, getDummyScFaces);
 }
 
-bool FileFormat::loadPage(const QString & fileName, int pageNumber, bool Mpage, QString renamedPageName) const
+bool FileFormat::loadPage(const QString & fileName, int pageNumber, bool Mpage, const QString& renamedPageName) const
 {
 	if (!plug || !load)
 		return false;

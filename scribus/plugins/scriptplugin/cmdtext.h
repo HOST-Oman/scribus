@@ -48,6 +48,29 @@ selected item is used.\n\
 /*! Get fontfeatures */
 PyObject *scribus_getfontfeatures(PyObject * /*self*/, PyObject* args);
 
+/*! docstring */
+PyDoc_STRVAR(scribus_gettextcolor__doc__,
+	QT_TR_NOOP("getTextColor([\"name\"]) -> string\n\
+\n\
+Returns the name of the text color used for text frame \"name\".\n\
+If this text frame has some text selected the value assigned\n\
+to the first character of the selection is returned.\n\
+If \"name\" is not given the currently selected item is used.\n\
+"));
+/*! Returns color of the line */
+PyObject *scribus_gettextcolor(PyObject * /*self*/, PyObject* args);
+
+/*! docstring */
+PyDoc_STRVAR(scribus_gettextshade__doc__,
+	QT_TR_NOOP("getTextShade([\"name\"]) -> integer\n\
+\n\
+Returns the shade of text color used for text frame \"name\".\n\
+If this text frame has some text selected the value assigned\n\
+to the first character of the selection is returned.\n\
+If \"name\" is not given the currently selected item is used.\n\
+"));
+/*! Returns color of the line */
+PyObject *scribus_gettextshade(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
 PyDoc_STRVAR(scribus_gettextsize__doc__,
@@ -113,6 +136,16 @@ is not given the currently selected item is used.\n\
 "));
 /*! Get text distances */
 PyObject *scribus_gettextdistances(PyObject */*self*/, PyObject* args);
+
+/*! docstring */
+PyDoc_STRVAR(scribus_gettextverticalalignment__doc__,
+	QT_TR_NOOP("getTextVerticalAlignment([\"name\"]) -> integer\n\
+\n\
+Gets the vertical alignment of text inside text frame \"name\". If \"name\" is not\n\
+given the currently selected item is used.\n\
+"));
+/*! Get columns */
+PyObject *scribus_gettextverticalalignment(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
 PyDoc_STRVAR(scribus_getcolumngap__doc__,
@@ -286,7 +319,20 @@ be one of the ALIGN_ constants defined in this module - see dir(scribus).\n\
 May throw ValueError for an invalid alignment constant.\n\
 "));
 /*! Set alignt */
-PyObject *scribus_setalign(PyObject * /*self*/, PyObject* args);
+PyObject *scribus_setalignment(PyObject * /*self*/, PyObject* args);
+
+/*! docstring */
+PyDoc_STRVAR(scribus_settextverticalalignment__doc__,
+	QT_TR_NOOP("setTextVerticalAlignment(align, [\"name\"])\n\
+\n\
+Sets the vertical alignment of text inside text frame \"name\" to the specified\n\
+alignment. If \"name\" is not given the currently selected item is used. \"align\" \n\
+should be one of the ALIGNV constants defined in this module - see dir(scribus).\n\
+\n\
+May throw ValueError for an invalid alignment constant.\n\
+"));
+/*! Set vertical alignment */
+PyObject *scribus_settextverticalalignment(PyObject * /*self*/, PyObject* args);
 
 /*! docstring */
 PyDoc_STRVAR(scribus_setdirection__doc__,

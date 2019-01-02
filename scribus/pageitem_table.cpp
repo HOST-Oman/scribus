@@ -44,8 +44,7 @@ const double PageItem_Table::MinimumRowHeight = 3.0;
 // The minimum column width.
 const double PageItem_Table::MinimumColumnWidth = 3.0;
 
-PageItem_Table::PageItem_Table(ScribusDoc *pa, double x, double y, double w, double h,
-	double w2, QString fill, QString outline, int numRows, int numColumns) :
+PageItem_Table::PageItem_Table(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline, int numRows, int numColumns) :
 	PageItem(pa, PageItem::Table, x, y, w, h, w2, fill, outline),
 	m_rows(0), m_columns(0), m_tablePainter(new CollapsedTablePainter(this))
 {
@@ -766,6 +765,20 @@ void PageItem_Table::selectCells(int startRow, int startColumn, int endRow, int 
 		for (int col = leftCol; col <= rightCol; ++col)
 			selectCell(row, col);
 	emit selectionChanged();
+}
+
+void PageItem_Table::selectColumn(int column)
+{
+	if (!validCell(0, column))
+		return;
+	selectCells(0, column, rows() - 1, column);
+}
+
+void PageItem_Table::selectRow(int row)
+{
+	if (!validCell(row, 0))
+		return;
+	selectCells(row, 0, row, columns() - 1);
 }
 
 void PageItem_Table::clearSelection()

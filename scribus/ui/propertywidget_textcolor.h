@@ -33,7 +33,7 @@ protected:
 	void connectSignals();
 	void disconnectSignals();
 
-	void configureWidgets(void);
+	void configureWidgets();
 
 	virtual void changeEvent(QEvent *e);
 
@@ -50,7 +50,7 @@ public slots:
 	void showOutlineW(double x);
 	void showShadowOffset(double x, double y);
 	void showStrikeThru(double p, double w);
-	void showTextColors(QString p, QString b, QString bc, double shp, double shb, double sbc);
+	void showTextColors(const QString& p, const QString& b, const QString& bc, double shp, double shb, double sbc);
 	void showTextEffects(int s);
 	void showUnderline(double p, double w);
 

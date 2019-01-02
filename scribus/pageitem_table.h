@@ -83,8 +83,7 @@ public:
 
 public:
 	/// Construct a new table item with @a numRows rows and @a numColumns columns.
-	PageItem_Table(ScribusDoc *pa, double x, double y, double w, double h, double w2,
-		QString fill, QString outline, int numRows = 1, int numColumns = 1);
+	PageItem_Table(ScribusDoc *pa, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline, int numRows = 1, int numColumns = 1);
 
 	/// Destructor.
 	~PageItem_Table();
@@ -319,9 +318,28 @@ public:
 	void selectCells(int startRow, int startColumn, int endRow, int endColumn);
 
 	/**
+	 * Adds the cells in specified column to the selection.
+	 *
+	 * If specified column is outside the table, this function does nothing.
+	 */
+	void selectColumn(int column);
+
+	/**
+	* Adds the cells in specified row to the selection.
+	*
+	* If specified row is outside the table, this function does nothing.
+	*/
+	void selectRow(int row);
+
+	/**
 	 * Clears the cell selection.
 	 */
 	void clearSelection();
+
+	/**
+	 * Test if item has an active cell selection
+	 */
+	bool hasSelection() const { return m_selection.count() > 0; }
 
 	/**
 	 * Returns the cell at @a row, @a column.
@@ -480,7 +498,7 @@ public:
 	virtual void applicableActions(QStringList& actionList);
 
 	/// Returns a textual description of this item.
-	virtual QString infoDescription() { return QString(); }
+	virtual QString infoDescription() const { return QString(); }
 
 	/// Returns the Cell Areas from this table
 	const QList<CellArea>& cellAreas() const { return m_cellAreas; }

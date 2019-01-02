@@ -42,7 +42,7 @@ void scribusexportpixmap_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-PixmapExportPlugin::PixmapExportPlugin() : ScActionPlugin()
+PixmapExportPlugin::PixmapExportPlugin()
 {
 	// Set action info in languageChange, so we only have to do
 	// it in one place. This includes registering file formats.
@@ -94,62 +94,63 @@ void PixmapExportPlugin::deleteAboutData(const AboutData* about) const
 	delete about;
 }
 
-bool PixmapExportPlugin::run(ScribusDoc* doc, QString target)
+bool PixmapExportPlugin::run(ScribusDoc* doc, const QString& target)
 {
 	Q_ASSERT(target.isEmpty());
 	Q_ASSERT(!doc->masterPageMode());
 	QSharedPointer<ExportBitmap> ex( new ExportBitmap() );
-	QSharedPointer<ExportForm>  dia( new ExportForm(0, doc, ex->pageDPI, ex->quality, ex->bitmapType) );
+	QSharedPointer<ExportForm>  dia( new ExportForm(nullptr, doc, ex->pageDPI, ex->quality, ex->bitmapType) );
 
 	// interval widgets handling
 	QString tmp;
 	dia->rangeVal->setText(tmp.setNum(doc->currentPageNumber()+1));
 	dia->prefixLineEdit->setText(doc->DocName);
 	// main "loop"
-	if (dia->exec()==QDialog::Accepted)
+	if (dia->exec() != QDialog::Accepted)
+		return true;
+
+	std::vector<int> pageNs;
+	ex->pageDPI = dia->DPIBox->value();
+	ex->enlargement = dia->enlargementBox->value();
+	ex->quality     = dia->qualityBox->value();
+	ex->exportDir   = QDir::fromNativeSeparators(dia->outputDirectory->text());
+	ex->bitmapType  = dia->bitmapType->currentText();
+	ex->filenamePrefix = dia->prefixLineEdit->text();
+
+	// check availability of the destination
+	QFileInfo fi(ex->exportDir);
+	if (!fi.isDir())
 	{
-		std::vector<int> pageNs;
-		ex->pageDPI = dia->DPIBox->value();
-		ex->enlargement = dia->enlargementBox->value();
-		ex->quality     = dia->qualityBox->value();
-		ex->exportDir   = QDir::fromNativeSeparators(dia->outputDirectory->text());
-		ex->bitmapType  = dia->bitmapType->currentText();
-		ex->filenamePrefix = dia->prefixLineEdit->text();
-
-		// check availability of the destination
-		QFileInfo fi(ex->exportDir);
-		if (!fi.isDir())
-		{
-			ScMessageBox::warning(doc->scMW(), tr("Save as Image"),
-			                     tr("The target location %1 must be an existing directory").arg(ex->exportDir));
-			return false;
-		}
-		if (!fi.isWritable())
-		{
-			ScMessageBox::warning(doc->scMW(), tr("Save as Image"),
-			                     tr("The target location %1 must be writable").arg(ex->exportDir));
-			return false;
-		}
-
-		QApplication::changeOverrideCursor(QCursor(Qt::WaitCursor));
-		doc->scMW()->mainWindowProgressBar->reset();
-		bool res;
-		if (dia->onePageRadio->isChecked())
-			res = ex->exportCurrent(doc, !dia->noBackground->isChecked());
-		else
-		{
-			if (dia->allPagesRadio->isChecked())
-				parsePagesString("*", &pageNs, doc->DocPages.count());
-			else
-				parsePagesString(dia->rangeVal->text(), &pageNs, doc->DocPages.count());
-			res = ex->exportInterval(doc, pageNs, !dia->noBackground->isChecked());
-		}
-		doc->scMW()->mainWindowProgressBar->reset();
-		QApplication::changeOverrideCursor(Qt::ArrowCursor);
-//		QApplication::restoreOverrideCursor();
-		if (res)
-			doc->scMW()->setStatusBarInfoText( tr("Export successful"));
+		ScMessageBox::warning(doc->scMW(), tr("Save as Image"),
+			                    tr("The target location %1 must be an existing directory").arg(ex->exportDir));
+		return false;
 	}
+	if (!fi.isWritable())
+	{
+		ScMessageBox::warning(doc->scMW(), tr("Save as Image"),
+			                    tr("The target location %1 must be writable").arg(ex->exportDir));
+		return false;
+	}
+
+	QApplication::changeOverrideCursor(QCursor(Qt::WaitCursor));
+	doc->scMW()->mainWindowProgressBar->reset();
+	bool res;
+	if (dia->onePageRadio->isChecked())
+		res = ex->exportCurrent(doc, !dia->noBackground->isChecked());
+	else
+	{
+		if (dia->allPagesRadio->isChecked())
+			parsePagesString("*", &pageNs, doc->DocPages.count());
+		else
+			parsePagesString(dia->rangeVal->text(), &pageNs, doc->DocPages.count());
+		res = ex->exportInterval(doc, pageNs, !dia->noBackground->isChecked());
+	}
+	doc->scMW()->mainWindowProgressBar->reset();
+	QApplication::changeOverrideCursor(Qt::ArrowCursor);
+//		QApplication::restoreOverrideCursor();
+	if (res)
+		doc->scMW()->setStatusBarInfoText( tr("Export successful"));
+
 	return true;
 }
 
@@ -210,7 +211,7 @@ bool ExportBitmap::exportPage(ScribusDoc* doc, uint pageNr, bool background, boo
 		over = ScMessageBox::question(doc->scMW(), tr("File exists. Overwrite?"),
 				fn +"\n"+ tr("exists already. Overwrite?"),
 				// hack for multiple overwriting (petr) 
-				(single == true) ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Yes | QMessageBox::No | QMessageBox::YesToAll,
+				(single) ? QMessageBox::Yes | QMessageBox::No : QMessageBox::Yes | QMessageBox::No | QMessageBox::YesToAll,
 				QMessageBox::NoButton,	// GUI default
 				QMessageBox::YesToAll);	// batch default
 		QApplication::changeOverrideCursor(QCursor(Qt::WaitCursor));

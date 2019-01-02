@@ -22,7 +22,7 @@ NotesStylesEditor::NotesStylesEditor(QWidget *parent, const char *name)
 	setBlockSignals(true);
 	
 	addNewNsMode = false;
-	setDoc(0);
+	setDoc(nullptr);
 	NSlistBox->setInsertPolicy(QComboBox::InsertAlphabetically);
 
 	NumberingBox->addItem("1 2 3");
@@ -244,7 +244,7 @@ void NotesStylesEditor::setNotesStyle(NotesStyle * NS)
 	setBlockSignals(wasSignalsBlocked);
 }
 
-void NotesStylesEditor::readNotesStyle(QString nsName)
+void NotesStylesEditor::readNotesStyle(const QString& nsName)
 {
 	NotesStyle * NS = m_Doc->getNotesStyle(nsName);
 	setNotesStyle(NS);

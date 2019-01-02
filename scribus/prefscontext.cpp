@@ -34,7 +34,7 @@ PrefsContext::PrefsContext()
 	m_isplugin = false;
 }
 
-PrefsContext::PrefsContext(QString contextName, bool persistent, bool plugin)
+PrefsContext::PrefsContext(const QString& contextName, bool persistent, bool plugin)
 {
 	m_name = contextName;
 	m_ispersistent = persistent;
@@ -58,7 +58,7 @@ bool PrefsContext::isPlugin()
 
 bool PrefsContext::isEmpty()
 {
-	return (values.size() == 0 && tables.size() == 0);
+	return (values.empty() && tables.empty());
 }
 
 bool PrefsContext::contains(const QString& key)

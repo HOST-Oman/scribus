@@ -532,7 +532,7 @@ void CanvasMode_EditMeshGradient::mouseDoubleClickEvent(QMouseEvent *m)
 	m->accept();
 	m_canvas->m_viewMode.m_MouseButtonPressed = false;
 	m_canvas->resetRenderMode();
-	PageItem *currItem = 0;
+	PageItem *currItem = nullptr;
 	if ((m_doc->m_Selection->isMultipleSelection()) || (m_doc->appMode != modeNormal))
 	{
 		if ((m_doc->m_Selection->isMultipleSelection()) && (m_doc->appMode == modeNormal))
@@ -554,13 +554,10 @@ void CanvasMode_EditMeshGradient::mouseDoubleClickEvent(QMouseEvent *m)
 			}
 			return;
 		}
-		else
+		if (!(GetItem(&currItem) && (m_doc->appMode == modeEdit) && currItem->asTextFrame()))
 		{
-			if (!(GetItem(&currItem) && (m_doc->appMode == modeEdit) && currItem->asTextFrame()))
-			{
-				mousePressEvent(m);
-				return;
-			}
+			mousePressEvent(m);
+			return;
 		}
 	}
 }
@@ -979,14 +976,14 @@ void CanvasMode_EditMeshGradient::mouseReleaseEvent(QMouseEvent *m)
 		ss->set("ARRAY",true);
 		ss->set("X",currItem->selectedMeshPointX);
 		ss->set("Y",currItem->selectedMeshPointY);
-		if((*m_old_mesh) == currItem->meshGradientArray[currItem->selectedMeshPointX][currItem->selectedMeshPointY])
+		if ((*m_old_mesh) == currItem->meshGradientArray[currItem->selectedMeshPointX][currItem->selectedMeshPointY])
 		{
 			delete ss;
 			ss=nullptr;
 		}
 		else
 			ss->setItem(qMakePair(*m_old_mesh,currItem->meshGradientArray[currItem->selectedMeshPointX][currItem->selectedMeshPointY]));
-		if(ss)
+		if (ss)
 			undoManager->action(currItem,ss);
 	}
 	currItem->update();

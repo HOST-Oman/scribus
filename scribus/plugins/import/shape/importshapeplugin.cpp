@@ -39,7 +39,7 @@ void importshape_freePlugin(ScPlugin* plugin)
 	delete plug;
 }
 
-ImportShapePlugin::ImportShapePlugin() : LoadSavePlugin(),
+ImportShapePlugin::ImportShapePlugin() :
 	importAction(new ScrAction(ScrAction::DLL, QPixmap(), QPixmap(), "", QKeySequence(), this))
 {
 	// Set action info in languageChange, so we only have to do it in one
@@ -115,7 +115,7 @@ bool ImportShapePlugin::import(QString fileName, int flags)
 {
 	if (!checkFlags(flags))
 		return false;
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 	{
 		flags |= lfInteractive;
 		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("importshape");
@@ -156,7 +156,7 @@ bool ImportShapePlugin::import(QString fileName, int flags)
 
 QImage ImportShapePlugin::readThumbnail(const QString& fileName)
 {
-	if( fileName.isEmpty() )
+	if (fileName.isEmpty())
 		return QImage();
 	UndoManager::instance()->setUndoEnabled(false);
 	m_Doc = nullptr;

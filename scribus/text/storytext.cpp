@@ -70,7 +70,7 @@ StoryText::StoryText() : m_doc(nullptr)
 	m_shapedTextCache = nullptr;
 }
 
-StoryText::StoryText(const StoryText & other) : QObject(), SaxIO(), m_doc(other.m_doc)
+StoryText::StoryText(const StoryText & other) : m_doc(other.m_doc)
 {
 	d = other.d;
 	d->refs++;
@@ -533,7 +533,7 @@ void StoryText::removeParSep(int pos)
 //		const CharStyle* newP = & that->paragraphStyle(pos+1).charStyle();
 //		d->replaceParentStyle(pos, oldP, newP);
 		delete it->parstyle;
-		it->parstyle = 0;
+		it->parstyle = nullptr;
 	}
 	// demote this parsep so the assert code in replaceCharStyleContextInParagraph()
 	// doesn't choke:
@@ -609,7 +609,7 @@ void StoryText::trim()
 	}
 }
 
-void StoryText::insertChars(QString txt, bool applyNeighbourStyle) //, const CharStyle & charstyle)
+void StoryText::insertChars(const QString& txt, bool applyNeighbourStyle) //, const CharStyle & charstyle)
 {
 	insertChars(d->cursorPosition, txt, applyNeighbourStyle);
 }
@@ -655,7 +655,7 @@ void StoryText::insertChars(int pos, const QString& txt, bool applyNeighbourStyl
 	invalidate(pos, pos + txt.length());
 }
 
-void StoryText::insertCharsWithSoftHyphens(int pos, QString txt, bool applyNeighbourStyle)
+void StoryText::insertCharsWithSoftHyphens(int pos, const QString& txt, bool applyNeighbourStyle)
 {
 	if (pos < 0)
 		pos += length()+1;
@@ -737,7 +737,7 @@ void StoryText::replaceChar(int pos, QChar ch)
 int StoryText::replaceWord(int pos, QString newWord)
 {
 	int eoWord=pos;
-	while(eoWord < length())
+	while (eoWord < length())
 	{
 		if (text(eoWord).isLetterOrNumber() || SpecialChars::isIgnorableCodePoint(text(eoWord).unicode()))
 			++eoWord;
@@ -770,7 +770,7 @@ int StoryText::replaceWord(int pos, QString newWord)
 	return lengthDiff;
 }
 
-void StoryText::hyphenateWord(int pos, uint len, char* hyphens)
+void StoryText::hyphenateWord(int pos, uint len, const char* hyphens)
 {
 	assert(pos >= 0);
 	assert(pos + signed(len) <= length());
@@ -935,12 +935,11 @@ ExpansionPoint StoryText::expansionPoint(int pos) const
 {
 	if (text(pos) == SpecialChars::PAGENUMBER)
 		return ExpansionPoint(ExpansionPoint::PageNumber);
-	else if( text(pos) == SpecialChars::PAGECOUNT)
+	if( text(pos) == SpecialChars::PAGECOUNT)
 		return ExpansionPoint(ExpansionPoint::PageCount);
-	else if (hasMark(pos))
+	if (hasMark(pos))
 		return ExpansionPoint(mark(pos));
-	else
-		return ExpansionPoint(ExpansionPoint::Invalid);
+	return ExpansionPoint(ExpansionPoint::Invalid);
 }
 
 
@@ -1155,7 +1154,7 @@ const CharStyle & StoryText::charStyle(int pos) const
 //		qDebug() << "storytext::charstyle: default";
 		return defaultStyle().charStyle();
 	}
-	else if (pos == length())
+	if (pos == length())
 	{
 		qDebug() << "storytext::charstyle: access at end of text %i" << pos;
 		--pos;
@@ -1200,7 +1199,7 @@ const ParagraphStyle & StoryText::paragraphStyle(int pos) const
 
 	if (pos >= length())
 		return that->d->trailingStyle;
-	else if ( !that->d->at(pos)->parstyle )
+	if ( !that->d->at(pos)->parstyle )
 	{
 		ScText* current = that->d->at(pos);
 		qDebug("inserting default parstyle at %i", pos);
@@ -1442,7 +1441,7 @@ void StoryText::getNamedResources(ResourceCollection& lists) const
 }
 
 
-void StoryText::replaceStyles(QMap<QString,QString> newNameForOld)
+void StoryText::replaceStyles(const QMap<QString,QString>& newNameForOld)
 {
 	ResourceCollection newnames;
 	newnames.mapStyles(newNameForOld);
@@ -1615,16 +1614,14 @@ int StoryText::nextChar(int pos)
 {
 	if (pos < length())
 		return pos+1;
-	else
-		return length();
+	return length();
 }
 
 int StoryText::prevChar(int pos)
 {
 	if (pos > 0)
 		return pos - 1;
-	else 
-		return 0;
+	return 0;
 }
 
 int StoryText::firstWord()
@@ -1837,7 +1834,7 @@ void StoryText::extendSelection(int oldPos, int newPos)
 			m_selLast = newPos - 1;
 			return;
 		}
-		else if (m_selFirst == oldPos)
+		if (m_selFirst == oldPos)
 		{
 			m_selFirst = newPos;
 			return;
@@ -2593,8 +2590,7 @@ public:
 	
 	~Paragraph_body() 
 	{
-		if (lastStyle)
-			delete lastStyle;
+		delete lastStyle;
 	}
 
 	virtual void reset()
@@ -2617,8 +2613,7 @@ public:
 				story->insertChars(-1, SpecialChars::PARSEP);
 				++lastPos;
 			}
-			if (lastStyle)
-				delete lastStyle;
+			delete lastStyle;
 			lastStyle = nullptr;
 		}
 	}
@@ -2627,8 +2622,7 @@ public:
 	{
 		if (tag == ParagraphStyle::saxxDefaultElem)
 		{
-			if (lastStyle)
-				delete lastStyle;
+			delete lastStyle;
 			lastStyle = this->dig->top<ParagraphStyle>(0);
 //			qDebug() << QString("endstyle: %1 %2 %3").arg("?").arg(lastPos).arg((ulong)lastStyle);
 		}
@@ -2652,7 +2646,7 @@ private:
 
 struct Paragraph : public MakeAction<Paragraph_body>
 {
-	Paragraph() : MakeAction<Paragraph_body>() {}
+	Paragraph() {}
 };
 
 
@@ -2664,8 +2658,7 @@ public:
 	
 	~SpanAction_body() 
 	{
-		if (lastStyle)
-			delete lastStyle;
+		delete lastStyle;
 	}
 	
 	void begin(const Xml_string& tag, Xml_attr attr)
@@ -2675,8 +2668,7 @@ public:
 		{
 			StoryText* story = this->dig->top<StoryText>();
 			lastPos = story->length();
-			if (lastStyle)
-				delete lastStyle;
+			delete lastStyle;
 			lastStyle = nullptr;
 		}
 	}
@@ -2686,8 +2678,7 @@ public:
 		if (tag == CharStyle::saxxDefaultElem)
 //			qDebug() << QString("spanaction: end %1").arg(tag);
 		{
-			if (lastStyle)
-				delete lastStyle;
+			delete lastStyle;
 			lastStyle = this->dig->top<CharStyle>(0);
 		}
 		else if (tag == "span")
@@ -2707,7 +2698,7 @@ private:
 
 struct SpanAction : public MakeAction<SpanAction_body>
 {
-	SpanAction() : MakeAction<SpanAction_body>() {}
+	SpanAction() {}
 };
 
 

@@ -119,7 +119,7 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
 	// Removes trailing empty paragraphs
 	void trim();
 	// Insert chars at current cursor position
-	void insertChars(QString txt, bool applyNeighbourStyle = false);
+	void insertChars(const QString& txt, bool applyNeighbourStyle = false);
 	// Insert chars ar specific position
 	void insertChars(int pos, const QString& txt, bool applyNeighbourStyle = false);
 	// Insert inline object at current cursor position
@@ -133,7 +133,7 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
 	int replaceWord(int pos, QString newWord);
 	void replaceObject(int pos, int obj);
 
-	void hyphenateWord(int pos, uint len, char* hyphens);
+	void hyphenateWord(int pos, uint len, const char* hyphens);
 	
  	// Retrieve length of story text
  	int length() const;
@@ -187,7 +187,7 @@ class SCRIBUS_API StoryText : public QObject, public SaxIO, public ITextSource
  	void applyStyle(int pos, const ParagraphStyle& style, bool rmDirectFormatting = false);
  	void eraseCharStyle(int pos, uint len, const CharStyle& style);
  	void eraseStyle(int pos, const ParagraphStyle& style);
-	void replaceStyles(QMap<QString,QString> newNameForOld);
+	void replaceStyles(const QMap<QString,QString>& newNameForOld);
 	void replaceCharStyles(QMap<QString,QString> newNameForOld);
 
 	// Cleanup legacy formatting for whole story, ie remove direct
@@ -301,7 +301,7 @@ private:
 	static BreakIterator* m_lineIterator;
 
 	QString textWithSoftHyphens (int pos, uint len) const;
-	void    insertCharsWithSoftHyphens(int pos, QString txt, bool applyNeighbourStyle = false);
+	void    insertCharsWithSoftHyphens(int pos, const QString& txt, bool applyNeighbourStyle = false);
 	
  	/// mark these runs as invalid, ie. need itemize and shaping
  	void invalidate(int firstRun, int lastRun);

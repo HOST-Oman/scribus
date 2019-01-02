@@ -20,8 +20,8 @@ public:
 	HunspellDict(const QString& affPath, const QString& dictPath);
 	~HunspellDict();
 
-	int spell(QString word);
-	QStringList suggest(QString word);
+	int spell(const QString& word);
+	QStringList suggest(const QString& word);
 
 protected:
 	Hunspell*   m_hunspell;

@@ -19,12 +19,12 @@ for which a new license (GPL+exception) is in place.
 #endif
 
 
-ScImgDataLoader_PDF::ScImgDataLoader_PDF(void) : ScImgDataLoader()
+ScImgDataLoader_PDF::ScImgDataLoader_PDF()
 {
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_PDF::initSupportedFormatList(void)
+void ScImgDataLoader_PDF::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
 	m_supportedFormats.append( "pdf" );
@@ -85,12 +85,12 @@ bool ScImgDataLoader_PDF::loadPicture(const QString& fn, int page, int gsRes, bo
 		QFile::remove(tmpFile);
 		if (!ScCore->havePNGAlpha())
 		{
-			for( int yi=0; yi < m_image.height(); ++yi )
+			for (int yi = 0; yi < m_image.height(); ++yi)
 			{
 				QRgb *s = (QRgb*)(m_image.scanLine( yi ));
-				for(int xi=0; xi < m_image.width(); ++xi )
+				for (int xi = 0; xi < m_image.width(); ++xi )
 				{
-					if((*s) == 0xffffffff)
+					if ((*s) == 0xffffffff)
 						(*s) &= 0x00ffffff;
 					s++;
 				}
@@ -140,12 +140,12 @@ bool ScImgDataLoader_PDF::preloadAlphaChannel(const QString& fn, int page, int g
 		if (!ScCore->havePNGAlpha())
 		{
 			QRgb *s;
-			for( int yi=0; yi < m_image.height(); ++yi )
+			for (int yi=0; yi < m_image.height(); ++yi)
 			{
 				s = (QRgb*)(m_image.scanLine( yi ));
-				for(int xi=0; xi < m_image.width(); ++xi )
+				for (int xi=0; xi < m_image.width(); ++xi)
 				{
-					if((*s) == 0xffffffff)
+					if ((*s) == 0xffffffff)
 						(*s) &= 0x00ffffff;
 					s++;
 				}

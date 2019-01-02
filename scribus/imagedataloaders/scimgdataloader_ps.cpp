@@ -40,7 +40,7 @@ extern "C"
 #endif
 }
 
-ScImgDataLoader_PS::ScImgDataLoader_PS(void) : ScImgDataLoader(),
+ScImgDataLoader_PS::ScImgDataLoader_PS() :
 	 m_isDCS1(false),
 	 m_isDCS2(false),
 	 m_isDCS2multi(false),
@@ -62,7 +62,7 @@ ScImgDataLoader_PS::ScImgDataLoader_PS(void) : ScImgDataLoader(),
 	initSupportedFormatList();
 }
 
-void ScImgDataLoader_PS::initialize(void)
+void ScImgDataLoader_PS::initialize()
 {
 	m_doThumbnail = false;
 	m_hasThumbnail = false;
@@ -70,12 +70,10 @@ void ScImgDataLoader_PS::initialize(void)
 	ScImgDataLoader::initialize();
 }
 
-void ScImgDataLoader_PS::initSupportedFormatList(void)
+void ScImgDataLoader_PS::initSupportedFormatList()
 {
 	m_supportedFormats.clear();
-	m_supportedFormats.append( "ps" );
-	m_supportedFormats.append( "eps" );
-	m_supportedFormats.append( "epsi" );
+	m_supportedFormats<<"ps"<<"eps"<<"epsi";
 }
 
 void ScImgDataLoader_PS::loadEmbeddedProfile(const QString& fn, int /* page */)
@@ -127,7 +125,7 @@ void ScImgDataLoader_PS::loadEmbeddedProfile(const QString& fn, int /* page */)
 	}
 }
 
-void ScImgDataLoader_PS::scanForFonts(QString fn)
+void ScImgDataLoader_PS::scanForFonts(const QString& fn)
 {
 	QFile f(fn);
 	if (!f.open(QIODevice::ReadOnly))
@@ -148,7 +146,7 @@ void ScImgDataLoader_PS::scanForFonts(QString fn)
 	}
 }
 
-bool ScImgDataLoader_PS::parseData(QString fn)
+bool ScImgDataLoader_PS::parseData(const QString& fn)
 {
 	QChar tc;
 	QString tmp, FarNam;
@@ -202,7 +200,7 @@ bool ScImgDataLoader_PS::parseData(QString fn)
 					f2.close();
 					imgc.resize(0);
 					ScImage thum;
-					CMSettings cms(0, "", Intent_Perceptual);
+					CMSettings cms(nullptr, "", Intent_Perceptual);
 					cms.allowColorManagement(false);
 					bool mode = true;
 					if (thum.loadPicture(tmpFile, 1, cms, ScImage::RGBData, 72, &mode))
@@ -293,7 +291,7 @@ bool ScImgDataLoader_PS::parseData(QString fn)
 						uint pos = posStr.toUInt();
 						uint len = lenStr.toUInt();
 						struct plateOffsets offs;
-						if (m_Creator.contains("Photoshop Version 9"))	// This is very strange, it seems that there is a bug in PS 9 which writes weired entries
+						if (m_Creator.contains("Photoshop Version 9"))	// This is very strange, it seems that there is a bug in PS 9 which writes weird entries
 						{
 							pos -= (191 + plateCount * 83);
 							len -= 83;
@@ -410,8 +408,8 @@ bool ScImgDataLoader_PS::parseData(QString fn)
 								fakeHeader.width = qRound(b);
 								fakeHeader.height = qRound(h);
 								parseRessourceData(strPhot, fakeHeader, psdata.size());
-								m_imageInfoRecord.valid = (m_imageInfoRecord.PDSpathData.size()) > 0 ? true : false;
-								if (m_imageInfoRecord.PDSpathData.size() > 0)
+								m_imageInfoRecord.valid = (m_imageInfoRecord.PDSpathData.size()) > 0;
+								if (!m_imageInfoRecord.PDSpathData.empty())
 								{
 									QTransform mm;
 									mm.scale(m_imageInfoRecord.xres / 72.0, m_imageInfoRecord.yres / 72.0);
@@ -550,10 +548,10 @@ bool ScImgDataLoader_PS::loadPicture(const QString& fn, int page, int gsRes, boo
 				m_imageInfoRecord.colorspace = ColorSpaceCMYK;
 				QRgb *s;
 				unsigned char cc, cm, cy, ck;
-				for( int yit=0; yit < m_image.height(); ++yit )
+				for (int yit = 0; yit < m_image.height(); ++yit)
 				{
 					s = (QRgb*)(m_image.scanLine( yit ));
-					for(int xit=0; xit < m_image.width(); ++xit )
+					for (int xit = 0; xit < m_image.width(); ++xit)
 					{
 						cc = 255 - qRed(*s);
 						cm = 255 - qGreen(*s);
@@ -616,12 +614,12 @@ bool ScImgDataLoader_PS::loadPicture(const QString& fn, int page, int gsRes, boo
 					QRgb alphaFF = qRgba(255,255,255,255);
 					QRgb alpha00 = qRgba(255,255,255,  0);
 					QRgb *s;
-					for( int yi=0; yi < hi; ++yi )
+					for (int yi = 0; yi < hi; ++yi)
 					{
 						s = (QRgb*)(m_image.scanLine( yi ));
-						for(int xi=0; xi < wi; ++xi )
+						for (int xi = 0; xi < wi; ++xi)
 						{
-							if((*s) == alphaFF)
+							if ((*s) == alphaFF)
 								(*s) &= alpha00;
 							s++;
 						}
@@ -742,7 +740,7 @@ bool ScImgDataLoader_PS::loadPicture(const QString& fn, int page, int gsRes, boo
 	return false;
 }
 
-void ScImgDataLoader_PS::loadPhotoshop(QString fn, int gsRes)
+void ScImgDataLoader_PS::loadPhotoshop(const QString& fn, int gsRes)
 {
 	if ((m_psDataType >= 1) && (m_psDataType <= 6) && ((m_psMode == 3) || (m_psMode == 4)))
 	{
@@ -754,9 +752,8 @@ void ScImgDataLoader_PS::loadPhotoshop(QString fn, int gsRes)
 	QString ext = fi.suffix().toLower();
 	QString tmpFile = QDir::toNativeSeparators(ScPaths::tempFileDir() + "sc1.png");
 	int retg;
-	int GsMajor;
-	int GsMinor;
-	getNumericGSVersion(GsMajor, GsMinor);
+	int GsVersion;
+	getNumericGSVersion(GsVersion);
 	ScTextStream ts2(&m_BBox, QIODevice::ReadOnly);
 	double x, y, b, h;
 	ts2 >> x >> y >> b >> h;
@@ -765,7 +762,7 @@ void ScImgDataLoader_PS::loadPhotoshop(QString fn, int gsRes)
 		args.append("-dEPSCrop");
 	if (m_psMode == 4)
 		args.append("-dGrayValues=256");
-	if ((GsMajor >= 8) && (GsMinor >= 53))
+	if (GsVersion >= 853)
 		args.append("-dNOPSICC");		// prevent GS from applying an embedded ICC profile as it will be applied later on in ScImage.
 	args.append("-r"+QString::number(gsRes));
 	args.append("-sOutputFile=" + tmpFile);
@@ -819,12 +816,12 @@ void ScImgDataLoader_PS::loadPhotoshop(QString fn, int gsRes)
 				QRgb alphaFF = qRgba(255,255,255,255);
 				QRgb alpha00 = qRgba(255,255,255,  0);
 				QRgb *s;
-				for( int yi=0; yi < hi; ++yi )
+				for (int yi = 0; yi < hi; ++yi)
 				{
 					s = (QRgb*)(m_image.scanLine( yi ));
-					for(int xi=0; xi < wi; ++xi )
+					for (int xi = 0; xi < wi; ++xi)
 					{
-						if((*s) == alphaFF)
+						if ((*s) == alphaFF)
 							(*s) &= alpha00;
 						s++;
 					}
@@ -856,7 +853,7 @@ void ScImgDataLoader_PS::loadPhotoshop(QString fn, int gsRes)
 	}
 }
 
-void ScImgDataLoader_PS::decodeA85(QByteArray &psdata, QString tmp)
+void ScImgDataLoader_PS::decodeA85(QByteArray &psdata, const QString& tmp)
 {
 	uchar byte;
 	ushort data;
@@ -927,13 +924,13 @@ static void my_error_exit (j_common_ptr cinfo)
 	longjmp (myerr->setjmp_buffer, 1);
 }
 
-bool ScImgDataLoader_PS::loadPSjpeg(QString fn)
+bool ScImgDataLoader_PS::loadPSjpeg(const QString& fn)
 {
 	if (!QFile::exists(fn))
 		return false;
 	struct jpeg_decompress_struct cinfo;
-	struct my_error_mgr         jerr;
-	FILE     *infile;
+	struct my_error_mgr jerr;
+	FILE *infile;
 	cinfo.err = jpeg_std_error (&jerr.pub);
 	jerr.pub.error_exit = my_error_exit;
 	infile = nullptr;
@@ -1032,11 +1029,11 @@ bool ScImgDataLoader_PS::loadPSjpeg(QString fn)
 			m_image = QImage( cinfo.output_width, cinfo.output_height, QImage::Format_ARGB32 );
 			QRgb *s;
 			QRgb *d;
-			for( int yi=0; yi < tmpImg.height(); ++yi )
+			for (int yi=0; yi < tmpImg.height(); ++yi)
 			{
 				s = (QRgb*)(tmpImg.scanLine( yi ));
 				d = (QRgb*)(m_image.scanLine( yi ));
-				for(int xi=0; xi < tmpImg.width(); ++xi )
+				for (int xi=0; xi < tmpImg.width(); ++xi)
 				{
 					(*d) = (*s);
 					s++;
@@ -1052,7 +1049,7 @@ bool ScImgDataLoader_PS::loadPSjpeg(QString fn)
 	return (!m_image.isNull());
 }
 
-bool ScImgDataLoader_PS::loadPSjpeg(QString fn, QImage &tmpImg)
+bool ScImgDataLoader_PS::loadPSjpeg(const QString& fn, QImage &tmpImg)
 {
 	if (!QFile::exists(fn))
 		return false;
@@ -1158,11 +1155,11 @@ bool ScImgDataLoader_PS::loadPSjpeg(QString fn, QImage &tmpImg)
 			tmpImg = QImage( cinfo.output_width, cinfo.output_height, QImage::Format_ARGB32 );
 			QRgb *s;
 			QRgb *d;
-			for( int yi=0; yi < tmpImg2.height(); ++yi )
+			for (int yi=0; yi < tmpImg2.height(); ++yi)
 			{
 				s = (QRgb*)(tmpImg2.scanLine( yi ));
 				d = (QRgb*)(tmpImg.scanLine( yi ));
-				for(int xi=0; xi < tmpImg2.width(); ++xi )
+				for (int xi=0; xi < tmpImg2.width(); ++xi)
 				{
 					(*d) = (*s);
 					s++;
@@ -1177,7 +1174,7 @@ bool ScImgDataLoader_PS::loadPSjpeg(QString fn, QImage &tmpImg)
 	return (!tmpImg.isNull());
 }
 
-void ScImgDataLoader_PS::loadPhotoshopBinary(QString fn)
+void ScImgDataLoader_PS::loadPhotoshopBinary(const QString& fn)
 {
 	double x, y, b, h;
 	ScTextStream ts2(&m_BBox, QIODevice::ReadOnly);
@@ -1317,7 +1314,7 @@ void ScImgDataLoader_PS::loadPhotoshopBinary(QString fn)
 	f.close();
 }
 
-void ScImgDataLoader_PS::loadPhotoshopBinary(QString fn, QImage &tmpImg)
+void ScImgDataLoader_PS::loadPhotoshopBinary(const QString& fn, QImage &tmpImg)
 {
 	double x, y, b, h;
 	ScTextStream ts2(&m_BBox, QIODevice::ReadOnly);
@@ -1436,11 +1433,11 @@ void ScImgDataLoader_PS::loadPhotoshopBinary(QString fn, QImage &tmpImg)
 	}
 }
 
-void ScImgDataLoader_PS::loadDCS2(QString fn, int gsRes)
+void ScImgDataLoader_PS::loadDCS2(const QString& fn, int gsRes)
 {
 	QStringList args;
 	double x, y, b, h;
-	QFileInfo fi = QFileInfo(fn);
+	QFileInfo fi(fn);
 	QString ext = fi.suffix().toLower();
 	QString tmpFile = QDir::toNativeSeparators(ScPaths::tempFileDir() + "sc1.png");
 	QString tmpFile2 = QDir::toNativeSeparators(ScPaths::tempFileDir() + "tmp.eps");
@@ -1550,7 +1547,7 @@ void ScImgDataLoader_PS::loadDCS2(QString fn, int gsRes)
 	m_pixelFormat = Format_YMCK_8;
 }
 
-void ScImgDataLoader_PS::loadDCS1(QString fn, int gsRes)
+void ScImgDataLoader_PS::loadDCS1(const QString& fn, int gsRes)
 {
 	QStringList args;
 	double x, y, b, h;
@@ -1733,12 +1730,12 @@ bool ScImgDataLoader_PS::preloadAlphaChannel(const QString& fn, int page, int gs
 				QRgb alphaFF = qRgba(255,255,255,255);
 				QRgb alpha00 = qRgba(255,255,255,  0);
 				QRgb *s;
-				for( int yi=0; yi < hi; ++yi )
+				for (int yi = 0; yi < hi; ++yi)
 				{
-					s = (QRgb*)(m_image.scanLine( yi ));
-					for(int xi=0; xi < wi; ++xi )
+					s = (QRgb*)(m_image.scanLine(yi));
+					for (int xi = 0; xi < wi; ++xi)
 					{
-						if((*s) == alphaFF)
+						if ((*s) == alphaFF)
 							(*s) &= alpha00;
 						s++;
 					}
@@ -1758,10 +1755,7 @@ bool ScImgDataLoader_PS::preloadAlphaChannel(const QString& fn, int page, int gs
 			m_image.setDotsPerMeterY ((int) (yres / 0.0254));
 			return true;
 		}
-		else
-		{
-			qDebug() << "Ghostscript returned result" << retg;
-		}
+		qDebug() << "Ghostscript returned result" << retg;
 		return false;
 	}
 	m_imageInfoRecord.actualPageNumber = page;

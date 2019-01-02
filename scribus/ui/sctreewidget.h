@@ -51,15 +51,15 @@ class SCRIBUS_API ScTreeWidget : public QTreeWidget
 public:
 	ScTreeWidget(QWidget* pa);
 	~ScTreeWidget() {}
-	QTreeWidgetItem* addWidget(QString title, QWidget* widget);
+	QTreeWidgetItem* addWidget(const QString& title, QWidget* widget);
 	void setToolBoxMode(bool enable);
-	int addItem(QWidget* widget, QString title);
+	int addItem(QWidget* widget, const QString& title);
 	QWidget* widget(int index);
 	void setItemEnabled(int index, bool enable);
 	bool isItemEnabled(int index);
 	void setCurrentIndex(int index);
 	int currentIndex();
-	void setItemText(int index, QString text);
+	void setItemText(int index, const QString& text);
 
 private slots:
 	void handleMousePress(QTreeWidgetItem *item);

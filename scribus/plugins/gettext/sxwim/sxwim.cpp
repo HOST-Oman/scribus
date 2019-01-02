@@ -51,7 +51,7 @@ QStringList FileExtensions()
 	return QStringList("sxw");
 }
 
-void GetText(QString filename, QString encoding, bool textOnly, gtWriter *writer)
+void GetText(const QString& filename, const QString& encoding, bool textOnly, gtWriter *writer)
 {
 	SxwIm* sim = new SxwIm(filename, encoding, writer, textOnly);
 	delete sim;
@@ -59,7 +59,7 @@ void GetText(QString filename, QString encoding, bool textOnly, gtWriter *writer
 
 /********** Class SxwIm ************************************************************/
 
-SxwIm::SxwIm(QString fileName, QString enc, gtWriter* w, bool textOnly)
+SxwIm::SxwIm(const QString& fileName, const QString& enc, gtWriter* w, bool textOnly)
 {
 	PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("SxwIm");
 	bool update = prefs->getBool("update", true);

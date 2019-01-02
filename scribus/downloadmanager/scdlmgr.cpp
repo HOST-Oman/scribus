@@ -7,7 +7,7 @@
 #include <QStringList>
 #include <QTimer>
 
-#include <stdio.h>
+#include <cstdio>
 
 #include "util_file.h"
 
@@ -19,7 +19,7 @@ ScDLManager::ScDLManager(QObject *parent)
 	connect(m_thread, SIGNAL(fileReceived(const QString &)), this, SLOT(dlReceived(const QString&)));
 	connect(m_thread, SIGNAL(fileFailed(const QString &)), this, SLOT(dlFailed(const QString&)));
 	connect(m_thread, SIGNAL(fileStarted(const QString &)), this, SLOT(dlStarted(const QString &)));
-	connect(m_thread, SIGNAL(fileDownloadProgress(qint64, qint64)), this, SIGNAL(fileDownloadProgress(qint64, qint64)));
+	connect(m_thread, SIGNAL(fileDownloadProgress(qint64,qint64)), this, SIGNAL(fileDownloadProgress(qint64,qint64)));
 	//connect(thread, SIGNAL(finished()), this, SIGNAL(finished()));
 	connect(m_thread, SIGNAL(finished()), this, SLOT(moveFinishedDownloads()));
 }
@@ -63,7 +63,7 @@ void ScDLManager::addURL(const QString &url, bool overwrite, const QString &down
 
 void ScDLManager::addURLs(const QStringList &urlList, bool overwrite, const QString &downloadLocation, const QString& destinationLocation)
 {
-	foreach(const QString& s, urlList)
+	for(const QString& s : urlList)
 	{
 		DownloadData d;
 		d.id=m_dlID++;

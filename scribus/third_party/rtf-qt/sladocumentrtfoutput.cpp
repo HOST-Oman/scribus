@@ -685,7 +685,7 @@ namespace RtfReader
 				if (testResult != -1)
 				{
 					const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
-					if( fmt )
+					if (fmt)
 					{
 						fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
 						fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
@@ -722,7 +722,7 @@ namespace RtfReader
 	{
 	}
 
-	QString SlaDocumentRtfOutput::getFontName(QString name)
+	QString SlaDocumentRtfOutput::getFontName(const QString& name)
 	{
 		QString fontName(name);
 		SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);

@@ -128,6 +128,9 @@ class PictureBrowser : public QDialog, Ui::PictureBrowser
 		void selectPage ( int );
 		void selectMasterPage ( QString );
 
+	public slots:
+		void unitChange();
+
 	private slots:
 		//slot for the navigation combobox, sets current browsingmode (folderbrowser, collectionsbrowser, documentbrowser)
 		void navigate ( int index );
@@ -203,7 +206,7 @@ class PictureBrowser : public QDialog, Ui::PictureBrowser
 		//updates the QListView when the set of previewimages was changed (new images, zoom, previewmode changed etc)
 		void loadIcons();
 		void setSettings();
-		void updateDocumentbrowser();
+		void updateDocumentBrowser();
 		void updateBrowser ( bool filter, bool sort, bool reload );
 		void updateInformationTab ( int index );
 		void updateCollectionsWidget ( bool addImages );

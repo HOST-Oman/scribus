@@ -48,9 +48,9 @@ void SMScComboBox::setCurrentItemByData(int i)
 	setFont(false);
 	m_hasParent = false;
 	m_pItem = 0;
-	for(int idx(0); idx < count(); ++idx)
+	for (int idx(0); idx < count(); ++idx)
 	{
-		if(itemData(idx).toInt() == i)
+		if (itemData(idx).toInt() == i)
 			ScComboBox::setCurrentIndex(idx);
 	}
 	connect(this, SIGNAL(highlighted(int)), this, SLOT(currentChanged()));
@@ -67,9 +67,9 @@ void SMScComboBox::setCurrentItemByData(int i, bool isParentValue)
 		addItem( tr("Use Parent Value"));
 	}
 
-	for(int idx(0); idx < count(); ++idx)
+	for (int idx(0); idx < count(); ++idx)
 	{
-		if(itemData(idx).toInt() == i)
+		if (itemData(idx).toInt() == i)
 		{
 			ScComboBox::setCurrentIndex(idx);
 			m_pItem = idx;
@@ -84,9 +84,9 @@ void SMScComboBox::setCurrentItemByData(double d)
 	setFont(false);
 	m_hasParent = false;
 	m_pItem = 0;
-	for(int idx(0); idx < count(); ++idx)
+	for (int idx(0); idx < count(); ++idx)
 	{
-		if(itemData(idx).toDouble() == d)
+		if (itemData(idx).toDouble() == d)
 			ScComboBox::setCurrentIndex(idx);
 	}
 	connect(this, SIGNAL(highlighted(int)), this, SLOT(currentChanged()));
@@ -103,9 +103,9 @@ void SMScComboBox::setCurrentItemByData(double d, bool isParentValue)
 		addItem( tr("Use Parent Value"));
 	}
 
-	for(int idx(0); idx < count(); ++idx)
+	for (int idx(0); idx < count(); ++idx)
 	{
-		if(itemData(idx).toDouble() == d)
+		if (itemData(idx).toDouble() == d)
 		{
 			ScComboBox::setCurrentIndex(idx);
 			m_pItem = idx;
@@ -116,9 +116,9 @@ void SMScComboBox::setCurrentItemByData(double d, bool isParentValue)
 
 int SMScComboBox::getItemIndexForData(int i)
 {
-	for(int idx(0); idx < count(); ++idx)
+	for (int idx(0); idx < count(); ++idx)
 	{
-		if(itemData(idx).toInt() == i)
+		if (itemData(idx).toInt() == i)
 		{
 			return idx;
 		}
@@ -128,9 +128,9 @@ int SMScComboBox::getItemIndexForData(int i)
 
 int SMScComboBox::getItemIndexForData(double d)
 {
-	for(int idx(0); idx < count(); ++idx)
+	for (int idx(0); idx < count(); ++idx)
 	{
-		if(itemData(idx).toDouble() == d)
+		if (itemData(idx).toDouble() == d)
 		{
 			return idx;
 		}

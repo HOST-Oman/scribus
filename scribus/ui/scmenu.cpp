@@ -30,7 +30,7 @@ for which a new license (GPL+exception) is in place.
 #include "iconmanager.h"
 
 
-ScrPopupMenu::ScrPopupMenu ( QWidget * parent, const QString pMenuName, const QString pMenuText, const QString parentName, bool pCheckable ) : QObject(parent)
+ScrPopupMenu::ScrPopupMenu ( QWidget * parent, const QString& pMenuName, const QString& pMenuText, const QString& parentName, bool pCheckable ) : QObject(parent)
 {
 	parentMenuName=parentName;
 	parentMenuID=-1;
@@ -54,7 +54,7 @@ const QString ScrPopupMenu::getMenuText()
 	return menuText;
 }
 
-void ScrPopupMenu::setText(const QString pMenuText)
+void ScrPopupMenu::setText(const QString& pMenuText)
 {
 	menuText=pMenuText;
 	localPopupMenu->menuAction()->setText(menuText);
@@ -65,7 +65,7 @@ const QIcon ScrPopupMenu::getMenuIcon()
 	return menuIcon;
 }
 
-void ScrPopupMenu::setMenuIcon(const QIcon pMenuIcon)
+void ScrPopupMenu::setMenuIcon(const QIcon& pMenuIcon)
 {
 	menuIcon=pMenuIcon;
 }
@@ -122,8 +122,7 @@ bool ScrPopupMenu::insertSubMenu(ScrPopupMenu* newSubMenu)
 			m->setText(newSubMenu->getMenuText());
 		return true;
 	}
-	else
-		return false;
+	return false;
 }
 
 bool ScrPopupMenu::removeSubMenu(ScrPopupMenu* subMenu)
@@ -156,8 +155,7 @@ bool ScrPopupMenu::insertMenuItem(ScrAction *newMenuAction)
 					menuListHasNoIcons = act->icon().isNull();
 				break;
 			}
-
-			else if (menuItemListClassName == "ScrPopupMenu")
+			if (menuItemListClassName == "ScrPopupMenu")
 			{
 				ScrPopupMenu * men = dynamic_cast<ScrPopupMenu *>(menuItem);
 				if (men!=nullptr)
@@ -173,8 +171,7 @@ bool ScrPopupMenu::insertMenuItem(ScrAction *newMenuAction)
 		localPopupMenu->addAction(newMenuAction);
 		return true;
 	}
-	else 
-		return false;
+	return false;
 }
 
 /* Qt4
@@ -336,13 +333,13 @@ bool ScrPopupMenu::generateEntryList(QStringList *actNames)
 			if (sca!=nullptr)
 				actNames->append(sca->objectName());
 		}
-		else 
-		if (menuItemListClassName=="ScrPopupMenu")
-		{
-			ScrPopupMenu *scp=dynamic_cast<ScrPopupMenu *>(listObj);
-			if (scp!=nullptr)
-				scp->generateEntryList(actNames);
-		}
+		else
+			if (menuItemListClassName=="ScrPopupMenu")
+			{
+				ScrPopupMenu *scp=dynamic_cast<ScrPopupMenu *>(listObj);
+				if (scp!=nullptr)
+					scp->generateEntryList(actNames);
+			}
 		++menuItemListIt;
 	}
 	return true;

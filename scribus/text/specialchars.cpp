@@ -161,22 +161,22 @@ int SpecialChars::getCJKAttr(QChar c)
 		CJK_FENCE_END
 	};
 	ushort code = c.unicode();
-	if(code >= 0x3100 && code < 0xa000){
+	if (code >= 0x3100 && code < 0xa000){
 		return CJK_KANJI;
 	}
 
 	int attr = 0;
-	if(code >= 0x3000 && code < 0x3100){
+	if (code >= 0x3000 && code < 0x3100){
 		attr = attr_3000[code - 0x3000];
-	} else if( code >= 0xff00 && code <= 0xff60 ){
+	} else if ( code >= 0xff00 && code <= 0xff60 ){
 		attr = attr_ff00[code - 0xff00];
 	}
-	if( attr != 0 ){
-		if(attr == CJK_COMMA || attr == CJK_PERIOD || attr == CJK_NOTOP || attr == CJK_FENCE_END )
+	if ( attr != 0 ){
+		if (attr == CJK_COMMA || attr == CJK_PERIOD || attr == CJK_NOTOP || attr == CJK_FENCE_END )
 			attr |= CJK_NOBREAK_BEFORE;
-		else if(attr == CJK_FENCE_BEGIN )
+		else if (attr == CJK_FENCE_BEGIN )
 			attr |= CJK_NOBREAK_AFTER;
-		else if(attr == CJK_MIDPOINT || attr == CJK_HYPHEN || attr == CJK_DELMITER )
+		else if (attr == CJK_MIDPOINT || attr == CJK_HYPHEN || attr == CJK_DELMITER )
 			attr |= CJK_NOBREAK_BEFORE;
 	}
 	return attr;
@@ -184,7 +184,7 @@ int SpecialChars::getCJKAttr(QChar c)
 
 bool SpecialChars::isCJK(uint ch)
 {
-	if (	(0x2E80 < ch && ch < 0x2EFF)   ||  // CJK Radicals Supplement
+	return (	(0x2E80 < ch && ch < 0x2EFF)   ||  // CJK Radicals Supplement
 		(0x3000 < ch && ch < 0x303F)   ||  // CJK Symbols and Punctuation
 		(0x3040 < ch && ch <= 0x30FF)  ||  // Hiragana, Katakana
 		(0x31C0 < ch && ch < 0x31EF)   ||  // CJK Strokes
@@ -204,10 +204,7 @@ bool SpecialChars::isCJK(uint ch)
 		(ch == 0x3000) ||
 		(ch == 0x3002) ||
 		(ch == 0x201C) ||
-		(ch == 0x201D))
-		return true;
-	else
-		return false;
+		(ch == 0x201D));
 }
 
 
@@ -239,7 +236,7 @@ bool SpecialChars::isLetterRequiringSpaceAroundCJK(uint ch) {
 bool SpecialChars::isIgnorableCodePoint(uint ch)
 {
 	// based on list of Default_Ignorable_Code_Point in Unicode 9
-	if ( (ch == 0x00AD)					  || //SOFT HYPHEN
+	return ( (ch == 0x00AD)					  || //SOFT HYPHEN
 		 (ch == 0x034F)					  || //COMBINING GRAPHEME JOINER
 		 (ch == 0x061C)					  || //ARABIC LETTER MARK
 		 (ch == 0x115F) || (ch == 0x1160) || //HANGUL CHOSEONG FILLER..HANGUL JUNGSEONG FILLER
@@ -257,19 +254,16 @@ bool SpecialChars::isIgnorableCodePoint(uint ch)
 		 (ch >= 0x1BCA0 && ch <= 0x1BCA3) || //SHORTHAND FORMAT LETTER OVERLAP..SHORTHAND FORMAT UP STEP
 		 (ch >= 0x1D173 && ch <= 0x1D17A) || //MUSICAL SYMBOL BEGIN BEAM..MUSICAL SYMBOL END PHRASE
 		 (ch == 0xE0001)					 //LANGUAGE TAG
-			)
-		return true;
-	else
-		return false;
+			);
 }
 
 bool SpecialChars::isArabicModifierLetter(uint ch)
 {
 	if (ch == 0x0640) //ARABIC TATWEEL
 		return true;
-	else if (ch == 0x06E5) //ARABIC SMALL WAW
+	if (ch == 0x06E5) //ARABIC SMALL WAW
 		return true;
-	else if (ch == 0x06E6) //ARABIC SMALL YEH
+	if (ch == 0x06E6) //ARABIC SMALL YEH
 		return true;
 	return false;
 }
