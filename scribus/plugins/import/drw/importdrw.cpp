@@ -69,8 +69,8 @@ QImage DrwPlug::readThumbnail(const QString& fName)
 {
 	QFileInfo fi = QFileInfo(fName);
 	baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
-	double b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	double h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	double b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	double h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	progressDialog = nullptr;
@@ -176,8 +176,8 @@ bool DrwPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 		progressDialog->setOverallProgress(1);
 		qApp->processEvents();
 	}
-	b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	baseX = 0;
@@ -715,7 +715,7 @@ void DrwPlug::decodeCmd(quint8 cmd, int pos)
 			{
 				textFont = m_Doc->itemToolPrefs().textFont;
 				bool found = false;
-				SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
+				SCFontsIterator it(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts);
 				for ( ; it.hasNext(); it.next())
 				{
 					QString fn = it.current().scName();
@@ -728,10 +728,10 @@ void DrwPlug::decodeCmd(quint8 cmd, int pos)
 				if (!found)
 				{
 					if (importerFlags & LoadSavePlugin::lfCreateThumbnail)
-						fontName = PrefsManager::instance()->appPrefs.itemToolPrefs.textFont;
+						fontName = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
 					else
 					{
-						if (!PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(fontName))
+						if (!PrefsManager::instance().appPrefs.fontPrefs.GFontSub.contains(fontName))
 						{
 							qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 							MissingFont *dia = new MissingFont(nullptr, fontName, m_Doc);
@@ -739,11 +739,11 @@ void DrwPlug::decodeCmd(quint8 cmd, int pos)
 							textFont = dia->getReplacementFont();
 							delete dia;
 							qApp->changeOverrideCursor(QCursor(Qt::WaitCursor));
-							PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[fontName] = textFont;
+							PrefsManager::instance().appPrefs.fontPrefs.GFontSub[fontName] = textFont;
 							fontName = textFont;
 						}
 						else
-							fontName = PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[fontName];
+							fontName = PrefsManager::instance().appPrefs.fontPrefs.GFontSub[fontName];
 					}
 				}
 			}
@@ -1828,7 +1828,7 @@ void DrwPlug::handleGradient(PageItem* currentItem, quint8 patternIndex, const Q
 		{
 			QColor back = ScColorEngine::getRGBColor(m_Doc->PageColors[fillColor], m_Doc);
 			QColor fore = ScColorEngine::getRGBColor(m_Doc->PageColors[backColor], m_Doc);
-			QString patNa = QString("%1%2%3").arg(back.name()).arg(fore.name()).arg(ind);
+			QString patNa = QString("%1%2%3").arg(back.name(), fore.name()).arg(ind);
 			QString patternName;
 			if (!patternMap.contains(patNa))
 			{
@@ -1950,7 +1950,10 @@ void DrwPlug::getCommonData(QDataStream &ds)
 
 QString DrwPlug::getColor(QDataStream &ds)
 {
-	quint8 r, g, b, a;
+	quint8 r;
+	quint8 g;
+	quint8 b;
+	quint8 a;
 	ds >> r >> g >> b >> a;
 	ScColor color = ScColor(r, g, b);
 	return handleColor(color, "FromDRW"+color.name());

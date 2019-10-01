@@ -34,9 +34,8 @@ PropertyWidget_ParEffect::PropertyWidget_ParEffect(QWidget *parent) : QFrame(par
 	if (m_doc)
 		peCharStyleCombo->updateFormatList();
 	fillBulletStrEditCombo();
-	fillNumFormatCombo();
 	enableParEffect(false);
-	bulletCharTableButton->setIcon(IconManager::instance()->loadIcon("22/insert-table.png"));
+	bulletCharTableButton->setIcon(IconManager::instance().loadIcon("22/insert-table.png"));
 	numStart->setMinimum(1);
 	numStart->setMaximum(9999);
 	numLevelSpin->setMinimum(1);
@@ -211,12 +210,6 @@ void PropertyWidget_ParEffect::fillBulletStrEditCombo()
 		bulletStrEdit->setEditText(QChar(0x2022));
 }
 
-void PropertyWidget_ParEffect::fillNumFormatCombo()
-{
-	numFormatCombo->clear();
-	numFormatCombo->addItems(getFormatList());
-}
-
 void PropertyWidget_ParEffect::fillPECombo()
 {
 	QSignalBlocker sb(peCombo);
@@ -272,7 +265,6 @@ void PropertyWidget_ParEffect::updateStyle(const ParagraphStyle& newPStyle)
 		enablePE = false;
 
 	QString numName = numComboBox->currentText();
-	int nFormat = 0;
 	dropCapLines->setValue(newPStyle.dropCapLines());
 	bulletStrEdit->setEditText(newPStyle.bulletStr());
 	numName = newPStyle.numName();
@@ -289,8 +281,7 @@ void PropertyWidget_ParEffect::updateStyle(const ParagraphStyle& newPStyle)
 	numSuffix->setText(newPStyle.numSuffix());
 	numStart->setValue(newPStyle.numStart());
 
-	nFormat = newPStyle.numFormat();
-	numFormatCombo->setCurrentIndex(nFormat);
+	numFormatCombo->setCurrentFormat((NumFormat) newPStyle.numFormat());
 	peOffset->setValue(newPStyle.parEffectOffset() * m_unitRatio);
 	peIndent->setChecked(newPStyle.parEffectIndent());
 	showCharStyle(newPStyle.peCharStyleName());
@@ -408,7 +399,7 @@ void PropertyWidget_ParEffect::handleParEffectUse()
 		newStyle.setHasBullet(false);
 		newStyle.setHasNum(true);
 		newStyle.setNumName(numComboBox->currentText());
-		newStyle.setNumFormat(numFormatCombo->currentIndex());
+		newStyle.setNumFormat(numFormatCombo->currentFormat());
 		newStyle.setNumLevel(numLevelSpin->value() -1);
 		newStyle.setNumStart(numStart->value());
 		newStyle.setNumPrefix(numPrefix->text());
@@ -472,7 +463,7 @@ void PropertyWidget_ParEffect::handleNumName(const QString& numName)
 		numLevelSpin->setValue(level +1);
 		newStyle.setNumLevel(level);
 		Numeration num = numS->m_nums[level];
-		numFormatCombo->setCurrentIndex((int) num.numFormat);
+		numFormatCombo->setCurrentFormat(num.numFormat);
 		numStart->setValue(num.start);
 		numPrefix->setText(num.prefix);
 		numSuffix->setText(num.suffix);
@@ -480,17 +471,19 @@ void PropertyWidget_ParEffect::handleNumName(const QString& numName)
 	newStyle.setNumPrefix(numPrefix->text());
 	newStyle.setNumSuffix(numSuffix->text());
 	newStyle.setNumName(numName);
-	newStyle.setNumFormat((NumFormat) numFormatCombo->currentIndex());
+	newStyle.setNumFormat(numFormatCombo->currentFormat());
 	handleChanges(m_item, newStyle);
 	connectSignals();
 }
 
-void PropertyWidget_ParEffect::handleNumFormat(int style)
+void PropertyWidget_ParEffect::handleNumFormat(int /*style*/)
 {
 	if (!m_doc || !m_item)
 		return;
+	NumFormat format = numFormatCombo->currentFormat();
+
 	ParagraphStyle newStyle;
-	newStyle.setNumFormat(style);
+	newStyle.setNumFormat(format);
 	handleChanges(m_item, newStyle);
 }
 
@@ -506,7 +499,7 @@ void PropertyWidget_ParEffect::handleNumLevel(int level)
 		{
 			numS->m_counters.append(0);
 			Numeration num;
-			num.numFormat = (NumFormat) numFormatCombo->currentIndex();
+			num.numFormat = numFormatCombo->currentFormat();
 			num.prefix = numPrefix->text();
 			num.suffix = numSuffix->text();
 			num.start = numStart->value();
@@ -615,7 +608,7 @@ void PropertyWidget_ParEffect::openEnhanced()
 	QApplication::changeOverrideCursor(QCursor(Qt::WaitCursor));
 	m_enhanced = new CharSelectEnhanced(this);
 	m_enhanced->setModal(true);
-	connect(m_enhanced, SIGNAL(insertSpecialChars(const QString &)), this, SLOT(insertSpecialChars(const QString &)));
+	connect(m_enhanced, SIGNAL(insertSpecialChars(const QVector<uint> &)), this, SLOT(insertSpecialChars(const QVector<uint> &)));
 	connect(m_enhanced, SIGNAL(paletteShown(bool)), bulletCharTableButton, SLOT(setChecked(bool)));
 	m_enhanced->setDoc(m_doc);
 	m_enhanced->setEnabled(true);
@@ -630,7 +623,7 @@ void PropertyWidget_ParEffect::closeEnhanced(bool show)
 {
 	if (!m_enhanced || show)
 		return;
-	disconnect(m_enhanced, SIGNAL(insertSpecialChars(const QString &)), this, SLOT(insertSpecialChars(const QString &)));
+	disconnect(m_enhanced, SIGNAL(insertSpecialChars(const QVector<uint> &)), this, SLOT(insertSpecialChars(const QVector<uint> &)));
 	disconnect(m_enhanced, SIGNAL(paletteShown(bool)), bulletCharTableButton, SLOT(setChecked(bool)));
 	m_enhanced->close();
 	delete m_enhanced;
@@ -644,7 +637,8 @@ void PropertyWidget_ParEffect::on_bulletCharTableButton_toggled(bool checked)
 	else if (!m_enhanced && checked)
 		openEnhanced();
 }
-void PropertyWidget_ParEffect::insertSpecialChars(const QString &chars)
+void PropertyWidget_ParEffect::insertSpecialChars(const QVector<uint> &charCodes)
 {
+	QString chars = QString::fromUcs4(charCodes.data(), charCodes.length());
 	bulletStrEdit->lineEdit()->setText(chars);
 }

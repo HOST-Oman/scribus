@@ -171,9 +171,7 @@ QImage PdfPlug::readThumbnail(const QString& fName)
 bool PdfPlug::import(const QString& fNameIn, const TransactionSettings& trSettings, int flags, bool showProgress)
 {
 #ifdef Q_OS_OSX
-	#if QT_VERSION >= 0x050300
-		showProgress = false;
-	#endif
+	showProgress = false;
 #endif
 	bool success = false;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
@@ -216,9 +214,9 @@ bool PdfPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 		qApp->processEvents();
 	}
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	baseX = 0;
@@ -484,8 +482,12 @@ bool PdfPlug::convert(const QString& fn)
 					cropped = optImp->croppingEnabled();
 					if (!cropped)
 						crop = cropped;
+					// When displaying  pages slices, we should always set useMediaBox to true
+					// in order to use MediaBox (x, y) as coordinate system
 					if (contentRect != Media_Box)
 						useMediaBox = gFalse;
+					if (cropped)
+						useMediaBox = gTrue;
 				/*	if (cb > Media_Box)
 					{
 						cropped = true;
@@ -507,7 +509,6 @@ bool PdfPlug::convert(const QString& fn)
 						hasOcg = ocg->hasOCGs();
 						if (hasOcg)
 						{
-
 							QStringList ocgNames;
 							Array *order = ocg->getOrderArray();
 							if (order)
@@ -517,7 +518,7 @@ bool PdfPlug::convert(const QString& fn)
 									Object orderItem = order->get(i);
 									if (orderItem.isDict())
 									{
-										Object ref = order->getNF(i);
+										POPPLER_CONST_075 Object POPPLER_REF ref = order->getNF(i);
 										if (ref.isRef())
 										{
 											OptionalContentGroup *oc = ocg->findOcgByRef(ref.getRef());
@@ -729,8 +730,8 @@ bool PdfPlug::convert(const QString& fn)
 									m_Doc->currentPage()->setWidth(pdfDoc->getPageMediaWidth(pp));
 								}
 							}
-							m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
-							m_Doc->currentPage()->m_pageSize = "Custom";
+							m_Doc->currentPage()->setMasterPageNameNormal();
+							m_Doc->currentPage()->setSize("Custom");
 							m_Doc->reformPages(true);
 							if (hasOcg)
 							{
@@ -979,7 +980,7 @@ QImage PdfPlug::readPreview(int pgNum, int width, int height, int box)
 		QPainter pp;
 		pp.begin(&image);
 		pp.setBrush(Qt::NoBrush);
-		pp.setPen(QPen(Qt::red, 1.0));
+		pp.setPen(QPen(Qt::red, 3.0));
 		pp.translate(0, bh);
 		pp.scale(scale, -scale);
 		pp.drawRect(cRect);
@@ -1038,6 +1039,9 @@ QString PdfPlug::UnicodeParsedString(POPPLER_CONST GooString *s1)
 			u = s1->getChar(i) & 0xff;
 			++i;
 		}
+		// #15616: imagemagick may write unicode strings incorrectly in PDF
+		if (u == 0)
+			continue;
 		result += QChar( u );
 	}
 	return result;

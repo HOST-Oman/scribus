@@ -45,7 +45,7 @@ InsertAFrame::InsertAFrame(QWidget* parent, ScribusDoc *doc) :
 {
 	setupUi(this);
 	
-	placementPagesRangeButton->setIcon(IconManager::instance()->loadIcon("ellipsis.png"));
+	placementPagesRangeButton->setIcon(IconManager::instance().loadIcon("ellipsis.png"));
 	
 	//set tab order
 	QWidget::setTabOrder(radioButtonCustomPosition, xPosScrSpinBox);
@@ -223,12 +223,12 @@ void InsertAFrame::locateImageFile()
 {
 	QString formatD(FormatsManager::instance()->fileDialogFormatList(FormatsManager::IMAGESIMGFRAME));
 	QString docDir = ".";
-	PrefsManager* prefsManager=PrefsManager::instance();
-	QString prefsDocDir(prefsManager->documentDir());
+	PrefsManager& prefsManager=PrefsManager::instance();
+	QString prefsDocDir(prefsManager.documentDir());
 	if (!prefsDocDir.isEmpty())
-		docDir = prefsManager->prefsFile->getContext("dirs")->get("images", prefsDocDir);
+		docDir = prefsManager.prefsFile->getContext("dirs")->get("images", prefsDocDir);
 	else
-		docDir = prefsManager->prefsFile->getContext("dirs")->get("images", ".");
+		docDir = prefsManager.prefsFile->getContext("dirs")->get("images", ".");
 		
 	QString fileName("");
 	CustomFDialog dia(this, docDir, tr("Open"), formatD, fdShowPreview | fdExistingFiles | fdDisableOk);
@@ -261,7 +261,7 @@ void InsertAFrame::slotCreatePageNumberRange( )
 			return;
 		}
 	}
-	placementPagesLineEdit->setText(QString::null);
+	placementPagesLineEdit->setText(QString());
 }
 
 void InsertAFrame::slotLinkToExistingFrame(int state)

@@ -272,9 +272,9 @@ bool XarPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 	}
 //	parseHeader(fName, x, y, b, h);
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	baseX = 0;
@@ -1690,7 +1690,7 @@ void XarPlug::handleQuickShapeSimple(QDataStream &ts, quint32 dataLen)
 	if (flags & 1)
 		path.addEllipse(QPointF(0,0), w, h);
 	else
-		path = RegularPolygonPath(w * 2, h * 2, numSides, flags & 2, r1, -90 + (360.0 / double(numSides)) / 2.0, 0);
+		path = regularPolygonPath(w * 2, h * 2, numSides, flags & 2, r1, -90 + (360.0 / double(numSides)) / 2.0, 0);
 	Coords.fromQPainterPath(path);
 	if (!(flags & 1))
 		Coords.translate(-w, -h);
@@ -2982,7 +2982,7 @@ void XarPlug::createRectangleItem(QDataStream &ts, bool ellipse)
 	if (ellipse)
 		path.addEllipse(QPointF(majorAxis, minorAxis), majorAxis, minorAxis);
 	else
-		path = RegularPolygonPath(majorAxis, minorAxis, 4, false, 0, 45, 0);
+		path = regularPolygonPath(majorAxis, minorAxis, 4, false, 0, 45, 0);
 	Coords.fromQPainterPath(path);
 	Coords.translate(-majorAxis / 2.0, -minorAxis / 2.0);
 	Coords.translate(centerX, -centerY);
@@ -3350,7 +3350,7 @@ void XarPlug::handleSpreadInfo(QDataStream &ts)
 	{
 		m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 1, 0, false, false);
 		m_Doc->setPageSize("Custom");
-		m_Doc->currentPage()->m_pageSize = "Custom";
+		m_Doc->currentPage()->setSize("Custom");
 		m_Doc->currentPage()->setInitialHeight(docHeight);
 		m_Doc->currentPage()->setInitialWidth(docWidth);
 		m_Doc->currentPage()->setHeight(docHeight);
@@ -3370,13 +3370,13 @@ void XarPlug::handlePage(QDataStream &ts)
 	if (importerFlags & LoadSavePlugin::lfCreateDoc)
 	{
 		m_Doc->addPage(pagecount);
-		m_Doc->currentPage()->m_pageSize = "Custom";
+		m_Doc->currentPage()->setSize("Custom");
 		m_Doc->currentPage()->setInitialHeight(docHeight);
 		m_Doc->currentPage()->setInitialWidth(docWidth);
 		m_Doc->currentPage()->setHeight(docHeight);
 		m_Doc->currentPage()->setWidth(docWidth);
 		m_Doc->currentPage()->initialMargins.set(0, 0, 0, 0);
-		m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
+		m_Doc->currentPage()->setMasterPageNameNormal();
 		m_Doc->view()->addPage(pagecount, true);
 		pagecount++;
 	//	baseX = m_Doc->currentPage()->xOffset();

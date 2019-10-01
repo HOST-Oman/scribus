@@ -31,6 +31,7 @@ TextShaper::TextShaper(ITextSource &story, int firstChar)
 	m_firstChar(firstChar),
 	m_singlePar(false)
 {
+	m_text.reserve(m_story.length() - m_firstChar + 1);
 	for (int i = m_firstChar; i < m_story.length(); ++i)
 	{
 		QChar ch = m_story.text(i);
@@ -169,10 +170,13 @@ QList<TextShaper::TextRun> TextShaper::itemizeStyles(const QList<TextRun> &runs)
 
 void TextShaper::buildText(int fromPos, int toPos, QVector<int>& smallCaps)
 {
-	m_text = "";
+	m_text.clear();
 	
 	if (toPos > m_story.length() || toPos < 0)
 		toPos = m_story.length();
+
+	if (m_text.capacity() < (toPos - fromPos + 1))
+		m_text.reserve(toPos - fromPos + 1);
 	
 	for (int i = fromPos; i < toPos; ++i)
 	{
@@ -421,7 +425,7 @@ ShapedText TextShaper::shape(int fromPos, int toPos)
 			const CharStyle& charStyle(m_story.charStyle(firstChar));
 			const StyleFlag& effects = charStyle.effects();
 
-			QString str = m_text.mid(firstChar, lastChar-firstChar+1);
+			QString str = m_text.mid(firstChar - fromPos, lastChar-firstChar+1);
 			GlyphCluster run(&charStyle, flags, firstChar, lastChar, m_story.object(firstChar), result.glyphs().length(), str);
 
 			run.clearFlag(ScLayout_HyphenationPossible);

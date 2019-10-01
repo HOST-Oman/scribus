@@ -236,6 +236,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <moc Include="..\..\..\scribus\appmodehelper.h" />
+    <ClInclude Include="..\..\..\scribus\actionsearch.h" />
     <ClInclude Include="..\..\..\scribus\appmodes.h" />
     <ClInclude Include="..\..\..\scribus\collapsedtablepainterex.h" />
     <ClInclude Include="..\..\..\scribus\colormgmt\scciedata.h" />
@@ -362,7 +363,6 @@
     <ClInclude Include="..\..\..\scribus\collapsedtablepainter.h" />
     <moc Include="..\..\..\scribus\collect4output.h" />
     <moc Include="..\..\..\scribus\ui\collectforoutput_ui.h" />
-    <CustomBuild Include="..\..\..\scribus\color.h" />
     <moc Include="..\..\..\scribus\colorblind.h" />
     <moc Include="..\..\..\scribus\ui\colorchart.h" />
     <moc Include="..\..\..\scribus\ui\colorcombo.h" />
@@ -373,7 +373,6 @@
     <moc Include="..\..\..\scribus\ui\copypagetomasterpagedialog.h" />
     <moc Include="..\..\..\scribus\ui\cpalette.h" />
     <moc Include="..\..\..\scribus\ui\createrange.h" />
-    <CustomBuild Include="..\..\..\scribus\crypt.h" />
     <moc Include="..\..\..\scribus\ui\cupsoptions.h" />
     <moc Include="..\..\..\scribus\ui\curvewidget.h" />
     <moc Include="..\..\..\scribus\ui\customfdialog.h" />
@@ -542,7 +541,6 @@
     <moc Include="..\..\..\scribus\ui\picsearchoptions.h" />
     <moc Include="..\..\..\scribus\ui\picstatus.h" />
     <moc Include="..\..\..\scribus\pluginmanager.h" />
-    <moc Include="..\..\..\scribus\ui\pluginmanagerprefsgui.h" />
     <moc Include="..\..\..\scribus\ui\polygonwidget.h" />
     <moc Include="..\..\..\scribus\ui\polyprops.h" />
     <moc Include="..\..\..\scribus\ui\preferencesdialog.h" />
@@ -576,7 +574,6 @@
     <ClInclude Include="..\..\..\scribus\prefscontext.h" />
     <ClInclude Include="..\..\..\scribus\prefsfile.h" />
     <moc Include="..\..\..\scribus\prefsmanager.h" />
-    <moc Include="..\..\..\scribus\ui\prefspanel.h" />
     <ClInclude Include="..\..\..\scribus\prefsreader.h" />
     <ClInclude Include="..\..\..\scribus\prefsstructs.h" />
     <ClInclude Include="..\..\..\scribus\prefstable.h" />
@@ -606,6 +603,8 @@
     <moc Include="..\..\..\scribus\ui\pdfversioncombo.h" />
     <moc Include="..\..\..\scribus\ui\pdfversionmodel.h" />
     <moc Include="..\..\..\scribus\ui\cxfimportdialog.h" />
+    <moc Include="..\..\..\scribus\ui\numformatcombo.h" />
+    <moc Include="..\..\..\scribus\ui\actionsearchdialog.h" />
     <ClInclude Include="..\..\..\scribus\ui\propertywidgetbase.h" />
     <moc Include="..\..\..\scribus\pslib.h" />
     <moc Include="..\..\..\scribus\ui\query.h" />
@@ -626,6 +625,7 @@
     <moc Include="..\..\..\scribus\ui\smlineedit.h" />
     <moc Include="..\..\..\scribus\ui\smdirectionselect.h" />
     <moc Include="..\..\..\scribus\ui\textpalette.h" />
+    <moc Include="..\..\..\scribus\ui\smnumformatcombo.h" />
     <ClInclude Include="..\..\..\scribus\undotransaction.h" />
     <ClInclude Include="..\..\..\scribus\util_debug.h" />
     <ClInclude Include="..\..\..\scribus\util_os.h" />
@@ -843,6 +843,7 @@
     <ClInclude Include="..\..\..\scribus\colormgmt\sclcms2colortransformimpl.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\..\scribus\actionsearch.cpp" />
     <ClCompile Include="..\..\..\scribus\appmodehelper.cpp" />
     <ClCompile Include="..\..\..\scribus\collapsedtablepainterex.cpp" />
     <ClCompile Include="..\..\..\scribus\colormgmt\scciedata.cpp" />
@@ -902,6 +903,7 @@
     <ClCompile Include="..\..\..\scribus\ui\about.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\aboutplugins.cpp" />
     <ClCompile Include="..\..\..\scribus\actionmanager.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\actionsearchdialog.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\adjustcmsdialog.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\aligndistribute.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\alignselect.cpp" />
@@ -1170,6 +1172,7 @@
     <ClCompile Include="..\..\..\scribus\ui\notesstyleseditor.cpp" />
     <ClCompile Include="..\..\..\scribus\numeration.cpp" />
     <ClCompile Include="..\..\..\scribus\observable.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\numformatcombo.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\oneclick.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\outlinepalette.cpp" />
     <ClCompile Include="..\..\..\scribus\pageitem.cpp" />
@@ -1212,7 +1215,6 @@
     <ClCompile Include="..\..\..\scribus\ui\picsearchoptions.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\picstatus.cpp" />
     <ClCompile Include="..\..\..\scribus\pluginmanager.cpp" />
-    <ClCompile Include="..\..\..\scribus\ui\pluginmanagerprefsgui.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\polygonwidget.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\polyprops.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\preferencesdialog.cpp" />
@@ -1245,7 +1247,6 @@
     <ClCompile Include="..\..\..\scribus\prefscontext.cpp" />
     <ClCompile Include="..\..\..\scribus\prefsfile.cpp" />
     <ClCompile Include="..\..\..\scribus\prefsmanager.cpp" />
-    <ClCompile Include="..\..\..\scribus\ui\prefspanel.cpp" />
     <ClCompile Include="..\..\..\scribus\prefsreader.cpp" />
     <ClCompile Include="..\..\..\scribus\prefstable.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\preview.cpp" />
@@ -1378,6 +1379,7 @@
     <ClCompile Include="..\..\..\scribus\ui\smdirectionselect.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\smfontfeatures.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\smlineedit.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\smnumformatcombo.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\textpalette.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\viewtoolbar.cpp" />
     <ClCompile Include="..\..\..\scribus\undotransaction.cpp" />
@@ -1528,6 +1530,7 @@
   </ItemGroup>
   <ItemGroup>
     <uic Include="..\..\..\scribus\ui\aboutplugins.ui" />
+    <uic Include="..\..\..\scribus\ui\actionsearchdialog.ui" />
     <uic Include="..\..\..\scribus\ui\aligndistribute.ui" />
     <uic Include="..\..\..\scribus\ui\annot.ui" />
     <uic Include="..\..\..\scribus\ui\arcvectorbase.ui" />
@@ -1573,7 +1576,6 @@
     <uic Include="..\..\..\scribus\ui\picsearch.ui" />
     <uic Include="..\..\..\scribus\ui\picsearchoptions.ui" />
     <uic Include="..\..\..\scribus\ui\picstatus.ui" />
-    <uic Include="..\..\..\scribus\ui\pluginmanagerprefsgui.ui" />
     <uic Include="..\..\..\scribus\ui\polygonwidgetbase.ui" />
     <uic Include="..\..\..\scribus\ui\positionsetter.ui" />
     <uic Include="..\..\..\scribus\ui\preferencesdialogbase.ui" />
@@ -1720,9 +1722,9 @@
   </ImportGroup>
   <Import Project="..\..\..\scribus.install.targets" />
   <Target Name="AfterBuildMessage" AfterTargets="Build" BeforeTargets="AfterBuild">
-    <Message Importance="High" Text="Now copying assets to output directory..." />
+    <Message Importance="High" Text="Copying assets to output directory..." />
   </Target>
   <Target Name="AfterBuild" AfterTargets="Build" DependsOnTargets="$(AfterBuildDependsOn)">
-    <Message Importance="High" Text="Assets have been copied to output directory..." />
+    <Message Importance="High" Text="Assets have been to output directory..." />
   </Target>
 </Project>

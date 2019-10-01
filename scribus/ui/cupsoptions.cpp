@@ -53,8 +53,8 @@ CupsOptions::CupsOptions(QWidget* parent, const QString& device) : QDialog( pare
 	FlagsOpt.clear();
 	setModal(true);
 	setWindowTitle( tr( "Printer Options" ) );
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
-	prefs = PrefsManager::instance()->prefsFile->getContext("cups_options");
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
+	prefs = PrefsManager::instance().prefsFile->getContext("cups_options");
 	setSizeGripEnabled(true);
 	CupsOptionsLayout = new QVBoxLayout( this );
 	CupsOptionsLayout->setSpacing( 5 );
@@ -86,7 +86,7 @@ CupsOptions::CupsOptions(QWidget* parent, const QString& device) : QDialog( pare
 		ppdMarkDefaults(ppd);
 		cupsMarkOptions(ppd, dest->num_options, dest->options);
 		QStringList opts;
-		QString Marked = "";
+		QString Marked;
 		KeyToText.clear();
 		KeyToDefault.clear();
 		for (i = ppd->num_groups, group = ppd->groups; i > 0; i --, ++group)

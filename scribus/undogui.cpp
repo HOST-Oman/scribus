@@ -52,20 +52,22 @@ void UndoGui::languageChange()
 
 UndoWidget::UndoWidget(QWidget* parent, const char* name) : UndoGui(parent, name)
 {
-	//Scribus action based toolbar button construction
-	parent->addAction(ScCore->primaryMainWindow()->scrActions["editUndoAction"]);
-	parent->addAction(ScCore->primaryMainWindow()->scrActions["editRedoAction"]);
-	ScCore->primaryMainWindow()->scrMenuMgr->createMenu("undoButtonMenu", "undoButtonMenu");
-	ScCore->primaryMainWindow()->scrMenuMgr->createMenu("redoButtonMenu", "redoButtonMenu");
-	undoMenu=ScCore->primaryMainWindow()->scrMenuMgr->undoMenu();
-	redoMenu=ScCore->primaryMainWindow()->scrMenuMgr->redoMenu();
-	ScCore->primaryMainWindow()->scrMenuMgr->addMenuToWidgetOfAction("undoButtonMenu", ScCore->primaryMainWindow()->scrActions["editUndoAction"]);
-	ScCore->primaryMainWindow()->scrMenuMgr->addMenuToWidgetOfAction("redoButton/*Menu*/", ScCore->primaryMainWindow()->scrActions["editRedoAction"]);
+	auto &actions = ScCore->primaryMainWindow()->scrActions;
+	auto menuManager = ScCore->primaryMainWindow()->scrMenuMgr;
 
-	parent->addAction(ScCore->primaryMainWindow()->scrActions["editCut"]);
-	parent->addAction(ScCore->primaryMainWindow()->scrActions["editCopy"]);
-	parent->addAction(ScCore->primaryMainWindow()->scrActions["editPaste"]);
-	ScCore->primaryMainWindow()->scrMenuMgr->addMenuToWidgetOfAction("EditPasteRecent", ScCore->primaryMainWindow()->scrActions["editPaste"]);
+	//Scribus action based toolbar button construction
+	parent->addAction(actions["editUndoAction"]);
+	parent->addAction(actions["editRedoAction"]);
+
+	menuManager->createMenu("undoButtonMenu", "undoButtonMenu");
+	menuManager->createMenu("redoButtonMenu", "redoButtonMenu");
+	undoMenu = menuManager->undoMenu();
+	redoMenu = menuManager->redoMenu();
+
+	parent->addAction(actions["editCut"]);
+	parent->addAction(actions["editCopy"]);
+	parent->addAction(actions["editPaste"]);
+
 	connect(undoMenu, SIGNAL(triggered(QAction*)), this, SLOT(undoMenuClicked(QAction*)));
 	connect(redoMenu, SIGNAL(triggered(QAction*)), this, SLOT(redoMenuClicked(QAction*)));
 }
@@ -209,9 +211,9 @@ UndoPalette::UndoPalette(QWidget* parent, const char* name) : UndoGui(parent, na
 	QHBoxLayout* buttonLayout = new QHBoxLayout;
 	buttonLayout->setMargin(0);
 	buttonLayout->setSpacing(5);
-	undoButton = new QPushButton(IconManager::instance()->loadPixmap("16/edit-undo.png"), "", this);
+	undoButton = new QPushButton(IconManager::instance().loadPixmap("16/edit-undo.png"), "", this);
 	buttonLayout->addWidget(undoButton);
-	redoButton = new QPushButton(IconManager::instance()->loadPixmap("16/edit-redo.png"), "", this);
+	redoButton = new QPushButton(IconManager::instance().loadPixmap("16/edit-redo.png"), "", this);
 	buttonLayout->addWidget(redoButton);
 	//Save the translated key sequence - hopefully we get the translated one here!
 	initialUndoKS = undoButton->shortcut();
@@ -221,7 +223,7 @@ UndoPalette::UndoPalette(QWidget* parent, const char* name) : UndoGui(parent, na
 
 	updateFromPrefs();
 	languageChange();
-	connect(PrefsManager::instance(), SIGNAL(prefsChanged()), this, SLOT(updateFromPrefs()));
+	connect(&PrefsManager::instance(), SIGNAL(prefsChanged()), this, SLOT(updateFromPrefs()));
 	connect(undoButton, SIGNAL(clicked()), this, SLOT(undoClicked()));
 	connect(redoButton, SIGNAL(clicked()), this, SLOT(redoClicked()));
 	connect(undoList, SIGNAL(currentRowChanged(int)), this, SLOT(undoListClicked(int)));

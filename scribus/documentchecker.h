@@ -14,7 +14,7 @@ for which a new license (GPL+exception) is in place.
 
 /***************************************************************************
 *                                                                         *
-*   ScMW program is free software; you can redistribute it and/or modify  *
+*   Scribus program is free software; you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
 *   the Free Software Foundation; either version 2 of the License, or     *
 *   (at your option) any later version.                                   *
@@ -39,6 +39,7 @@ class SCRIBUS_API DocumentChecker
 
 		//! Check the passed document for errors, return true on error found
 		static bool checkDocument(ScribusDoc *currDoc);
+		static bool checkDocument(ScribusDoc *currDoc, const QString& checkerProfile);
 		static void checkPages(ScribusDoc *currDoc, struct CheckerPrefs checkerSettings);
 		static void checkLayers(ScribusDoc *currDoc, struct CheckerPrefs checkerSettings);
 		static void checkItems(ScribusDoc *currDoc, struct CheckerPrefs checkerSettings);

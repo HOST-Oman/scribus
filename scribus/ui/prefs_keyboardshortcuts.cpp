@@ -33,6 +33,9 @@ Prefs_KeyboardShortcuts::Prefs_KeyboardShortcuts(QWidget* parent, ScribusDoc* do
 	setupUi(this);
 	languageChange();
 
+	m_caption = tr("Keyboard Shortcuts");
+	m_icon = "16/preferences-desktop-keyboard-shortcuts.png";
+
 	defMenus=ActionManager::defaultMenus();
 	defNonMenuActions=ActionManager::defaultNonMenuActions();
 
@@ -66,7 +69,7 @@ Prefs_KeyboardShortcuts::Prefs_KeyboardShortcuts(QWidget* parent, ScribusDoc* do
 	keyDisplay->setText("");
 	selectedLVI = nullptr;
 
-	clearSearchButton->setIcon(IconManager::instance()->loadIcon("clear_right.png"));
+	clearSearchButton->setIcon(IconManager::instance().loadIcon("clear_right.png"));
 	// signals and slots connections
 	connect( keyTable, SIGNAL(currentItemChanged(QTreeWidgetItem*, QTreeWidgetItem*)), this, SLOT(dispKey(QTreeWidgetItem*, QTreeWidgetItem*)));
 	connect( noKey, SIGNAL(clicked()), this, SLOT(setNoKey()));
@@ -80,9 +83,7 @@ Prefs_KeyboardShortcuts::Prefs_KeyboardShortcuts(QWidget* parent, ScribusDoc* do
 
 }
 
-Prefs_KeyboardShortcuts::~Prefs_KeyboardShortcuts()
-{
-}
+Prefs_KeyboardShortcuts::~Prefs_KeyboardShortcuts() = default;
 
 void Prefs_KeyboardShortcuts::languageChange()
 {
@@ -124,7 +125,7 @@ void Prefs_KeyboardShortcuts::loadKeySetFile()
 
 void Prefs_KeyboardShortcuts::importKeySetFile()
 {
-	PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+	PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 	QString currentPath = dirs->get("keymapprefs_import", ScPaths::instance().shareDir() + "keysets/");
 	QString s = QFileDialog::getOpenFileName(this, tr("Select a Key set file to read"), currentPath, tr("Key Set XML Files (*.xml)"));
 	if (!s.isEmpty())
@@ -132,7 +133,7 @@ void Prefs_KeyboardShortcuts::importKeySetFile()
 }
 void Prefs_KeyboardShortcuts::exportKeySetFile()
 {
-	PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+	PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 	QString currentPath= dirs->get("keymapprefs_export", ".");
 	QString s = QFileDialog::getSaveFileName(this, tr("Select a Key set file to save to"), currentPath, tr("Key Set XML Files (*.xml)") );
 	if (!s.isEmpty())
@@ -157,7 +158,7 @@ void Prefs_KeyboardShortcuts::importKeySet(const QString& filename)
 		int ecol;
 		if ( !doc.setContent( ts.readAll(), &errorMsg, &eline, &ecol ))
 		{
-			qDebug("%s", QString("Could not open key set file: %1\nError:%2 at line: %3, row: %4").arg(filename).arg(errorMsg).arg(eline).arg(ecol).toLatin1().constData());
+			qDebug("%s", QString("Could not open key set file: %1\nError:%2 at line: %3, row: %4").arg(filename, errorMsg).arg(eline).arg(ecol).toLatin1().constData());
 			file1.close();
 			return;
 		}
@@ -204,7 +205,7 @@ bool Prefs_KeyboardShortcuts::exportKeySet(const QString& filename)
 	if (overwrite(this, exportFileName))
 	{
 		bool ok;
-		QString setName = QInputDialog::getText(this, tr("Export Keyboard Shortcuts to File"), tr("Enter the name of the shortcut set:"), QLineEdit::Normal, QString::null, &ok);
+		QString setName = QInputDialog::getText(this, tr("Export Keyboard Shortcuts to File"), tr("Enter the name of the shortcut set:"), QLineEdit::Normal, QString(), &ok);
 		if (!( ok && !setName.isEmpty()) )
 			return false;
 
@@ -245,43 +246,42 @@ void Prefs_KeyboardShortcuts::resetKeySet()
 QStringList Prefs_KeyboardShortcuts::scanForSets()
 {
 	keySetList.clear();
-	QString location=ScPaths::instance().shareDir();
-	QString keySetLocation=QDir::toNativeSeparators(location+"keysets/");
+	QString location = ScPaths::instance().shareDir();
+	QString keySetLocation = QDir::toNativeSeparators(location+"keysets/");
 	QDir keySetsDir(keySetLocation, "*.xml", QDir::Name, QDir::Files | QDir::NoSymLinks);
-	if ((keySetsDir.exists()) && (keySetsDir.count() != 0))
+	if ((!keySetsDir.exists()) || (keySetsDir.count() <= 0))
+		return QStringList();
+
+	QStringList appNames;
+	for (uint fileCounter = 0; fileCounter < keySetsDir.count(); ++fileCounter)
 	{
-		QStringList appNames;
-		for (uint fileCounter = 0; fileCounter < keySetsDir.count(); ++fileCounter)
+		QString filename = QDir::toNativeSeparators(location+"keysets/"+keySetsDir[fileCounter]);
+
+		QDomDocument doc( "keymapentries" );
+		QFile file( filename );
+		if (!file.open( QIODevice::ReadOnly))
+			continue;
+		QString errorMsg;
+		int eline;
+		int ecol;
+
+		if (!doc.setContent( &file, &errorMsg, &eline, &ecol ))
 		{
-			QString filename=QDir::toNativeSeparators(location+"keysets/"+keySetsDir[fileCounter]);
-
-			QDomDocument doc( "keymapentries" );
-			QFile file( filename );
-			if ( !file.open( QIODevice::ReadOnly ) )
-				continue;
-			QString errorMsg;
-			int eline;
-			int ecol;
-
-			if ( !doc.setContent( &file, &errorMsg, &eline, &ecol ))
-			{
-				qDebug("%s", QString("Could not open key set file: %1\nError:%2 at line: %3, row: %4").arg(keySetsDir[fileCounter]).arg(errorMsg).arg(eline).arg(ecol).toLatin1().constData());
-				file.close();
-				continue;
-			}
+			qDebug("%s", QString("Could not open key set file: %1\nError:%2 at line: %3, row: %4").arg(keySetsDir[fileCounter], errorMsg).arg(eline).arg(ecol).toLatin1().constData());
 			file.close();
-
-			QDomElement docElem = doc.documentElement();
-			if (docElem.tagName()=="shortcutset" && docElem.hasAttribute("name"))
-			{
-				QDomAttr nameAttr = docElem.attributeNode( "name" );
-				appNames.append(nameAttr.value());
-				keySetList.insert(nameAttr.value(), filename);
-			}
+			continue;
 		}
-		return QStringList(appNames);
+		file.close();
+
+		QDomElement docElem = doc.documentElement();
+		if (docElem.tagName() == "shortcutset" && docElem.hasAttribute("name"))
+		{
+			QDomAttr nameAttr = docElem.attributeNode( "name" );
+			appNames.append(nameAttr.value());
+			keySetList.insert(nameAttr.value(), filename);
+		}
 	}
-	return QStringList();
+	return QStringList(appNames);
 }
 
 QString Prefs_KeyboardShortcuts::getKeyText(const QKeySequence& KeyC)

@@ -68,10 +68,9 @@ void AppModeHelper::setup(ActionManager* am,
 	a_scrScrapActions=scSA;
 	a_scrLayersActions=scLA;
 	a_scrRecentPasteActions=scRPA;
-
 }
 
-void AppModeHelper::resetApplicationMode(ScribusMainWindow* scmw, int newMode)
+void AppModeHelper::resetApplicationMode(int newMode)
 {
 	a_actMgr->disconnectModeActions();
 	setModeActionsPerMode(newMode);
@@ -86,14 +85,13 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 	//If no doc and we end here, just reset the tool actions
 	if (doc==nullptr)
 	{
-		resetApplicationMode(scmw, newMode);
+		resetApplicationMode(newMode);
 		return;
 	}
 
 	//disconnect the tools actions so we don't fire them off
 	a_actMgr->disconnectModeActions();
 	setModeActionsPerMode(newMode);
-
 
 	int oldMode = doc->appMode;
 	PageItem *currItem=nullptr;
@@ -257,7 +255,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 		case modeDrawBezierLine:
 			{
 				setSpecialEditMode(true);
-				if ((doc->m_Selection->count() != 0) && (!PrefsManager::instance()->appPrefs.uiPrefs.stickyTools))
+				if ((doc->m_Selection->count() != 0) && (!PrefsManager::instance().appPrefs.uiPrefs.stickyTools))
 					doc->view()->Deselect(true);
 			}
 			break;
@@ -299,9 +297,9 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 					scmw->setTBvals(currItem);
 				}
 				(*a_scrActions)["editPaste"]->setEnabled(false);
-				scmw->charPalette->setEnabled(true, currItem);
-				if (currItem!=nullptr && currItem->asTextFrame())
+				if (currItem != nullptr && currItem->asTextFrame())
 				{
+					scmw->charPalette->setEnabled(true, currItem);
 					enableTextActions(true, currItem->currentCharStyle().font().scName());
 					currItem->asTextFrame()->toggleEditModeActions();
 				}
@@ -462,23 +460,24 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		(*a_scrActions)["editDeselectAll"]->setEnabled(SelectedType != -1);
 	}
 	(*a_scrActions)["itemDetachTextFromPath"]->setEnabled(false);
-	(*a_scrActions)["itemUpdateImage"]->setEnabled(SelectedType==PageItem::ImageFrame && (currItem->imageIsAvailable || currItem->asLatexFrame()));
-	(*a_scrActions)["itemAdjustFrameToImage"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->imageIsAvailable);
-	(*a_scrActions)["itemAdjustImageToFrame"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->imageIsAvailable);
-	(*a_scrActions)["itemExtendedImageProperties"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->imageIsAvailable && currItem->pixm.imgInfo.valid);
-	(*a_scrActions)["itemToggleInlineImage"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->imageIsAvailable);
-	(*a_scrActions)["itemImageIsVisible"]->setEnabled(SelectedType==PageItem::ImageFrame);
-	(*a_scrActions)["itemPreviewFull"]->setEnabled(SelectedType==PageItem::ImageFrame);
-	(*a_scrActions)["itemPreviewNormal"]->setEnabled(SelectedType==PageItem::ImageFrame);
-	(*a_scrActions)["itemPreviewLow"]->setEnabled(SelectedType==PageItem::ImageFrame);
-	(*a_scrActions)["styleImageEffects"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->isRaster);
-	(*a_scrActions)["editCopyContents"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->imageIsAvailable);
-	(*a_scrActions)["editPasteContents"]->setEnabled(SelectedType==PageItem::ImageFrame);
-	(*a_scrActions)["editPasteContentsAbs"]->setEnabled(SelectedType==PageItem::ImageFrame);
-	(*a_scrActions)["editEditWithImageEditor"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem->imageIsAvailable && currItem->isRaster);
-	(*a_scrActions)["editEditRenderSource"]->setEnabled(SelectedType==PageItem::ImageFrame && currItem && (currItem->asLatexFrame() || currItem->asOSGFrame()));
+	bool isImageFrame = SelectedType==PageItem::ImageFrame;
+	(*a_scrActions)["itemUpdateImage"]->setEnabled(isImageFrame && (currItem->imageIsAvailable || currItem->asLatexFrame()));
+	(*a_scrActions)["itemAdjustFrameToImage"]->setEnabled(isImageFrame && currItem->imageIsAvailable);
+	(*a_scrActions)["itemAdjustImageToFrame"]->setEnabled(isImageFrame && currItem->imageIsAvailable);
+	(*a_scrActions)["itemExtendedImageProperties"]->setEnabled(isImageFrame && currItem->imageIsAvailable && currItem->pixm.imgInfo.valid);
+	(*a_scrActions)["itemToggleInlineImage"]->setEnabled(isImageFrame && currItem->imageIsAvailable);
+	(*a_scrActions)["itemImageIsVisible"]->setEnabled(isImageFrame);
+	(*a_scrActions)["itemPreviewFull"]->setEnabled(isImageFrame);
+	(*a_scrActions)["itemPreviewNormal"]->setEnabled(isImageFrame);
+	(*a_scrActions)["itemPreviewLow"]->setEnabled(isImageFrame);
+	(*a_scrActions)["styleImageEffects"]->setEnabled(isImageFrame && currItem->isRaster);
+	(*a_scrActions)["editCopyContents"]->setEnabled(isImageFrame && currItem->imageIsAvailable);
+	(*a_scrActions)["editPasteContents"]->setEnabled(isImageFrame);
+	(*a_scrActions)["editPasteContentsAbs"]->setEnabled(isImageFrame);
+	(*a_scrActions)["editEditWithImageEditor"]->setEnabled(isImageFrame && currItem->imageIsAvailable && currItem->isRaster);
+	(*a_scrActions)["editEditRenderSource"]->setEnabled(isImageFrame && currItem && (currItem->asLatexFrame() || currItem->asOSGFrame()));
 	(*a_scrActions)["itemAdjustFrameHeightToText"]->setEnabled(SelectedType==PageItem::TextFrame && currItem->itemText.length() >0);
-	if (SelectedType!=PageItem::ImageFrame)
+	if (!isImageFrame)
 	{
 		(*a_scrActions)["itemImageIsVisible"]->setChecked(false);
 		(*a_scrActions)["itemPreviewFull"]->setChecked(false);
@@ -595,7 +594,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
 			(*a_scrActions)["toolsUnlinkTextFrameAndCutText"]->setEnabled(false);
 			(*a_scrActions)["toolsLinkTextFrame"]->setEnabled(false);
-			(*a_scrActions)["toolsEditContents"]->setEnabled(currItem->ScaleType);
+			(*a_scrActions)["toolsEditContents"]->setEnabled(true);
 			(*a_scrActions)["toolsEditWithStoryEditor"]->setEnabled(false);
 			(*a_scrActions)["toolsRotate"]->setEnabled(!inAnEditMode);
 			(*a_scrActions)["toolsCopyProperties"]->setEnabled(!inAnEditMode);
@@ -861,10 +860,10 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		(*a_scrActions)["editSearchReplace"]->setEnabled(false);
 
 		bool hPoly = true;
-		for (int i=0; i < docSelectionCount; ++i)
+		for (int i = 0; i < docSelectionCount; ++i)
 		{
-			PageItem* it=doc->m_Selection->itemAt(i);
-			if ((!it->asPolygon()) || (!it->asPolyLine()))
+			PageItem* it = doc->m_Selection->itemAt(i);
+			if ((!it->asPolygon()) && (!it->asPolyLine()))
 				hPoly = false;
 		}
 		(*a_scrActions)["itemCombinePolygons"]->setEnabled(hPoly);
@@ -1028,8 +1027,9 @@ void AppModeHelper::setModeActionsPerMode(int newMode)
 
 void AppModeHelper::setActionGroupEnabled(QMap<QString, QPointer<ScrAction> >*ag, bool enabled)
 {
-	if (ag!=nullptr)
-		for( QMap<QString, QPointer<ScrAction> >::Iterator it = ag->begin(); it!=ag->end(); ++it )
+	if (ag==nullptr)
+		return;
+	for( QMap<QString, QPointer<ScrAction> >::Iterator it = ag->begin(); it!=ag->end(); ++it )
 			(*it)->setEnabled(enabled);
 }
 

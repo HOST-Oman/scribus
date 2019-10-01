@@ -44,10 +44,10 @@ PagePalette_MasterPages::PagePalette_MasterPages( QWidget* parent, ScribusView *
 
 	setupUi(this);
 
-	importButton->setIcon(IconManager::instance()->loadIcon("16/document-open.png"));
-	newButton->setIcon(IconManager::instance()->loadIcon("16/document-new.png"));
-	duplicateButton->setIcon(IconManager::instance()->loadIcon("16/edit-copy.png"));
-	deleteButton->setIcon(IconManager::instance()->loadIcon("16/edit-delete.png"));
+	importButton->setIcon(IconManager::instance().loadIcon("16/document-open.png"));
+	newButton->setIcon(IconManager::instance().loadIcon("16/document-new.png"));
+	duplicateButton->setIcon(IconManager::instance().loadIcon("16/edit-copy.png"));
+	deleteButton->setIcon(IconManager::instance().loadIcon("16/edit-delete.png"));
 
 	masterPageListBox->setSelectionMode(QAbstractItemView::ExtendedSelection);
 	styleChange();
@@ -135,8 +135,8 @@ void PagePalette_MasterPages::languageChange()
 
 void PagePalette_MasterPages::styleChange()
 {
-	PrefsManager* prefsManager = PrefsManager::instance();
-	if (prefsManager->appPrefs.uiPrefs.style=="Macintosh" || (os_is_osx() && prefsManager->appPrefs.uiPrefs.style==""))
+	PrefsManager& prefsManager = PrefsManager::instance();
+	if (prefsManager.appPrefs.uiPrefs.style=="Macintosh" || (os_is_osx() && prefsManager.appPrefs.uiPrefs.style==""))
 		finishButton->setMinimumHeight(32);
 	else
 		finishButton->setMinimumHeight(0);
@@ -164,7 +164,7 @@ void PagePalette_MasterPages::deleteMasterPage()
 		{
 			for (int i=0; i < m_doc->DocPages.count(); ++i )
 			{
-				if (m_doc->DocPages[i]->MPageNam == m_currentPage)
+				if (m_doc->DocPages[i]->masterPageName() == m_currentPage)
 					extraWarn = tr("This master page is used at least once in the document.");
 			}
 			int exit = ScMessageBox::warning(this,
@@ -233,7 +233,7 @@ void PagePalette_MasterPages::duplicateMasterPage()
 		masterPageNameWrong |= (masterPageName == CommonStrings::trMasterPageNormalRight);
 		masterPageNameWrong |=  masterPageName.isEmpty();
 	}
-	PrefsManager* prefsManager = PrefsManager::instance();
+	PrefsManager& prefsManager = PrefsManager::instance();
 	int inde = m_doc->MasterNames[m_currentPage];
 	int nr = m_doc->Pages->count();
 	ScPage* from = m_doc->Pages->at(inde);
@@ -294,14 +294,14 @@ void PagePalette_MasterPages::duplicateMasterPage()
 			for (uint ite = 0; ite < oldItems; ++ite)
 			{
 				PageItem *itemToCopy = m_doc->Items->at(ite);
-				if (itemToCopy->OwnPage == inde && (it->ID == itemToCopy->LayerID))
+				if (itemToCopy->OwnPage == inde && (it->ID == itemToCopy->m_layerID))
 					m_doc->m_Selection->addItem(itemToCopy, true);
 			}
 			if (m_doc->m_Selection->count() != 0)
 			{
 				ScriXmlDoc ss;
 				QString buffer = ss.writeElem(m_doc, m_doc->m_Selection);
-				ss.readElemToLayer(buffer, prefsManager->appPrefs.fontPrefs.AvailFonts, m_doc, destination->xOffset(), destination->yOffset(), false, true, prefsManager->appPrefs.fontPrefs.GFontSub, it->ID);
+				ss.readElemToLayer(buffer, prefsManager.appPrefs.fontPrefs.AvailFonts, m_doc, destination->xOffset(), destination->yOffset(), false, true, prefsManager.appPrefs.fontPrefs.GFontSub, it->ID);
 				m_doc->m_Selection->clear();
 			}
 		}

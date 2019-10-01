@@ -41,7 +41,6 @@ for which a new license (GPL+exception) is in place.
 #include <exception>
 using namespace std;
 
-#define BASE_QM "scribus"
 #define MAX_LINES 500
 
 #include "scribusapp.h"
@@ -74,7 +73,6 @@ extern const char ARG_CONSOLE[];
 extern const char ARG_CONSOLE_SHORT[];
 
 ScribusCore SCRIBUS_API *ScCore;
-ScribusMainWindow SCRIBUS_API *ScMW;
 ScribusQApp SCRIBUS_API *ScQApp;
 bool emergencyActivated;
 
@@ -98,9 +96,8 @@ int main(int argc, char *argv[])
 		qInstallMessageHandler(messageHandler);
 	}
 #endif
-#if QT_VERSION >= 0x050600
+
 	ScribusQApp::setAttribute(Qt::AA_EnableHighDpiScaling);
-#endif
 	ScribusQApp app(argc, argv);
 	setPythonEnvironment(app.applicationDirPath());
 	result =  mainApp(app);
@@ -301,9 +298,13 @@ void defaultCrashHandler(DWORD exceptionCode)
 		if (ScribusQApp::useGUI)
 		{
 			ScCore->closeSplash();
-			ScMessageBox::critical(ScMW, expHdr, expMsg);
-			ScMW->emergencySave();
-			ScMW->close();
+			ScribusMainWindow* mainWin = ScCore->primaryMainWindow();
+			if (mainWin)
+			{
+				ScMessageBox::critical(mainWin, expHdr, expMsg);
+				mainWin->emergencySave();
+				mainWin->close();
+			}
 		}
 		ScImageCacheManager::instance().removeMasterLock();
 	}
@@ -337,11 +338,22 @@ void messageHandler(QtMsgType type, const QMessageLogContext &context, const QSt
 		if (ScribusQApp::useGUI)
 		{
 			ScCore->closeSplash();
-			QString expHdr = QObject::tr("Scribus Crash");
-			QString expMsg = msg;
-			ScMessageBox::critical(ScMW, expHdr, expMsg);
-			ScMW->emergencySave();
-			ScMW->close();
+			ScribusMainWindow* mainWin = ScCore->primaryMainWindow();
+			if (mainWin)
+			{
+				QString expHdr = QObject::tr("Scribus Crash");
+				QString expMsg = msg;
+				ScMessageBox::critical(mainWin, expHdr, expMsg);
+				mainWin->emergencySave();
+				mainWin->close();
+			}
+		}
+		else
+		{
+			cerr << "Fatal: " << localMsg.constData();
+			if (context.file && context.function)
+				cerr << "(" << context.file << ":" << context.line << ", " << context.function << ")";
+			cerr << endl;
 		}
 		ExitProcess(255);
 	}

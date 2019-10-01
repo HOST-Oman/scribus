@@ -20,7 +20,6 @@ for which a new license (GPL+exception) is in place.
 
 #include "scconfig.h"
 
-#include "color.h"
 #include "commonstrings.h"
 #include "fpointarray.h"
 #include "pageitem.h"
@@ -168,7 +167,7 @@ bool OODrawImportPlugin::import(QString fileName, int flags)
 	if (fileName.isEmpty())
 	{
 		flags |= lfInteractive;
-		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("OODrawImport");
+		PrefsContext* prefs = PrefsManager::instance().prefsFile->getPluginContext("OODrawImport");
 		QString wdir = prefs->get("wdir", ".");
 		CustomFDialog diaf(ScCore->primaryMainWindow(), wdir, QObject::tr("Open"), QObject::tr("OpenOffice.org Draw (*.sxd *.SXD);;All Files (*)"));
 		if (diaf.exec())
@@ -743,7 +742,7 @@ QList<PageItem*> OODPlug::parseLine(const QDomElement &e)
 	ite->FrameType = 3;
 	if (!e.hasAttribute("draw:transform"))
 	{
-		ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+		ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 		m_Doc->adjustItemSize(ite);
 	}
 	ite = finishNodeParsing(e, ite, style);
@@ -769,7 +768,7 @@ QList<PageItem*> OODPlug::parsePolygon(const QDomElement &e)
 	ite->FrameType = 3;
 	if (!e.hasAttribute("draw:transform"))
 	{
-		ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+		ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 		m_Doc->adjustItemSize(ite);
 	}
 	ite = finishNodeParsing(e, ite, style);
@@ -795,7 +794,7 @@ QList<PageItem*> OODPlug::parsePolyline(const QDomElement &e)
 	ite->FrameType = 3;
 	if (!e.hasAttribute("draw:transform"))
 	{
-		ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+		ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 		m_Doc->adjustItemSize(ite);
 	}
 	ite = finishNodeParsing(e, ite, style);
@@ -847,7 +846,7 @@ QList<PageItem*> OODPlug::parsePath(const QDomElement &e)
 		ite->FrameType = 3;
 		if (!e.hasAttribute("draw:transform"))
 		{
-			ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+			ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 			m_Doc->adjustItemSize(ite);
 		}
 		ite = finishNodeParsing(e, ite, style);
@@ -1053,11 +1052,11 @@ void OODPlug::parseParagraphStyle(ParagraphStyle& style, const QDomElement &e)
 	{
 		QString attValue = m_styleStack.attribute("fo:text-align");
 		if (attValue == "left")
-			style.setAlignment(ParagraphStyle::Leftaligned);
+			style.setAlignment(ParagraphStyle::LeftAligned);
 		if (attValue == "center")
 			style.setAlignment(ParagraphStyle::Centered);
 		if (attValue == "right")
-			style.setAlignment(ParagraphStyle::Rightaligned);
+			style.setAlignment(ParagraphStyle::RightAligned);
 	}
 	if (m_styleStack.hasAttribute("fo:font-size"))
 	{
@@ -1144,7 +1143,7 @@ PageItem* OODPlug::finishNodeParsing(const QDomElement &elm, PageItem* item, OOD
 		item->FrameType = 3;
 		FPoint wh = getMaxClipF(&item->PoLine);
 		item->setWidthHeight(wh.x(), wh.y());
-		item->Clip = FlattenPath(item->PoLine, item->Segments);
+		item->Clip = flattenPath(item->PoLine, item->Segments);
 		m_Doc->adjustItemSize(item);
 	}
 	item->OwnPage = m_Doc->OnPage(item);
@@ -1355,13 +1354,6 @@ double OODPlug::parseUnit(const QString &unit)
 	return value;
 }
 
-QColor OODPlug::parseColorN( const QString &rgbColor )
-{
-	int r, g, b;
-	keywordToRGB( rgbColor, r, g, b );
-	return QColor( r, g, b );
-}
-
 QString OODPlug::parseColor( const QString &s )
 {
 	QColor c;
@@ -1391,13 +1383,8 @@ QString OODPlug::parseColor( const QString &s )
 		c = QColor(r.toInt(), g.toInt(), b.toInt());
 	}
 	else
-	{
-		QString rgbColor = s.trimmed();
-		if (rgbColor.startsWith( "#" ))
-			c.setNamedColor(rgbColor);
-		else
-			c = parseColorN(rgbColor);
-	}
+		c.setNamedColor(s.trimmed());
+
 	ScColor tmp;
 	tmp.fromQColor(c);
 	tmp.setSpotColor(false);

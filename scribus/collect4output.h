@@ -35,13 +35,13 @@ class CollectForOutput : public QObject
 		\param withProfiles collect/move CMS profiles into output directory too
 		\param compressDoc use gzipped document
 		*/
-		CollectForOutput(ScribusDoc* doc, const QString& outputDirectory=QString::null, bool withFonts=false, bool withProfiles=false, bool compressDoc=false);
-		~CollectForOutput(){};
+		CollectForOutput(ScribusDoc* doc, const QString& outputDirectory=QString(), bool withFonts=false, bool withProfiles=false, bool compressDoc=false);
+		~CollectForOutput() override = default;
 
 		/*! \brief Main method doing everything.
 		It calls all related methods
 		*/
-		virtual QString collect(QString &newFileName);
+		QString collect(QString &newFileName);
 
 	protected:
 		/*! Doc to collect */

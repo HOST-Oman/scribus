@@ -10,6 +10,9 @@ for which a new license (GPL+exception) is in place.
 
 class QEvent;
 class CharStyle;
+
+#include <QVector>
+
 #include "ui_smpstylewidget.h"
 
 #include "styles/styleset.h"
@@ -18,6 +21,7 @@ class CharStyle;
 class SMPStyleWidget : public QWidget, Ui::SMPStyleWidget
 {
 	Q_OBJECT
+
 public:
 	SMPStyleWidget(ScribusDoc *doc, StyleSet<CharStyle> *cstyles);
 	~SMPStyleWidget();
@@ -43,7 +47,6 @@ private:
 
 	void fillColorCombo(ColorList &colors);
 	void fillBulletStrEditCombo();
-	void fillNumFormatCombo();
 	void fillNumerationsCombo();
 	void fillNumRestartCombo();
 	void checkParEffectState();
@@ -76,7 +79,7 @@ private slots:
 	void slotLineSpacingModeChanged(int);
 	void slotDropCap(bool isOn);
 	void slotBullets(bool isOn);
-	void insertSpecialChars(const QString &);
+	void insertSpecialChars(const QVector<uint> &charCodes);
 	void slotNumbering(bool isOn);
 	void slotParentParEffects();
 	void slotDefaultOpticalMargins();

@@ -32,12 +32,12 @@ class SCRIBUS_API FileLoader : public QObject
 	Q_OBJECT
 public:
 	FileLoader(const QString & fileName);
-	~FileLoader() {}
+	~FileLoader() override = default;
 
-	int  fileType() const { return m_fileType; }
-	int  testFile();
+	int fileType() const { return m_fileType; }
+	int testFile();
 
-	bool loadPage(ScribusDoc* currDoc, int PageToLoad, bool Mpage, const QString& renamedPageName=QString::null);
+	bool loadPage(ScribusDoc* currDoc, int PageToLoad, bool Mpage, const QString& renamedPageName=QString());
 	bool loadFile(ScribusDoc* currDoc);
 	bool saveFile(const QString& fileName, ScribusDoc *doc, QString *savedFile = nullptr);
 	bool readStyles(ScribusDoc* doc, StyleSet<ParagraphStyle> &docParagraphStyles);
@@ -60,10 +60,10 @@ private:
 	bool m_newReplacement;
 	void readParagraphStyle(ParagraphStyle& vg, const QDomElement& pg, SCFonts &avail, ScribusDoc *doc);
 	bool findFormat(uint formatId, QList<FileFormat>::const_iterator &it);
-	PrefsManager* m_prefsManager;
+	PrefsManager& m_prefsManager;
 
 	QString m_fileName;
-	int     m_fileType;
+	int m_fileType;
 };
 
 #endif

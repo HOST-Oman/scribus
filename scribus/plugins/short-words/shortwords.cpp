@@ -35,7 +35,6 @@ or documentation
 #include "scribusview.h"
 #include "shortwords.h"
 #include "swdialog.h"
-#include "swprefsgui.h"
 #include "version.h"
 
 
@@ -65,7 +64,7 @@ ShortWordsPlugin::ShortWordsPlugin()
 	languageChange();
 }
 
-ShortWordsPlugin::~ShortWordsPlugin() {};
+ShortWordsPlugin::~ShortWordsPlugin() = default;
 
 void ShortWordsPlugin::languageChange()
 {
@@ -115,7 +114,7 @@ void ShortWordsPlugin::deleteAboutData(const AboutData* about) const
 
 bool ShortWordsPlugin::run(ScribusDoc* doc, const QString& target)
 {
-	if (doc==nullptr)
+	if (doc == nullptr)
 		return false;
 	Q_ASSERT(target.isEmpty());
 
@@ -127,7 +126,7 @@ bool ShortWordsPlugin::run(ScribusDoc* doc, const QString& target)
 		if (!dlg->useStyleLang())
 			parse->lang = dlg->lang();
 		else
-			parse->lang = ""; // get it from style
+			parse->lang.clear(); // get it from style
 
 		doc->scMW()->setStatusBarInfoText(QObject::tr("Short Words processing. Wait please...", "short words plugin"));
 		switch (dlg->actionSelected())
@@ -158,20 +157,9 @@ bool ShortWordsPlugin::run(ScribusDoc* doc, const QString& target)
 	return true;
 }
 
-bool ShortWordsPlugin::newPrefsPanelWidget(QWidget* parent, PrefsPanel*& panel, QString& caption, QPixmap& icon)
-{
-	panel = new SWPrefsGui(parent);
-	Q_CHECK_PTR(panel);
-	caption = tr("Short Words");
-	icon = IconManager::instance()->loadPixmap("shortwords.png");
-	return true;
-}
-
-bool ShortWordsPlugin::newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel, QString& caption, QPixmap& icon)
+bool ShortWordsPlugin::newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel)
 {
 	panel = new Prefs_ShortWords(parent);
 	Q_CHECK_PTR(panel);
-	caption = tr("Short Words");
-	icon = IconManager::instance()->loadPixmap("shortwords_16.png");
 	return true;
 }

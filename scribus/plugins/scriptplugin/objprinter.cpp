@@ -162,7 +162,7 @@ static int Printer_init(Printer *self, PyObject * /*args*/, PyObject * /*kwds*/)
 // set defaul name of file to print into
 	QString tf(ScCore->primaryMainWindow()->doc->pdfOptions().fileName);
 	if (tf.isEmpty()) {
-		QFileInfo fi = QFileInfo(ScCore->primaryMainWindow()->doc->DocName);
+		QFileInfo fi = QFileInfo(ScCore->primaryMainWindow()->doc->documentFileName());
 		tf = fi.path()+"/"+fi.baseName()+".pdf";
 	}
 	PyObject *file = nullptr;
@@ -408,7 +408,7 @@ static PyObject *Printer_print(Printer *self)
 	for (int i = 0; i < PyList_Size(self->pages); ++i) {
 		options.pageNumbers.push_back((int)PyInt_AsLong(PyList_GetItem(self->pages, i)));
 	}
-	int Nr = (self->copies < 1) ? 1 : self->copies;
+	int copyCount = (self->copies < 1) ? 1 : self->copies;
 	SepName = QString(PyString_AsString(self->separation));
 	options.printer   = prn;
 	options.prnEngine = (PrintEngine) self->pslevel;
@@ -431,7 +431,6 @@ static PyObject *Printer_print(Printer *self)
 	QMap<QString, QMap<uint, FPointArray> > ReallyUsed;
 	ReallyUsed.clear();
 	ScCore->primaryMainWindow()->doc->getUsedFonts(ReallyUsed);
-	PrefsManager *prefsManager=PrefsManager::instance();
 
 #if defined(_WIN32)
 	if (!options.toFile)
@@ -449,7 +448,7 @@ static PyObject *Printer_print(Printer *self)
 	}
 #endif
 
-	PSLib *dd = new PSLib(options, true, prefsManager->appPrefs.fontPrefs.AvailFonts, ReallyUsed, ScCore->primaryMainWindow()->doc->PageColors, false, true);
+	PSLib *dd = new PSLib(options, true, PrefsManager::instance().appPrefs.fontPrefs.AvailFonts, ReallyUsed, ScCore->primaryMainWindow()->doc->PageColors, false, true);
 	if (dd != nullptr)
 	{
 		if (!fil)
@@ -486,8 +485,8 @@ static PyObject *Printer_print(Printer *self)
 				else
 				{
 					cmd = "lpr -P" + prn;
-					if (Nr > 1)
-						cmd += " -#" + cc.setNum(Nr);
+					if (copyCount > 1)
+						cmd += " -#" + cc.setNum(copyCount);
 					cmd += " "+fna;
 				}
 				system(cmd.toLocal8Bit().constData());

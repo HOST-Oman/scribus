@@ -66,9 +66,9 @@ QImage ShapePlug::readThumbnail(const QString& fName)
 	double b, h;
 	parseHeader(fName, b, h);
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	progressDialog = nullptr;
@@ -167,9 +167,9 @@ bool ShapePlug::import(const QString& fNameIn, const TransactionSettings& trSett
 	}
 	parseHeader(fNameIn, b, h);
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	baseX = 0;
@@ -628,7 +628,7 @@ void ShapePlug::parseGroup(QDomNode &DOC)
 				neu->setXYPos(gx, gy, true);
 				neu->setWidthHeight(gw, gh, true);
 				neu->SetRectFrame();
-				neu->Clip = FlattenPath(neu->PoLine, neu->Segments);
+				neu->Clip = flattenPath(neu->PoLine, neu->Segments);
 				neu->setItemName( tr("Group%1").arg(m_Doc->GroupCounter));
 				neu->AutoName = false;
 				neu->gXpos = neu->xPos() - gx;

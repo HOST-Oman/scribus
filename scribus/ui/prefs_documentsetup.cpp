@@ -18,12 +18,16 @@ for which a new license (GPL+exception) is in place.
 #include "undomanager.h"
 #include "units.h"
 #include "util.h"
+#include "util_text.h"
 
 Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 	: Prefs_Pane(parent),
 	m_doc(doc)
 {
 	setupUi(this);
+
+	m_caption = tr("Document Setup");
+	m_icon = "scribusdoc16.png";
 
 	unitRatio = 1.0;
 	pageW = pageH = 1.0;
@@ -45,7 +49,7 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 
 	QStringList languageList;
 	LanguageManager::instance()->fillInstalledStringList(&languageList);
-	languageList.sort();
+	qSort(languageList.begin(), languageList.end(), localeAwareLessThan);
 	languageComboBox->addItems( languageList );
 
 	pageLayoutButtonGroup->setId(singlePageRadioButton,0);
@@ -60,7 +64,7 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 
 	pageWidthSpinBox->setMaximum(16777215);
 	pageHeightSpinBox->setMaximum(16777215);
-	bind->setCurrentIndex(PrefsManager::instance()->appPrefs.docSetupPrefs.binding);
+	bind->setCurrentIndex(PrefsManager::instance().appPrefs.docSetupPrefs.binding);
 	languageChange();
 
 	connect(pageSizeComboBox, SIGNAL(activated(const QString &)), this, SLOT(setPageSize()));
@@ -203,7 +207,7 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	autosaveDirEdit->setEnabled(!prefsData->docSetupPrefs.AutoSaveLocation);
 	changeAutoDir->setEnabled(!prefsData->docSetupPrefs.AutoSaveLocation);
 	showAutosaveClockOnCanvasCheckBox->setChecked(prefsData->displayPrefs.showAutosaveClockOnCanvas);
-	undoCheckBox->setChecked(PrefsManager::instance()->prefsFile->getContext("undo")->getBool("enabled", true));
+	undoCheckBox->setChecked(PrefsManager::instance().prefsFile->getContext("undo")->getBool("enabled", true));
 	int undoLength = UndoManager::instance()->getHistoryLength();
 	if (undoLength == -1)
 		undoLengthSpinBox->setEnabled(false);
@@ -240,7 +244,7 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 		UndoManager::instance()->clearStack();
 	UndoManager::instance()->setUndoEnabled(undoActive);
 	UndoManager::instance()->setAllHistoryLengths(undoLengthSpinBox->value());
-	static PrefsContext *undoPrefs = PrefsManager::instance()->prefsFile->getContext("undo");
+	static PrefsContext *undoPrefs = PrefsManager::instance().prefsFile->getContext("undo");
 	undoPrefs->set("enabled", undoActive);
 }
 

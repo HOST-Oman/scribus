@@ -27,13 +27,9 @@ for which a new license (GPL+exception) is in place.
 #include <QByteArray>
 #include <QDebug>
 
-ColorSetManager::ColorSetManager()
-{
-}
+ColorSetManager::ColorSetManager() = default;
 
-ColorSetManager::~ColorSetManager()
-{
-}
+ColorSetManager::~ColorSetManager() = default;
 
 void ColorSetManager::initialiseDefaultPrefs(struct ApplicationPrefs& appPrefs)
 {
@@ -151,9 +147,9 @@ void ColorSetManager::initialiseDefaultPrefs(struct ApplicationPrefs& appPrefs)
 void ColorSetManager::findPaletteLocations()
 {
 	paletteLocations.clear();
-	QStringList locations=ScPaths::instance().systemCreatePalettesDirs();
+	QStringList locations=ScPaths::systemCreatePalettesDirs();
 	locations << ScPaths::instance().shareDir()+"swatches/";
-	locations << ScPaths::instance().dirsFromEnvVar("XDG_DATA_HOME", "scribus/swatches/");
+	locations << ScPaths::dirsFromEnvVar("XDG_DATA_HOME", "scribus/swatches/");
 	for ( QStringList::Iterator it = locations.begin(); it != locations.end(); ++it )
 	{
 		QFileInfo paletteDir(*it);
@@ -163,7 +159,7 @@ void ColorSetManager::findPaletteLocations()
 			paletteLocationLocks.insert((*it), !paletteDir.isWritable());
 		}
 	}
-	QStringList xdgSysLocations=ScPaths::instance().dirsFromEnvVar("XDG_DATA_DIRS", "scribus/swatches/");
+	QStringList xdgSysLocations=ScPaths::dirsFromEnvVar("XDG_DATA_DIRS", "scribus/swatches/");
 	for ( QStringList::Iterator it = xdgSysLocations.begin(); it != xdgSysLocations.end(); ++it )
 	{
 		QFile paletteDir(*it);
@@ -203,7 +199,7 @@ void ColorSetManager::searchDir(const QString& path, QMap<QString, QString> &pLi
 					{
 						item = new QTreeWidgetItem(parent);
 						item->setFlags(Qt::ItemIsEditable | Qt::ItemIsUserCheckable | Qt::ItemIsEnabled);
-						item->setIcon(0, QIcon(IconManager::instance()->loadIcon("16/folder.png")));
+						item->setIcon(0, QIcon(IconManager::instance().loadIcon("16/folder.png")));
 						item->setText(0, setName);
 					}
 					searchDir(path + dirs[dc] + "/", pList, item);
@@ -226,7 +222,7 @@ void ColorSetManager::searchDir(const QString& path, QMap<QString, QString> &pLi
 					item->setText(0, setName);
 					item->setData(0, Qt::UserRole, fi.absolutePath());
 					if ((!fi.isWritable()) || (fi.absolutePath().contains(ScPaths::applicationDataDir()+"swatches/locked")))
-						item->setIcon(0, QIcon(IconManager::instance()->loadIcon("16/lock.png")));
+						item->setIcon(0, QIcon(IconManager::instance().loadIcon("16/lock.png")));
 				}
 			}
 		}
@@ -327,7 +323,7 @@ bool ColorSetManager::loadPalette(const QString& paletteFileName, ScribusDoc *do
 		const FileFormat *fmt = LoadSavePlugin::getFormatById(FORMATID_SLA150IMPORT);
 		if (fmt)
 		{
-			fmt->setupTargets(doc, nullptr, doc->scMW(), nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+			fmt->setupTargets(doc, nullptr, doc->scMW(), nullptr, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 			fmt->loadPalette(paletteFileName);
 		}
 		else

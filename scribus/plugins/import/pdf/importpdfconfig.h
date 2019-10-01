@@ -37,4 +37,19 @@ for which a new license (GPL+exception) is in place.
 #define getCString  c_str
 #endif
 
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 73, 0)
+#define Guchar  unsigned char
+#define Gushort unsigned short
+#define Guint   unsigned int
+#define Gulong  unsigned long
+#endif
+
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 75, 0)
+#define POPPLER_CONST_075 const
+#define POPPLER_REF &
+#else
+#define POPPLER_CONST_075
+#define POPPLER_REF
+#endif
+
 #endif

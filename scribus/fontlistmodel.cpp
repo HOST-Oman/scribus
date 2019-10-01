@@ -16,13 +16,13 @@ for which a new license (GPL+exception) is in place.
 FontListModel::FontListModel(QObject * parent, ScribusDoc * doc, bool includeDisabled)
 	: QAbstractTableModel(parent),
 	m_doc(doc),
-	m_fonts(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts),
+	m_fonts(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts),
 	m_includeDisabled(includeDisabled)
 {
-	ttfFont = IconManager::instance()->loadPixmap("font_truetype16.png");
-	otfFont = IconManager::instance()->loadPixmap("font_otf16.png");
-	psFont = IconManager::instance()->loadPixmap("font_type1_16.png");
-	substFont = IconManager::instance()->loadPixmap("font_subst16.png");
+	ttfFont = IconManager::instance().loadPixmap("font_truetype16.png");
+	otfFont = IconManager::instance().loadPixmap("font_otf16.png");
+	psFont = IconManager::instance().loadPixmap("font_type1_16.png");
+	substFont = IconManager::instance().loadPixmap("font_subst16.png");
 
 	setFonts(m_fonts.keys());
 }

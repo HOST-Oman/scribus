@@ -82,8 +82,8 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		cairo_set_font_size(cr, fontSize());
 
 		double current_x = 0.0;
+		cairo_scale(cr, gc.scaleH(), gc.scaleV());
 		for (const GlyphLayout& gl : gc.glyphs()) {
-			cairo_scale(cr, gl.scaleH, gl.scaleV);
 			cairo_glyph_t glyph = { gl.glyph, gl.xoffset + current_x, gl.yoffset };
 			cairo_show_glyphs(cr, &glyph, 1);
 			current_x += gl.xadvance;
@@ -193,8 +193,8 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 		m_painter->setupPolygon(&outline, true);
 		QColor oldBrush = m_painter->brush();
 		m_painter->setBrush(gc.hasFlag(ScLayout_SuppressSpace) ? Qt::green
-															   : PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
-		m_painter->setBrush(PrefsManager::instance()->appPrefs.displayPrefs.controlCharColor);
+															   : PrefsManager::instance().appPrefs.displayPrefs.controlCharColor);
+		m_painter->setBrush(PrefsManager::instance().appPrefs.displayPrefs.controlCharColor);
 		if (stroke)
 		{
 			QColor tmp = m_painter->pen();
@@ -227,7 +227,7 @@ void ScreenPainter::drawGlyph(const GlyphCluster& gc)
 			if (outline.size() > 3)
 				m_painter->fillPath();
 			m_painter->restore();
-			m_painter->translate(gl.xadvance, 0.0);
+			m_painter->translate(gl.xadvance * gl.scaleH, 0.0);
 		}
 	}
 	m_painter->setFillRule(fr);
@@ -239,6 +239,7 @@ void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 {
 	if (fill)
 		drawGlyph(gc);
+
 	m_painter->save();
 	bool fr = m_painter->fillRule();
 	m_painter->setFillRule(false);
@@ -249,6 +250,7 @@ void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 	{
 		m_painter->save();
 		m_painter->translate(gl.xoffset + current_x, - (fontSize() * gl.scaleV) + gl.yoffset );
+
 		FPointArray outline = font().glyphOutline(gl.glyph);
 		double scaleHv = gl.scaleH * fontSize() / 10.0;
 		double scaleVv = gl.scaleV * fontSize() / 10.0;
@@ -262,12 +264,11 @@ void ScreenPainter::drawGlyphOutline(const GlyphCluster& gc, bool fill)
 			m_painter->strokePath();
 		}
 		m_painter->restore();
-		current_x += gl.xadvance;
+		current_x += gl.xadvance * gl.scaleH;
 	}
 
 	m_painter->setFillRule(fr);
 	m_painter->restore();
-
 }
 
 void ScreenPainter::drawLine(QPointF start, QPointF end)
@@ -335,7 +336,7 @@ void ScreenPainter::drawObject(PageItem* embedded)
 	if (m_item->m_Doc->guidesPrefs().framesShown)
 	{
 		int fm = m_painter->fillMode();
-		m_painter->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor, 0, Qt::DotLine, Qt::FlatCap, Qt::MiterJoin);
+		m_painter->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameNormColor, 0, Qt::DotLine, Qt::FlatCap, Qt::MiterJoin);
 		m_painter->setFillMode(ScPainter::None);
 		QRectF bBox = embedded->getVisualBoundingRect();
 		m_painter->drawSharpRect(0, 0, bBox.width(), bBox.height());

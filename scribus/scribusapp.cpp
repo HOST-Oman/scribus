@@ -14,7 +14,7 @@ for which a new license (GPL+exception) is in place.
 
 /***************************************************************************
 *                                                                         *
-*   ScMW program is free software; you can redistribute it and/or modify  *
+*   Scribus program is free software; you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
 *   the Free Software Foundation; either version 2 of the License, or     *
 *   (at your option) any later version.                                   *
@@ -115,10 +115,7 @@ ScribusQApp::~ScribusQApp()
 {
 	delete m_ScCore;
 	delete m_scDLMgr;
-	PrefsManager::deleteInstance();
-	LocaleManager::deleteInstance();
 	LanguageManager::deleteInstance();
-	IconManager::deleteInstance();
 }
 
 void ScribusQApp::initLang()
@@ -588,7 +585,7 @@ void ScribusQApp::showUsage()
 	printArgLine(ts, ARG_PROFILEINFO_SHORT, ARG_PROFILEINFO, tr("Show location of ICC profile information on console while starting") );
 	printArgLine(ts, ARG_UPGRADECHECK_SHORT, ARG_UPGRADECHECK, tr("Download a file from the Scribus website and show the latest available version") );
 	printArgLine(ts, ARG_VERSION_SHORT, ARG_VERSION, tr("Output version information and exit") );
-	printArgLine(ts, ARG_PYTHONSCRIPT_SHORT, qPrintable(QString("%1 <%2> [%3] ").arg(ARG_PYTHONSCRIPT).arg(tr("script"), tr("arguments ..."))), tr("Run script in Python [with optional arguments]. This option must be last option used") );
+	printArgLine(ts, ARG_PYTHONSCRIPT_SHORT, qPrintable(QString("%1 <%2> [%3] ").arg(ARG_PYTHONSCRIPT, tr("script"), tr("arguments ..."))), tr("Run script in Python [with optional arguments]. This option must be last option used") );
 	printArgLine(ts, ARG_NOGUI_SHORT, ARG_NOGUI, tr("Do not start GUI") );
 	ts << (QString("     %1").arg(CMD_OPTIONS_END,-39)) << tr("Explicit end of command line options"); endl(ts);
  	

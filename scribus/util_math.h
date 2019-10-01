@@ -30,14 +30,14 @@ If premultiplication does not allow to store result in a long value, perform a s
 */
 bool SCRIBUS_API compareDouble(double a, double b);
 uint SCRIBUS_API getDouble(const QByteArray& in, bool raw);
-FPoint   SCRIBUS_API getMaxClipF(FPointArray* Clip);
-FPoint   SCRIBUS_API getMinClipF(FPointArray* Clip);
+FPoint   SCRIBUS_API getMaxClipF(const FPointArray* clip);
+FPoint   SCRIBUS_API getMinClipF(const FPointArray* clip);
 FPoint   SCRIBUS_API projectPointOnLine(FPoint p, QPointF lineStart, QPointF lineEnd);
 bool     SCRIBUS_API regionContainsRect(const QRegion& shape, QRect rect);
-QPolygon SCRIBUS_API FlattenPath(const FPointArray& ina, QList<uint> &Segs);
+QPolygon SCRIBUS_API flattenPath(const FPointArray& ina, QList<uint> &Segs);
 QList<QPainterPath> SCRIBUS_API decomposePath(QPainterPath &path);
-QPainterPath  SCRIBUS_API RegularPolygonPath(double w, double h, uint c, bool star, double factor, double rota, double factor2 = 0.0, double innerRot = 0.0, double factor3 = 0.0);
-QPainterPath  SCRIBUS_API SpiralPath(double spiralWidth, double spiralHeight, double spiralStartAngle, double spiralEndAngle, double spiralFactor);
+QPainterPath  SCRIBUS_API regularPolygonPath(double w, double h, uint c, bool star, double factor, double rota, double factor2 = 0.0, double innerRot = 0.0, double factor3 = 0.0);
+QPainterPath  SCRIBUS_API spiralPath(double spiralWidth, double spiralHeight, double spiralStartAngle, double spiralEndAngle, double spiralFactor);
 inline double SCRIBUS_API xy2Deg(double x, double y);
 inline double SCRIBUS_API sind(double);
 inline double SCRIBUS_API cosd(double);

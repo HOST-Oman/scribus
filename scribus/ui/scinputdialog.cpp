@@ -23,7 +23,7 @@ ScInputDialog::ScInputDialog( QWidget* parent, const char* name, bool modal) : Q
 	if ( !name )
 		setObjectName( "ScInputDialog" );
 	setModal(modal);
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 	setSizeGripEnabled( true );
 	ScInputDialogLayout = new QVBoxLayout( this );
 	ScInputDialogLayout->setMargin(10);
@@ -79,9 +79,9 @@ void ScInputDialog::languageChange()
 	setWindowTitle( tr( "Input Dialog" ) );
 	entryLabel->setText( tr( "InputDialog" ) );
 	buttonOk->setText( tr( "&OK" ) );
-	buttonOk->setShortcut( QKeySequence( QString::null ) );
+	buttonOk->setShortcut( QKeySequence( QString() ) );
 	buttonCancel->setText( tr( "&Cancel" ) );
-	buttonCancel->setShortcut( QKeySequence( QString::null ) );
+	buttonCancel->setShortcut( QKeySequence( QString() ) );
 }
 
 double ScInputDialog::getDouble( const QString &caption, const QString &label, double num,

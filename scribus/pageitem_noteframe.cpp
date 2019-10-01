@@ -1,5 +1,7 @@
-#include "pageitem_noteframe.h"
 
+#include <cmath>
+
+#include "pageitem_noteframe.h"
 
 #include "appmodes.h"
 #include "pageitem.h"
@@ -10,8 +12,7 @@
 #include "util.h"
 #include "util_text.h"
 
-
-#include <cmath>
+#include "text/boxes.h"
 
 PageItem_NoteFrame::PageItem_NoteFrame(NotesStyle *nStyle, ScribusDoc *doc, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline)
     : PageItem_TextFrame(doc, x, y, w, h, w2, fill, outline)
@@ -20,9 +21,9 @@ PageItem_NoteFrame::PageItem_NoteFrame(NotesStyle *nStyle, ScribusDoc *doc, doub
 	m_masterFrame = nullptr;
 	itemText.clear();
 
-	AnName = generateUniqueCopyName(nStyle->isEndNotes() ? tr("Endnote frame ") + m_nstyle->name() : tr("Footnote frame ") + m_nstyle->name(), false);
+	m_itemName = generateUniqueCopyName(nStyle->isEndNotes() ? tr("Endnote frame ") + m_nstyle->name() : tr("Footnote frame ") + m_nstyle->name(), false);
 	AutoName = false; //endnotes frame will saved with name
-	setUName(AnName);
+	setUName(m_itemName);
 	
 	//set default style for note frame
 	ParagraphStyle newStyle;
@@ -43,7 +44,7 @@ PageItem_NoteFrame::PageItem_NoteFrame(NotesStyle *nStyle, ScribusDoc *doc, doub
 	itemText.setDefaultStyle(newStyle);
 	itemText.blockSignals(false);
 
-	textFlowModeVal = TextFlowUsesFrameShape;
+	m_textFlowMode = TextFlowUsesFrameShape;
 	setColumns(1);
 
 	if (m_nstyle->isAutoNotesHeight())
@@ -66,7 +67,7 @@ PageItem_NoteFrame::PageItem_NoteFrame(ScribusDoc *doc, double x, double y, doub
 {
 	m_nstyle = nullptr;
 	m_masterFrame = nullptr;
-	textFlowModeVal = TextFlowUsesFrameShape;
+	m_textFlowMode = TextFlowUsesFrameShape;
 	deleteIt = false;
 }
 
@@ -75,9 +76,9 @@ PageItem_NoteFrame::PageItem_NoteFrame(PageItem_TextFrame* inFrame, NotesStyle *
 	m_nstyle = nStyle;
 	m_masterFrame = inFrame;
 
-	AnName = generateUniqueCopyName(nStyle->isEndNotes() ? tr("Endnote frame ") + m_nstyle->name() : tr("Footnote frame ") + m_nstyle->name(), false);
+	m_itemName = generateUniqueCopyName(nStyle->isEndNotes() ? tr("Endnote frame ") + m_nstyle->name() : tr("Footnote frame ") + m_nstyle->name(), false);
 	AutoName = false;
-	setUName(AnName);
+	setUName(m_itemName);
 
 	//set default style for note frame
 	ParagraphStyle newStyle;
@@ -105,9 +106,9 @@ PageItem_NoteFrame::PageItem_NoteFrame(PageItem_TextFrame* inFrame, NotesStyle *
 	oldWidth = m_width;
 	oldRot = m_rotation;
 	oldXpos = m_xPos;
-	m_yPos = oldYpos =m_masterFrame->yPos() + m_masterFrame->height();
+	m_yPos = oldYpos = m_masterFrame->yPos() + m_masterFrame->height();
 
-	textFlowModeVal = TextFlowUsesFrameShape;
+	m_textFlowMode = TextFlowUsesFrameShape;
 	setColumns(1);
 
 	if (m_nstyle->isAutoWeldNotesFrames() && (m_masterFrame != nullptr))
@@ -139,8 +140,8 @@ void PageItem_NoteFrame::setNS(NotesStyle *nStyle, PageItem_TextFrame* master)
 		m_masterFrame = master;
 	itemText.clear();
 
-	AnName = generateUniqueCopyName(m_nstyle->isEndNotes() ? "Endnote frame " + m_nstyle->name() : "Footnote frame " + m_nstyle->name(), false);
-	setUName(AnName);
+	m_itemName = generateUniqueCopyName(m_nstyle->isEndNotes() ? "Endnote frame " + m_nstyle->name() : "Footnote frame " + m_nstyle->name(), false);
+	setUName(m_itemName);
 	
 	//set default style for note frame
 	ParagraphStyle newStyle;
@@ -206,8 +207,10 @@ void PageItem_NoteFrame::layout()
 	{
 		if (frameOverflows())
 		{
-			//increase height while text don`t fit in frame
-			double maxH = m_Doc->currentPage()->height() - m_xPos;
+			// Increase height while text don`t fit in frame
+			double maxH = m_Doc->currentPage()->height() - m_yPos;
+			if (maxH <= 0)
+				maxH = m_Doc->currentPage()->height();
 			while (frameOverflows())
 			{
 				oldHeight = m_height += 8;
@@ -218,8 +221,8 @@ void PageItem_NoteFrame::layout()
 					break;
 			}
 		}
-		double hackValue = 0.5;
-		oldHeight = m_height = ceil(maxY) + m_textDistanceMargins.bottom() + hackValue;
+		textLayout.box()->moveTo(textLayout.box()->x(), 0);
+		oldHeight = m_height = textLayout.box()->naturalHeight() + m_textDistanceMargins.bottom();
 		updateConstants();
 		updateClip();
 		invalid = true;
@@ -318,7 +321,7 @@ void PageItem_NoteFrame::updateNotesText()
 		return;
 
 	int oldSelStart = itemText.startOfSelection();
-	int oldSelLen = itemText.lengthOfSelection();
+	int oldSelLen = itemText.selectionLength();
 	int pos = 0;
 	int startPos = 0;
 	TextNote *note = nullptr;

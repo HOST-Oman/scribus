@@ -37,7 +37,7 @@ class AppModeHelper : public QObject
 	public:
 		explicit AppModeHelper(QObject *parent = nullptr);
 		void setup(ActionManager* am, QMap<QString, QPointer<ScrAction> > *, QMap<QString, QPointer<ScrAction> > *, QMap<QString, QPointer<ScrAction> > *, QMap<QString, QPointer<ScrAction> > *, QMap<QString, QPointer<ScrAction> > *, QMap<QString, QPointer<ScrAction> > *);
-		void resetApplicationMode(ScribusMainWindow* scmw, int newMode);
+		void resetApplicationMode(int newMode);
 		void setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc, int newMode);
 		void enableActionsForSelection(ScribusMainWindow* scmw, ScribusDoc *doc);
 		void setModeActionsPerMode(int newMode);
@@ -55,7 +55,7 @@ class AppModeHelper : public QObject
 		void mainWindowCloseLastDoc();
 		void setPreviewMode(bool b);
 		//! \brief enable or disable the unicode actions and their menus
-		void enableTextActions(bool enabled, const QString& fontName=QString::null);
+		void enableTextActions(bool enabled, const QString& fontName=QString());
 		void setStartupActionsEnabled(bool enabled);
 
 

@@ -206,8 +206,8 @@ PyObject *scribus_newline(PyObject* /* self */, PyObject* args)
 		it->PoLine.translate(0, -np2.y());
 		ScCore->primaryMainWindow()->view->MoveItem(0, np2.y(), it);
 	}
-	ScCore->primaryMainWindow()->view->SizeItem(it->PoLine.WidthHeight().x(),
-						 it->PoLine.WidthHeight().y(), i, false, false, false);
+	ScCore->primaryMainWindow()->view->SizeItem(it->PoLine.widthHeight().x(),
+						 it->PoLine.widthHeight().y(), i, false, false, false);
 	ScCore->primaryMainWindow()->view->AdjustItemSize(it);*/
 	if (strlen(Name) > 0)
 	{
@@ -284,7 +284,7 @@ PyObject *scribus_polyline(PyObject* /* self */, PyObject* args)
 		it->PoLine.translate(0, -np2.y());
 		ScCore->primaryMainWindow()->doc->moveItem(0, np2.y(), it);
 	}
-	ScCore->primaryMainWindow()->doc->sizeItem(it->PoLine.WidthHeight().x(), it->PoLine.WidthHeight().y(), it, false, false, false);
+	ScCore->primaryMainWindow()->doc->sizeItem(it->PoLine.widthHeight().x(), it->PoLine.widthHeight().y(), it, false, false, false);
 	ScCore->primaryMainWindow()->doc->adjustItemSize(it);
 	if (strlen(Name) > 0)
 	{
@@ -366,7 +366,7 @@ PyObject *scribus_polygon(PyObject* /* self */, PyObject* args)
 		it->PoLine.translate(0, -np2.y());
 		ScCore->primaryMainWindow()->doc->moveItem(0, np2.y(), it);
 	}
-	ScCore->primaryMainWindow()->doc->sizeItem(it->PoLine.WidthHeight().x(), it->PoLine.WidthHeight().y(), it, false, false, false);
+	ScCore->primaryMainWindow()->doc->sizeItem(it->PoLine.widthHeight().x(), it->PoLine.widthHeight().y(), it, false, false, false);
 	ScCore->primaryMainWindow()->doc->adjustItemSize(it);
 	if (strlen(Name) > 0)
 	{
@@ -457,7 +457,7 @@ PyObject *scribus_bezierline(PyObject* /* self */, PyObject* args)
 		it->PoLine.translate(0, -np2.y());
 		ScCore->primaryMainWindow()->doc->moveItem(0, np2.y(), it);
 	}
-	ScCore->primaryMainWindow()->doc->sizeItem(it->PoLine.WidthHeight().x(), it->PoLine.WidthHeight().y(), it, false, false, false);
+	ScCore->primaryMainWindow()->doc->sizeItem(it->PoLine.widthHeight().x(), it->PoLine.widthHeight().y(), it, false, false, false);
 	ScCore->primaryMainWindow()->doc->adjustItemSize(it);
 	if (strlen(Name) > 0)
 	{
@@ -599,7 +599,7 @@ PyObject *scribus_getstyle(PyObject* /* self */, PyObject* args)
 		return NULL;
 	}
 
-	int selectionLength = item->itemText.lengthOfSelection();	
+	int selectionLength = item->itemText.selectionLength();	
 	if (selectionLength > 0)
 	{
 		int selectionStart = item->itemText.startOfSelection();
@@ -665,12 +665,12 @@ PyObject *scribus_setstyle(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	}
 	// for current item only
-	if (currentDoc->m_Selection->count() == 0 || (strlen(name) > 0))
+	if (currentDoc->m_Selection->isEmpty() || (strlen(name) > 0))
 	{
 		// Store text selection as clearing object selection
 		// will also clear text selection
 		int selectionStart = -1;
-		int selectionLength = item->itemText.lengthOfSelection();
+		int selectionLength = item->itemText.selectionLength();
 		if (selectionLength > 0)
 			selectionStart = item->itemText.startOfSelection();
 		// quick hack to always apply on the right frame - pv
@@ -748,12 +748,12 @@ PyObject *scribus_setcharstyle(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	}
 	// for current item only
-	if (currentDoc->m_Selection->count() == 0 || (strlen(name) > 0))
+	if (currentDoc->m_Selection->isEmpty() || (strlen(name) > 0))
 	{
 		// Store text selection as clearing object selection
 		// will also clear text selection
 		int selectionStart = -1;
-		int selectionLength = item->itemText.lengthOfSelection();
+		int selectionLength = item->itemText.selectionLength();
 		if (selectionLength > 0)
 			selectionStart = item->itemText.startOfSelection();
 		// quick hack to always apply on the right frame - pv
@@ -793,10 +793,12 @@ PyObject *scribus_getstylenames(PyObject* /* self */)
 	PyObject *styleList;
 	if (!checkHaveDocument())
 		return nullptr;
+	const auto& paragraphStyles = ScCore->primaryMainWindow()->doc->paragraphStyles();
+
 	styleList = PyList_New(0);
-	for (int i=0; i < ScCore->primaryMainWindow()->doc->paragraphStyles().count(); ++i)
+	for (int i = 0; i < paragraphStyles.count(); ++i)
 	{
-		if (PyList_Append(styleList, PyString_FromString(ScCore->primaryMainWindow()->doc->paragraphStyles()[i].name().toUtf8())))
+		if (PyList_Append(styleList, PyString_FromString(paragraphStyles[i].name().toUtf8())))
 		{
 			// An exception will have already been set by PyList_Append apparently.
 			return nullptr;
@@ -810,10 +812,12 @@ PyObject *scribus_getcharstylenames(PyObject* /* self */)
 	PyObject *charStyleList;
 	if (!checkHaveDocument())
 		return nullptr;
+	const auto& charStyles = ScCore->primaryMainWindow()->doc->charStyles();
+
 	charStyleList = PyList_New(0);
-	for (int i=0; i < ScCore->primaryMainWindow()->doc->charStyles().count(); ++i)
+	for (int i = 0; i < charStyles.count(); ++i)
 	{
-		if (PyList_Append(charStyleList, PyString_FromString(ScCore->primaryMainWindow()->doc->charStyles()[i].name().toUtf8())))
+		if (PyList_Append(charStyleList, PyString_FromString(charStyles[i].name().toUtf8())))
 		{
 			// An exception will have already been set by PyList_Append apparently.
 			return nullptr;

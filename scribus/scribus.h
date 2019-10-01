@@ -280,7 +280,7 @@ public slots:
 	void slotStoryEditor(bool fromTable);
 	void slotCharSelect();
 	void ImageEffects();
-	QString fileCollect(const bool compress = false, const bool withFonts = false, const bool withProfiles = false, const QString& newDirectory=QString::null);
+	QString fileCollect(const bool compress = false, const bool withFonts = false, const bool withProfiles = false, const QString& newDirectory=QString());
 	void AddBookMark(PageItem *ite);
 	void DelBookMark(PageItem *ite);
 	void BookMarkTxT(PageItem *ite);
@@ -320,7 +320,7 @@ public slots:
 	bool slotFileNew();
 	void newFileFromTemplate();
 	bool slotPageImport();
-	bool loadPage(const QString& fileName, int Nr, bool Mpa, const QString& renamedPageName=QString::null);
+	bool loadPage(const QString& fileName, int Nr, bool Mpa, const QString& renamedPageName=QString());
 	void GotoLa(int l);
 	void slotGetContent();
 	void slotGetContent2(); // kk2006
@@ -390,9 +390,10 @@ public slots:
 	void slotHelpAbout();
 	void slotHelpAboutPlugins();
     void slotHelpAboutQt();
+	void slotHelpActionSearch();
 	void slotHelpCheckUpdates();
 	void slotRaiseOnlineHelp();
-	void slotOnlineHelp(const QString & jumpToSection=QString::null, const QString & jumpToFile=QString::null);
+	void slotOnlineHelp(const QString & jumpToSection=QString(), const QString & jumpToFile=QString());
 	void slotOnlineHelpClosed();
 	void slotResourceManager();
 	void ToggleTips();
@@ -401,7 +402,7 @@ public slots:
 	void slotNewPageP(int wo, const QString& templ);
 	void slotNewPageM();
 	void slotNewMasterPage(int w, const QString &);
-	void slotNewPage(int w, const QString& masterPageName=QString::null, bool mov = true);
+	void slotNewPage(int w, const QString& masterPageName=QString(), bool mov = true);
 	void duplicateToMasterPage();
 	/** \brief Loescht die aktuelle Seite */
 	void deletePage();
@@ -420,7 +421,7 @@ public slots:
 	\author Craig Bradney
 	\date Sun 30 Jan 2005
 	\brief Zoom the view.
-	Take the ScMW zoom actions and pass the view a %. Actions have whole number values like 20.0, 100.0, etc. Zoom to Fit uses -100 as a marker.
+	Take the main window zoom actions and pass the view a %. Actions have whole number values like 20.0, 100.0, etc. Zoom to Fit uses -100 as a marker.
 	\param zoomFactor Value stored in the ScrAction.
 	 */
 	void slotZoom(double zoomFactor); // 20, 50, 100, or -100 for Fit
@@ -651,7 +652,7 @@ private:
 	double m_storedViewScale;
 	StyleManager *m_styleManager;
 	UndoManager *m_undoManager;
-	PrefsManager *m_prefsManager;
+	PrefsManager& m_prefsManager;
 	FormatsManager *m_formatsManager;
 
 	QPointer<HelpBrowser> m_helpBrowser;

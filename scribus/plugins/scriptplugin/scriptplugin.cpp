@@ -50,7 +50,6 @@ for which a new license (GPL+exception) is in place.
 #include "scribuscore.h"
 #include "scribusstructs.h"
 #include "scriptercore.h"
-#include "scripterprefsgui.h"
 #include "scriptplugin.h"
 #include "svgimport.h"
 #include "ui/customfdialog.h"
@@ -118,7 +117,7 @@ ScriptPlugin::ScriptPlugin()
 	languageChange();
 }
 
-ScriptPlugin::~ScriptPlugin() {};
+ScriptPlugin::~ScriptPlugin() = default;
 
 void ScriptPlugin::languageChange()
 {
@@ -200,24 +199,11 @@ bool ScriptPlugin::cleanupPlugin()
 	return true;
 }
 
-bool ScriptPlugin::newPrefsPanelWidget(QWidget* parent, PrefsPanel*& panel, QString& caption, QPixmap& icon)
-{
-	panel = new ScripterPrefsGui(parent);
-	Q_CHECK_PTR(panel);
-	connect(panel, SIGNAL(prefsChanged()), scripterCore, SLOT(updateSyntaxHighlighter()));
-	caption = tr("Scripter");
-	icon = IconManager::instance()->loadPixmap("python.png");
-	return true;
-}
-
-
-bool ScriptPlugin::newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel, QString& caption, QPixmap& icon)
+bool ScriptPlugin::newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel)
 {
 	panel = new Prefs_Scripter(parent);
 	Q_CHECK_PTR(panel);
 	connect(panel, SIGNAL(prefsChanged()), scripterCore, SLOT(updateSyntaxHighlighter()));
-	caption = tr("Scripter");
-	icon = IconManager::instance()->loadPixmap("python_16.png");
 	return true;
 }
 
@@ -345,9 +331,10 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("flipObject"), scribus_flipobject, METH_VARARGS, tr(scribus_flipobject__doc__)},
 	{const_cast<char*>("getActiveLayer"), (PyCFunction)scribus_getactlayer, METH_NOARGS, tr(scribus_getactlayer__doc__)},
 	{const_cast<char*>("getAllObjects"), (PyCFunction)scribus_getallobj, METH_VARARGS|METH_KEYWORDS, tr(scribus_getallobj__doc__)},
-	{const_cast<char*>("getAllStyles"), (PyCFunction)scribus_getstylenames, METH_NOARGS, tr(scribus_getstylenames__doc__)},
-	{const_cast<char*>("getCharStyles"), (PyCFunction)scribus_getcharstylenames, METH_NOARGS, tr(scribus_getcharstylenames__doc__)},
+	{const_cast<char*>("getAllStyles"), (PyCFunction)scribus_getstylenames, METH_NOARGS, tr(scribus_getstylenames__doc__)}, //Deprecated
 	{const_cast<char*>("getAllText"), scribus_gettext, METH_VARARGS, tr(scribus_gettext__doc__)},
+	{const_cast<char*>("getCharStyles"), (PyCFunction)scribus_getcharstylenames, METH_NOARGS, tr(scribus_getcharstylenames__doc__)},
+	{const_cast<char*>("getParagraphStyles"), (PyCFunction)scribus_getstylenames, METH_NOARGS, tr(scribus_getstylenames__doc__)},
 	{const_cast<char*>("getCellStyle"), scribus_getcellstyle, METH_VARARGS, tr(scribus_getcellstyle__doc__)},
 	{const_cast<char*>("getCellColumnSpan"), scribus_getcellcolumnspan, METH_VARARGS, tr(scribus_getcellcolumnspan__doc__)},
 	{const_cast<char*>("getCellRowSpan"), scribus_getcellrowspan, METH_VARARGS, tr(scribus_getcellrowspan__doc__)},
@@ -376,6 +363,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getHGuides"), (PyCFunction)scribus_getHguides, METH_NOARGS, tr(scribus_getHguides__doc__)},
 	{const_cast<char*>("getImageColorSpace"), scribus_getimagecolorspace, METH_VARARGS, tr(scribus_getimagecolorspace__doc__) },
 	{const_cast<char*>("getImageFile"), scribus_getimagefile, METH_VARARGS, tr(scribus_getimagefile__doc__)},
+	{const_cast<char*>("getImageOffset"), scribus_getimgoffset, METH_VARARGS, tr(scribus_getimgoffset__doc__)},
 	{const_cast<char*>("getImageScale"), scribus_getimgscale, METH_VARARGS, tr(scribus_getimgscale__doc__)},
 	{const_cast<char*>("getLayers"), (PyCFunction)scribus_getlayers, METH_NOARGS, tr(scribus_getlayers__doc__)},
 	{const_cast<char*>("getLayerBlendmode"), scribus_glayerblend, METH_VARARGS, tr(scribus_glayerblend__doc__)},
@@ -396,7 +384,6 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("getPageSize"), (PyCFunction)scribus_pagedimension, METH_NOARGS, tr(scribus_pagedimension__doc__)},
 	{const_cast<char*>("getPageNSize"), scribus_pagensize, METH_VARARGS, tr(scribus_pagensize__doc__)},
 	{const_cast<char*>("getPageNMargins"), scribus_pagenmargins, METH_VARARGS, tr(scribus_pagenmargins__doc__)},
-	{const_cast<char*>("importPage"), scribus_importpage, METH_VARARGS, tr(scribus_importpage__doc__)},
 	{const_cast<char*>("getPosition"), scribus_getposi, METH_VARARGS, tr(scribus_getposi__doc__)},
 	{const_cast<char*>("getRotation"), scribus_getrotation, METH_VARARGS, tr(scribus_getrotation__doc__)},
 	{const_cast<char*>("getObjectType"), scribus_getobjecttype, METH_VARARGS, tr(scribus_getobjecttype__doc__)},
@@ -422,11 +409,7 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("gotoPage"), scribus_gotopage, METH_VARARGS, tr(scribus_gotopage__doc__)},
 	{const_cast<char*>("groupObjects"), (PyCFunction)scribus_groupobj, METH_VARARGS, tr(scribus_groupobj__doc__)},
 	{const_cast<char*>("haveDoc"), (PyCFunction)scribus_havedoc, METH_NOARGS, tr(scribus_havedoc__doc__)},
-	{const_cast<char*>("placeVectorFile"), scribus_placevec, METH_VARARGS, tr(scribus_placevec__doc__)},
-	{const_cast<char*>("placeSVG"), scribus_placevec, METH_VARARGS, tr(scribus_placesvg__doc__)},
-	{const_cast<char*>("placeEPS"), scribus_placevec, METH_VARARGS, tr(scribus_placeeps__doc__)},
-	{const_cast<char*>("placeSXD"), scribus_placevec, METH_VARARGS, tr(scribus_placesxd__doc__)},
-	{const_cast<char*>("placeODG"), scribus_placevec, METH_VARARGS, tr(scribus_placeodg__doc__)},
+	{const_cast<char*>("importPage"), scribus_importpage, METH_VARARGS, tr(scribus_importpage__doc__)},
 	{const_cast<char*>("insertTableRows"), scribus_inserttablerows, METH_VARARGS, tr(scribus_inserttablerows__doc__)},
 	{const_cast<char*>("insertTableColumns"), scribus_inserttablecolumns, METH_VARARGS, tr(scribus_inserttablecolumns__doc__)},
 	{const_cast<char*>("insertText"), scribus_inserttext, METH_VARARGS, tr(scribus_inserttext__doc__)},
@@ -458,6 +441,11 @@ PyMethodDef scribus_methods[] = {
 	{const_cast<char*>("openDoc"), scribus_opendoc, METH_VARARGS, tr(scribus_opendoc__doc__)},
 	{const_cast<char*>("pageCount"), (PyCFunction)scribus_pagecount, METH_NOARGS, tr(scribus_pagecount__doc__)},
 	{const_cast<char*>("pageDimension"), (PyCFunction)scribus_pagedimension, METH_NOARGS, "Obsolete function. Don't use it."},
+	{const_cast<char*>("placeEPS"), scribus_placevec, METH_VARARGS, tr(scribus_placeeps__doc__)},
+	{const_cast<char*>("placeODG"), scribus_placevec, METH_VARARGS, tr(scribus_placeodg__doc__)},
+	{const_cast<char*>("placeSVG"), scribus_placevec, METH_VARARGS, tr(scribus_placesvg__doc__)},
+	{const_cast<char*>("placeSXD"), scribus_placevec, METH_VARARGS, tr(scribus_placesxd__doc__)},
+	{const_cast<char*>("placeVectorFile"), scribus_placevec, METH_VARARGS, tr(scribus_placevec__doc__)},
 	{const_cast<char*>("progressReset"), (PyCFunction)scribus_progressreset, METH_NOARGS, tr(scribus_progressreset__doc__)},
 	{const_cast<char*>("progressSet"), scribus_progresssetprogress, METH_VARARGS, tr(scribus_progresssetprogress__doc__)},
 	{const_cast<char*>("progressTotal"), scribus_progresssettotalsteps, METH_VARARGS, tr(scribus_progresssettotalsteps__doc__)},
@@ -610,7 +598,7 @@ void initscribus_failed(const char* fileName, int lineNo)
 		PyErr_Print();
 }
 
-void initscribus(ScribusMainWindow *pl)
+void initscribus(ScribusMainWindow *mainWin)
 {
 	if (!scripterCore)
 	{
@@ -849,7 +837,6 @@ void initscribus(ScribusMainWindow *pl)
 	else
 		qDebug("Couldn't parse version string '%s' in scripter", VERSION);
 
-// 	ScMW = pl;
 	// Function aliases for compatibility
 	// We need to import the __builtins__, warnings and exceptions modules to be able to run
 	// the generated Python functions from inside the `scribus' module's context.
@@ -943,10 +930,10 @@ is not exhaustive due to exceptions from called functions.\n\
 	Py_DECREF(wrappedQApp);
 	wrappedQApp = nullptr;
 
-	wrappedMainWindow = wrapQObject(pl);
+	wrappedMainWindow = wrapQObject(mainWin);
 	if (!wrappedMainWindow)
 	{
-		qDebug("Failed to wrap up ScMW");
+		qDebug("Failed to wrap up ScribusMainWindow");
 		PyErr_Print();
 	}
 	// Push it into the module dict, stealing a ref in the process

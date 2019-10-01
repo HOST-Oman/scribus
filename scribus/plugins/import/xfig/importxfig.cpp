@@ -5,6 +5,8 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 
+#include <algorithm>
+
 #include <QByteArray>
 #include <QCursor>
 #include <QDrag>
@@ -67,9 +69,9 @@ QImage XfigPlug::readThumbnail(const QString& fName)
 	docX = x;
 	docY = y;
 	if (w == 0.0)
-		w = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		w = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = w - x;
 	docHeight = h - y;
 	progressDialog = nullptr;
@@ -295,9 +297,9 @@ bool XfigPlug::import(const QString& fNameIn, const TransactionSettings& trSetti
 	docX = x;
 	docY = y;
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b - x;
 	docHeight = h - y;
 	baseX = 0;
@@ -1563,7 +1565,7 @@ void XfigPlug::resortItems()
 		if ((importerFlags & LoadSavePlugin::lfCreateDoc) && (it > 0))
 			currentLayer = m_Doc->addLayer(QString("Layer %1").arg(it), true);
 		QList<int> elems = depthMap.values(keylist.at(it));
-		qSort(elems);
+		std::sort(elems.begin(), elems.end());
 		int itemsCount = elems.count();
 		for (int i = 0; i < itemsCount; ++i)
 		{
@@ -1571,7 +1573,7 @@ void XfigPlug::resortItems()
 			Elements.append(ite);
 			m_Doc->Items->append(ite);
 			if ((importerFlags & LoadSavePlugin::lfCreateDoc) && (it > 0))
-				ite->LayerID = currentLayer;
+				ite->m_layerID = currentLayer;
 		}
 	}
 }

@@ -31,6 +31,7 @@ for which a new license (GPL+exception) is in place.
 #include <QList>
 #include <QKeyEvent>
 #include <QMenu>
+#include <QPointF>
 #include <QRect>
 #include <QRectF>
 #include <QVector>
@@ -58,6 +59,7 @@ for which a new license (GPL+exception) is in place.
 
 class QFrame;
 class QGridLayout;
+class QRegion;
 class ResourceCollection;
 class ScPainter;
 class ScribusDoc;
@@ -231,7 +233,7 @@ public:	// Start enumerator definitions
 public: // Start public functions
 
 	PageItem(ScribusDoc *pa, ItemType newType, double x, double y, double w, double h, double w2, const QString& fill, const QString& outline);
-	virtual ~PageItem();
+	~PageItem() override;
 
 	/* these do essentially the same as a dynamic cast but might be more readable */
 	virtual PageItem_Arc * asArc()							{ return nullptr; } ///< Return self if Arc item, otherwise null
@@ -279,20 +281,20 @@ public: // Start public functions
 
 	//<< ********* Functions related to drawing the item *********
 
-	void DrawObj(ScPainter *p, QRectF e);
+	void DrawObj(ScPainter *p, QRectF cullingArea);
 	void DrawObj_Pre(ScPainter *p);
 	virtual void DrawObj_Post(ScPainter *p);
 	virtual void DrawObj_Decoration(ScPainter *p);
 	virtual void DrawObj_Item(ScPainter *p, QRectF e) = 0;
 	QImage DrawObj_toImage(double maxSize, int options = 0);
 	QImage DrawObj_toImage(QList<PageItem*> &emG, double scaling);
-	void DrawObj_Embedded(ScPainter *p, QRectF e, const CharStyle& style, PageItem* cembedded);
+	void DrawObj_Embedded(ScPainter *p, QRectF cullingArea, const CharStyle& style, PageItem* cembedded);
 	void DrawStrokePattern(ScPainter *p, QPainterPath &path);
 	void DrawSoftShadow(ScPainter *p);
 	/**
 	 * @brief Set or get the redraw bounding box of the item, moved from the View
 	 */
-	QRect getRedrawBounding(const double viewScale) const;
+	QRect getRedrawBounding(double viewScale) const;
 	void setRedrawBounding();
 	void setPolyClip(int up, int down = 0);
 	void updatePolyClip();
@@ -302,11 +304,20 @@ public: // Start public functions
 	
 	QRectF getBoundingRect() const;
 	QRectF getCurrentBoundingRect(double moreSpace = 0.0) const;
+	QRectF getOldBoundingRect() const;
 	QRectF getVisualBoundingRect() const;
 
 	virtual void getBoundingRect(double *x1, double *y1, double *x2, double *y2) const;
+	virtual void getOldBoundingRect(double *x1, double *y1, double *x2, double *y2) const;
 	virtual void getVisualBoundingRect(double *x1, double *y1, double *x2, double *y2) const;
 
+	virtual QRectF getStartArrowBoundingRect() const;
+	virtual QRectF getStartArrowOldBoundingRect() const;
+
+	virtual QRectF getEndArrowBoundingRect() const;
+	virtual QRectF getEndArrowOldBoundingRect() const;
+
+	virtual QRegion textInteractionRegion(double xOffset, double yOffset) const;
 
 	//>> ********* Functions related to drawing the item *********
 
@@ -333,7 +344,7 @@ public: // Start public functions
 		  @param y Y position
 	   * @return bool true if x, i in the item
 	   */
-	bool pointWithinItem(const int x, const int y) const;
+	bool pointWithinItem(int x, int y) const;
 	/**
 	   * @brief Check if the mouse is within the items boundaries
 	   * This method performs necessary page to device transformations
@@ -342,7 +353,7 @@ public: // Start public functions
 		  @param scale scale of the vport
 	   * @return bool true if the x, y is in the bounds
 	   */
-	bool mouseWithinItem(const int x, const int y, double scale) const;
+	bool mouseWithinItem(int x, int y, double scale) const;
 
 	virtual void handleModeEditKey(QKeyEvent *k, bool &keyRepeat);
 
@@ -350,15 +361,15 @@ public: // Start public functions
 
 
 	int level() const; ///< Get item level relative to its parent doc or group
-	void saxx(SaxHandler& handler, const Xml_string& elemtag) const {}
-	void saxx(SaxHandler& handler) const {}
+	void saxx(SaxHandler& handler, const Xml_string& elemtag) const override {}
+	void saxx(SaxHandler& handler) const override {}
 
 
 	/**
 	 * @brief Adjust the picture scale, moved from the view, no view code here
 	 * FIXME: Move to PageItem_TextFrame
 	 */
-	void AdjustPictScale();
+	void adjustPictScale();
 
 
 
@@ -432,7 +443,7 @@ public: // Start public functions
 	void setUseEmbeddedImageProfile(bool val) { UseEmbedded = val; }
 	QString embeddedImageProfile() const { return EmProfile; }
 	void setEmbeddedImageProfile(const QString& val) { EmProfile = val; }
-	bool drawFrame() { return ((m_ItemType == TextFrame && !m_sampleItem) || (m_ItemType == ImageFrame) || (m_ItemType == PathText)); }
+	bool drawFrame() { return ((m_itemType == TextFrame && !m_sampleItem) || (m_itemType == ImageFrame) || (m_itemType == PathText)); }
 	QString externalFile() const { return Pfile; }
 	void setExternalFile(const QString& filename, const QString& baseDir = QString());
 	void setImagePagenumber(int num) { pixm.imgInfo.actualPageNumber = num; }
@@ -456,6 +467,7 @@ public: // Start public functions
 	//you can change all code for search first or last item in chain
 	PageItem* firstInChain();
 	PageItem* lastInChain();
+	PageItem* lastInChainSamePage();
 	PageItem* prevInChain() { return BackBox; }
 	PageItem* nextInChain() { return NextBox; }
 	const PageItem* prevInChain() const { return BackBox; }
@@ -471,7 +483,7 @@ public: // Start public functions
 	void setSampleItem(bool b) {m_sampleItem=b;}
 	const QVector<double>& dashes() const { return DashValues; }
 	QVector<double>& dashes() { return DashValues; }
-	void setDashes(QVector<double> val) { DashValues = val; }
+	void setDashes(const QVector<double>& val) { DashValues = val; }
 	double dashOffset() const { return DashOffset; }
 	void setDashOffset(double val) { DashOffset = val; }
 
@@ -487,43 +499,43 @@ public: // Start public functions
 	double visualXPos() const;
 	double visualYPos() const;
 	FPoint xyPos() const { return FPoint(m_xPos, m_yPos); }
-	void setXPos(const double, bool drawingOnly=false);
-	void setYPos(const double, bool drawingOnly=false);
-	void setXYPos(const double, const double, bool drawingOnly=false);
-	void moveBy(const double, const double, bool drawingOnly=false);
+	void setXPos(double, bool drawingOnly=false);
+	void setYPos(double, bool drawingOnly=false);
+	void setXYPos(double, double, bool drawingOnly=false);
+	void moveBy(double, double, bool drawingOnly=false);
 	//Size
-	double width() const { return m_width; }
-	double height() const { return m_height; }
+	double width() const override { return m_width; }
+	double height() const override { return m_height; }
 	double visualWidth() const;
 	double visualHeight() const;
 	double visualLineWidth() const;
-	void setWidth(const double);
-	void setHeight(const double);
-	void setWidthHeight(const double, const double, bool drawingOnly);
-	void setWidthHeight(const double, const double);
-	void resizeBy(const double, const double);
+	void setWidth(double);
+	void setHeight(double);
+	void setWidthHeight(double, double, bool drawingOnly);
+	void setWidthHeight(double, double);
+	void resizeBy(double, double);
 	//Rotation
 	double rotation() const { return m_rotation; }
-	void setRotation(const double, bool drawingOnly);
-	void setRotation(const double r) { setRotation(r, false); }  ///< needed for deSaXe
-	void rotateBy(const double);
+	void setRotation(double, bool drawingOnly);
+	void setRotation(double r) { setRotation(r, false); }  ///< needed for deSaXe
+	void rotateBy(double);
 	//Selection
 	bool isSelected() const { return m_isSelected; }
-	void setSelected(const bool);
+	void setSelected(bool);
 	//Image Data
 	double imageXScale() const { return m_imageXScale; }
 	double imageYScale() const { return m_imageYScale; }
-	void setImageXScale(const double);
-	void setImageYScale(const double);
-	void setImageXYScale(const double, const double);
+	void setImageXScale(double);
+	void setImageYScale(double);
+	void setImageXYScale(double, double);
 	double imageXOffset() const { return m_imageXOffset; }
 	double imageYOffset() const { return m_imageYOffset; }
-	void setImageXOffset(const double);
-	void setImageYOffset(const double);
-	void moveImageXYOffsetBy(const double, const double);
-	void setImageXYOffset(const double, const double);
+	void setImageXOffset(double);
+	void setImageYOffset(double);
+	void moveImageXYOffsetBy(double, double);
+	void setImageXYOffset(double, double);
 	double imageRotation() const { return m_imageRotation; }
-	void setImageRotation(const double newRotation);
+	void setImageRotation(double newRotation);
 	//Rounded Corners
 	double cornerRadius() const { return m_roundedCorderRadius; }
 	void setCornerRadius(double);
@@ -533,38 +545,47 @@ public: // Start public functions
 
 	int gradientType() const { return GrType; } ///< 0=none, 1,2,3,4=linear, 5=radial, 6=free linear, 7=free radial, 8=pattern
 	void setGradientType(int val);
+
+	QPointF gradientStart() const { return QPointF(GrStartX, GrStartY); }
 	double gradientStartX() const { return GrStartX; }
-	void setGradientStartX(double val);
 	double gradientStartY() const { return GrStartY; }
-	void setGradientStartY(double val);
+	void setGradientStart(double x, double y);
+
+	QPointF gradientEnd() const { return QPointF(GrEndX, GrEndY); }
 	double gradientEndX() const { return GrEndX; }
-	void setGradientEndX(double val);
 	double gradientEndY() const { return GrEndY; }
-	void setGradientEndY(double val);
+	void setGradientEnd(double x, double y);
+
+	QPointF gradientFocal() const { return QPointF(GrFocalX, GrFocalY); }
 	double gradientFocalX() const { return GrFocalX; }
-	void setGradientFocalX(double val);
 	double gradientFocalY() const { return GrFocalY; }
-	void setGradientFocalY(double val);
+	void setGradientFocal(double x, double y);
+
 	double gradientScale() const { return GrScale; }
 	void setGradientScale(double val);
 	double gradientSkew() const { return GrSkew; }
 	void setGradientSkew(double val);
-	double gradientMaskStartX() const { return GrMaskStartX; }
-	void setGradientMaskStartX(double val);
-	double gradientMaskStartY() const { return GrMaskStartY; }
-	void setGradientMaskStartY(double val);
+
+	QPointF gradientMaskStart() const { return QPointF(GrMaskStartX, GrMaskStartY); }
+	double  gradientMaskStartX() const { return GrMaskStartX; }
+	double  gradientMaskStartY() const { return GrMaskStartY; }
+	void setGradientMaskStart(double x, double y);
+
+	QPointF gradientMaskEnd() const { return QPointF(GrMaskEndX, GrMaskEndY); }
 	double gradientMaskEndX() const { return GrMaskEndX; }
-	void setGradientMaskEndX(double val);
 	double gradientMaskEndY() const { return GrMaskEndY; }
-	void setGradientMaskEndY(double val);
+	void setGradientMaskEnd(double x, double y);
+
+	QPointF gradientMaskFocal() const { return QPointF(GrMaskFocalX, GrMaskFocalY); }
 	double gradientMaskFocalX() const { return GrMaskFocalX; }
-	void setGradientMaskFocalX(double val);
 	double gradientMaskFocalY() const { return GrMaskFocalY; }
-	void setGradientMaskFocalY(double val);
+	void setGradientMaskFocal(double x, double y);
+
 	double gradientMaskScale() const { return GrMaskScale; }
 	void setGradientMaskScale(double val);
 	double gradientMaskSkew() const { return GrMaskSkew; }
 	void setGradientMaskSkew(double val);
+
 	FPoint gradientControl1() const { return GrControl1; }
 	void setGradientControl1(const FPoint& val);
 	FPoint gradientControl2() const { return GrControl2; }
@@ -575,22 +596,27 @@ public: // Start public functions
 	void setGradientControl4(const FPoint& val);
 	FPoint gradientControl5() const { return GrControl5; }
 	void setGradientControl5(const FPoint& val);
+
 	double gradientStrokeScale() const { return GrStrokeScale; }
 	void setGradientStrokeScale(double val);
 	double gradientStrokeSkew() const { return GrStrokeSkew; }
 	void setGradientStrokeSkew(double val);
+
+	QPointF gradientStrokeFocal() const { return QPointF(GrStrokeFocalX, GrStrokeFocalY); }
 	double gradientStrokeFocalX() const { return GrStrokeFocalX; }
-	void setGradientStrokeFocalX(double val);
 	double gradientStrokeFocalY() const { return GrStrokeFocalY; }
-	void setGradientStrokeFocalY(double val);
+	void setGradientStrokeFocal(double x, double y);
+
+	QPointF gradientStrokeStart() const { return QPointF(GrStrokeStartX, GrStrokeStartY); }
 	double gradientStrokeStartX() const { return GrStrokeStartX; }
-	void setGradientStrokeStartX(double val);
 	double gradientStrokeStartY() const { return GrStrokeStartY; }
-	void setGradientStrokeStartY(double val);
+	void setGradientStrokeStart(double x, double y);
+
+	QPointF gradientStrokeEnd() const { return QPointF(GrStrokeEndX, GrStrokeEndY); }
 	double gradientStrokeEndX() const { return GrStrokeEndX; }
-	void setGradientStrokeEndX(double val);
 	double gradientStrokeEndY() const { return GrStrokeEndY; }
-	void setGradientStrokeEndY(double val);
+	void setGradientStrokeEnd(double x, double y);
+
 	QString gradientCol1() const { return GrColorP1; }
 	void setGradientCol1(const QString& val);
 	QString gradientCol2() const { return GrColorP2; }
@@ -599,6 +625,7 @@ public: // Start public functions
 	void setGradientCol3(const QString& val);
 	QString gradientCol4() const { return GrColorP4; }
 	void setGradientCol4(const QString& val);
+
 	double gradientTransp1() const { return GrCol1transp; }
 	void setGradientTransp1(double val);
 	double gradientTransp2() const { return GrCol2transp; }
@@ -607,6 +634,7 @@ public: // Start public functions
 	void setGradientTransp3(double val);
 	double gradientTransp4() const { return GrCol4transp; }
 	void setGradientTransp4(double val);
+
 	int gradientShade1() const { return GrCol1Shade; }
 	void setGradientShade1(int val);
 	int gradientShade2() const { return GrCol2Shade; }
@@ -615,22 +643,22 @@ public: // Start public functions
 	void setGradientShade3(int val);
 	int gradientShade4() const { return GrCol4Shade; }
 	void setGradientShade4(int val);
-	QColor gradientColor1() const { return GrColorP1QColor; }
+
+	QColor gradientColor1() const { return m_grQColorP1; }
 	void setGradientColor1(const QColor& val);
-	QColor gradientColor2() const { return GrColorP2QColor; }
+	QColor gradientColor2() const { return m_grQColorP2; }
 	void setGradientColor2(const QColor& val);
-	QColor gradientColor3() const { return GrColorP3QColor; }
+	QColor gradientColor3() const { return m_grQColorP3; }
 	void setGradientColor3(const QColor& val);
-	QColor gradientColor4() const { return GrColorP4QColor; }
+	QColor gradientColor4() const { return m_grQColorP4; }
 	void setGradientColor4(const QColor& val);
+
 	void setGradientExtend(VGradient::VGradientRepeatMethod val);
 	void setStrokeGradientExtend(VGradient::VGradientRepeatMethod val);
 	VGradient::VGradientRepeatMethod getGradientExtend();
 	VGradient::VGradientRepeatMethod getStrokeGradientExtend();
 
 	//>> ********* Attributes of the item *********
-
-
 
 	bool getSnapToPatchGrid() const { return snapToPatchGrid; }
 	void setSnapToPatchGrid(bool val);
@@ -735,8 +763,8 @@ public: // Start public functions
 	double textToFrameDistRight() const { return m_textDistanceMargins.right(); }
 	double textToFrameDistTop() const { return m_textDistanceMargins.top(); }
 	double textToFrameDistBottom() const { return m_textDistanceMargins.bottom(); }
-	int columns() const { return Cols; }
-	double columnGap() const { return ColGap; }
+	int columns() const { return m_columns; }
+	double columnGap() const { return m_columnGap; }
 	double gridOffset() const;
 	double gridDistance() const;
 	int verticalAlignment();
@@ -766,7 +794,7 @@ public: // Start public functions
 	 * of its Qt name.
 	 * See also PageItem::setItemName()
 	 */
-	QString itemName() const { return AnName; }
+	QString itemName() const { return m_itemName; }
 	/**
 	 * @brief Set name of the item
 	 * @param newName name for the item
@@ -798,7 +826,7 @@ public: // Start public functions
 	/** 
 	 * @brief Get the name of the gradient of the object
 	 */
-	QString gradient() const { return gradientVal; }
+	QString gradient() const { return m_gradientName; }
 
 	/**
 	 * @brief Set the fill gradient of the object.
@@ -816,7 +844,7 @@ public: // Start public functions
 	void setStrokeGradient(const QString &newGradient);
 
 	/** @brief Get the name of the pattern of the object */
-	QString pattern() const { return patternVal; }
+	QString pattern() const { return m_patternName; }
 
 	/** @brief Get the pattern transformation matrix of the object */
 	void patternTransform(double &scaleX, double &scaleY, double &offsetX, double &offsetY, double &rotation, double &skewX, double &skewY) const;
@@ -835,7 +863,7 @@ public: // Start public functions
 	void patternFlip(bool &flipX, bool &flipY);
 
 	/** @brief Get the (name of the) fill color of the object */
-	QString fillColor() const { return fillColorVal; }
+	QString fillColor() const { return m_fillColor; }
 	/**
 	 * @brief Set the fill color of the object.
 	 * @param newColor fill color for the object
@@ -843,7 +871,7 @@ public: // Start public functions
 	void setFillColor(const QString &newColor);
 
 	/** @brief Get the shade of the fill color */
-	double fillShade() const { return fillShadeVal; }
+	double fillShade() const { return m_fillShade; }
 	/**
 	 * @brief Set the fill color shade.
 	 * @param newShade shade for the fill color
@@ -851,7 +879,7 @@ public: // Start public functions
 	void setFillShade(double newShade);
 
 	/** @brief Get the transparency of the fill color */
-	double fillTransparency() const { return fillTransparencyVal; }
+	double fillTransparency() const { return m_fillTransparency; }
 	/**
 	 * @brief Set the transparency of the fill color.
 	 * @param newTransparency transparency of the fill color
@@ -859,7 +887,7 @@ public: // Start public functions
 	void setFillTransparency(double newTransparency);
 
 	/** @brief Get the blendmode of the fill color */
-	int fillBlendmode() const { return fillBlendmodeVal; }
+	int fillBlendmode() const { return m_fillBlendMode; }
 	/**
 	 * @brief Set the blendmode of the fill color.
 	 * @param newBlendmode blendmode of the fill color
@@ -867,7 +895,7 @@ public: // Start public functions
 	void setFillBlendmode(int newBlendmode);
 
 	/** @brief Get the blendmode of the stroke color */
-	int lineBlendmode() const { return lineBlendmodeVal; }
+	int lineBlendmode() const { return m_lineBlendMode; }
 	/**
 	 * @brief Set the blendmode of the stroke color.
 	 * @param newBlendmode blendmode of the stroke color
@@ -875,7 +903,7 @@ public: // Start public functions
 	void setLineBlendmode(int newBlendmode);
 
 	/** @brief Get the line color of the object */
-	QString lineColor() const { return lineColorVal; }
+	QString lineColor() const { return m_lineColor; }
 	/**
 	 * @brief Set the line color of the object.
 	 * @param newColor line color for the object
@@ -883,7 +911,7 @@ public: // Start public functions
 	void setLineColor(const QString &newColor);
 
 	/** @brief Get the line color shade */
-	double lineShade() const { return lineShadeVal; }
+	double lineShade() const { return m_lineShade; }
 	/**
 	 * @brief Set the line color shade.
 	 * @param newShade shade for the line color
@@ -891,7 +919,7 @@ public: // Start public functions
 	void setLineShade(double newShade);
 
 	/** @brief Get the line transparency */
-	double lineTransparency() const { return lineTransparencyVal; }
+	double lineTransparency() const { return m_lineTransparency; }
 	/**
 	 * @brief Set the transparency of the line color.
 	 * @param newTransparency transparency of the line color
@@ -1052,7 +1080,7 @@ public: // Start public functions
 	 * @brief Does text flow around this object and how
 	 * @sa setTextFlowMode()
 	 */
-	TextFlowMode textFlowMode() const { return textFlowModeVal; }
+	TextFlowMode textFlowMode() const { return m_textFlowMode; }
 
 	/**
 	 * @brief Changes the way text flows around this item
@@ -1065,37 +1093,44 @@ public: // Start public functions
 	 * @brief If text should flow around object frame
 	 * @sa PageItem::setTextFlowMode()
 	 */
-	bool textFlowAroundObject() const { return (textFlowModeVal != TextFlowDisabled); }
+	bool textFlowAroundObject() const { return (m_textFlowMode != TextFlowDisabled); }
 
 	/**
 	 * @brief If text should flow around object frame
 	 * @sa PageItem::setTextFlowMode()
 	 */
-	bool textFlowUsesFrameShape() const { return (textFlowModeVal == TextFlowUsesFrameShape); }
+	bool textFlowUsesFrameShape() const { return (m_textFlowMode == TextFlowUsesFrameShape); }
 
 	/**
 	 * @brief If text should flow around bounding box
 	 * @sa PageItem::setTextFlowMode()
 	 */
-	bool textFlowUsesBoundingBox() const { return (textFlowModeVal == TextFlowUsesBoundingBox); }
+	bool textFlowUsesBoundingBox() const { return (m_textFlowMode == TextFlowUsesBoundingBox); }
 
 	/**
 	 * @brief If text should flow around contour line
 	 * @sa PageItem::setTextFlowMode()
 	 */
-	bool textFlowUsesContourLine() const { return (textFlowModeVal == TextFlowUsesContourLine); }
+	bool textFlowUsesContourLine() const { return (m_textFlowMode == TextFlowUsesContourLine); }
 
 	/**
 	 * @brief If text should flow around image clipping path
 	 * @sa PageItem::setTextFlowMode()
 	 */
-	bool textFlowUsesImageClipping() const { return (textFlowModeVal == TextFlowUsesImageClipping); }
+	bool textFlowUsesImageClipping() const { return (m_textFlowMode == TextFlowUsesImageClipping); }
 
 	/**
 	 * @brief To be called carefully because it eventually triggers a relayout of long text frames strings, but necessarily when you change the document.
 	 * @param allItems While you generally want to check for items below, it can happen that you want to update full range of text frames (e.g. when shuffle items order). Default to false.
 	 */
 	void checkTextFlowInteractions(bool allItems = false);
+
+	/**
+	 * @brief To be called carefully because it eventually triggers a relayout of long text frames strings, but necessarily when you change the document.
+	 * @param baseRect The area over which text flow interactions should be checked
+	 * @param allItems While you generally want to check for items below, it can happen that you want to update full range of text frames (e.g. when shuffle items order). Default to false.
+	 */
+	void checkTextFlowInteractions(const QRectF& baseRect, bool allItems = false);
 
 	/** @brief Get the frame type
 	 *
@@ -1104,7 +1139,7 @@ public: // Start public functions
 	 *            It's here as an interim step to eliminate direct member access
 	 *            on PageItems.
 	 */
-	ItemType itemType() const { return m_ItemType; }
+	ItemType itemType() const { return m_itemType; }
 	/** @brief Get the subclass item type
 	 *
 	 * This function should be used everywhere, where a itemType is required, but
@@ -1112,7 +1147,7 @@ public: // Start public functions
 	 * It returns the same type as itemType() for the standard classes, but
 	 * subclasses override it.
 	 */
-	virtual ItemType realItemType() const { return m_ItemType; }
+	virtual ItemType realItemType() const { return m_itemType; }
 	/**
 	 * @brief Convert this PageItem to PageItem type <code>newType</code>
 	 * @param newType PageItem type for conversion
@@ -1145,7 +1180,7 @@ public: // Start public functions
 	void changeImageScaleUndoAction();
 	/*@}*/
 	/** @brief Required by the UndoObject */
-	void restore(UndoState *state, bool isUndo);
+	void restore(UndoState *state, bool isUndo) override;
 
 	virtual void getNamedResources(ResourceCollection& lists) const;
 	virtual void replaceNamedResources(ResourceCollection& newNames);
@@ -1191,7 +1226,7 @@ public: // Start public functions
 	 * @brief Load an image into an image frame, moved from ScribusView
 	 * @return True if load succeeded
 	 */
-	virtual bool loadImage(const QString& filename, const bool reload, const int gsResolution=-1, bool showMsg = false);
+	virtual bool loadImage(const QString& filename, bool reload, int gsResolution=-1, bool showMsg = false);
 
 
 	/**
@@ -1278,14 +1313,8 @@ public:	// Start public variables
 	int selectedMeshPointY;
 	int selectedMeshControlPoint;
 	bool snapToPatchGrid;
-	int Cols;
-	double ColGap;
-	double gridOffset_;
-	double gridValue_;
-	int m_startArrowIndex;
-	int m_endArrowIndex;
-	int m_startArrowScale;
-	int m_endArrowScale;
+	int m_columns;
+	double m_columnGap;
 	Qt::PenStyle PLineArt; ///< Linestyle
 	Qt::PenCapStyle PLineEnd;
 	Qt::PenJoinStyle PLineJoin;
@@ -1342,7 +1371,7 @@ public:	// Start public variables
 	double OldB2;
 	double OldH2;
 	bool Sizing;
-	int  LayerID;
+	int  m_layerID;
 	bool ScaleType;
 	bool AspectRatio;
 	QVector<double> DashValues;
@@ -1350,156 +1379,142 @@ public:	// Start public variables
 	VGradient fill_gradient;
 	bool fillRule;
 	bool doOverprint;
-	bool m_hasSoftShadow;
-	QString m_softShadowColor;
-	int m_softShadowShade;
-	double m_softShadowBlurRadius;
-	double m_softShadowXOffset;
-	double m_softShadowYOffset;
-	double m_softShadowOpacity;
-	int m_softShadowBlendMode;
-	bool m_softShadowErasedByObject;
-	bool m_softShadowHasObjectTransparency;
+
 	/* Additions for Table Support */
 	/* now deprecated with the new PageItem_Table */
-		PageItem* LeftLink;
-		PageItem* RightLink;
-		PageItem* TopLink;
-		PageItem* BottomLink;
-		int LeftLinkID;
-		int RightLinkID;
-		int TopLinkID;
-		int BottomLinkID;
-		bool LeftLine;
-		bool RightLine;
-		bool TopLine;
-		bool BottomLine;
-		bool isTableItem;
+	PageItem* m_leftLink;
+	PageItem* m_rightLink;
+	PageItem* m_topLink;
+	PageItem* m_bottomLink;
+	int LeftLinkID;
+	int RightLinkID;
+	int TopLinkID;
+	int BottomLinkID;
+	bool LeftLine;
+	bool RightLine;
+	bool TopLine;
+	bool BottomLine;
+	bool isTableItem;
+
 	/* end deprecated vars */
-		bool isSingleSel;
-		QList<PageItem*> groupItemList;
-		double groupWidth;
-		double groupHeight;
-		double BoundingX;
-		double BoundingY;
-		double BoundingW;
-		double BoundingH;
-		bool ChangedMasterItem;
-		QString OnMasterPage;
-		bool isEmbedded;
-		int inlineCharID;
-		QString inlineExt;
-		/** Radius of rounded corners */
-		double m_roundedCorderRadius;
+	bool isSingleSel;
+	QList<PageItem*> groupItemList;
+	double groupWidth;
+	double groupHeight;
+	double BoundingX;
+	double BoundingY;
+	double BoundingW;
+	double BoundingH;
+	bool ChangedMasterItem;
+	QString OnMasterPage;
+	bool isEmbedded;
+	int inlineCharID;
+	QString inlineExt;
+	/** Radius of rounded corners */
+	double m_roundedCorderRadius;
 
-		//Undo Data
-		double oldXpos; ///< Stores the old X-position for undo action. Is used to detect move actions.
-		double oldYpos; ///< Stores the old Y-position for undo action. Is used to detect move actions.
-		double oldWidth; ///< Stores the old width for undo action. Is used to detect resize actions.
-		double oldHeight; ///< Stores the old height for undo action. Is used to detect resize actions.
-		double oldRot; ///< Stores the old rotation value for undo action. Is used to detect rotation actions.
-		double oldLocalScX; ///< Stores the old LocalScX value for undo action. Is used to detect image scale actions.
-		double oldLocalScY; ///< Stores the old LocalScY value for undo action. Is used to detect image scale actions.
-		double oldLocalX; ///< Stores the old LocalX value for undo action. Is used to detect image offset actions.lo j
-		double oldLocalY; ///< Stores the old LocalY value for undo action. Is used to detect image offset actions.
+	//Undo Data
+	double oldXpos; ///< Stores the old X-position for undo action. Is used to detect move actions.
+	double oldYpos; ///< Stores the old Y-position for undo action. Is used to detect move actions.
+	double oldWidth; ///< Stores the old width for undo action. Is used to detect resize actions.
+	double oldHeight; ///< Stores the old height for undo action. Is used to detect resize actions.
+	double oldRot; ///< Stores the old rotation value for undo action. Is used to detect rotation actions.
+	double oldLocalScX; ///< Stores the old LocalScX value for undo action. Is used to detect image scale actions.
+	double oldLocalScY; ///< Stores the old LocalScY value for undo action. Is used to detect image scale actions.
+	double oldLocalX; ///< Stores the old LocalX value for undo action. Is used to detect image offset actions.lo j
+	double oldLocalY; ///< Stores the old LocalY value for undo action. Is used to detect image offset actions.
 
+	ScribusDoc *m_Doc; ///< Document this item belongs to
 
-		ScribusDoc *m_Doc; ///< Document this item belongs to
+	double m_lineWidth; //< Line width
+	double m_oldLineWidth;
 
-		bool m_isAnnotation; ///< Flag to tell if this item is a PDF annotation item
-		Annotation m_annotation; ///< PDF annotation data
-
-		bool m_imageVisible; ///< Darstellungsart Bild/Titel
-
-		double m_lineWidth; //< Line width
-		double Oldm_lineWidth;
-
-		/**
-		 * @brief Stroke pattern name
-		 * @sa PageItem::strokePattern(), PageItem::setStrokePattern()
-		 */
-		QString patternStrokeVal;
-		/**
-		 * @brief Stroke pattern transformation matrix
-		 */
-		double patternStrokeScaleX;
-		double patternStrokeScaleY;
-		double patternStrokeOffsetX;
-		double patternStrokeOffsetY;
-		double patternStrokeRotation;
-		double patternStrokeSkewX;
-		double patternStrokeSkewY;
-		double patternStrokeSpace;
-		bool patternStrokeMirrorX;
-		bool patternStrokeMirrorY;
-		bool patternStrokePath;
-
-
-		/**
-		 * @brief Stroke gradient name
-		 * @sa PageItem::strokeGradient(), PageItem::setStrokeGradient()
-		 */
-		QString gradientStrokeVal;
-		VGradient stroke_gradient;
-
-		/**
-		* @brief Stroke gradient variables
+	/**
+		* @brief Stroke pattern name
+		* @sa PageItem::strokePattern(), PageItem::setStrokePattern()
 		*/
-		int GrTypeStroke;
-		double GrStrokeStartX;
-		double GrStrokeStartY;
-		double GrStrokeEndX;
-		double GrStrokeEndY;
-		double GrStrokeFocalX;
-		double GrStrokeFocalY;
-		double GrStrokeScale;
-		double GrStrokeSkew;
-		VGradient::VGradientRepeatMethod GrStrokeExtend;
-
-		/**
-		* @brief Mask gradient variables
+	QString patternStrokeVal;
+	/**
+		* @brief Stroke pattern transformation matrix
 		*/
-		int GrMask;
-		double GrMaskStartX;
-		double GrMaskStartY;
-		double GrMaskEndX;
-		double GrMaskEndY;
-		double GrMaskFocalX;
-		double GrMaskFocalY;
-		double GrMaskScale;
-		double GrMaskSkew;
-		double patternMaskScaleX;
-		double patternMaskScaleY;
-		double patternMaskOffsetX;
-		double patternMaskOffsetY;
-		double patternMaskRotation;
-		double patternMaskSkewX;
-		double patternMaskSkewY;
-		bool patternMaskMirrorX;
-		bool patternMaskMirrorY;
-		QString patternMaskVal;
-		QString gradientMaskVal;
-		VGradient mask_gradient;
+	double patternStrokeScaleX;
+	double patternStrokeScaleY;
+	double patternStrokeOffsetX;
+	double patternStrokeOffsetY;
+	double patternStrokeRotation;
+	double patternStrokeSkewX;
+	double patternStrokeSkewY;
+	double patternStrokeSpace;
+	bool patternStrokeMirrorX;
+	bool patternStrokeMirrorY;
+	bool patternStrokePath;
 
-		/** Inline Image */
-		bool isInlineImage;
-		bool isTempFile;
-		//items welding (item follows while item moves which they are connected with)
-		struct WeldingInfo
-		{
-			PageItem *weldItem;
-			FPoint weldPoint;
-			int weldID;
-		};
-		QList<WeldingInfo> weldList;
-		double hatchAngle;
-		double hatchDistance;
-		int hatchType;				// 0 = single 1 = double 2 = triple
-		bool hatchUseBackground;
-		QString hatchBackground;
-		QString hatchForeground;
 
-		// End public variables
+	/**
+		* @brief Stroke gradient name
+		* @sa PageItem::strokeGradient(), PageItem::setStrokeGradient()
+		*/
+	QString gradientStrokeVal;
+	VGradient stroke_gradient;
+
+	/**
+	* @brief Stroke gradient variables
+	*/
+	int GrTypeStroke;
+	double GrStrokeStartX;
+	double GrStrokeStartY;
+	double GrStrokeEndX;
+	double GrStrokeEndY;
+	double GrStrokeFocalX;
+	double GrStrokeFocalY;
+	double GrStrokeScale;
+	double GrStrokeSkew;
+	VGradient::VGradientRepeatMethod GrStrokeExtend;
+
+	/**
+	* @brief Mask gradient variables
+	*/
+	int GrMask;
+	double GrMaskStartX;
+	double GrMaskStartY;
+	double GrMaskEndX;
+	double GrMaskEndY;
+	double GrMaskFocalX;
+	double GrMaskFocalY;
+	double GrMaskScale;
+	double GrMaskSkew;
+	double patternMaskScaleX;
+	double patternMaskScaleY;
+	double patternMaskOffsetX;
+	double patternMaskOffsetY;
+	double patternMaskRotation;
+	double patternMaskSkewX;
+	double patternMaskSkewY;
+	bool patternMaskMirrorX;
+	bool patternMaskMirrorY;
+	QString patternMaskVal;
+	QString gradientMaskVal;
+	VGradient mask_gradient;
+
+	/** Inline Image */
+	bool isInlineImage;
+	bool isTempFile;
+	//items welding (item follows while item moves which they are connected with)
+	struct WeldingInfo
+	{
+		PageItem *weldItem;
+		FPoint weldPoint;
+		int weldID;
+	};
+	QList<WeldingInfo> weldList;
+	double hatchAngle;
+	double hatchDistance;
+	int hatchType;				// 0 = single 1 = double 2 = triple
+	bool hatchUseBackground;
+	QString hatchBackground;
+	QString hatchForeground;
+
+	// End public variables
 
 protected: // Start protected functions
 	PageItem(const PageItem & other);
@@ -1559,18 +1574,13 @@ protected: // Start protected functions
 	void restoreGradientControl3(SimpleState *state, bool isUndo);
 	void restoreGradientControl4(SimpleState *state, bool isUndo);
 	void restoreGradientControl5(SimpleState *state, bool isUndo);
-	void restoreGradientEndX(SimpleState *state, bool isUndo);
-	void restoreGradientEndY(SimpleState *state, bool isUndo);
-	void restoreGradientFocalX(SimpleState *state, bool isUndo);
-	void restoreGradientFocalY(SimpleState *state, bool isUndo);
-	void restoreGradientMaskEndX(SimpleState *state, bool isUndo);
-	void restoreGradientMaskEndY(SimpleState *state, bool isUndo);
-	void restoreGradientMaskFocalX(SimpleState *state, bool isUndo);
-	void restoreGradientMaskFocalY(SimpleState *state, bool isUndo);
+	void restoreGradientEnd(SimpleState *state, bool isUndo);
+	void restoreGradientFocal(SimpleState *state, bool isUndo);
+	void restoreGradientMaskEnd(SimpleState *state, bool isUndo);
+	void restoreGradientMaskFocal(SimpleState *state, bool isUndo);
 	void restoreGradientMaskScale(SimpleState *state, bool isUndo);
 	void restoreGradientMaskSkew(SimpleState *state, bool isUndo);
-	void restoreGradientMaskStartX(SimpleState *state, bool isUndo);
-	void restoreGradientMaskStartY(SimpleState *state, bool isUndo);
+	void restoreGradientMaskStart(SimpleState *state, bool isUndo);
 	void restoreGradientMeshColor(SimpleState *state, bool isUndo);
 	void restoreGradientScale(SimpleState *state, bool isUndo);
 	void restoreGradientShade1(SimpleState *state, bool isUndo);
@@ -1578,16 +1588,12 @@ protected: // Start protected functions
 	void restoreGradientShade3(SimpleState *state, bool isUndo);
 	void restoreGradientShade4(SimpleState *state, bool isUndo);
 	void restoreGradientSkew(SimpleState *state, bool isUndo);
-	void restoreGradientStartX(SimpleState *state, bool isUndo);
-	void restoreGradientStartY(SimpleState *state, bool isUndo);
-	void restoreGradientStrokeEndX(SimpleState *state, bool isUndo);
-	void restoreGradientStrokeEndY(SimpleState *state, bool isUndo);
-	void restoreGradientStrokeFocalX(SimpleState *state, bool isUndo);
-	void restoreGradientStrokeFocalY(SimpleState *state, bool isUndo);
+	void restoreGradientStart(SimpleState *state, bool isUndo);
+	void restoreGradientStrokeEnd(SimpleState *state, bool isUndo);
+	void restoreGradientStrokeFocal(SimpleState *state, bool isUndo);
 	void restoreGradientStrokeScale(SimpleState *state, bool isUndo);
 	void restoreGradientStrokeSkew(SimpleState *state, bool isUndo);
-	void restoreGradientStrokeStartX(SimpleState *state, bool isUndo);
-	void restoreGradientStrokeStartY(SimpleState *state, bool isUndo);
+	void restoreGradientStrokeStart(SimpleState *state, bool isUndo);
 	void restoreGradientTrans1(SimpleState *state, bool isUndo);
 	void restoreGradientTrans2(SimpleState *state, bool isUndo);
 	void restoreGradientTrans3(SimpleState *state, bool isUndo);
@@ -1684,8 +1690,8 @@ protected: // Start protected functions
 protected: // Start protected variables
 	PageItem *BackBox;
 	PageItem *NextBox;
-	uint firstChar;
-	uint MaxChars;
+	int  firstChar;
+	int  m_maxChars;
 	bool m_sampleItem; ///< Used to not draw the frame for sample items
 	MarginStruct m_textDistanceMargins; ///< Left, Top, Bottom, Right distances of text from the frame
 	int verticalAlign;
@@ -1695,26 +1701,36 @@ protected: // Start protected variables
 	 * This will probably go away when pageitem is split into
 	 * subclasses.
 	 */
-	ItemType m_ItemType;
+	ItemType m_itemType;
 
 	/**
 	 * @brief Item name. Unicode. User visible (outline, property palette, etc).
 	 * @todo This is Annotation Name.. not item name, needs splitting up.
 	 * @sa PageItem::itemName(), PageItem::setItemName()
 	 */
-	QString AnName;
+	QString m_itemName;
+
+	/**
+	 * Flag to tell if this item is a PDF annotation item
+	 */
+	bool m_isAnnotation; 
+
+	/**
+	 * PDF annotation data
+	 */
+	Annotation m_annotation;
 
 	/**
 	 * @brief Fill gradient name
 	 * @sa PageItem::gradient(), PageItem::setGradient()
 	 */
-	QString gradientVal;
+	QString m_gradientName;
 
 	/**
 	 * @brief Fill pattern name
 	 * @sa PageItem::pattern(), PageItem::setPattern()
 	 */
-	QString patternVal;
+	QString m_patternName;
 	/**
 	 * @brief Fill pattern transformation matrix
 	 */
@@ -1725,56 +1741,56 @@ protected: // Start protected variables
 	double patternRotation;
 	double patternSkewX;
 	double patternSkewY;
-	bool patternMirrorX;
-	bool patternMirrorY;
+	bool   patternMirrorX;
+	bool   patternMirrorY;
 
 	/**
 	 * @brief Fill color name
 	 * @sa PageItem::fillColor(), PageItem::setFillColor()
 	 */
-	QString fillColorVal;
+	QString m_fillColor;
 
 	/**
 	 * @brief Line color name
 	 * @sa PageItem::lineColor(), PageItem::setLineColor()
 	 */
-	QString lineColorVal;
+	QString m_lineColor;
 
 	/**
 	 * @brief Line shade
 	 * @sa PageItem::lineShade, PageItem::setLineShade()
 	 */
-	double lineShadeVal;
+	double m_lineShade;
 
 	/**
 	 * @brief Fill shade
 	 * @sa PageItem::fillShade, PageItem::setFillShade()
 	 */
-	double fillShadeVal;
+	double m_fillShade;
 
 	/**
 	 * @brief Fill transparency
 	 * @sa PageItem::fillTransparency(), PageItem::setFillTransparency()
 	 */
-	double fillTransparencyVal;
+	double m_fillTransparency;
 
 	/**
 	 * @brief Line stroke transparency.
 	 * @sa PageItem::lineTransparency(), PageItem::setLineTransparency()
 	 */
-	double lineTransparencyVal;
+	double m_lineTransparency;
 
 	/**
 	 * @brief Fill transparency blendmode
 	 * @sa PageItem::fillBlendmode(), PageItem::setFillBlendmode()
 	 */
-	int fillBlendmodeVal;
+	int m_fillBlendMode;
 
 	/**
 	 * @brief Line stroke transparency blendmode.
 	 * @sa PageItem::lineBlendmode(), PageItem::setLineBlendmode()
 	 */
-	int lineBlendmodeVal;
+	int m_lineBlendMode;
 
 	/**
 	 * @brief Is the image in this image item flipped horizontally?
@@ -1811,7 +1827,7 @@ protected: // Start protected variables
 	 * @brief Should text flow around the item
 	 * @sa PageItem::textFlowMode(), PateItem::setTextFlowMode()
 	 */
-	TextFlowMode textFlowModeVal;
+	TextFlowMode m_textFlowMode;
 
 	/**
 	 * @brief Stores the attributes of the pageitem (NOT properties, the user defined ATTRIBUTES)
@@ -1834,30 +1850,47 @@ protected: // Start protected variables
 	bool no_fill;
 	bool no_stroke;
 
-	QColor fillQColor;
-	QColor strokeQColor;
-	QColor GrColorP1QColor;
-	QColor GrColorP2QColor;
-	QColor GrColorP3QColor;
-	QColor GrColorP4QColor;
+	QColor m_fillQColor;
+	QColor m_strokeQColor;
+	QColor m_grQColorP1;
+	QColor m_grQColorP2;
+	QColor m_grQColorP3;
+	QColor m_grQColorP4;
 
 	double m_xPos; ///< X position on the page
 	double m_yPos; ///< Y position on the page
 	double m_width; ///< Width of the item
 	double m_height; ///<  Height of the item
 	double m_rotation; ///< Rotation of the item
-	bool m_isSelected; ///< Is the item selected?
+	bool   m_isSelected; ///< Is the item selected?
+	bool   m_imageVisible; ///< Darstellungsart Bild/Titel
 	double m_imageXScale; ///< Scaling X Factor for images
 	double m_imageYScale; ///< Scaling Y Factor for images
 	double m_imageXOffset; ///< Image X Offset to frame
 	double m_imageYOffset; ///< Image Y Offset to frame
 	double m_imageRotation; ///< Image rotation in frame
-	FirstLineOffsetPolicy firstLineOffsetP;
-	bool m_groupClips;
+	FirstLineOffsetPolicy m_firstLineOffset;
+	bool   m_groupClips;
 	QColor hatchBackgroundQ;
 	QColor hatchForegroundQ;
 
-			// End protected variables
+	int m_startArrowIndex;
+	int m_endArrowIndex;
+	int m_startArrowScale;
+	int m_endArrowScale;
+
+	bool   m_hasSoftShadow;
+	QString m_softShadowColor;
+	int    m_softShadowShade;
+	double m_softShadowBlurRadius;
+	double m_softShadowXOffset;
+	double m_softShadowYOffset;
+	double m_softShadowOpacity;
+	int    m_softShadowBlendMode;
+	bool   m_softShadowErasedByObject;
+	bool   m_softShadowHasObjectTransparency;
+
+	// End protected variables
 
 private:	// Start private functions
 	/**

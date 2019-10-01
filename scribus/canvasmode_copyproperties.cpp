@@ -88,7 +88,7 @@ void CanvasMode_CopyProperties::activate(bool fromGesture)
 	}
 }
 
-void CanvasMode_CopyProperties::deactivate(bool forGesture)
+void CanvasMode_CopyProperties::deactivate(bool  /*forGesture*/)
 {
 //	qDebug() << "CanvasMode_CopyProperties::deactivate" << forGesture;
 	m_view->setRedrawMarkerShown(false);
@@ -153,8 +153,8 @@ void CanvasMode_CopyProperties::mousePressEvent(QMouseEvent *m)
 	if (GetItem(&currItem))
 	{
 		double sx, sy, ex, ey, r, skx, sky, fx, fy, ss, sk, sp;
-		currItem->ColGap = m_doc->ElemToLink->ColGap;
-		currItem->Cols = m_doc->ElemToLink->Cols;
+		currItem->m_columnGap = m_doc->ElemToLink->m_columnGap;
+		currItem->m_columns = m_doc->ElemToLink->m_columns;
 		currItem->setTextToFrameDist(m_doc->ElemToLink->textToFrameDistLeft(), m_doc->ElemToLink->textToFrameDistRight(), m_doc->ElemToLink->textToFrameDistTop(), m_doc->ElemToLink->textToFrameDistBottom());
 		// Stroke Properties
 		currItem->setLineStyle(m_doc->ElemToLink->lineStyle());
@@ -358,7 +358,7 @@ bool CanvasMode_CopyProperties::SeleItem(QMouseEvent *m)
 	return false;
 }
 
-void CanvasMode_CopyProperties::createContextMenu(PageItem* currItem, double mx, double my)
+void CanvasMode_CopyProperties::createContextMenu(PageItem* /*currItem*/, double mx, double my)
 {
 	ContextMenu* cmen=nullptr;
 	m_view->setCursor(QCursor(Qt::ArrowCursor));

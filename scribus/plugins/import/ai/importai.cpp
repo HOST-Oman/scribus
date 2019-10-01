@@ -173,13 +173,13 @@ QImage AIPlug::readThumbnail(const QString& fNameIn)
 /* Set default Page to size defined in Preferences */
 	x = 0.0;
 	y = 0.0;
-	b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	parseHeader(fName, x, y, b, h);
 	if (b == 0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docX = x;
 	docY = y;
 	docWidth = b - x;
@@ -284,8 +284,8 @@ bool AIPlug::readColors(const QString& fNameIn, ColorList & colors)
 /* Set default Page to size defined in Preferences */
 	x = 0.0;
 	y = 0.0;
-	b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	parseHeader(fName, x, y, b, h);
 	docX = x;
 	docY = y;
@@ -401,8 +401,8 @@ bool AIPlug::import(const QString& fNameIn, const TransactionSettings& trSetting
 /* Set default Page to size defined in Preferences */
 	x = 0.0;
 	y = 0.0;
-	b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	if (progressDialog)
 	{
 		progressDialog->setOverallProgress(1);
@@ -410,9 +410,9 @@ bool AIPlug::import(const QString& fNameIn, const TransactionSettings& trSetting
 	}
 	parseHeader(fName, x, y, b, h);
 	if (b == 0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docX = x;
 	docY = y;
 	docWidth = b - x;
@@ -1412,7 +1412,7 @@ void AIPlug::processData(const QString& data)
 			dataString = "";
 			if (fObjectMode)
 			{
-				FPoint wh = currentSpecialPath.WidthHeight();
+				FPoint wh = currentSpecialPath.widthHeight();
 				if ((currentSpecialPath.size() > 3) && (wh.x() != 0.0) && (wh.y() != 0.0))
 				{
 					z = m_Doc->itemAdd(PageItem::ImageFrame, PageItem::Unspecified, baseX, baseY, 10, 10, 0, CommonStrings::None, CommonStrings::None);
@@ -1447,7 +1447,7 @@ void AIPlug::processData(const QString& data)
 					if (ite->imageIsAvailable)
 						ite->setImageXYScale(ite->width() / ite->pixm.width(), ite->height() / ite->pixm.height());
 					ite->setImageFlippedV(true);
-					ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+					ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 					ite->setRedrawBounding();
 					if (importerFlags & LoadSavePlugin::lfCreateDoc)
 						ite->setLocked(itemLocked);
@@ -1509,7 +1509,7 @@ void AIPlug::processData(const QString& data)
 			//	yp += m_Doc->currentPage()->yOffset();
 				int z = m_Doc->itemAdd(PageItem::Symbol, PageItem::Unspecified, baseX + xp, baseY + yp, 1, 1, 0, CommonStrings::None, CommonStrings::None);
 				PageItem *b = m_Doc->Items->at(z);
-				b->LayerID = m_Doc->activeLayer();
+				b->m_layerID = m_Doc->activeLayer();
 				ScPattern pat = m_Doc->docPatterns[currentSymbolName];
 				b->setWidth(pat.width * symTrans.m11());
 				b->setHeight(pat.height * symTrans.m22());
@@ -1590,7 +1590,7 @@ void AIPlug::processData(const QString& data)
 /* Start Object creation commands */
 		else if ((command == "b") || (command == "B") || (command == "f") || (command == "F") || (command == "s") || (command == "S"))
 		{
-			FPoint wh = Coords.WidthHeight();
+			FPoint wh = Coords.widthHeight();
 			if ((Coords.size() > 3) && (wh.x() != 0.0) && (wh.y() != 0.0))
 			{
 				if ((!WasU) || ((WasU) && (FirstU)))
@@ -2498,7 +2498,7 @@ void AIPlug::processData(const QString& data)
 			family.replace( QRegExp( "'" ) , QChar( ' ' ) );
 			textFont = m_Doc->itemToolPrefs().textFont;
 			bool found = false;
-			SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
+			SCFontsIterator it(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts);
 			for ( ; it.hasNext(); it.next())
 			{
 				QString fam;
@@ -2516,10 +2516,10 @@ void AIPlug::processData(const QString& data)
 			else
 			{
 				if (importerFlags & LoadSavePlugin::lfCreateThumbnail)
-					textFont = PrefsManager::instance()->appPrefs.itemToolPrefs.textFont;
+					textFont = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
 				else
 				{
-					if (!PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(family))
+					if (!PrefsManager::instance().appPrefs.fontPrefs.GFontSub.contains(family))
 					{
 						qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 						MissingFont *dia = new MissingFont(nullptr, family, m_Doc);
@@ -2527,10 +2527,10 @@ void AIPlug::processData(const QString& data)
 						QString tmpf = dia->getReplacementFont();
 						delete dia;
 						qApp->changeOverrideCursor(QCursor(Qt::WaitCursor));
-						PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family] = tmpf;
+						PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family] = tmpf;
 					}
 					else
-						textFont = PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family];
+						textFont = PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family];
 				}
 			}
 			textSize *= 10.0;
@@ -2565,7 +2565,7 @@ void AIPlug::processData(const QString& data)
 					ite->setRotation(rotation * 180 / M_PI);
 					ite->SetRectFrame();
 					m_Doc->setRedrawBounding(ite);
-					ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+					ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 					ite->setTextFlowMode(PageItem::TextFlowDisabled);
 					ite->setFillShade(CurrFillShade);
 					ite->setLineShade(CurrStrokeShade);
@@ -3036,7 +3036,7 @@ void AIPlug::processRaster(QDataStream &ts)
 	ite->setRotation(rotation * 180 / M_PI);
 	ite->SetRectFrame();
 	m_Doc->setRedrawBounding(ite);
-	ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+	ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 	ite->setTextFlowMode(PageItem::TextFlowDisabled);
 	ite->setFillShade(CurrFillShade);
 	ite->setLineShade(CurrStrokeShade);

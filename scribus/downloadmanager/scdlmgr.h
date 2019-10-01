@@ -19,7 +19,7 @@ class ScDLManager: public QObject
 {
 	Q_OBJECT
 	public:
-		ScDLManager(QObject *parent = 0);
+		ScDLManager(QObject *parent = nullptr);
 		~ScDLManager();
 //TODO: Add download groups so different parts of Scribus can be downloading at the same time
 
@@ -38,13 +38,13 @@ class ScDLManager: public QObject
 
 	signals:
 		void finished();
-		void fileReceived(const QString& t);
-		void fileFailed(const QString& t);
-		void fileDownloadProgress(qint64 bytesReceived, qint64 bytesTotal);
+		void fileReceived(QString);
+		void fileFailed(QString);
+		void fileDownloadProgress(qint64 bytesReceived,qint64 bytesTotal);
 
 	private:
 		ScDLThread *m_thread;
-		int m_dlID;
+		int m_dlID {0};
 		QList <DownloadData> m_fileList;
 };
 

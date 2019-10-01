@@ -17,7 +17,7 @@ for which a new license (GPL+exception) is in place.
 #include <QScopedPointer>
 #include <QXmlInputSource>
 #include <QXmlSimpleReader>
-#include "color.h"
+
 #include "scribusdoc.h"
 #include "styles/charstyle.h"
 #include "styles/paragraphstyle.h"
@@ -30,7 +30,7 @@ for which a new license (GPL+exception) is in place.
 
 QString FileFormatName()
 {
-    return QObject::tr("ODT Document");
+	return QObject::tr("ODT Document");
 }
 
 QStringList FileExtensions()
@@ -49,7 +49,6 @@ void GetText2(const QString& filename, const QString& encoding, bool textOnly, b
 
 ODTIm::ODTIm(const QString& fileName, PageItem *textItem, bool textOnly, bool prefix, bool append)
 {
-	uz=nullptr;
 	m_Doc = textItem->doc();
 	m_item = textItem;
 	m_prefixName = prefix;
@@ -1077,7 +1076,7 @@ void ODTIm::resolveStyle(ObjStyleODT &tmpOStyle, const QString& pAttrs)
 				tmpOStyle.fontName = m_fontMap[actStyle.fontName.value];
 			else
 				tmpOStyle.fontName = actStyle.fontName.value;
-			if (!PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.contains(tmpOStyle.fontName))
+			if (!PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.contains(tmpOStyle.fontName))
 			{
 				tmpOStyle.fontName = constructFontName(tmpOStyle.fontName, "");
 				m_fontMap[actStyle.fontName.value] = tmpOStyle.fontName;
@@ -1099,7 +1098,7 @@ void ODTIm::resolveStyle(ObjStyleODT &tmpOStyle, const QString& pAttrs)
 						tmpOStyle.fontName = m_fontMap[odtStyle.fontName.value];
 					else
 						tmpOStyle.fontName = constructFontName(odtStyle.fontName.value, "");
-					if (!PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.contains(tmpOStyle.fontName))
+					if (!PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.contains(tmpOStyle.fontName))
 					{
 						tmpOStyle.fontName = constructFontName(tmpOStyle.fontName, "");
 						m_fontMap[odtStyle.fontName.value] = tmpOStyle.fontName;
@@ -1157,11 +1156,11 @@ void ODTIm::resolveStyle(ObjStyleODT &tmpOStyle, const QString& pAttrs)
 		{
 			QString attValue = actStyle.textAlign.value;
 			if ((attValue == "left") || (attValue == "start"))
-				tmpOStyle.textAlign = ParagraphStyle::Leftaligned;
+				tmpOStyle.textAlign = ParagraphStyle::LeftAligned;
 			else if (attValue == "center")
 				tmpOStyle.textAlign = ParagraphStyle::Centered;
 			else if ((attValue == "right") || (attValue == "end"))
-				tmpOStyle.textAlign = ParagraphStyle::Rightaligned;
+				tmpOStyle.textAlign = ParagraphStyle::RightAligned;
 			else if (attValue == "justify")
 				tmpOStyle.textAlign = ParagraphStyle::Justified;
 		}
@@ -1271,13 +1270,6 @@ double ODTIm::parseUnit(const QString &unit)
 	return value;
 }
 
-QColor ODTIm::parseColorN( const QString &rgbColor )
-{
-	int r, g, b;
-	keywordToRGB( rgbColor, r, g, b );
-	return QColor( r, g, b );
-}
-
 QString ODTIm::parseColor( const QString &s )
 {
 	QColor c;
@@ -1309,13 +1301,7 @@ QString ODTIm::parseColor( const QString &s )
 		c = QColor(r.toInt(), g.toInt(), b.toInt());
 	}
 	else
-	{
-		QString rgbColor = s.trimmed();
-		if (rgbColor.startsWith( "#" ))
-			c.setNamedColor( rgbColor );
-		else
-			c = parseColorN( rgbColor );
-	}
+		c.setNamedColor( s.trimmed() );
 	ScColor tmp;
 	tmp.fromQColor(c);
 	tmp.setSpotColor(false);
@@ -1328,14 +1314,14 @@ QString ODTIm::parseColor( const QString &s )
 QString ODTIm::constructFontName(const QString& fontBaseName, const QString& fontStyle)
 {
 	QString fontName;
-	SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
+	SCFontsIterator it(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts);
 	for ( ; it.hasNext(); it.next())
 	{
 		if (fontBaseName.toLower() != it.current().family().toLower())
 			continue;
 
 		// found the font family, now go for the style
-		QStringList slist = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.fontMap[it.current().family()];
+		QStringList slist = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.fontMap[it.current().family()];
 		slist.sort();
 		if (slist.count() > 0)
 		{
@@ -1362,9 +1348,9 @@ QString ODTIm::constructFontName(const QString& fontBaseName, const QString& fon
 	QString family = fontBaseName;
 	if (!fontStyle.isEmpty())
 		family += " " + fontStyle;
-	if (PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(family))
+	if (PrefsManager::instance().appPrefs.fontPrefs.GFontSub.contains(family))
 	{
-		fontName = PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family];
+		fontName = PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family];
 		return fontName;
 	}
 
@@ -1374,7 +1360,7 @@ QString ODTIm::constructFontName(const QString& fontBaseName, const QString& fon
 		fontName = dia->getReplacementFont();
 	else
 		fontName = m_Doc->itemToolPrefs().textFont;
-	PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family] = fontName;
+	PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family] = fontName;
 	qApp->changeOverrideCursor(QCursor(Qt::WaitCursor));
 
 	return fontName;
@@ -1389,30 +1375,30 @@ void ODTIm::setFontstyle(CharStyle &tmpCStyle, int kind)
 	m_item->itemText.removeChars(posC, 1);
 	if (fam.isEmpty())
 		return;
-	QStringList slist = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.fontMap[fam];
+	QStringList slist = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.fontMap[fam];
 	if (kind == 0)
 	{
 		if (slist.contains("Italic"))
-			tmpCStyle.setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[fam + " Italic"]);
+			tmpCStyle.setFont(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[fam + " Italic"]);
 	}
 	else if (kind == 1)
 	{
 		if (slist.contains("Oblique"))
-			tmpCStyle.setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[fam + " Oblique"]);
+			tmpCStyle.setFont(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[fam + " Oblique"]);
 	}
 	else if (kind == 2)
 	{
 		if (slist.contains("Bold"))
-			tmpCStyle.setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[fam + " Bold"]);
+			tmpCStyle.setFont(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[fam + " Bold"]);
 	}
 	else if (kind == 3)
 	{
 		if (slist.contains("Bold Italic"))
-			tmpCStyle.setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[fam + " Bold Italic"]);
+			tmpCStyle.setFont(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[fam + " Bold Italic"]);
 	}
 	else if (kind == 4)
 	{
 		if (slist.contains("Bold Oblique"))
-			tmpCStyle.setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[fam + " Bold Oblique"]);
+			tmpCStyle.setFont(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[fam + " Bold Oblique"]);
 	}
 }

@@ -31,7 +31,6 @@ CWDialog::CWDialog(QWidget* parent, ScribusDoc* doc, const char* name, bool moda
 	setupUi(this);
 	setObjectName(name);
 	setModal(modal);
-	int h, s, v;
 	ScColor color;
 	QString colorName;
 	connectSlots(false);
@@ -52,7 +51,7 @@ CWDialog::CWDialog(QWidget* parent, ScribusDoc* doc, const char* name, bool moda
 	documentColorList->setPixmapType(ColorListBox::fancyPixmap);
 	documentColorList->setColors(m_Doc->PageColors, false);
 	// preferences
-	prefs = PrefsManager::instance()->prefsFile->getPluginContext("colorwheel");
+	prefs = PrefsManager::instance().prefsFile->getPluginContext("colorwheel");
 	typeCombo->setCurrentIndex(prefs->getInt("cw_type", 0));
 	angleSpin->setValue(prefs->getInt("cw_angle", 15));
 	colorList->setPixmapType(ColorListBox::fancyPixmap);
@@ -72,6 +71,7 @@ CWDialog::CWDialog(QWidget* parent, ScribusDoc* doc, const char* name, bool moda
 	}
 	// Handle achromatic colors
 	QColor rgb = ScColorEngine::getRGBColor(color, m_Doc);
+	int h, s, v;
 	rgb.getHsv(&h, &s, &v);
 	if (h == -1)
 	{   // Reset to defaults

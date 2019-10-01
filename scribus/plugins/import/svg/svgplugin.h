@@ -37,7 +37,7 @@ class PLUGIN_API SVGImportPlugin : public LoadSavePlugin
 		virtual const AboutData* getAboutData() const;
 		virtual void deleteAboutData(const AboutData* about) const;
 		virtual void languageChange();
-		virtual bool fileSupported(QIODevice* file, const QString & fileName=QString::null) const;
+		virtual bool fileSupported(QIODevice* file, const QString & fileName=QString()) const;
 		virtual bool loadFile(const QString & fileName, const FileFormat & fmt, int flags, int index = 0);
 		virtual QImage readThumbnail(const QString& fileName);
 		virtual void addToMainWindowMenu(ScribusMainWindow *) {};
@@ -49,7 +49,7 @@ class PLUGIN_API SVGImportPlugin : public LoadSavePlugin
 		\param filename a file name to import
 		\retval true for success
 		 */
-		virtual bool import(QString filename = QString::null, int flags = lfUseCurrentPage|lfInteractive);
+		virtual bool import(QString filename = QString(), int flags = lfUseCurrentPage|lfInteractive);
 
 	private:
 		void registerFormats();
@@ -164,7 +164,6 @@ public:
 		StrokeOpacity(1.0),
 		textAnchor("start"),
 		clipPath(),
-		forGroup(false),
 		endMarker(""),
 		startMarker("")
 		{
@@ -215,7 +214,6 @@ public:
 	QString textAnchor;
 	QString textDecoration;
 	FPointArray clipPath;
-	bool forGroup;
 	QString filter;
 	QString endMarker;
 	QString startMarker;
@@ -276,8 +274,6 @@ public:
 	double  parseFontSize(const QString& fsize);
 	double  parseUnit(const QString &unit);
 	QTransform parseTransform(const QString &transform);
-	bool    parseSVG( const QString &s, FPointArray *ite );
-	QColor  parseColorN( const QString &rgbColor );
 	QString parseColor( const QString &s );
 	QString parseIccColor( const QString &s );
 	QString parseTagName( const QDomElement &e );

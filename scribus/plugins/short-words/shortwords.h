@@ -27,17 +27,14 @@ class PLUGIN_API ShortWordsPlugin : public ScActionPlugin
 		// Standard plugin implementation
 		ShortWordsPlugin();
 		virtual ~ShortWordsPlugin();
-		virtual bool run(ScribusDoc* doc, const QString& target = QString::null);
+		virtual bool run(ScribusDoc* doc, const QString& target = QString());
 		virtual const QString fullTrName() const;
 		virtual const AboutData* getAboutData() const;
 		virtual void deleteAboutData(const AboutData* about) const;
 		virtual void languageChange();
 		virtual void addToMainWindowMenu(ScribusMainWindow *) {};
 		/*! \brief Preference widget */
-		virtual bool newPrefsPanelWidget(QWidget* parent, PrefsPanel*& panel,
-										 QString& caption, QPixmap& icon);
-		virtual bool newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel,
-										 QString& caption, QPixmap& icon);
+		virtual bool newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel);
 		// Special features (none)
 };
 

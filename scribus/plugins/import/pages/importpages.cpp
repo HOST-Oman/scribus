@@ -89,8 +89,8 @@ QImage PagesPlug::readThumbnail(QString fName)
 {
 	QFileInfo fi = QFileInfo(fName);
 	double b, h;
-	b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	progressDialog = nullptr;
@@ -188,9 +188,9 @@ bool PagesPlug::import(QString fNameIn, const TransactionSettings& trSettings, i
 		qApp->processEvents();
 	}
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	baseX = 0;
@@ -537,8 +537,8 @@ QImage PagesPlug::readThumbnail(const QString& fName)
 	{
 		QFileInfo fi = QFileInfo(fName);
 		baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
-		docWidth = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-		docHeight = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		docWidth = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+		docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 		m_Doc = new ScribusDoc();
 		m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 		m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
@@ -642,8 +642,8 @@ bool PagesPlug::import(const QString& fNameIn, const TransactionSettings& trSett
 		qApp->processEvents();
 	}
 	/* Set default Page to size defined in Preferences */
-	docWidth = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	docHeight = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	docWidth = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	baseX = 0;
 	baseY = 0;
 	if (!interactive || (flags & LoadSavePlugin::lfInsertPage))
@@ -891,7 +891,7 @@ bool PagesPlug::parseDocReference(const QString& designMap, bool compressed)
 			{
 				m_Doc->setPage(docWidth, docHeight, topMargin, leftMargin, rightMargin, bottomMargin, pgCols, pgGap, false, false);
 				m_Doc->setPageSize(papersize);
-				m_Doc->currentPage()->m_pageSize = papersize;
+				m_Doc->currentPage()->setSize(papersize);
 				m_Doc->currentPage()->setInitialHeight(docHeight);
 				m_Doc->currentPage()->setInitialWidth(docWidth);
 				m_Doc->currentPage()->setHeight(docHeight);
@@ -920,7 +920,7 @@ bool PagesPlug::parseDocReference(const QString& designMap, bool compressed)
 							ScPage *oldCur = m_Doc->currentPage();
 							ScPage *addedPage = m_Doc->addMasterPage(mpagecount, pageNam);
 							m_Doc->setCurrentPage(addedPage);
-							addedPage->MPageNam = "";
+							addedPage->clearMasterPageName();
 							m_Doc->view()->addPage(mpagecount, true);
 							baseX = addedPage->xOffset();
 							baseY = addedPage->yOffset();
@@ -970,7 +970,7 @@ bool PagesPlug::parseDocReference(const QString& designMap, bool compressed)
 							bottomMargin = m_Doc->marginsVal().bottom();
 							m_Doc->setPage(docWidth, docHeight, topMargin, leftMargin, rightMargin, bottomMargin, m_Doc->PageSp, m_Doc->PageSpa, false, false);
 							m_Doc->setPageSize("Custom");
-							m_Doc->currentPage()->m_pageSize = "Custom";
+							m_Doc->currentPage()->setSize("Custom");
 							m_Doc->currentPage()->setInitialHeight(docHeight);
 							m_Doc->currentPage()->setInitialWidth(docWidth);
 							m_Doc->currentPage()->setHeight(docHeight);
@@ -984,7 +984,7 @@ bool PagesPlug::parseDocReference(const QString& designMap, bool compressed)
 						else
 						{
 							m_Doc->addPage(pagecount);
-							m_Doc->currentPage()->m_pageSize = "Custom";
+							m_Doc->currentPage()->setSize("Custom");
 							m_Doc->currentPage()->setInitialHeight(docHeight);
 							m_Doc->currentPage()->setInitialWidth(docWidth);
 							m_Doc->currentPage()->setHeight(docHeight);
@@ -993,7 +993,7 @@ bool PagesPlug::parseDocReference(const QString& designMap, bool compressed)
 							m_Doc->currentPage()->initialMargins.setBottom(bottomMargin);
 							m_Doc->currentPage()->initialMargins.setLeft(leftMargin);
 							m_Doc->currentPage()->initialMargins.setRight(rightMargin);
-							m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
+							m_Doc->currentPage()->setMasterPageNameNormal();
 							m_Doc->view()->addPage(pagecount, true);
 							pagecount++;
 						}
@@ -1889,7 +1889,7 @@ PageItem* PagesPlug::parseObjReference(QDomElement &draw)
 							retObj->AspectRatio = false;
 							retObj->ScaleType   = false;
 							m_Doc->loadPict(fileName, retObj);
-							retObj->AdjustPictScale();
+							retObj->adjustPictScale();
 						}
 					}
 					delete tempFile;
@@ -2016,9 +2016,9 @@ void PagesPlug::applyParagraphAttrs(ParagraphStyle &newStyle, CharStyle &tmpCSty
 		if (actStyle.justification.valid)
 		{
 			if (actStyle.justification.value == "0")
-				newStyle.setAlignment(ParagraphStyle::Leftaligned);
+				newStyle.setAlignment(ParagraphStyle::LeftAligned);
 			else if (actStyle.justification.value == "1")
-				newStyle.setAlignment(ParagraphStyle::Rightaligned);
+				newStyle.setAlignment(ParagraphStyle::RightAligned);
 			else if (actStyle.justification.value == "2")
 				newStyle.setAlignment(ParagraphStyle::Centered);
 			else if (actStyle.justification.value == "3")

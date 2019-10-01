@@ -42,6 +42,19 @@ class ScribusMainWindow;
 /** \brief Horizontal ruler
 \author Franz Schmid
 */
+
+
+enum ruler_code
+{
+	rc_none = 0,
+	rc_leftFrameDist = 1,
+	rc_rightFrameDist = 2,
+	rc_indentFirst = 3,
+	rc_leftMargin = 4,
+	rc_tab = 5,
+	rc_rightMargin = 6
+};
+
 class SCRIBUS_API Hruler : public QWidget
 {
 	Q_OBJECT
@@ -49,36 +62,18 @@ class SCRIBUS_API Hruler : public QWidget
 public:
 	Hruler(ScribusView *pa, ScribusDoc *doc);
 	~Hruler() {}
-private:
-	bool textEditMode;
-	double ColGap;
-	double lineCorr;
-	int Cols;
-	double RExtra;
-	double Extra;
-	double Indent;
-	double First;
-	double RMargin;
-	bool Revers;
-	QList<ParagraphStyle::TabRecord> TabValues;
-	PageItem * currItem;
 
-	double ItemPos;
-	double ItemEndPos;
-	double offs;
-	double itemScale;
-public:
 	double ruleSpacing();
-	void setItem(PageItem * item);
-	void textMode(bool state) { textEditMode = state; }
+	void   setItem(PageItem * item);
+	void   textMode(bool state) { m_textEditMode = state; }
 	double textBase() const; // left text edge in canvas coord
 	double textWidth() const;
 	double textPosToCanvas(double x) const;
-	int textPosToLocal(double x) const;
+	int    textPosToLocal(double x) const;
 	double localToTextPos(int x) const;
-	void shift(double pos); // using canvas coord
-	void shiftRel(double dist); // using canvas coord
-	double offset() const { return offs; }
+	void   shift(double pos); // using canvas coord
+	void   shiftRel(double dist); // using canvas coord
+	double offset() const { return m_offset; }
 	
 private:
 	int findRulerHandle(QPoint mp, double grabRadius);
@@ -94,24 +89,43 @@ private:
 	void drawTextMarks(double pos, double endPos, QPainter& p);
 	void drawMarker(QPainter& p);
 	void drawNumber(const QString& num, int startx, int starty, QPainter & p);
-	void UpdateTabList();
+	void updateTabList();
 
-	int Markp;
-	int oldMark;
-	bool Mpressed;
-	int ActCol;
-	int ActTab;
-	double Scaling;
-	int RulerCode;
-	int MouseX;
-
-	ScribusDoc *m_doc;
-	ScribusView *m_view;
+	PageItem* m_currItem {nullptr};
+	QList<ParagraphStyle::TabRecord> m_tabValues;
+	ScribusDoc *m_doc {nullptr};
+	ScribusView *m_view {nullptr};
+	bool m_drawMark {false};
+	bool m_mousePressed {false};
+	bool m_reverse {false};
+	bool m_textEditMode {false};
+	double m_colGap {0.0};
+	double m_cor {0.0};
+	double m_distLeft {0.0};
+	double m_distRight {0.0};
+	double m_firstIndent {0.0};
+	double m_itemEndPos {0.0};
+	double m_itemPos {0.0};
+	double m_itemScale {1.0};
+	double m_iter {0.0};
+	double m_iter2 {0.0};
+	double m_leftMargin {0.0};
+	double m_lineCorr {0.0};
+	double m_offset {0.0};
+	double m_rightMargin {0.0};
+	double m_scaling {0.0};
+	int m_cols {0};
+	int m_currCol {1};
+	int m_currTab {0};
+	int m_mouseX {0};
+	int m_oldMark {0};
+	int m_rulerCode {rc_none};
+	int m_whereToDraw {0};
 	
 public slots: // Public slots
 	/** \brief draw mark
 	\param where where to draw */
-	void Draw(int where);
+	void draw(int where);
 	void unitChange();
 
 signals:
@@ -119,11 +133,6 @@ signals:
 	void MarkerMoved(double base, double xp);
 
 private:
-	double iter, iter2;
-	double cor;
-	int whereToDraw;
-	bool drawMark;
-	PrefsManager *prefsManager;
 	RulerGesture* rulerGesture;
 };
 

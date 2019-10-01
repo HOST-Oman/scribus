@@ -46,7 +46,7 @@ class PLUGIN_API PathConnectPlugin : public ScActionPlugin
 		// Standard plugin implementation
 		PathConnectPlugin();
 		virtual ~PathConnectPlugin();
-		virtual bool run(ScribusDoc* doc, const QString& target = QString::null);
+		virtual bool run(ScribusDoc* doc, const QString& target = QString());
 		virtual const QString fullTrName() const;
 		virtual const AboutData* getAboutData() const;
 		virtual void deleteAboutData(const AboutData* about) const;
@@ -58,16 +58,15 @@ class PLUGIN_API PathConnectPlugin : public ScActionPlugin
 		FPointArray computePath(int pointOne, int pointTwo, int mode, FPointArray &p1, FPointArray &p2);
 		FPointArray reversePath(FPointArray &path);
 
-		PageItem* m_item1;
-		PageItem* m_item2;
-		ScribusDoc* m_doc;
-
+		PageItem* m_item1 {nullptr};
+		PageItem* m_item2 {nullptr};
+		ScribusDoc* m_doc {nullptr};
 		FPointArray originalPath1;
 		FPointArray originalPath2;
-		double originalXPos;
-		double originalYPos;
-		
-		bool firstUpdate;
+		double originalXPos {0.0};
+		double originalYPos {0.0};
+		bool firstUpdate {false};
+
 	private slots:
 		void updateEffect(int effectType, int pointOne, int pointTwo, int mode);
 };

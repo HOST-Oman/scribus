@@ -555,6 +555,13 @@ void StoryText::removeChars(int pos, uint len)
 	if (pos + static_cast<int>(len) > length())
 		len = length() - pos;
 
+	if ((pos == 0) && (len > 0) && (static_cast<int>(len) == length()))
+	{
+		int lastChar = length() - 1;
+		while (lastChar > 0 && text(lastChar) == SpecialChars::PARSEP)
+			--lastChar;
+		d->orphanedCharStyle = charStyle(lastChar);
+	}
 	for (int i = pos + static_cast<int>(len) - 1; i >= pos; --i)
 	{
 		ScText *it = d->at(i);
@@ -569,7 +576,7 @@ void StoryText::removeChars(int pos, uint len)
 			--m_selLast;
 		if (i < m_selFirst)
 			--m_selFirst;
-		if (static_cast<uint>(i + 1 ) <= d->cursorPosition && d->cursorPosition > 0)
+		if (static_cast<uint>(i + 1) <= d->cursorPosition && d->cursorPosition > 0)
 			d->cursorPosition -= 1;
 	}
 
@@ -1011,7 +1018,7 @@ bool StoryText::hasMark(int pos, Mark* mrk) const
 
 	StoryText* that = const_cast<StoryText *>(this);
 	if (that->d->at(pos)->ch == SpecialChars::OBJECT)
-        return that->d->at(pos)->hasMark(mrk);
+		return that->d->at(pos)->hasMark(mrk);
 	return false;
 }
 
@@ -1152,7 +1159,7 @@ const CharStyle & StoryText::charStyle(int pos) const
 	if (length() == 0)
 	{
 //		qDebug() << "storytext::charstyle: default";
-		return defaultStyle().charStyle();
+		return d->orphanedCharStyle;
 	}
 	if (pos == length())
 	{
@@ -1646,7 +1653,10 @@ int StoryText::nextWord(int pos)
 
 	it->setText((const UChar*) plainText().utf16());
 	pos = it->following(pos);
-	pos = it->next();
+	
+	int len = length();
+	while ((pos < len) && (text(pos).isSpace() || text(pos).isPunct()))
+		++pos;
 	return pos;
 }
 
@@ -1738,7 +1748,7 @@ int StoryText::endOfSelection() const
 	return m_selFirst <= m_selLast? m_selLast + 1 : -1;
 }
 
-int StoryText::lengthOfSelection() const
+int StoryText::selectionLength() const
 {
 	//FIX ME - sometimes I saw values equal or greater than length of text
 	int last = m_selLast;
@@ -1984,7 +1994,7 @@ void StoryText::invalidateLayout()
 void StoryText::invalidateAll()
 {
 	d->pstyleContext.invalidate();
-    invalidate(0, length());
+	invalidate(0, length());
 }
 
 void StoryText::invalidate(int firstItem, int endItem)

@@ -473,9 +473,9 @@ QImage EmfPlug::readThumbnail(const QString& fName)
 	double y = 0;
 	parseHeader(fName, x, y, b, h);
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	docX = x;
@@ -521,7 +521,7 @@ QImage EmfPlug::readThumbnail(const QString& fName)
 			m_Doc->setPageHeight(gh);
 			m_Doc->setPageWidth(gw);
 			m_Doc->setPageSize("Custom");
-			m_Doc->currentPage()->m_pageSize = "Custom";
+			m_Doc->currentPage()->setSize("Custom");
 			m_Doc->reformPages(true);
 		}
 		if (Elements.count() > 1)
@@ -606,9 +606,9 @@ bool EmfPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 	}
 	parseHeader(fNameIn, x, y, b, h);
 	if (b == 0.0)
-		b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
+		b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
 	if (h == 0.0)
-		h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	docX = x;
@@ -624,8 +624,8 @@ bool EmfPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 		m_Doc->currentPage()->setInitialHeight(docHeight);
 		m_Doc->currentPage()->setWidth(docWidth);
 		m_Doc->currentPage()->setHeight(docHeight);
-		m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
-		m_Doc->currentPage()->m_pageSize = "Custom";
+		m_Doc->currentPage()->setMasterPageNameNormal();
+		m_Doc->currentPage()->setSize("Custom");
 		m_Doc->reformPages(true);
 		baseX = m_Doc->currentPage()->xOffset();
 		baseY = m_Doc->currentPage()->yOffset();
@@ -698,7 +698,7 @@ bool EmfPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 				m_Doc->setPageHeight(gh);
 				m_Doc->setPageWidth(gw);
 				m_Doc->setPageSize("Custom");
-				m_Doc->currentPage()->m_pageSize = "Custom";
+				m_Doc->currentPage()->setSize("Custom");
 				m_Doc->reformPages(true);
 			}
 		}
@@ -2976,7 +2976,7 @@ void EmfPlug::handleImage(qint32 dstX, qint32 dstY, qint32 dstW, qint32 dstH, co
 				ite->updateClip();
 			}
 			m_Doc->loadPict(fileName, ite);
-			ite->AdjustPictScale();
+			ite->adjustPictScale();
 		}
 	}
 	delete tempFile;

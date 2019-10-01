@@ -20,9 +20,13 @@ Prefs_Guides::Prefs_Guides(QWidget* parent, ScribusDoc* doc)
 {
 	setupUi(this);
 	languageChange();
-	buttonUp->setIcon(IconManager::instance()->loadIcon("16/go-up.png"));
+
+	m_caption = tr("Guides");
+	m_icon = "16/edit-guides.png";
+
+	buttonUp->setIcon(IconManager::instance().loadIcon("16/go-up.png"));
 	buttonUp->setEnabled(false);
-	buttonDown->setIcon(IconManager::instance()->loadIcon("16/go-down.png"));
+	buttonDown->setIcon(IconManager::instance().loadIcon("16/go-down.png"));
 	buttonDown->setEnabled(false);
 
 	QString pxSuffix = QString(" %1").arg(CommonStrings::trStrPX);
@@ -43,9 +47,7 @@ Prefs_Guides::Prefs_Guides(QWidget* parent, ScribusDoc* doc)
 	connect(visibilityGridCheckBox, SIGNAL(clicked()), this, SLOT(gridClicked()));
 }
 
-Prefs_Guides::~Prefs_Guides()
-{
-}
+Prefs_Guides::~Prefs_Guides() = default;
 
 void Prefs_Guides::languageChange()
 {
@@ -155,28 +157,28 @@ void Prefs_Guides::restoreDefaults(struct ApplicationPrefs *prefsData)
 	QPixmap pm(100, 30);
 	pm.fill(prefsData->guidesPrefs.guideColor);
 	colorGuides = prefsData->guidesPrefs.guideColor;
-	guideColorPushButton->setText( QString::null );
+	guideColorPushButton->setText( QString() );
 	guideColorPushButton->setIcon(pm);
 
 
 	pm.fill(prefsData->guidesPrefs.marginColor);
 	colorMargin = prefsData->guidesPrefs.marginColor;
-	marginColorPushButton->setText( QString::null );
+	marginColorPushButton->setText( QString() );
 	marginColorPushButton->setIcon(pm);
 
 	pm.fill(prefsData->guidesPrefs.majorGridColor);
 	colorMajorGrid = prefsData->guidesPrefs.majorGridColor;
-	majorGridColorPushButton->setText( QString::null );
+	majorGridColorPushButton->setText( QString() );
 	majorGridColorPushButton->setIcon(pm);
 
 	pm.fill(prefsData->guidesPrefs.minorGridColor);
 	colorMinorGrid = prefsData->guidesPrefs.minorGridColor;
-	minorGridColorPushButton->setText( QString::null );
+	minorGridColorPushButton->setText( QString() );
 	minorGridColorPushButton->setIcon(pm);
 
 	pm.fill(prefsData->guidesPrefs.baselineGridColor);
 	colorBaselineGrid = prefsData->guidesPrefs.baselineGridColor;
-	baselineGridColorPushButton->setText( QString::null );
+	baselineGridColorPushButton->setText( QString() );
 	baselineGridColorPushButton->setIcon(pm);
 	gridTypeCombo->setEnabled(visibilityGridCheckBox->isChecked());
 }

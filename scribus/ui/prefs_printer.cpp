@@ -18,12 +18,14 @@ Prefs_Printer::Prefs_Printer(QWidget* parent, ScribusDoc* doc) : Prefs_Pane(pare
 {
 	setupUi(this);
 	languageChange();
+
+	m_caption = tr("Printer");
+	m_icon = "16/printer.png";
+
 	connect(useAltPrinterCmdCheckBox, SIGNAL(clicked()), this, SLOT(selOtherComm()));
 }
 
-Prefs_Printer::~Prefs_Printer()
-{
-}
+Prefs_Printer::~Prefs_Printer() = default;
 
 void Prefs_Printer::languageChange()
 {
@@ -60,7 +62,7 @@ void Prefs_Printer::restoreDefaults(struct ApplicationPrefs *prefsData)
 
 	destinationComboBox->addItem( tr("File"));
 
-	PrefsContext* prefs = PrefsManager::instance()->prefsFile->getContext("print_options");
+	PrefsContext* prefs = PrefsManager::instance().prefsFile->getContext("print_options");
 
 	QString selectedDest = prefs->get("CurrentPrn", "");
 	int prnIndex = destinationComboBox->findText(selectedDest);
@@ -99,7 +101,7 @@ void Prefs_Printer::restoreDefaults(struct ApplicationPrefs *prefsData)
 
 void Prefs_Printer::saveGuiToPrefs(struct ApplicationPrefs *prefsData) const
 {
-	PrefsContext* prefs = PrefsManager::instance()->prefsFile->getContext("print_options");
+	PrefsContext* prefs = PrefsManager::instance().prefsFile->getContext("print_options");
 	prefs->set("CurrentPrn", destinationComboBox->currentText());
 	prefs->set("OtherCom", useAltPrinterCmdCheckBox->isChecked());
 	prefs->set("Command", altPrinterCmdLineEdit->text());

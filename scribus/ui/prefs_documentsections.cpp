@@ -13,6 +13,7 @@ for which a new license (GPL+exception) is in place.
 #include "commonstrings.h"
 #include "prefsstructs.h"
 #include "scribusdoc.h"
+#include "ui/numformatcombo.h"
 #include "ui/scmessagebox.h"
 
 Prefs_DocumentSections::Prefs_DocumentSections(QWidget* parent, ScribusDoc* doc)
@@ -21,6 +22,10 @@ Prefs_DocumentSections::Prefs_DocumentSections(QWidget* parent, ScribusDoc* doc)
 {
 	setupUi(this);
 	languageChange();
+
+	m_caption = tr("Sections");
+	m_icon = "tabtocindex_16.png";
+
 	connect(sectionsTable, SIGNAL(cellChanged(int,int)), this, SLOT(tableItemChanged(int,int)));
 	connect(addButton, SIGNAL(clicked()), this, SLOT(addEntry()));
 	connect(deleteButton, SIGNAL(clicked()), this, SLOT(deleteEntry()));
@@ -36,8 +41,8 @@ void Prefs_DocumentSections::languageChange()
 
 void Prefs_DocumentSections::restoreDefaults(struct ApplicationPrefs *prefsData)
 {
-	m_localSections=prefsData->docSectionMap;
-	m_maxPageIndex=m_doc->DocPages.count()-1;
+	m_localSections = prefsData->docSectionMap;
+	m_maxPageIndex = m_doc->DocPages.count()-1;
 	m_styles.clear();
 	m_styles = getFormatList();
 	m_styles << CommonStrings::tr_None;
@@ -59,104 +64,93 @@ void Prefs_DocumentSections::updateTable()
 	{
 		uint i=0;
 		//Name
-		QTableWidgetItem *item0 = new QTableWidgetItem((*it).name);
+		QTableWidgetItem *item0 = new QTableWidgetItem(it->name);
 		sectionsTable->setItem(row, i++, item0);
 		//Active
 		QTableWidgetItem *item1 = new QTableWidgetItem();;
-		item1->setCheckState((*it).active ? Qt::Checked : Qt::Unchecked);
+		item1->setCheckState(it->active ? Qt::Checked : Qt::Unchecked);
 		sectionsTable->setItem(row, i++, item1);
 		//Reversed
 		QTableWidgetItem *item2 = new QTableWidgetItem();
-		item2->setCheckState((*it).reversed ? Qt::Checked : Qt::Unchecked);
+		item2->setCheckState(it->reversed ? Qt::Checked : Qt::Unchecked);
 		sectionsTable->setItem(row, i++, item2);
 		//FromIndex
-		QTableWidgetItem *item3 = new QTableWidgetItem(QString::number((*it).fromindex+1));
+		QTableWidgetItem *item3 = new QTableWidgetItem(QString::number(it->fromindex + 1));
 		sectionsTable->setItem(row, i++, item3);
 		//ToIndex
-		QTableWidgetItem *item4 = new QTableWidgetItem(QString::number((*it).toindex+1));
+		QTableWidgetItem *item4 = new QTableWidgetItem(QString::number(it->toindex + 1));
 		sectionsTable->setItem(row, i++, item4);
 		//Style
-		QComboBox *item5 = new QComboBox();
+		NumFormatCombo *item5 = new NumFormatCombo(nullptr, true);
 		item5->addItems(m_styles);
 		sectionsTable->setCellWidget(row, i++, item5);
-		if ((*it).type==Type_None)
-			item5->setCurrentIndex(m_styles.count()-1);
-		else
-			item5->setCurrentIndex((*it).type);
+		item5->setCurrentFormat(it->type);
 		//Start Page Number
-		QTableWidgetItem *item6 = new QTableWidgetItem(QString::number((*it).sectionstartindex));
+		QTableWidgetItem *item6 = new QTableWidgetItem(QString::number(it->sectionstartindex));
 		sectionsTable->setItem(row, i++, item6);
 		//End Page Number
 		/*
-		QTableItem *item7 = new QTableItem(sectionsTable, QTableItem::WhenCurrent, QString::number((*it).sectionstartindex + (*it).toindex - (*it).fromindex));
+		QTableItem *item7 = new QTableItem(sectionsTable, QTableItem::WhenCurrent, QString::number(it->sectionstartindex + it->toindex - it->fromindex));
 		item7->setEnabled(false);
 		sectionsTable->setItem(row, i++, item7);
 		*/
 		//Field Width
-		QTableWidgetItem *item7 = new QTableWidgetItem(QString::number((*it).pageNumberWidth));
+		QTableWidgetItem *item7 = new QTableWidgetItem(QString::number(it->pageNumberWidth));
 		sectionsTable->setItem(row, i++, item7);
 		//Fill Char
-		QTableWidgetItem *item8 = new QTableWidgetItem(QString((*it).pageNumberFillChar));
+		QTableWidgetItem *item8 = new QTableWidgetItem(QString(it->pageNumberFillChar));
 		sectionsTable->setItem(row, i++, item8);
 		//
-		QTableWidgetItem *t=sectionsTable->verticalHeaderItem(row);
-		if (t!=nullptr)
+		QTableWidgetItem *t = sectionsTable->verticalHeaderItem(row);
+		if (t != nullptr)
 			t->setText(QString("%1").arg(row));
 		row++;
 	}
-	deleteButton->setEnabled(m_localSections.count()>1);
+	deleteButton->setEnabled(m_localSections.count() > 1);
 }
 
 void Prefs_DocumentSections::tableItemChanged( int row, int col )
 {
-	bool outOfRange=false;
+	bool outOfRange = false;
 	uint newDocPageSpec;
 	switch (col)
 	{
 		case 0:
-			m_localSections[row].name=sectionsTable->item(row, col)->text();
+			m_localSections[row].name = sectionsTable->item(row, col)->text();
 			break;
 		case 1:
-			m_localSections[row].active=(sectionsTable->item(row, col)->checkState()==Qt::Checked);
+			m_localSections[row].active = (sectionsTable->item(row, col)->checkState() == Qt::Checked);
 			break;
 		case 2:
-			m_localSections[row].reversed=(sectionsTable->item(row, col)->checkState()==Qt::Checked);
+			m_localSections[row].reversed = (sectionsTable->item(row, col)->checkState() == Qt::Checked);
 			break;
 		case 3:
 		case 4:
 			// Validate to/from page specification before conversion to an index
 			//!!!	There is still a problem here if m_maxPageIndex == MAX_UINT ;)
-			newDocPageSpec=sectionsTable->item(row, col)->text().toUInt();
-			if (newDocPageSpec==0)
+			newDocPageSpec = sectionsTable->item(row, col)->text().toUInt();
+			if (newDocPageSpec == 0)
 			{
-				newDocPageSpec=1;
-				outOfRange=true;
+				newDocPageSpec = 1;
+				outOfRange = true;
 			}
-			else
-				if (newDocPageSpec>m_maxPageIndex+1)
-				{
-					newDocPageSpec=m_maxPageIndex+1;
-					outOfRange=true;
-				}
+			else if (newDocPageSpec > m_maxPageIndex+1)
+			{
+				newDocPageSpec = m_maxPageIndex + 1;
+				outOfRange = true;
+			}
 			// Now, since newDocPageSpec >= 1, convert to index
 			--newDocPageSpec;
-			if (col==3)
-				m_localSections[row].fromindex=newDocPageSpec;
+			if (col == 3)
+				m_localSections[row].fromindex = newDocPageSpec;
 			else
-				m_localSections[row].toindex=newDocPageSpec;
+				m_localSections[row].toindex = newDocPageSpec;
 			break;
 		case 5:
 			{
-				QComboBox* qcti=dynamic_cast<QComboBox*>(sectionsTable->cellWidget(row,col));
-				if (qcti!=nullptr)
-				{
-					int index=qcti->currentIndex();
-					if (index<m_styles.count()-1)
-						m_localSections[row].type=(NumFormat)index;
-					else
-						if (index==m_styles.count()-1)
-							m_localSections[row].type=Type_None;
-				}
+				NumFormatCombo* qcti = dynamic_cast<NumFormatCombo*>(sectionsTable->cellWidget(row,col));
+				if (qcti != nullptr)
+					m_localSections[row].type = qcti->currentFormat();
 			}
 			break;
 		case 6:
@@ -168,10 +162,10 @@ void Prefs_DocumentSections::tableItemChanged( int row, int col )
 		case 8:
 			{
 				QString ch=sectionsTable->item(row, col)->text();
-				if (ch.length()>0)
-					m_localSections[row].pageNumberFillChar=ch.at(0);
+				if (ch.length() > 0)
+					m_localSections[row].pageNumberFillChar = ch.at(0);
 				else
-					m_localSections[row].pageNumberFillChar=QChar();
+					m_localSections[row].pageNumberFillChar = QChar();
 			}
 			break;
 		default:
@@ -191,11 +185,11 @@ void Prefs_DocumentSections::addEntry()
 	bool found=false;
 	DocumentSectionMap::Iterator it = m_localSections.begin();
 	int count=0;
-	for (; it!= m_localSections.end(); ++it)
+	for (; it != m_localSections.end(); ++it)
 	{
-		if(count==currRow)
+		if(count == currRow)
 		{
-			found=true;
+			found = true;
 			break;
 		}
 		++count;
@@ -203,15 +197,16 @@ void Prefs_DocumentSections::addEntry()
 	if (!found) //End of map, just append
 	{
 		struct DocumentSection blank;
-		uint count=m_localSections.count();
-		blank.number=count;
-		blank.name=QString::number(count);
-		blank.fromindex=m_maxPageIndex+1;
-		blank.toindex=m_maxPageIndex+1;
-		blank.type=Type_1_2_3;
-		blank.sectionstartindex=1;
-		blank.reversed=false;
-		blank.active=true;
+		uint count = m_localSections.count();
+		blank.number = count;
+		blank.name = QString::number(count);
+		blank.fromindex = m_maxPageIndex+1;
+		blank.toindex = m_maxPageIndex+1;
+		blank.type = Type_1_2_3;
+		blank.sectionstartindex = 1;
+		blank.reversed = false;
+		blank.active = true;
+		blank.pageNumberWidth = 0;
 		m_localSections.insert(count, blank);
 	}
 	else
@@ -220,23 +215,24 @@ void Prefs_DocumentSections::addEntry()
 		DocumentSectionMap tempSections(m_localSections);
 		m_localSections.clear();
 		//Copy the temp map entries over. When we find the number of the current row, also insert a new entry.
-		uint i=0;
+		uint i = 0;
 		for (DocumentSectionMap::Iterator it2 = tempSections.begin(); it2!= tempSections.end(); ++it2)
 		{
-			it2.value().number=i;
+			it2.value().number = i;
 			m_localSections.insert(i, it2.value());
 
-			if ((*it).number==i)
+			if (it->number == i)
 			{
 				struct DocumentSection blank;
-				blank.number=++i;
-				blank.name=QString::number(i);
-				blank.fromindex=(*it).toindex+1+1;
-				blank.toindex=(*it).toindex+2+1;
-				blank.type=Type_1_2_3;
-				blank.sectionstartindex=1;
-				blank.reversed=false;
-				blank.active=true;
+				blank.number = ++i;
+				blank.name = QString::number(i);
+				blank.fromindex = it->toindex+1;
+				blank.toindex = it->toindex+2;
+				blank.type = Type_1_2_3;
+				blank.sectionstartindex = 1;
+				blank.reversed = false;
+				blank.active = true;
+				blank.pageNumberWidth = 0;
 				m_localSections.insert(i, blank);
 			}
 			++i;

@@ -72,42 +72,43 @@ PropertiesPalette_XYZ::PropertiesPalette_XYZ( QWidget* parent) : QWidget(parent)
 	keepFrameWHRatioButton->setAutoRaise( true );
 	keepFrameWHRatioButton->setMaximumSize( QSize( 15, 32767 ) );
 	keepFrameWHRatioButton->setChecked(false);
-	rotationSpin->setWrapping( true );
-	installSniffer(rotationSpin);
 
 	rotationSpin->setNewUnit(6);
+	rotationSpin->setWrapping( true );
+	installSniffer(rotationSpin);
 	rotationLabel->setBuddy(rotationSpin);
-	IconManager* im=IconManager::instance();
-	levelUp->setIcon(im->loadIcon("16/go-up.png"));
-	levelDown->setIcon(im->loadIcon("16/go-down.png"));
-	levelTop->setIcon(im->loadIcon("16/go-top.png"));
-	levelBottom->setIcon(im->loadIcon("16/go-bottom.png"));
+
+	IconManager& im=IconManager::instance();
+	levelUp->setIcon(im.loadIcon("16/go-up.png"));
+	levelDown->setIcon(im.loadIcon("16/go-down.png"));
+	levelTop->setIcon(im.loadIcon("16/go-top.png"));
+	levelBottom->setIcon(im.loadIcon("16/go-bottom.png"));
 	levelLabel->setAlignment( Qt::AlignCenter );
 
-	doGroup->setIcon(im->loadIcon("group.png"));
-	doUnGroup->setIcon(im->loadIcon("ungroup.png"));
+	doGroup->setIcon(im.loadIcon("group.png"));
+	doUnGroup->setIcon(im.loadIcon("ungroup.png"));
 
-	flipH->setIcon(im->loadIcon("16/flip-object-horizontal.png"));
+	flipH->setIcon(im.loadIcon("16/flip-object-horizontal.png"));
 	flipH->setCheckable( true );
-	flipV->setIcon(im->loadIcon("16/flip-object-vertical.png"));
+	flipV->setIcon(im.loadIcon("16/flip-object-vertical.png"));
 	flipV->setCheckable( true );
 	
 	doLock->setCheckable( true );
 	QIcon a = QIcon();
-	a.addPixmap(im->loadPixmap("16/lock.png"), QIcon::Normal, QIcon::On);
-	a.addPixmap(im->loadPixmap("16/lock-unlocked.png"), QIcon::Normal, QIcon::Off);
+	a.addPixmap(im.loadPixmap("16/lock.png"), QIcon::Normal, QIcon::On);
+	a.addPixmap(im.loadPixmap("16/lock-unlocked.png"), QIcon::Normal, QIcon::Off);
 	doLock->setIcon(a);
 
 	noPrint->setCheckable( true );
 	QIcon a2 = QIcon();
-	a2.addPixmap(im->loadPixmap("NoPrint.png"), QIcon::Normal, QIcon::On);
-	a2.addPixmap(im->loadPixmap("16/document-print.png"), QIcon::Normal, QIcon::Off);
+	a2.addPixmap(im.loadPixmap("NoPrint.png"), QIcon::Normal, QIcon::On);
+	a2.addPixmap(im.loadPixmap("16/document-print.png"), QIcon::Normal, QIcon::Off);
 	noPrint->setIcon(a2);
 
 	noResize->setCheckable( true );
 	QIcon a3 = QIcon();
-	a3.addPixmap(im->loadPixmap("framenoresize.png"), QIcon::Normal, QIcon::On);
-	a3.addPixmap(im->loadPixmap("frameresize.png"), QIcon::Normal, QIcon::Off);
+	a3.addPixmap(im.loadPixmap("framenoresize.png"), QIcon::Normal, QIcon::On);
+	a3.addPixmap(im.loadPixmap("frameresize.png"), QIcon::Normal, QIcon::Off);
 	noResize->setIcon(a3);
 
 	m_lineMode = false;
@@ -273,7 +274,7 @@ PageItem* PropertiesPalette_XYZ::currentItemFromSelection()
 	return currentItem;
 }
 
-void PropertiesPalette_XYZ::setCurrentItem(PageItem *i)
+void PropertiesPalette_XYZ::setCurrentItem(PageItem *item)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -285,12 +286,12 @@ void PropertiesPalette_XYZ::setCurrentItem(PageItem *i)
 	//	return;
 
 	if (!m_doc)
-		setDoc(i->doc());
+		setDoc(item->doc());
 
 	disconnect(nameEdit, SIGNAL(Leaved()), this, SLOT(handleNewName()));
 
 	m_haveItem = false;
-	m_item = i;
+	m_item = item;
 
 	nameEdit->setText(m_item->itemName());
 	levelLabel->setText( QString::number(m_item->level()) );
@@ -318,36 +319,36 @@ void PropertiesPalette_XYZ::setCurrentItem(PageItem *i)
 //	showXY(selX, selY);
 //	showWH(selW, selH);
 	
-	bool checkableFlip = (i->isImageFrame() || i->isTextFrame() || i->isLatexFrame() || i->isOSGFrame() || i->isSymbol() || i->isGroup() || i->isSpiral());
+	bool checkableFlip = (item->isImageFrame() || item->isTextFrame() || item->isLatexFrame() || item->isOSGFrame() || item->isSymbol() || item->isGroup() || item->isSpiral());
 	flipH->setCheckable(checkableFlip);
 	flipV->setCheckable(checkableFlip);
 
-	noPrint->setChecked(!i->printEnabled());
-	showFlippedH(i->imageFlippedH());
-	showFlippedV(i->imageFlippedV());
-	double rr = i->rotation();
-	if (i->rotation() > 0)
+	noPrint->setChecked(!item->printEnabled());
+	showFlippedH(item->imageFlippedH());
+	showFlippedV(item->imageFlippedV());
+	double rr = item->rotation();
+	if (item->rotation() > 0)
 		rr = 360 - rr;
 	m_oldRotation = fabs(rr);
 	rotationSpin->setValue(fabs(rr));
 
 //CB TODO reconnect PP signals from here
-	connect(xposSpin    , SIGNAL(valueChanged(double)), this, SLOT(handleNewX()));
-	connect(yposSpin    , SIGNAL(valueChanged(double)), this, SLOT(handleNewY()));
-	connect(widthSpin   , SIGNAL(valueChanged(double)), this, SLOT(handleNewW()));
-	connect(heightSpin  , SIGNAL(valueChanged(double)), this, SLOT(handleNewH()));
-	connect(doLock  , SIGNAL(clicked()), this, SLOT(handleLock()));
-	connect(noPrint , SIGNAL(clicked()), this, SLOT(handlePrint()));
-	connect(noResize, SIGNAL(clicked()), this, SLOT(handleLockSize()));
-	connect(flipH   , SIGNAL(clicked()), this, SLOT(handleFlipH()));
-	connect(flipV   , SIGNAL(clicked()), this, SLOT(handleFlipV()));
-	connect(rotationSpin, SIGNAL(valueChanged(double)), this, SLOT(handleRotation()));
+	connect(xposSpin    , SIGNAL(valueChanged(double)), this, SLOT(handleNewX()), Qt::UniqueConnection);
+	connect(yposSpin    , SIGNAL(valueChanged(double)), this, SLOT(handleNewY()), Qt::UniqueConnection);
+	connect(widthSpin   , SIGNAL(valueChanged(double)), this, SLOT(handleNewW()), Qt::UniqueConnection);
+	connect(heightSpin  , SIGNAL(valueChanged(double)), this, SLOT(handleNewH()), Qt::UniqueConnection);
+	connect(doLock  , SIGNAL(clicked()), this, SLOT(handleLock()), Qt::UniqueConnection);
+	connect(noPrint , SIGNAL(clicked()), this, SLOT(handlePrint()), Qt::UniqueConnection);
+	connect(noResize, SIGNAL(clicked()), this, SLOT(handleLockSize()), Qt::UniqueConnection);
+	connect(flipH   , SIGNAL(clicked()), this, SLOT(handleFlipH()), Qt::UniqueConnection);
+	connect(flipV   , SIGNAL(clicked()), this, SLOT(handleFlipV()), Qt::UniqueConnection);
+	connect(rotationSpin, SIGNAL(valueChanged(double)), this, SLOT(handleRotation()), Qt::UniqueConnection);
 
 	bool setter = false;
 	xposSpin->setEnabled(!setter);
 	yposSpin->setEnabled(!setter);
 	bool haveSameParent = m_doc->m_Selection->objectsHaveSameParent();
-	levelGroup->setEnabled(haveSameParent && !i->locked());
+	levelGroup->setEnabled(haveSameParent && !item->locked());
 	if ((m_item->isGroup()) && (!m_item->isSingleSel))
 	{
 		setEnabled(true);
@@ -381,10 +382,10 @@ void PropertiesPalette_XYZ::setCurrentItem(PageItem *i)
 	}
 	showXY(selX, selY);
 	showWH(selW, selH);
-	showLocked(i->locked());
-	showSizeLocked(i->sizeLocked());
-	double rrR = i->imageRotation();
-	if (i->imageRotation() > 0)
+	showLocked(item->locked());
+	showSizeLocked(item->sizeLocked());
+	double rrR = item->imageRotation();
+	if (item->imageRotation() > 0)
 		rrR = 360 - rrR;
 	noResize->setEnabled(!m_item->isArc());
 	
@@ -1143,7 +1144,7 @@ void PropertiesPalette_XYZ::handleBasePoint(int m)
 			// FIXME
 			if (false /*!FreeScale->isChecked()*/)
 			{
-				m_item->AdjustPictScale();
+				m_item->adjustPictScale();
 				m_item->update();
 			}
 		}

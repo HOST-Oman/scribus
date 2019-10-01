@@ -32,7 +32,7 @@ for which a new license (GPL+exception) is in place.
 ParaStyleComboBox::ParaStyleComboBox(QWidget* parent) : QComboBox(parent)
 {
 	setEditable(false);
-	addItem( tr("No Style"));
+	addItem( CommonStrings::trDefaultParagraphStyle );
 	currentDoc = nullptr;
 	connect(this, SIGNAL(activated(int)), this, SLOT(selFormat(int)));
 }
@@ -45,7 +45,7 @@ void ParaStyleComboBox::setDoc(ScribusDoc *newCurrentDoc)
 
 void ParaStyleComboBox::setFormat(const QString& name)
 {
-	setCurrentComboItem(this, name.isEmpty() ? tr("No Style") : name);
+	setCurrentComboItem(this, name.isEmpty() ? CommonStrings::trDefaultParagraphStyle : name);
 }
 
 void ParaStyleComboBox::updateFormatList()
@@ -59,11 +59,12 @@ void ParaStyleComboBox::updateFormatList()
 	if (currentDoc != nullptr)
 	{
 		QStringList st;
-		addItem( tr("No Style"));
-		for (int x = 0; x < currentDoc->paragraphStyles().count(); ++x)
+		addItem( CommonStrings::trDefaultParagraphStyle );
+		for (int i = 0; i < currentDoc->paragraphStyles().count(); ++i)
 		{
-			if ( !currentDoc->paragraphStyles()[x].name().isEmpty() )
-				st.append(currentDoc->paragraphStyles()[x].name());
+			const ParagraphStyle& paraStyle = currentDoc->paragraphStyles()[i];
+			if (!paraStyle.name().isEmpty() && !paraStyle.isDefaultStyle())
+				st.append(paraStyle.name());
 		}
 		st.sort();
 		addItems(st);
@@ -88,7 +89,7 @@ void ParaStyleComboBox::updateFormatList()
 void ParaStyleComboBox::selFormat(int e)
 {
 	if (e == 0)
-		emit newStyle(QString::null);
+		emit newStyle(QString());
 	else
 		emit newStyle(currentText());
 }
@@ -96,7 +97,7 @@ void ParaStyleComboBox::selFormat(int e)
 CharStyleComboBox::CharStyleComboBox(QWidget* parent) : QComboBox(parent)
 {
 	setEditable(false);
-	addItem( tr("No Style"));
+	addItem( CommonStrings::trDefaultCharacterStyle );
 	currentDoc = nullptr;
 	connect(this, SIGNAL(activated(int)), this, SLOT(selFormat(int)));
 }
@@ -109,7 +110,7 @@ void CharStyleComboBox::setDoc(ScribusDoc *newCurrentDoc)
 
 void CharStyleComboBox::setFormat(const QString& name)
 {
-	setCurrentComboItem(this, name.isEmpty() ? tr("No Style") : name);
+	setCurrentComboItem(this, name.isEmpty() ? CommonStrings::trDefaultCharacterStyle : name);
 }
 
 void CharStyleComboBox::updateFormatList()
@@ -123,11 +124,12 @@ void CharStyleComboBox::updateFormatList()
 	if (currentDoc != nullptr)
 	{
 		QStringList st;
-		addItem( tr("No Style"));
-		for (int x = 0; x < currentDoc->charStyles().count(); ++x)
+		addItem( CommonStrings::trDefaultCharacterStyle );
+		for (int i = 0; i < currentDoc->charStyles().count(); ++i)
 		{
-			if ( !currentDoc->charStyles()[x].name().isEmpty() )
-				st.append(currentDoc->charStyles()[x].name());
+			const CharStyle& charStyle = currentDoc->charStyles()[i];
+			if (!charStyle.name().isEmpty() && !charStyle.isDefaultStyle())
+				st.append(charStyle.name());
 		}
 		st.sort();
 		addItems(st);
@@ -152,7 +154,7 @@ void CharStyleComboBox::updateFormatList()
 void CharStyleComboBox::selFormat(int e)
 {
 	if (e == 0)
-		emit newStyle(QString::null);
+		emit newStyle(QString());
 	else
 		emit newStyle(currentText());
 }
@@ -160,7 +162,7 @@ void CharStyleComboBox::selFormat(int e)
 CellStyleComboBox::CellStyleComboBox(QWidget* parent) : QComboBox(parent)
 {
 	setEditable(false);
-	addItem( tr("No Style"));
+	addItem( CommonStrings::trDefaultCellStyle );
 	currentDoc = nullptr;
 	connect(this, SIGNAL(activated(int)), this, SLOT(selFormat(int)));
 }
@@ -173,7 +175,7 @@ void CellStyleComboBox::setDoc(ScribusDoc *newCurrentDoc)
 
 void CellStyleComboBox::setFormat(const QString& name)
 {
-	setCurrentComboItem(this, name.isEmpty() ? tr("No Style") : name);
+	setCurrentComboItem(this, name.isEmpty() ? CommonStrings::trDefaultCellStyle : name);
 }
 
 void CellStyleComboBox::updateFormatList()
@@ -187,11 +189,12 @@ void CellStyleComboBox::updateFormatList()
 	if (currentDoc != nullptr)
 	{
 		QStringList st;
-		addItem( tr("No Style"));
-		for (int x = 0; x < currentDoc->cellStyles().count(); ++x)
+		addItem( CommonStrings::trDefaultCellStyle  );
+		for (int i = 0; i < currentDoc->cellStyles().count(); ++i)
 		{
-			if ( !currentDoc->cellStyles()[x].name().isEmpty() )
-				st.append(currentDoc->cellStyles()[x].name());
+			const CellStyle& cellStyle = currentDoc->cellStyles()[i];
+			if (!cellStyle.name().isEmpty() && !cellStyle.isDefaultStyle())
+				st.append(cellStyle.name());
 		}
 		st.sort();
 		addItems(st);
@@ -214,7 +217,7 @@ void CellStyleComboBox::selFormat(int e)
 {
 	if (e == 0)
 	{
-		emit newStyle(QString::null);
+		emit newStyle(QString());
 	}
 	else
 	{
@@ -225,7 +228,7 @@ void CellStyleComboBox::selFormat(int e)
 TableStyleComboBox::TableStyleComboBox(QWidget* parent) : QComboBox(parent)
 {
 	setEditable(false);
-	addItem( tr("No Style"));
+	addItem( CommonStrings::trDefaultTableStyle );
 	currentDoc = nullptr;
 	connect(this, SIGNAL(activated(int)), this, SLOT(selFormat(int)));
 }
@@ -238,7 +241,7 @@ void TableStyleComboBox::setDoc(ScribusDoc *newCurrentDoc)
 
 void TableStyleComboBox::setFormat(const QString& name)
 {
-	setCurrentComboItem(this, name.isEmpty() ? tr("No Style") : name);
+	setCurrentComboItem(this, name.isEmpty() ? CommonStrings::trDefaultTableStyle : name);
 }
 
 void TableStyleComboBox::updateFormatList()
@@ -252,11 +255,12 @@ void TableStyleComboBox::updateFormatList()
 	if (currentDoc != nullptr)
 	{
 		QStringList st;
-		addItem( tr("No Style"));
-		for (int x = 0; x < currentDoc->tableStyles().count(); ++x)
+		addItem( CommonStrings::trDefaultTableStyle );
+		for (int i = 0; i < currentDoc->tableStyles().count(); ++i)
 		{
-			if ( !currentDoc->tableStyles()[x].name().isEmpty() )
-				st.append(currentDoc->tableStyles()[x].name());
+			const TableStyle& tableStyle = currentDoc->tableStyles()[i];
+			if (!tableStyle.name().isEmpty() && !tableStyle.isDefaultStyle())
+				st.append(tableStyle.name());
 		}
 		st.sort();
 		addItems(st);
@@ -279,7 +283,7 @@ void TableStyleComboBox::selFormat(int e)
 {
 	if (e == 0)
 	{
-		emit newStyle(QString::null);
+		emit newStyle(QString());
 	}
 	else
 	{

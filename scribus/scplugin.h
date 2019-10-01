@@ -18,7 +18,6 @@ for which a new license (GPL+exception) is in place.
 class ScribusDoc;
 class ScribusMainWindow;
 class DeferredTask;
-class PrefsPanel;
 class Prefs_Pane;
 
 /**
@@ -157,7 +156,7 @@ class SCRIBUS_API ScPlugin : public QObject
 		 * the widget will be added to or a child of it, otherwise the panel
 		 * won't be deleted correctly when the dialog is.
 		 *
-		 * See prefspanel.h for info on implementing the panel.
+		 * See prefs_pane.h for info on implementing the panel.
 		 *
 		 * This method must return false (the default) if the plugin does
 		 * not provide a prefs panel. If true is returned, caption, panel,
@@ -171,10 +170,7 @@ class SCRIBUS_API ScPlugin : public QObject
 		 *
 		 * By default, returns 0 to indicate no prefs UI.
 		*/
-		virtual bool newPrefsPanelWidget(QWidget* parent, PrefsPanel*& panel,
-										 QString& caption, QPixmap& icon);
-		virtual bool newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel,
-								 QString& caption, QPixmap& icon);
+		virtual bool newPrefsPanelWidget(QWidget* parent, Prefs_Pane*& panel);
 
 		/*! @brief Return descriptive information about the plug-in
 		 *
@@ -343,7 +339,7 @@ class SCRIBUS_API ScActionPlugin : public ScPlugin
 		 * @returns bool True for success.
 		 *
 		 */
-		virtual bool run(ScribusDoc* doc, const QString& target = QString::null) = 0;
+		virtual bool run(ScribusDoc* doc, const QString& target = QString()) = 0;
 
 		/**
 		 * @brief Run the plug-in's main action.
@@ -352,7 +348,7 @@ class SCRIBUS_API ScActionPlugin : public ScPlugin
 		 * a parent widget reference. It's useful e.g. when you need to
 		 * open a dialog on a specific parent one.
 		 */
-		virtual bool run(QWidget* parent, ScribusDoc* doc, const QString& target = QString::null);
+		virtual bool run(QWidget* parent, ScribusDoc* doc, const QString& target = QString());
 
 		/**
 		 * @brief Run the plugin on a QIODevice
@@ -411,7 +407,7 @@ class SCRIBUS_API ScActionPlugin : public ScPlugin
 		 * If this method is used, the plugin must not be unloaded until all
 		 * DeferredTask instances have been deleted.
 		 */
-		virtual DeferredTask* runAsync(const QString& target = QString::null);
+		virtual DeferredTask* runAsync(const QString& target = QString());
 
 		/**
 		 * @brief Run the plugin asynchronously

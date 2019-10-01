@@ -121,44 +121,39 @@ bool HunspellPluginImpl::parseTextFrame(StoryText *iText)
 	{
 		wordStart = currPos;
 		int wordEnd = iText->endOfWord(wordStart);
-		QString word = iText->text(wordStart,wordEnd - wordStart);
+		QString word = iText->text(wordStart, wordEnd - wordStart);
 		// remove any Ignorable Code Point
 		QString tmp = word;
 		QString tmp2;
-		for (int i =0; i < word.size(); ++i)
+		for (int i = 0; i < word.size(); ++i)
 		{
 			if (!SpecialChars::isIgnorableCodePoint(tmp.at(i).unicode()))
 				tmp2 += tmp.at(i);
 		}
 		word = tmp2;
-		QString wordLang = iText->charStyle(wordStart).language();
 
+		QString wordLang = iText->charStyle(wordStart).language();
 		if (wordLang.isEmpty())
 		{
 			const StyleSet<CharStyle> &tmp(m_doc->charStyles());
-			for (int i = 0; i < tmp.count(); ++i)
-				if (tmp[i].isDefaultStyle())
-				{
-					//check out why we are getting "German" back here next
-					wordLang=tmp[i].language();
-					//qDebug()<<"Default char style lang"<<tmp[i].language();
-				}
+			const CharStyle* defaultStyle = tmp.getDefault();
+			if (defaultStyle)
+				wordLang = defaultStyle->language();
 		}
 		//we now use the abbreviation
 		//wordLang=LanguageManager::instance()->getAbbrevFromLang(wordLang, true, false);
 		//A little hack as for some reason our en dictionary from the aspell plugin was not called en_GB or en_US but en, content was en_GB though. Meh.
-		if (wordLang=="en")
-			wordLang="en_GB";
-	//	int spellerIndex=0;
+		if (wordLang == "en")
+			wordLang = "en_GB";
 		//qDebug()<<"Word:"<<word<<wordLang;
 		if (!dictionaryMap.contains(wordLang))
 		{
 			//qDebug()<<"Spelling language to match style language NOT installed ("<<wordLang<<")";
-			QString altLang=LanguageManager::instance()->getAlternativeAbbrevfromAbbrev(wordLang);
-			if (altLang!="")
+			QString altLang = LanguageManager::instance()->getAlternativeAbbrevfromAbbrev(wordLang);
+			if (!altLang.isEmpty())
 			{
 				//qDebug()<<"altLang"<<altLang<<dictionaryMap.contains(altLang);
-				wordLang=altLang;
+				wordLang = altLang;
 			}
 		}
 		else
@@ -173,7 +168,6 @@ bool HunspellPluginImpl::parseTextFrame(StoryText *iText)
 				++i;
 				++it;
 			}
-		//	spellerIndex = i;
 		}
 
 		if (hspellerMap.contains(wordLang) && hspellerMap[wordLang]->spell(word)==0)
@@ -190,7 +184,7 @@ bool HunspellPluginImpl::parseTextFrame(StoryText *iText)
 			wf.replacements = hspellerMap[wordLang]->suggest(word);
 			wordsToCorrect.append(wf);
 		}
-		currPos = iText->endOfWord(wordStart);
+		currPos = iText->nextWord(wordStart);
 	}
 	return true;
 }

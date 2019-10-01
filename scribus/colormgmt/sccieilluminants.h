@@ -14,7 +14,7 @@ for which a new license (GPL+exception) is in place.
 class ScCIEIlluminant
 {
 public:
-	virtual ~ScCIEIlluminant() {}
+	virtual ~ScCIEIlluminant() = default;
 	
 	// Relative illuminant power for specified wavelength
 	double power(int waveLen) const { return m_pow.value(waveLen, 0.0); }

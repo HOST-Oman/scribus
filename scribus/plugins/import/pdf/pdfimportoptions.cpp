@@ -14,7 +14,7 @@ for which a new license (GPL+exception) is in place.
 PdfImportOptions::PdfImportOptions(QWidget *parent) : QDialog(parent), ui(new Ui::PdfImportOptions)
 {
 	ui->setupUi(this);
-	ui->pageSelectButton->setIcon(IconManager::instance()->loadIcon("ellipsis.png"));
+	ui->pageSelectButton->setIcon(IconManager::instance().loadIcon("ellipsis.png"));
 	m_plugin = nullptr;
 	m_maxPage = 0;
 	m_resized = false;
@@ -70,6 +70,7 @@ void PdfImportOptions::setUpOptions(const QString& fileName, int actPage, int nu
 	ui->spinBox->setValue(actPage);
 	ui->cropGroup->setVisible(cropPossible);
 	ui->cropGroup->setChecked(cropPossible);
+	ui->cropBox->setCurrentIndex(3); // Use CropBox by default
 	if (interact)
 	{
 		ui->allPages->setChecked(false);
@@ -106,19 +107,19 @@ void PdfImportOptions::updateFromSpinBox(int pg)
 
 void PdfImportOptions::updatePreview(int pg)
 {
-	if (m_plugin)
-	{
-		int cb = 0;
-		if (ui->cropGroup->isChecked())
-			cb =  ui->cropBox->currentIndex();
-		QImage img = m_plugin->readPreview(pg, ui->previewWidget->width(), ui->previewWidget->height(), cb);
-		ui->previewWidget->setPixmap(QPixmap::fromImage(img));
-		disconnect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updateFromSpinBox(int)));
-		disconnect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updatePreview(int)));
-		ui->spinBox->setValue(pg);
-		connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updateFromSpinBox(int)));
-		connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updatePreview(int)));
-	}
+	if (!m_plugin)
+		return;
+
+	int cb = 0;
+	if (ui->cropGroup->isChecked())
+		cb =  ui->cropBox->currentIndex();
+	QImage img = m_plugin->readPreview(pg, ui->previewWidget->width(), ui->previewWidget->height(), cb);
+	ui->previewWidget->setPixmap(QPixmap::fromImage(img));
+	disconnect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updateFromSpinBox(int)));
+	disconnect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updatePreview(int)));
+	ui->spinBox->setValue(pg);
+	connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updateFromSpinBox(int)));
+	connect(ui->spinBox, SIGNAL(valueChanged(int)), this, SLOT(updatePreview(int)));
 }
 
 void PdfImportOptions::createPageNumberRange()

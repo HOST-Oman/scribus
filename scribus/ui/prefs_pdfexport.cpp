@@ -26,11 +26,14 @@ Prefs_PDFExport::Prefs_PDFExport(QWidget* parent, ScribusDoc* doc)
 	exportingPDF(false)
 {
 	setupUi(this);
-	exportRangeMorePushButton->setIcon(IconManager::instance()->loadIcon("ellipsis.png"));
-	pageMirrorHorizontalToolButton->setIcon(IconManager::instance()->loadIcon("16/flip-object-horizontal.png"));
-	pageMirrorVerticalToolButton->setIcon(IconManager::instance()->loadIcon("16/flip-object-vertical.png"));
+	exportRangeMorePushButton->setIcon(IconManager::instance().loadIcon("ellipsis.png"));
+	pageMirrorHorizontalToolButton->setIcon(IconManager::instance().loadIcon("16/flip-object-horizontal.png"));
+	pageMirrorVerticalToolButton->setIcon(IconManager::instance().loadIcon("16/flip-object-vertical.png"));
 	unitChange(0);
 	languageChange();
+
+	m_caption = tr("PDF Export");
+	m_icon = "acroread16.png";
 
 	connect(fontEmbeddingCombo, SIGNAL(currentIndexChanged(int)), this, SLOT(EmbeddingModeChange()));
 	connect(exportChosenPagesRadioButton, SIGNAL(toggled(bool)), this, SLOT(enableRangeControls(bool)));
@@ -104,9 +107,7 @@ Prefs_PDFExport::Prefs_PDFExport(QWidget* parent, ScribusDoc* doc)
 
 }
 
-Prefs_PDFExport::~Prefs_PDFExport()
-{
-}
+Prefs_PDFExport::~Prefs_PDFExport() = default;
 
 PDFOptions::PDFFontEmbedding Prefs_PDFExport::fontEmbeddingMode()
 {
@@ -156,13 +157,13 @@ QListWidgetItem* Prefs_PDFExport::addFontItem(const QString& fontName, QListWidg
 
 	const ScFace face = AllFonts.value(fontName);
 	if (face.isReplacement())
-		item = new QListWidgetItem( IconManager::instance()->loadIcon("font_subst16.png"), fontName, fontList );
+		item = new QListWidgetItem( IconManager::instance().loadIcon("font_subst16.png"), fontName, fontList );
 	else if (face.type() == ScFace::TYPE1)
-		item = new QListWidgetItem( IconManager::instance()->loadIcon("font_type1_16.png"), fontName, fontList );
+		item = new QListWidgetItem( IconManager::instance().loadIcon("font_type1_16.png"), fontName, fontList );
 	else if (face.type() == ScFace::TTF)
-		item = new QListWidgetItem( IconManager::instance()->loadIcon("font_truetype16.png"), fontName, fontList );
+		item = new QListWidgetItem( IconManager::instance().loadIcon("font_truetype16.png"), fontName, fontList );
 	else if (face.type() == ScFace::OTF)
-		item = new QListWidgetItem( IconManager::instance()->loadIcon("font_otf16.png"), fontName, fontList );
+		item = new QListWidgetItem( IconManager::instance().loadIcon("font_otf16.png"), fontName, fontList );
 
 	return item;
 }
@@ -543,7 +544,7 @@ void Prefs_PDFExport::restoreDefaults(struct ApplicationPrefs *prefsData, const 
 	{
 		if (m_doc != nullptr && exporting)
 		{
-			QFileInfo fi(m_doc->DocName);
+			QFileInfo fi(m_doc->documentFileName());
 			pdfx3InfoStringLineEdit->setText(fi.fileName());
 		}
 		else
@@ -808,7 +809,7 @@ void Prefs_PDFExport::createPageNumberRange()
 			return;
 		}
 	}
-	exportPageListLineEdit->setText(QString::null);
+	exportPageListLineEdit->setText(QString());
 }
 
 void Prefs_PDFExport::setMaximumResolution()

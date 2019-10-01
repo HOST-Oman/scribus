@@ -44,7 +44,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 {
 	setModal(true);
 	setWindowTitle( tr( "Image Effects" ) );
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 	m_item = item;
 	effectsList = m_item->effectsInUse;
 	m_doc = docc;
@@ -57,13 +57,13 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	cms.setUseEmbeddedProfile(m_item->UseEmbedded);
 	cms.allowSoftProofing(true);
 	m_image.loadPicture(m_item->Pfile, m_item->pixm.imgInfo.actualPageNumber, cms, ScImage::RGBData, 72, &mode);
-	int ix = m_image.width();
-	int iy = m_image.height();
+	int iw = m_image.width();
+	int ih = m_image.height();
 	m_imageScale = 1.0;
-	if ((ix > 220) || (iy > 220))
+	if ((iw > 220) || (ih > 220))
 	{
-		double sx = ix / 220.0;
-		double sy = iy / 220.0;
+		double sx = iw / 220.0;
+		double sy = ih / 220.0;
 		if (sy < sx)
 			m_image.createLowRes(sx);
 		else
@@ -257,7 +257,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveD1Button = new QToolButton( WStackPage_8 );
 	CurveD1Button->setText( "" );
 	CurveD1Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveD1Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveD1Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveD1Button->setMenu(CurveD1Pop);
 	CurveD1Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage8Layout->addWidget( CurveD1Button, 1, 2 );
@@ -279,11 +279,11 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveD2Button = new QToolButton( WStackPage_8 );
 	CurveD2Button->setText( "" );
 	CurveD2Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveD2Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveD2Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveD2Button->setMenu(CurveD2Pop);
 	CurveD2Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage8Layout->addWidget( CurveD2Button, 3, 2 );
-	QSpacerItem *spacerD1 = new QSpacerItem( 1, 1, QSizePolicy::Minimum, QSizePolicy::Expanding );
+	auto *spacerD1 = new QSpacerItem( 1, 1, QSizePolicy::Minimum, QSizePolicy::Expanding );
 	WStackPage8Layout->addItem( spacerD1, 4, 0 );
 	optionStack->addWidget( WStackPage_8 );
 
@@ -309,7 +309,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveT1Button = new QToolButton( WStackPage_9 );
 	CurveT1Button->setText( "" );
 	CurveT1Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveT1Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveT1Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveT1Button->setMenu(CurveT1Pop);
 	CurveT1Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage9Layout->addWidget( CurveT1Button, 1, 2 );
@@ -330,7 +330,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveT2Button = new QToolButton( WStackPage_9 );
 	CurveT2Button->setText( "" );
 	CurveT2Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveT2Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveT2Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveT2Button->setMenu(CurveT2Pop);
 	CurveT2Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage9Layout->addWidget( CurveT2Button, 3, 2 );
@@ -351,7 +351,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveT3Button = new QToolButton( WStackPage_9 );
 	CurveT3Button->setText( "" );
 	CurveT3Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveT3Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveT3Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveT3Button->setMenu(CurveT3Pop);
 	CurveT3Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage9Layout->addWidget( CurveT3Button, 5, 2 );
@@ -378,7 +378,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveQ1Button = new QToolButton( WStackPage_10 );
 	CurveQ1Button->setText( "" );
 	CurveQ1Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveQ1Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveQ1Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveQ1Button->setMenu(CurveQ1Pop);
 	CurveQ1Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage10Layout->addWidget( CurveQ1Button, 1, 2 );
@@ -399,7 +399,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveQ2Button = new QToolButton( WStackPage_10 );
 	CurveQ2Button->setText( "" );
 	CurveQ2Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveQ2Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveQ2Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveQ2Button->setMenu(CurveQ2Pop);
 	CurveQ2Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage10Layout->addWidget( CurveQ2Button, 3, 2 );
@@ -420,7 +420,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveQc3Button = new QToolButton( WStackPage_10 );
 	CurveQc3Button->setText( "" );
 	CurveQc3Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveQc3Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveQc3Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveQc3Button->setMenu(CurveQc3Pop);
 	CurveQc3Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage10Layout->addWidget( CurveQc3Button, 5, 2 );
@@ -441,7 +441,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	CurveQ4Button = new QToolButton( WStackPage_10 );
 	CurveQ4Button->setText( "" );
 	CurveQ4Button->setMaximumSize( QSize( 22, 22 ) );
-	CurveQ4Button->setIcon(IconManager::instance()->loadIcon("curve.png"));
+	CurveQ4Button->setIcon(IconManager::instance().loadIcon("curve.png"));
 	CurveQ4Button->setMenu(CurveQ4Pop);
 	CurveQ4Button->setPopupMode(QToolButton::InstantPopup);
 	WStackPage10Layout->addWidget( CurveQ4Button, 7, 2 );
@@ -493,17 +493,17 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	layout1 = new QVBoxLayout;
 	layout1->setMargin(0);
 	layout1->setSpacing(5);
-	QSpacerItem* spacer1 = new QSpacerItem( 1, 1, QSizePolicy::Minimum, QSizePolicy::Expanding );
+	auto* spacer1 = new QSpacerItem( 1, 1, QSizePolicy::Minimum, QSizePolicy::Expanding );
 	layout1->addItem( spacer1 );
 	toEffects = new QPushButton( this );
-	toEffects->setText( tr( ">>" ) );
+	toEffects->setText( tr( "Add" ) );
 	toEffects->setEnabled(false);
 	layout1->addWidget( toEffects );
 	fromEffects = new QPushButton( this );
-	fromEffects->setText( tr( "<<" ) );
+	fromEffects->setText( tr( "Remove" ) );
 	fromEffects->setEnabled(false);
 	layout1->addWidget( fromEffects );
-	QSpacerItem* spacer2 = new QSpacerItem( 1, 1, QSizePolicy::Minimum, QSizePolicy::Expanding );
+	auto* spacer2 = new QSpacerItem( 1, 1, QSizePolicy::Minimum, QSizePolicy::Expanding );
 	layout1->addItem( spacer2 );
 	layout10->addLayout( layout1, 0, 1 );
 
@@ -511,94 +511,94 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	layout8->setMargin(0);
 	layout8->setSpacing(5);
 	textLabel2 = new QLabel( this );
-	textLabel2->setText( tr( "Effects in use" ) );
+	textLabel2->setText( tr( "Applied Effects" ) );
 	layout8->addWidget( textLabel2 );
 	usedEffects = new QListWidget( this );
 	usedEffects->setMinimumSize(fontMetrics().width( tr( "Available Effects" ))+40, 180);
 	usedEffects->clear();
 	m_effectValMap.clear();
-	for (int a = 0; a < effectsList.count(); ++a)
+	for (int i = 0; i < effectsList.count(); ++i)
 	{
-		if (effectsList.at(a).effectCode == ScImage::EF_INVERT)
+		if (effectsList.at(i).effectCode == ScImage::EF_INVERT)
 		{
 			usedEffects->addItem( tr("Invert"));
 			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), "");
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_GRAYSCALE)
+		if (effectsList.at(i).effectCode == ScImage::EF_GRAYSCALE)
 		{
 			usedEffects->addItem( tr("Grayscale"));
 			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), "");
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_COLORIZE)
+		if (effectsList.at(i).effectCode == ScImage::EF_COLORIZE)
 		{
 			usedEffects->addItem( tr("Colorize"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 			setItemSelectable(availableEffects, 2, false);
 			setItemSelectable(availableEffects, 3, false);
 			setItemSelectable(availableEffects, 4, false);
 			setItemSelectable(availableEffects, 5, false);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_BRIGHTNESS)
+		if (effectsList.at(i).effectCode == ScImage::EF_BRIGHTNESS)
 		{
 			usedEffects->addItem( tr("Brightness"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_CONTRAST)
+		if (effectsList.at(i).effectCode == ScImage::EF_CONTRAST)
 		{
 			usedEffects->addItem( tr("Contrast"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_SHARPEN)
+		if (effectsList.at(i).effectCode == ScImage::EF_SHARPEN)
 		{
 			usedEffects->addItem( tr("Sharpen"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_BLUR)
+		if (effectsList.at(i).effectCode == ScImage::EF_BLUR)
 		{
 			usedEffects->addItem( tr("Blur"));
-			QString tmpstr = effectsList.at(a).effectParameters;
+			QString tmpstr = effectsList.at(i).effectParameters;
 			double radius;
 			ScTextStream fp(&tmpstr, QIODevice::ReadOnly);
 			fp >> radius; // has to be read from stream, as two numbers are stored in effectParameters
 			blRadius->setValue(radius / m_imageScale);
 			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), QString("%1 1.0").arg(radius / m_imageScale));
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_SOLARIZE)
+		if (effectsList.at(i).effectCode == ScImage::EF_SOLARIZE)
 		{
 			usedEffects->addItem( tr("Posterize"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_DUOTONE)
+		if (effectsList.at(i).effectCode == ScImage::EF_DUOTONE)
 		{
 			usedEffects->addItem( tr("Duotone"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 			setItemSelectable(availableEffects, 2, false);
 			setItemSelectable(availableEffects, 3, false);
 			setItemSelectable(availableEffects, 4, false);
 			setItemSelectable(availableEffects, 5, false);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_TRITONE)
+		if (effectsList.at(i).effectCode == ScImage::EF_TRITONE)
 		{
 			usedEffects->addItem( tr("Tritone"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 			setItemSelectable(availableEffects, 2, false);
 			setItemSelectable(availableEffects, 3, false);
 			setItemSelectable(availableEffects, 4, false);
 			setItemSelectable(availableEffects, 5, false);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_QUADTONE)
+		if (effectsList.at(i).effectCode == ScImage::EF_QUADTONE)
 		{
 			usedEffects->addItem( tr("Quadtone"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 			setItemSelectable(availableEffects, 2, false);
 			setItemSelectable(availableEffects, 3, false);
 			setItemSelectable(availableEffects, 4, false);
 			setItemSelectable(availableEffects, 5, false);
 		}
-		if (effectsList.at(a).effectCode == ScImage::EF_GRADUATE)
+		if (effectsList.at(i).effectCode == ScImage::EF_GRADUATE)
 		{
 			usedEffects->addItem( tr("Curves"));
-			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(a).effectParameters);
+			m_effectValMap.insert(usedEffects->item(usedEffects->count()-1), effectsList.at(i).effectParameters);
 		}
 	}
 	layout8->addWidget( usedEffects );
@@ -609,12 +609,12 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	layout7->addItem( spacer4 );
 	effectUp = new QPushButton( this );
 	effectUp->setText( "" );
-	effectUp->setIcon(IconManager::instance()->loadIcon("16/go-up.png"));
+	effectUp->setIcon(IconManager::instance().loadIcon("16/go-up.png"));
 	effectUp->setEnabled(false);
 	layout7->addWidget( effectUp );
 	effectDown = new QPushButton( this );
 	effectDown->setText( "" );
-	effectDown->setIcon(IconManager::instance()->loadIcon("16/go-down.png"));
+	effectDown->setIcon(IconManager::instance().loadIcon("16/go-down.png"));
 	effectDown->setEnabled(false);
 	layout7->addWidget( effectDown );
 	QSpacerItem* spacer5 = new QSpacerItem( 1, 1, QSizePolicy::Expanding, QSizePolicy::Minimum );
@@ -649,7 +649,7 @@ EffectsDialog::EffectsDialog( QWidget* parent, PageItem* item, ScribusDoc* docc 
 	int x = (pixmapLabel1->width() - im.qImage().width()) / 2;
 	int y = (pixmapLabel1->height() - im.qImage().height()) / 2;
 	QPainter p;
-	QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
+	QBrush b(QColor(205,205,205), IconManager::instance().loadPixmap("testfill.png"));
 	p.begin(&Bild);
 	p.fillRect(0, 0, pixmapLabel1->width(), pixmapLabel1->height(), b);
 	p.drawImage(x, y, im.qImage());
@@ -758,7 +758,7 @@ void EffectsDialog::createPreview()
 	int x = (pixmapLabel1->width() - im.qImage().width()) / 2;
 	int y = (pixmapLabel1->height() - im.qImage().height()) / 2;
 	QPainter p;
-	QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
+	QBrush b(QColor(205,205,205), IconManager::instance().loadPixmap("testfill.png"));
 	p.begin(&Bild);
 	p.fillRect(0, 0, pixmapLabel1->width(), pixmapLabel1->height(), b);
 	p.drawImage(x, y, im.qImage());
@@ -1052,7 +1052,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			FPointArray curve;
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1066,7 +1066,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			CurveD1->setLinear(lin);
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1117,7 +1117,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			FPointArray curve;
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1131,7 +1131,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			CurveT1->setLinear(lin);
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1144,7 +1144,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			CurveT2->setLinear(lin);
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1205,7 +1205,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			FPointArray curve;
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1219,7 +1219,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			CurveQ1->setLinear(lin);
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1232,7 +1232,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			CurveQ2->setLinear(lin);
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1245,7 +1245,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			CurveQc3->setLinear(lin);
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1357,7 +1357,7 @@ void EffectsDialog::selectEffect(QListWidgetItem* c)
 			FPointArray curve;
 			curve.resize(0);
 			fp >> numVals;
-			for (int nv = 0; nv < numVals; nv++)
+			for (int i = 0; i < numVals; i++)
 			{
 				fp >> s;
 				xval = ScCLocale::toDoubleC(s);
@@ -1412,8 +1412,7 @@ void EffectsDialog::selectEffectHelper(bool final)
 	{
 		if (currentOptions->text() == tr("Colorize"))
 		{
-			QString efval = "";
-			efval = colData->currentText();
+			QString efval = colData->currentText();
 			QString tmp;
 			tmp.setNum(shade->getValue());
 			efval += "\n"+tmp;
@@ -1433,7 +1432,7 @@ void EffectsDialog::selectEffectHelper(bool final)
 		}
 		if (currentOptions->text() == tr("Sharpen"))
 		{
-			QString efval = "";
+			QString efval;
 			QString tmp;
 			tmp.setNum(shRadius->value());
 			efval += tmp;
@@ -1443,7 +1442,7 @@ void EffectsDialog::selectEffectHelper(bool final)
 		}
 		if (currentOptions->text() == tr("Blur"))
 		{
-			QString efval = "";
+			QString efval;
 			QString tmp;
 			if (!final)
 				tmp.setNum(blRadius->value());
@@ -1462,8 +1461,7 @@ void EffectsDialog::selectEffectHelper(bool final)
 		}
 		if (currentOptions->text() == tr("Duotone"))
 		{
-			QString efval = "";
-			efval = colData1->currentText()+"\n";
+			QString efval = colData1->currentText()+"\n";
 			efval += colData2->currentText()+"\n";
 			QString tmp;
 			tmp.setNum(shade1->getValue());
@@ -1473,9 +1471,9 @@ void EffectsDialog::selectEffectHelper(bool final)
 			FPointArray Vals = CurveD1->cDisplay->getCurve();
 			tmp.setNum(Vals.size());
 			efval += " "+tmp;
-			for (int p = 0; p < Vals.size(); p++)
+			for (int i = 0; i < Vals.size(); i++)
 			{
-				const FPoint& pv = Vals.point(p);
+				const FPoint& pv = Vals.point(i);
 				efval += QString(" %1 %2").arg(pv.x()).arg(pv.y());
 			}
 			if (CurveD1->cDisplay->isLinear())
@@ -1485,9 +1483,9 @@ void EffectsDialog::selectEffectHelper(bool final)
 			Vals = CurveD2->cDisplay->getCurve();
 			tmp.setNum(Vals.size());
 			efval += " "+tmp;
-			for (int p = 0; p < Vals.size(); p++)
+			for (int i = 0; i < Vals.size(); i++)
 			{
-				const FPoint& pv = Vals.point(p);
+				const FPoint& pv = Vals.point(i);
 				efval += QString(" %1 %2").arg(pv.x()).arg(pv.y());
 			}
 			if (CurveD2->cDisplay->isLinear())
@@ -1549,8 +1547,7 @@ void EffectsDialog::selectEffectHelper(bool final)
 		}
 		if (currentOptions->text() == tr("Quadtone"))
 		{
-			QString efval = "";
-			efval = colDataq1->currentText()+"\n";
+			QString efval = colDataq1->currentText()+"\n";
 			efval += colDataq2->currentText()+"\n";
 			efval += colDataqc3->currentText()+"\n";
 			efval += colDataq4->currentText()+"\n";
@@ -1566,9 +1563,9 @@ void EffectsDialog::selectEffectHelper(bool final)
 			FPointArray Vals = CurveQ1->cDisplay->getCurve();
 			tmp.setNum(Vals.size());
 			efval += " "+tmp;
-			for (int p = 0; p < Vals.size(); p++)
+			for (int i = 0; i < Vals.size(); i++)
 			{
-				const FPoint& pv = Vals.point(p);
+				const FPoint& pv = Vals.point(i);
 				efval += QString(" %1 %2").arg(pv.x()).arg(pv.y());
 			}
 			if (CurveQ1->cDisplay->isLinear())
@@ -1578,9 +1575,9 @@ void EffectsDialog::selectEffectHelper(bool final)
 			Vals = CurveQ2->cDisplay->getCurve();
 			tmp.setNum(Vals.size());
 			efval += " "+tmp;
-			for (int p = 0; p < Vals.size(); p++)
+			for (int i = 0; i < Vals.size(); i++)
 			{
-				const FPoint& pv = Vals.point(p);
+				const FPoint& pv = Vals.point(i);
 				efval += QString(" %1 %2").arg(pv.x()).arg(pv.y());
 			}
 			if (CurveQ2->cDisplay->isLinear())
@@ -1590,9 +1587,9 @@ void EffectsDialog::selectEffectHelper(bool final)
 			Vals = CurveQc3->cDisplay->getCurve();
 			tmp.setNum(Vals.size());
 			efval += " "+tmp;
-			for (int p = 0; p < Vals.size(); p++)
+			for (int i = 0; i < Vals.size(); i++)
 			{
-				const FPoint& pv = Vals.point(p);
+				const FPoint& pv = Vals.point(i);
 				efval += QString(" %1 %2").arg(pv.x()).arg(pv.y());
 			}
 			if (CurveQc3->cDisplay->isLinear())
@@ -1602,9 +1599,9 @@ void EffectsDialog::selectEffectHelper(bool final)
 			Vals = CurveQ4->cDisplay->getCurve();
 			tmp.setNum(Vals.size());
 			efval += " "+tmp;
-			for (int p = 0; p < Vals.size(); p++)
+			for (int i = 0; i < Vals.size(); i++)
 			{
-				const FPoint& pv = Vals.point(p);
+				const FPoint& pv = Vals.point(i);
 				efval += QString(" %1 %2").arg(pv.x()).arg(pv.y());
 			}
 			if (CurveQ4->cDisplay->isLinear())
@@ -1615,14 +1612,14 @@ void EffectsDialog::selectEffectHelper(bool final)
 		}
 		if (currentOptions->text() == tr("Curves"))
 		{
-			QString efval = "";
+			QString efval;
 			FPointArray Vals = Kdisplay->cDisplay->getCurve();
 			QString tmp;
 			tmp.setNum(Vals.size());
 			efval += tmp;
-			for (int p = 0; p < Vals.size(); p++)
+			for (int i = 0; i < Vals.size(); i++)
 			{
-				const FPoint& pv = Vals.point(p);
+				const FPoint& pv = Vals.point(i);
 				efval += QString(" %1 %2").arg(pv.x()).arg(pv.y());
 			}
 			if (Kdisplay->cDisplay->isLinear())

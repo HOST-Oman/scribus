@@ -53,7 +53,7 @@ CanvasMode_NodeEdit::CanvasMode_NodeEdit(ScribusView* view) : CanvasMode(view), 
 void CanvasMode_NodeEdit::drawControls(QPainter* p) 
 {
 	double x, y;
-	if (m_doc->m_Selection->count() == 0)
+	if (m_doc->m_Selection->isEmpty())
 		return;
 	if (m_doc->nodeEdit.previewMode())
 		return;
@@ -151,10 +151,10 @@ void CanvasMode_NodeEdit::drawControls(QPainter* p)
 		p->setPen(QPen(Qt::red, 8 / scale, Qt::SolidLine, Qt::RoundCap, Qt::MiterJoin));
 		cli.point(m_doc->nodeEdit.clre(), &x, &y);
 		p->drawPoint(QPointF(x, y));
-		QList<int>::Iterator itm;
-		for (itm = m_doc->nodeEdit.selNode().begin(); itm != m_doc->nodeEdit.selNode().end(); ++itm)
+		const auto& selectedNodes = m_doc->nodeEdit.selNode();
+		for (int i = 0; i < selectedNodes.count(); ++i)
 		{
-			cli.point((*itm), &x, &y);
+			cli.point(i, &x, &y);
 			p->drawPoint(QPointF(x, y));
 		}
 	}
@@ -203,21 +203,20 @@ void CanvasMode_NodeEdit::activate(bool fromGesture)
 				}
 			}
 		}
-		for (int a = 0; a < Clip.size(); ++a)
+		for (int i = 0; i < Clip.size(); ++i)
 		{
-			if (Clip.isMarker(a))
+			if (Clip.isMarker(i))
 				continue;
-			const FPoint& np = Clip.point(a);
+			const FPoint& np = Clip.point(i);
 			FPoint npf2 = np.transformPoint(pm2, false);
-			if ((Sele.contains(npf2.x(), npf2.y())) && ((a == 0) || (((a-2) % 4) == 0)))
+			if ((Sele.contains(npf2.x(), npf2.y())) && ((i == 0) || (((i - 2) % 4) == 0)))
 			{
-				if (a == 0)
+				if (i == 0)
 					firstPoint = true;
-				if ((firstPoint) && (a == Clip.size() - 2) && (!currItem->asPolyLine()))
+				if ((firstPoint) && (i == Clip.size() - 2) && (!currItem->asPolyLine()))
 					continue;
-				m_doc->nodeEdit.setClre(a);
-				m_doc->nodeEdit.selNode().append(a);
-				m_doc->nodeEdit.update(Clip.pointQF(a));
+				m_doc->nodeEdit.selectNode(i);
+				m_doc->nodeEdit.update(Clip.pointQF(i));
 			}
 		}
 		currItem->update();
@@ -419,7 +418,7 @@ void CanvasMode_NodeEdit::mouseReleaseEvent(QMouseEvent *m)
 
 		ScItemState<QPair<FPointArray, FPointArray> > *state = nullptr;
 		state = m_doc->nodeEdit.finishTransaction1(currItem);
-		if (m_doc->nodeEdit.hasNodeSelected() && (m_doc->nodeEdit.selNode().count() == 1))
+		if (m_doc->nodeEdit.hasNodeSelected() && (m_doc->nodeEdit.selectionCount() == 1))
 		{
 			//FIXME:av
 			FPoint newP = m_canvas->globalToCanvas(m->globalPos());
@@ -529,21 +528,21 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 			pm2.scale(1, -1);
 		}
 	}
-	for (int a=0; a < signed(Clip.size()); ++a)
+	for (int i = 0; i < Clip.size(); ++i)
 	{
-		if (((m_doc->nodeEdit.edPoints()) && (a % 2 != 0)) || ((!m_doc->nodeEdit.edPoints()) && (a % 2 == 0)))
+		if (((m_doc->nodeEdit.edPoints()) && (i % 2 != 0)) || ((!m_doc->nodeEdit.edPoints()) && (i % 2 == 0)))
 			continue;
-		QPointF npf = pm2.map(Clip.pointQF(a));
+		QPointF npf = pm2.map(Clip.pointQF(i));
 		if (m_canvas->hitsCanvasPoint(m->globalPos(), npf))
 		{
-			m_doc->nodeEdit.setClre(a);
-			if ((m_doc->nodeEdit.edPoints()) && (m_doc->nodeEdit.selNode().contains(a) == 0))
+			m_doc->nodeEdit.setClre(i);
+			if ((m_doc->nodeEdit.edPoints()) && (m_doc->nodeEdit.selNode().contains(i) == 0))
 			{
 				if (m->modifiers() != Qt::ShiftModifier)
 					m_doc->nodeEdit.selNode().clear();
-				m_doc->nodeEdit.selNode().append(a);
+				m_doc->nodeEdit.selectNode(i);
 			}
-			m_doc->nodeEdit.update(Clip.pointQF(a));
+			m_doc->nodeEdit.update(Clip.pointQF(i));
 			pfound = true;
 			edited = true;
 			break;
@@ -778,63 +777,56 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 	{
 		if (!m_doc->nodeEdit.edPoints())
 			return;
-		if (!(currItem->isLine() || currItem->isPathText() || currItem->isPolyLine()))
+
+		int minClipSize = 4;
+		if (!currItem->isLine() && !currItem->isPathText() && !currItem->isPolyLine())
+			minClipSize = 12;
+
+		if (Clip.size() <= minClipSize)
 		{
-			if ((currItem->Segments.count() == 0) && (Clip.size() <= 12))  // min. 3 points
-			{
-				m_doc->nodeEdit.deselect();
-				return;
-			}
-		}
-		else
-		{
-			if (Clip.size() <= 4)
-			{
-				m_doc->nodeEdit.deselect();
-				return;
-			}
+			m_doc->nodeEdit.deselect();
+			return;
 		}
 
 		int numPoints = (StartInd != 0) ? (StartInd-4) : 0;
 		numPoints += (Clip.size() - EndInd);
-		if ((currItem->Segments.count() > 0) && ((EndInd - StartInd) <= 12) && (numPoints > 0))
+		if ((currItem->Segments.count() > 0) && ((EndInd - StartInd) <= minClipSize) && (numPoints > 0))
 		{
 			if (StartInd != 0)
 				cli.putPoints(0, StartInd-4, Clip);
 			cli.putPoints(cli.size(), Clip.size() - EndInd, Clip, EndInd);
 		}
-		else
+		else if (m_doc->nodeEdit.clre() == static_cast<int>(StartInd))
 		{
-			if (m_doc->nodeEdit.clre() == static_cast<int>(StartInd))
+			if (!currItem->isLine() && !currItem->isPathText() && !currItem->isPolyLine())
 			{
-				if (!(currItem->isLine() || currItem->isPathText() || currItem->isPolyLine()))
-				{
-					const FPoint& kp(Clip.point(EndInd-3));
-					cli.putPoints(0, StartInd, Clip);
-					cli.putPoints(cli.size(), EndInd - StartInd - 4, Clip, StartInd);
-					cli.setPoint(StartInd, cli.point(cli.size()-2));
-					cli.setPoint(StartInd + 1, kp);
-					cli.putPoints(cli.size(), Clip.size() - EndInd, Clip, EndInd);
-				}
-				else
-				{
-					cli.putPoints(0, StartInd, Clip);
-					cli.putPoints(cli.size(), EndInd - StartInd - 4, Clip, StartInd+4);
-					cli.putPoints(cli.size(), Clip.size() - EndInd, Clip, EndInd);
-				}
-			}
-			else if (m_doc->nodeEdit.clre() == static_cast<int>(EndInd - 2))
-			{
-				Clip.remove(m_doc->nodeEdit.clre() - 2, 4);
-				cli = Clip.copy();
+				const FPoint& kp(Clip.point(EndInd - 3));
+				cli.putPoints(0, StartInd, Clip);
+				cli.putPoints(cli.size(), EndInd - StartInd - 4, Clip, StartInd);
+				cli.setPoint(StartInd, cli.point(cli.size() - 2));
+				cli.setPoint(StartInd + 1, kp);
+				cli.putPoints(cli.size(), Clip.size() - EndInd, Clip, EndInd);
 			}
 			else
 			{
-				if (m_doc->nodeEdit.clre() != 0)
-					cli.putPoints(0, m_doc->nodeEdit.clre(), Clip);
-				cli.putPoints(cli.size(), Clip.size()-(m_doc->nodeEdit.clre() + 4), Clip, m_doc->nodeEdit.clre()+4);
+				cli.putPoints(0, StartInd, Clip);
+				cli.putPoints(cli.size(), EndInd - StartInd - 4, Clip, StartInd+4);
+				cli.putPoints(cli.size(), Clip.size() - EndInd, Clip, EndInd);
 			}
 		}
+		else if (m_doc->nodeEdit.clre() == static_cast<int>(EndInd - 2))
+		{
+			Clip.remove(m_doc->nodeEdit.clre() - 2, 4);
+			cli = Clip.copy();
+		}
+		else
+		{
+			if (m_doc->nodeEdit.clre() != 0)
+				cli.putPoints(0, m_doc->nodeEdit.clre(), Clip);
+			cli.putPoints(cli.size(), Clip.size()-(m_doc->nodeEdit.clre() + 4), Clip, m_doc->nodeEdit.clre() + 4);
+		}
+		while (cli.isMarker(0))
+			cli.remove(0, 4);
 		if (m_doc->nodeEdit.isContourLine())
 			currItem->ContourLine = cli.copy();
 		else
@@ -953,7 +945,7 @@ void CanvasMode_NodeEdit::handleNodeEditPress(QMouseEvent* m, QRect)
 		currItem->update();
 		m_view->DrawNew();
 	}
-	if ((m_doc->nodeEdit.selNode().count() != 0) || ((m_doc->nodeEdit.segP1() != -1) && (m_doc->nodeEdit.segP2() != -1)) || (m_doc->nodeEdit.hasNodeSelected() && (!m_doc->nodeEdit.edPoints())))
+	if ((m_doc->nodeEdit.selectionCount() != 0) || ((m_doc->nodeEdit.segP1() != -1) && (m_doc->nodeEdit.segP2() != -1)) || (m_doc->nodeEdit.hasNodeSelected() && (!m_doc->nodeEdit.edPoints())))
 	{
 		m_Mxp = m->x();
 		m_Myp = m->y();
@@ -1013,9 +1005,9 @@ bool CanvasMode_NodeEdit::handleNodeEditMove(QMouseEvent* m, QRect, PageItem* cu
 				if (m_doc->nodeEdit.submode() == NodeEditContext::MOVE_POINT)
 					m_view->setCursor(QCursor(Qt::SizeAllCursor));
 				if (m_doc->nodeEdit.submode() == NodeEditContext::DEL_POINT)
-					m_view->setCursor(IconManager::instance()->loadCursor("DelPoint.png", 1, 1));
+					m_view->setCursor(IconManager::instance().loadCursor("DelPoint.png", 1, 1));
 				if (m_doc->nodeEdit.submode() == NodeEditContext::SPLIT_PATH)
-					m_view->setCursor(IconManager::instance()->loadCursor("Split.png", 1, 1));
+					m_view->setCursor(IconManager::instance().loadCursor("Split.png", 1, 1));
 				return true;
 			}
 		}
@@ -1044,11 +1036,11 @@ bool CanvasMode_NodeEdit::handleNodeEditMove(QMouseEvent* m, QRect, PageItem* cu
 					if (m_canvas->hitsCanvasPoint(m->globalPos(), FPoint(pl.x(), pl.y())))
 					{
 						if (m_doc->nodeEdit.submode() == NodeEditContext::MOVE_POINT)
-							m_view->setCursor(IconManager::instance()->loadCursor("handc.png"));
+							m_view->setCursor(IconManager::instance().loadCursor("handc.png"));
 						else if (m_doc->nodeEdit.submode() == NodeEditContext::ADD_POINT)
-							m_view->setCursor(IconManager::instance()->loadCursor("AddPoint.png", 1, 1));
+							m_view->setCursor(IconManager::instance().loadCursor("AddPoint.png", 1, 1));
 						else if (m_doc->nodeEdit.submode() == NodeEditContext::SPLIT_PATH)
-							m_view->setCursor(IconManager::instance()->loadCursor("Split.png", 1, 1));
+							m_view->setCursor(IconManager::instance().loadCursor("Split.png", 1, 1));
 						else
 							m_view->setCursor(QCursor(Qt::ArrowCursor));
 						m_doc->nodeEdit.setClre2(poi);
@@ -1107,10 +1099,10 @@ void CanvasMode_NodeEdit::handleNodeEditDrag(QMouseEvent* m, PageItem* currItem)
 	}
 	else
 	{
-		if ((m_doc->nodeEdit.selNode().count() != 0) && (m_doc->nodeEdit.edPoints()))
+		if ((m_doc->nodeEdit.selectionCount() != 0) && (m_doc->nodeEdit.edPoints()))
 		{
 			int storedClRe = m_doc->nodeEdit.clre();
-			if (m_doc->nodeEdit.selNode().count() == 1)
+			if (m_doc->nodeEdit.selectionCount() == 1)
 			{
 				npf = m_canvas->globalToCanvas(m->globalPos());
 				double nx = npf.x();
@@ -1199,9 +1191,10 @@ void CanvasMode_NodeEdit::handleNodeEditDrag(QMouseEvent* m, PageItem* currItem)
 					if (currItem->imageFlippedV())
 						np.setY(np.y() * -1);
 				}
-				for (int itm = 0; itm < m_doc->nodeEdit.selNode().count(); ++itm)
+				const auto& nodeSelection = m_doc->nodeEdit.selNode();
+				for (int itm = 0; itm < nodeSelection.count(); ++itm)
 				{
-					m_doc->nodeEdit.setClre(m_doc->nodeEdit.selNode().at(itm));
+					m_doc->nodeEdit.setClre(nodeSelection.at(itm));
 					if (m_doc->nodeEdit.isContourLine())
 						npf = currItem->ContourLine.point(m_doc->nodeEdit.clre()) + np;
 					else

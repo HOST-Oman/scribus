@@ -1,7 +1,7 @@
 include_directories(
 	${CMAKE_SOURCE_DIR}
 	${CMAKE_SOURCE_DIR}/scribus
-	${PYTHON_INCLUDE_PATH}
+	${Python2_INCLUDE_DIRS}
 )
 
 # Gentoo has an option for no examples. Let's make the ebuild simpler and open up the option to others, but leave as a default for us
@@ -13,7 +13,6 @@ add_subdirectory(scripts)
 set(SCRIPTER_PLUGIN_UI_SRC
 	pconsole.ui
 	runscriptdialog.ui
-	scripterprefsgui.ui
 	prefs_scripterbase.ui
 )
 
@@ -21,7 +20,6 @@ set(SCRIPTER_PLUGIN_MOC_CLASSES
 	pconsole.h
 	scriptplugin.h
 	scriptercore.h
-	scripterprefsgui.h
 	runscriptdialog.h
 	prefs_scripter.h
 )
@@ -51,7 +49,6 @@ set(SCRIPTER_PLUGIN_SOURCES
 	prefs_scripter.cpp
 	runscriptdialog.cpp
 	scriptercore.cpp
-	scripterprefsgui.cpp
 	scriptplugin.cpp
 	svgimport.cpp
 )
@@ -68,7 +65,7 @@ add_library(${SCRIBUS_SCRIPTER_PLUGIN} MODULE
 )
 
 target_link_libraries(${SCRIBUS_SCRIPTER_PLUGIN}
-	${PYTHON_LIBRARIES}
+	${Python2_LIBRARIES}
 )
 
 target_link_libraries(${SCRIBUS_SCRIPTER_PLUGIN} ${PLUGIN_LIBRARIES})

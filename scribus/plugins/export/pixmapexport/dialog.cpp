@@ -28,7 +28,7 @@ ExportForm::ExportForm(QWidget* parent, ScribusDoc* doc, int size, int quality, 
 {
 	setupUi(this);
 	setModal(true);
-	prefs = PrefsManager::instance()->prefsFile->getPluginContext("pixmapexport");
+	prefs = PrefsManager::instance().prefsFile->getPluginContext("pixmapexport");
 
 	QDirModel * dirModel = new QDirModel(this);
 	dirModel->setFilter(QDir::AllDirs);
@@ -44,7 +44,7 @@ ExportForm::ExportForm(QWidget* parent, ScribusDoc* doc, int size, int quality, 
 	DPIBox->setValue(size);
 	enlargementBox->setValue(size);
 	onePageRadio->setChecked( true );
-	pageNrButton->setIcon(IconManager::instance()->loadIcon("ellipsis.png"));
+	pageNrButton->setIcon(IconManager::instance().loadIcon("ellipsis.png"));
 	rangeVal->setEnabled(false);
 	pageNrButton->setEnabled(false);
 	noBackground->setChecked(false);

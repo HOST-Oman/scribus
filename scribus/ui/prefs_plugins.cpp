@@ -10,7 +10,6 @@ for which a new license (GPL+exception) is in place.
 #include <QCheckBox>
 #include <QLabel>
 #include "ui/scmwmenumanager.h"
-#include "pluginmanagerprefsgui.h"
 #include "pluginmanager.h"
 #include "scraction.h"
 #include "scplugin.h"
@@ -24,6 +23,10 @@ Prefs_Plugins::Prefs_Plugins(QWidget* parent, ScribusDoc* doc)
 {
 	setupUi(this);
 	languageChange();
+
+	m_caption = tr("Plugins");
+	m_icon = "plugins_16.png";
+
 	PluginManager& pluginManager(PluginManager::instance());
 	//Hide this stuff as we don't want it now we are not letting people turn plugins on or off
 	pluginTable->setColumnHidden(3, true);
@@ -92,29 +95,7 @@ Prefs_Plugins::Prefs_Plugins(QWidget* parent, ScribusDoc* doc)
 	pluginTable->resizeColumnsToContents();
 }
 
-
-void Prefs_Plugins::apply()
-{
-	QString plugName;
-	//	PluginManager& pluginManager(PluginManager::instance());
-	//	bool enable;
-	for (int i = 0; i < pluginTable->rowCount(); ++i)
-	{
-		plugName = pluginTable->item(i, 4)->text();
-		/* Don't need this  at all now we are not allowing users to turn plugins on or off
-		QCheckBox* onStartCheck=qobject_cast<QCheckBox*>(pluginTable->cellWidget(i, 3));
-		if (onStartCheck)
-		{
-			enable = onStartCheck->isChecked();
-			pluginManager.enableOnStartup(plugName) = enable;
-		}
-	*/
-	}
-}
-
-Prefs_Plugins::~Prefs_Plugins()
-{
-}
+Prefs_Plugins::~Prefs_Plugins() = default;
 
 void Prefs_Plugins::languageChange()
 {

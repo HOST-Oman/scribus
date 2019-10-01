@@ -26,7 +26,7 @@ DelColor::DelColor( QWidget* parent, const ColorList& colorList, const QString& 
 	setModal(true);
 	cList = colorList;
 	setWindowTitle( tr( "Delete Color" ) );
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 	dialogLayout = new QVBoxLayout( this );
 	dialogLayout->setMargin(10);
 	dialogLayout->setSpacing(5);
@@ -38,8 +38,8 @@ DelColor::DelColor( QWidget* parent, const ColorList& colorList, const QString& 
 	colorToDelLabel = new QLabel( colorName, this );
 	delColorLayout->addWidget( colorToDelLabel, 0, 1 );
 
-	PrefsManager* prefsManager = PrefsManager::instance();
-	bool isToolColor = prefsManager->isToolColor(colorName);
+	PrefsManager& prefsManager = PrefsManager::instance();
+	bool isToolColor = prefsManager.isToolColor(colorName);
 	replaceLabel = nullptr;
 	replacementColData = nullptr;
 	if (haveDoc || isToolColor)

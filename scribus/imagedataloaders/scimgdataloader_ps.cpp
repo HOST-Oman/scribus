@@ -148,7 +148,6 @@ void ScImgDataLoader_PS::scanForFonts(const QString& fn)
 
 bool ScImgDataLoader_PS::parseData(const QString& fn)
 {
-	QChar tc;
 	QString tmp, FarNam;
 	ScColor cc;
 	double x, y, b, h, c, m, k;
@@ -518,7 +517,7 @@ bool ScImgDataLoader_PS::loadPicture(const QString& fn, int page, int gsRes, boo
 			QString missingF = "";
 			for (int fo = 0; fo < m_FontListe.count(); fo++)
 			{
-				if (!PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.contains(m_FontListe[fo]))
+				if (!PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.contains(m_FontListe[fo]))
 				{
 					missing = true;
 					missingF += m_FontListe[fo]+"\n";

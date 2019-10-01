@@ -123,8 +123,8 @@ QImage XpsPlug::readThumbnail(const QString& fName)
 	{
 		QFileInfo fi = QFileInfo(fName);
 		baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
-		docWidth = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-		docHeight = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+		docWidth = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+		docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 		m_Doc = new ScribusDoc();
 		m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 		m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
@@ -229,8 +229,8 @@ bool XpsPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 		qApp->processEvents();
 	}
 	/* Set default Page to size defined in Preferences */
-	docWidth = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	docHeight = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	docWidth = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	baseX = 0;
 	baseY = 0;
 	if (!interactive || (flags & LoadSavePlugin::lfInsertPage))
@@ -580,8 +580,8 @@ void XpsPlug::parsePageReference(const QString& designMap)
 		return;
 
 	QDomElement docElem = designMapDom.documentElement();
-	docWidth = docElem.attribute("Width", QString("%1").arg(PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth)).toDouble() * conversionFactor;
-	docHeight = docElem.attribute("Height", QString("%1").arg(PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight)).toDouble() * conversionFactor;
+	docWidth = docElem.attribute("Width", QString("%1").arg(PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth)).toDouble() * conversionFactor;
+	docHeight = docElem.attribute("Height", QString("%1").arg(PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight)).toDouble() * conversionFactor;
 	if (importerFlags & LoadSavePlugin::lfCreateDoc)
 	{
 		if (firstPage)
@@ -594,7 +594,7 @@ void XpsPlug::parsePageReference(const QString& designMap)
 			double pgGap = m_Doc->PageSpa;
 			m_Doc->setPage(docWidth, docHeight, topMargin, leftMargin, rightMargin, bottomMargin, pgCols, pgGap, false, false);
 			m_Doc->setPageSize("Custom");
-			m_Doc->currentPage()->m_pageSize = "Custom";
+			m_Doc->currentPage()->setSize("Custom");
 			m_Doc->currentPage()->setInitialHeight(docHeight);
 			m_Doc->currentPage()->setInitialWidth(docWidth);
 			m_Doc->currentPage()->setHeight(docHeight);
@@ -608,7 +608,7 @@ void XpsPlug::parsePageReference(const QString& designMap)
 		else
 		{
 			m_Doc->addPage(pagecount);
-			m_Doc->currentPage()->m_pageSize = "Custom";
+			m_Doc->currentPage()->setSize("Custom");
 			m_Doc->currentPage()->setInitialHeight(docHeight);
 			m_Doc->currentPage()->setInitialWidth(docWidth);
 			m_Doc->currentPage()->setHeight(docHeight);
@@ -617,7 +617,7 @@ void XpsPlug::parsePageReference(const QString& designMap)
 			m_Doc->currentPage()->initialMargins.setBottom(bottomMargin);
 			m_Doc->currentPage()->initialMargins.setLeft(leftMargin);
 			m_Doc->currentPage()->initialMargins.setRight(rightMargin);
-			m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
+			m_Doc->currentPage()->setMasterPageNameNormal();
 			m_Doc->view()->addPage(pagecount, true);
 			pagecount++;
 		}
@@ -1718,7 +1718,7 @@ PageItem* XpsPlug::createItem(QDomElement &dpg, ObjState &obState)
 						retObj->AspectRatio = false;
 						retObj->ScaleType   = false;
 						m_Doc->loadPict(fileName, retObj);
-						retObj->AdjustPictScale();
+						retObj->adjustPictScale();
 					}
 				}
 				delete tempFile;
@@ -1939,7 +1939,7 @@ ScFace XpsPlug::loadFontByName(const QString &fileName)
 	{
 		ft.write(fontData);
 		ft.close();
-		t = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.LoadScalableFont(fname);
+		t = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.loadScalableFont(fname);
 		loadedFonts.insert(fileName, t);
 		return t;
 	}

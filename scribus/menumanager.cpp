@@ -84,7 +84,7 @@ QMenu *MenuManager::getLocalPopupMenu(const QString &menuName)
 	return nullptr;
 }
 
-void MenuManager::setMenuEnabled(const QString &menuName, const bool enabled)
+void MenuManager::setMenuEnabled(const QString &menuName, bool enabled)
 {
 	// OSX UI rules don't allow this so let's not do it elsewhere.
 	//if (menuBarMenus.contains(menuName) && menuBarMenus.value(menuName)!=nullptr)
@@ -93,18 +93,14 @@ void MenuManager::setMenuEnabled(const QString &menuName, const bool enabled)
 
 bool MenuManager::addMenuStringToMenuBar(const QString &menuName, bool rememberMenu)
 {
-	bool retVal=false;
-	if (menuStrings.contains(menuName))
-	{
-		QMenu *m=scribusMenuBar->addMenu(menuStringTexts[menuName]);
-		menuBarMenus.insert(menuName, m);
-		if (rememberMenu)
-		{
-			rememberedMenus.insert(menuName, m);
-		}
-		retVal=true;
-	}
-	return retVal;
+	if (!menuStrings.contains(menuName))
+		return false;
+
+	QMenu *m = scribusMenuBar->addMenu(menuStringTexts[menuName]);
+	menuBarMenus.insert(menuName, m);
+	if (rememberMenu)
+		rememberedMenus.insert(menuName, m);
+	return true;
 }
 
 bool MenuManager::addMenuStringToMenuBarBefore(const QString &menuName, const QString &beforeMenuName)
@@ -123,7 +119,7 @@ bool MenuManager::addMenuStringToMenuBarBefore(const QString &menuName, const QS
 	}
 	if (beforeAct)
 	{
-		QMenu *m=new QMenu(menuName);
+		auto *m=new QMenu(menuName);
 		scribusMenuBar->insertMenu(beforeAct, m);
 		menuBarMenus.insert(menuName, m);
 		retVal=true;
@@ -138,124 +134,91 @@ void MenuManager::clear()
 }
 
 
-void MenuManager::addMenuItemStringstoMenuBar(const QString &menuName, const QMap<QString, QPointer<ScrAction> > &menuActions)
+void MenuManager::addMenuItemStringsToMenuBar(const QString &menuName, const QMap<QString, QPointer<ScrAction> > &menuActions)
 {
-	if (menuStrings.contains(menuName) && menuBarMenus.contains(menuName))
+	if (!menuStrings.contains(menuName) || !menuBarMenus.contains(menuName))
+		return;
+
+	const auto menuStringList = menuStrings[menuName];
+	for (const QString& menuString : menuStringList)
 	{
-		for (int i=0; i<menuStrings[menuName].count();++i)
+		//Add Separators
+		if (menuString == "SEPARATOR")
 		{
-			//Add Separators
-			if (menuStrings[menuName].at(i)=="SEPARATOR")
-				menuBarMenus[menuName]->addSeparator();
-			else
-			{
-				//Add Menu Items
-				if (menuActions.contains(menuStrings[menuName].at(i)))
-				{
-					menuBarMenus[menuName]->addAction(menuActions[menuStrings[menuName].at(i)]);
-				}
-				else
-				//Add Sub Menus
-				{
-					if (menuStrings.contains(menuStrings[menuName].at(i)))
-					{
-						QMenu *subMenu=menuBarMenus[menuName]->addMenu(menuStringTexts[menuStrings[menuName].at(i)]);
-						menuBarMenus.insert(menuStrings[menuName].at(i), subMenu);
-						if (rememberedMenus.contains(menuStrings[menuName].at(i)))
-						{
-							rememberedMenus.insert(menuStrings[menuName].at(i), subMenu);
-						}
-						addMenuItemStringstoMenu(menuStrings[menuName].at(i), subMenu, menuActions);
-					}
-				}
-			}
+			menuBarMenus[menuName]->addSeparator();
+			continue;
+		}
+			
+		//Add Menu Items
+		if (menuActions.contains(menuString))
+		{
+			menuBarMenus[menuName]->addAction(menuActions[menuString]);
+			continue;
+		}
+
+		//Add Sub Menus
+		if (menuStrings.contains(menuString))
+		{
+			QMenu *subMenu = menuBarMenus[menuName]->addMenu(menuStringTexts[menuString]);
+			if (!subMenu)
+				continue;
+			menuBarMenus.insert(menuString, subMenu);
+			if (rememberedMenus.contains(menuString))
+				rememberedMenus.insert(menuString, subMenu);
+			addMenuItemStringsToMenu(menuString, subMenu, menuActions);
 		}
 	}
 }
 
 
-void MenuManager::addMenuItemStringstoMenu(const QString &menuName, QMenu *menuToAddTo, const QMap<QString, QPointer<ScrAction> > &menuActions)
+void MenuManager::addMenuItemStringsToMenu(const QString &menuName, QMenu *menuToAddTo, const QMap<QString, QPointer<ScrAction> > &menuActions)
 {
-	if (menuStrings.contains(menuName))
+	if (!menuStrings.contains(menuName))
+		return;
+
+	const auto menuStringList = menuStrings[menuName];
+	for (const QString& menuString : menuStringList)
 	{
-		for (int i=0; i<menuStrings[menuName].count();++i)
+		//Add Separators
+		if (menuString == "SEPARATOR")
 		{
-			//Add Separators
-			if (menuStrings[menuName].at(i)=="SEPARATOR")
-				menuToAddTo->addSeparator();
-			else
-			{
-				//Add Menu Items
-				if (menuActions.contains(menuStrings[menuName].at(i)))
-				{
-					menuToAddTo->addAction(menuActions[menuStrings[menuName].at(i)]);
-				}
-				else
-				//Add Sub Menus
-				{
-					if (menuStrings.contains(menuStrings[menuName].at(i)))
-					{
-						QMenu *subMenu=menuToAddTo->addMenu(menuStringTexts[menuStrings[menuName].at(i)]);
-						if (subMenu)
-						{
-							menuBarMenus.insert(menuStrings[menuName].at(i), subMenu);
-							if (rememberedMenus.contains(menuStrings[menuName].at(i)))
-							{
-								rememberedMenus.insert(menuStrings[menuName].at(i), subMenu);
-							}
-							addMenuItemStringstoMenu(menuStrings[menuName].at(i), subMenu, menuActions);
-						}
-					}
-				}
-			}
+			menuToAddTo->addSeparator();
+			continue;
+		}
+
+		//Add Menu Items
+		if (menuActions.contains(menuString))
+		{
+			menuToAddTo->addAction(menuActions[menuString]);
+			continue;
+		}
+
+		//Add Sub Menus
+		if (menuStrings.contains(menuString))
+		{
+			QMenu *subMenu = menuToAddTo->addMenu(menuStringTexts[menuString]);
+			if (!subMenu)
+				continue;
+			menuBarMenus.insert(menuString, subMenu);
+			if (rememberedMenus.contains(menuString))
+				rememberedMenus.insert(menuString, subMenu);
+			addMenuItemStringsToMenu(menuString, subMenu, menuActions);
 		}
 	}
 }
 
-void MenuManager::addMenuItemStringstoRememberedMenu(const QString &menuName, const QMap<QString, QPointer<ScrAction> > &menuActions)
+void MenuManager::addMenuItemStringsToRememberedMenu(const QString &menuName, const QMap<QString, QPointer<ScrAction> > &menuActions)
 {
 	if (rememberedMenus.contains(menuName))
 		if (rememberedMenus.value(menuName)!=nullptr)
-			addMenuItemStringstoMenu(menuName, rememberedMenus.value(menuName), menuActions);
+			addMenuItemStringsToMenu(menuName, rememberedMenus.value(menuName), menuActions);
 }
 
 void MenuManager::clearMenuStrings(const QString &menuName)
 {
-	if (rememberedMenus.contains(menuName))
-	{
-		if (rememberedMenus.value(menuName)!=nullptr)
-		{
-			rememberedMenus.value(menuName)->clear();
-		}
-	}
-}
-
-
-
-bool MenuManager::addMenuToWidgetOfAction(const QString &menuName, ScrAction *action)
-{
-	bool retVal=false;
-	/*if (menuList.contains(menuName) && menuList[menuName]!=nullptr && action!=nullptr)
-	{
-		 //qt4 cb replace with qwidgetaction or similar
-//		QWidget *w=action->getWidgetAddedTo();
-//		if (w)
-//		{
-//			QString menuItemListClassName=w->className();
-//			if (menuItemListClassName=="QToolButton")
-//			{
-//				QToolButton *toolButton=dynamic_cast<QToolButton *>(w);
-//				if (toolButton!=nullptr)
-//				{
-//					toolButton->setPopup(menuList[menuName]->getLocalPopupMenu());
-//					retVal=true;
-//				}
-//			}
-//		}
-
-	}
-*/
-	return retVal;
+	QMenu* menu = rememberedMenus.value(menuName, nullptr);
+	if (menu != nullptr)
+		menu->clear();
 }
 
 void MenuManager::addMenuItemString(const QString& s, const QString &parent)
@@ -263,7 +226,6 @@ void MenuManager::addMenuItemString(const QString& s, const QString &parent)
 	if (menuStrings.contains(parent))
 		menuStrings[parent].append(s);
 }
-
 
 void MenuManager::addMenuItemStringAfter(const QString& s, const QString& after, const QString &parent)
 {
@@ -296,7 +258,7 @@ bool MenuManager::removeMenuItem(ScrAction *menuAction, const QString &parent)
 	return retVal;
 }
 
-void MenuManager::runMenuAtPos(const QString &menuName, const QPoint position)
+void MenuManager::runMenuAtPos(const QString &menuName, const QPoint& position)
 {
 	/*
 	if (menuList.contains(menuName) && menuList[menuName]!=nullptr)
@@ -306,40 +268,6 @@ void MenuManager::runMenuAtPos(const QString &menuName, const QPoint position)
 			popupmenu->exec(position);
 	}
 	*/
-}
-
-// Used to generate a list of entries from the menu system into the keyboard shortcut manager
-void MenuManager::generateKeyManList(QStringList *actionNames)
-{
-	if (actionNames)
-	{
-		if (scribusMenuBar)
-		{
-			/*
-			QMap<QString, ScrPopupMenu *>::Iterator menuListIt;
-			for (uint menuBarCount=0; menuBarCount<scribusMenuBar->count(); ++menuBarCount)
-			{
-				int menuBarMenuID=scribusMenuBar->idAt(menuBarCount);
-				bool menuBarItemFound=false;
-				for ( menuListIt = menuList.begin(); menuListIt!=menuList.end(); ++menuListIt)
-				{
-					if(menuListIt.value()->getMenuBarID()==menuBarMenuID)
-					{
-						menuBarItemFound=true;
-						break;
-					}
-				}
-				if (menuBarItemFound)
-				{
-					if (menuListIt.value())
-					{
-						ScrPopupMenu *currentMenu=menuListIt.value();
-						currentMenu->generateEntryList(actionNames);
-					}
-				}
-			}*/
-		}
-	}
 }
 
 bool MenuManager::empty()

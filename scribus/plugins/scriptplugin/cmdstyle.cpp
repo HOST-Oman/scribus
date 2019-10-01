@@ -8,10 +8,11 @@ for which a new license (GPL+exception) is in place.
 #include "cmdstyle.h"
 #include "cmdutil.h"
 
-#include "qbuffer.h"
-#include "qpixmap.h"
-//Added by qt3to4:
+#include <limits>
+
+#include <QBuffer>
 #include <QList>
+#include <QPixmap>
 
 #include "scribuscore.h"
 #include "styles/paragraphstyle.h"
@@ -37,50 +38,80 @@ PyObject *scribus_createparagraphstyle(PyObject* /* self */, PyObject* args, PyO
 			const_cast<char*>("dropcaplines"),
 			const_cast<char*>("dropcapoffset"),
 			const_cast<char*>("charstyle"),
+			const_cast<char*>("bullet"),
 			nullptr};
-	char *Name = const_cast<char*>(""), *CharStyle = const_cast<char*>("");
-	int LineSpacingMode = 0, Alignment = 0, DropCapLines = 2, HasDropCap = 0;
-	double LineSpacing = 15.0, LeftMargin = 0.0, RightMargin = 0.0;
-	double GapBefore = 0.0, GapAfter = 0.0, FirstIndent = 0.0, PEOffset = 0;
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "es|ididddddiides",
-		 keywordargs, "utf-8", &Name, &LineSpacingMode, &LineSpacing, &Alignment,
-		&LeftMargin, &RightMargin, &GapBefore, &GapAfter, &FirstIndent,
-		&HasDropCap, &DropCapLines, &PEOffset, "utf-8", &CharStyle))
+	char *name = const_cast<char*>(""), *charStyle = const_cast<char*>("");
+	char *bullet = const_cast<char*>("");
+	int lineSpacingMode = 0, alignment = 0, dropCapLines = 2, hasDropCap = 0;
+	double lineSpacing = 15.0, leftMargin = 0.0, rightMargin = 0.0;
+	double gapBefore = 0.0, gapAfter = 0.0, firstIndent = 0.0, peOffset = 0;
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "es|ididddddiideses",
+		 keywordargs, "utf-8", &name, &lineSpacingMode, &lineSpacing, &alignment,
+		&leftMargin, &rightMargin, &gapBefore, &gapAfter, &firstIndent,
+		&hasDropCap, &dropCapLines, &peOffset, "utf-8", &charStyle,
+		"utf-8", &bullet))
 		return nullptr;
 	if (!checkHaveDocument())
 		return nullptr;
-	if (strlen(Name) == 0)
+	if (strlen(name) == 0)
 	{
 		PyErr_SetString(PyExc_ValueError, QObject::tr("Cannot have an empty paragraph style name.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-
-	ParagraphStyle TmpParagraphStyle;
-	TmpParagraphStyle.setName(Name);
-	TmpParagraphStyle.setLineSpacingMode((ParagraphStyle::LineSpacingMode)LineSpacingMode);
-	TmpParagraphStyle.setLineSpacing(LineSpacing);
-	TmpParagraphStyle.setAlignment((ParagraphStyle::AlignmentType)Alignment);
-	TmpParagraphStyle.setLeftMargin(LeftMargin);
-	TmpParagraphStyle.setFirstIndent(FirstIndent);
-	TmpParagraphStyle.setRightMargin(RightMargin);
-	TmpParagraphStyle.setGapBefore(GapBefore);
-	TmpParagraphStyle.setGapAfter(GapAfter);
-	if (HasDropCap == 0)
-		TmpParagraphStyle.setHasDropCap(false);
-	else if (HasDropCap == 1)
-		TmpParagraphStyle.setHasDropCap(true);
-	else
+	
+	if ((hasDropCap != 0) && (dropCapLines <= 1) )
 	{
-		PyErr_SetString(PyExc_ValueError, QObject::tr("hasdropcap has to be 0 or 1.","python error").toLocal8Bit().constData());
+		PyErr_SetString(PyExc_ValueError, QObject::tr("hasdropcap is true but dropcaplines value is invalid","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-	TmpParagraphStyle.setDropCapLines(DropCapLines);
-	TmpParagraphStyle.setParEffectOffset(PEOffset);
-	TmpParagraphStyle.charStyle().setParent(CharStyle);
+	
+	if (strlen(bullet) > 0 && (hasDropCap  != 0))
+	{
+		PyErr_SetString(PyExc_ValueError, QObject::tr("hasdropcap and bullet are not allowed to be specified together.","python error").toLocal8Bit().constData());
+		return nullptr;
+	}
 
-	StyleSet<ParagraphStyle> TmpStyleSet;
-	TmpStyleSet.create(TmpParagraphStyle);
-	ScCore->primaryMainWindow()->doc->redefineStyles(TmpStyleSet, false);
+	ParagraphStyle tmpParagraphStyle;
+	tmpParagraphStyle.setName(name);
+	tmpParagraphStyle.setLineSpacingMode((ParagraphStyle::LineSpacingMode) lineSpacingMode);
+	tmpParagraphStyle.setLineSpacing(lineSpacing);
+	tmpParagraphStyle.setAlignment((ParagraphStyle::AlignmentType) alignment);
+	tmpParagraphStyle.setLeftMargin(leftMargin);
+	tmpParagraphStyle.setFirstIndent(firstIndent);
+	tmpParagraphStyle.setRightMargin(rightMargin);
+	tmpParagraphStyle.setGapBefore(gapBefore);
+	tmpParagraphStyle.setGapAfter(gapAfter);
+	
+	if (hasDropCap != 0)
+	{
+		tmpParagraphStyle.setDropCapLines(dropCapLines);
+		tmpParagraphStyle.setHasDropCap(true);
+		tmpParagraphStyle.setHasBullet(false);
+		tmpParagraphStyle.setHasNum(false);
+	}
+	else
+	{
+		tmpParagraphStyle.setHasDropCap(false);
+	}
+	
+	if (strlen(bullet) > 0)
+	{
+		tmpParagraphStyle.setBulletStr(QString::fromUtf8(bullet));
+		tmpParagraphStyle.setHasDropCap(false);
+		tmpParagraphStyle.setHasBullet(true);
+		tmpParagraphStyle.setHasNum(false);
+	}
+	else
+	{
+		tmpParagraphStyle.setHasBullet(false);
+	}
+	
+	tmpParagraphStyle.setParEffectOffset(peOffset);
+	tmpParagraphStyle.charStyle().setParent(charStyle);
+
+	StyleSet<ParagraphStyle> tmpStyleSet;
+	tmpStyleSet.create(tmpParagraphStyle);
+	ScCore->primaryMainWindow()->doc->redefineStyles(tmpStyleSet, false);
 	// PV - refresh the Style Manager window.
 	// I thought that this can work but it doesn't:
 	// ScCore->primaryMainWindow()->styleMgr()->reloadStyleView();
@@ -95,72 +126,144 @@ PyObject *scribus_createparagraphstyle(PyObject* /* self */, PyObject* args, PyO
 PyObject *scribus_createcharstyle(PyObject* /* self */, PyObject* args, PyObject* keywords)
 {
 	char* keywordargs[] = {
-					  							const_cast<char*>("name"),
-					  							const_cast<char*>("font"),
-					  							const_cast<char*>("fontsize"),
-												const_cast<char*>("fontfeatures"),
-					  							const_cast<char*>("features"),
-					  							const_cast<char*>("fillcolor"),
-					  							const_cast<char*>("fillshade"),
-					  							const_cast<char*>("strokecolor"),
-					  							const_cast<char*>("strokeshade"),
-					  							const_cast<char*>("baselineoffset"),
-					  							const_cast<char*>("shadowxoffset"),
-					  							const_cast<char*>("shadowyoffset"),
-					  							const_cast<char*>("outlinewidth"),
-					  							const_cast<char*>("underlineoffset"),
-					  							const_cast<char*>("underlinewidth"),
-					  							const_cast<char*>("strikethruoffset"),
-					  							const_cast<char*>("strikethruwidth"),
-					  							const_cast<char*>("scaleh"),
-					  							const_cast<char*>("scalev"),
-					  							const_cast<char*>("tracking"),
-					  							const_cast<char*>("language"),
-											nullptr};
-	char *Name = const_cast<char*>(""), *Font = const_cast<char*>("Times"), *Features = const_cast<char*>("inherit"), *FillColor = const_cast<char*>("Black"), *FontFeatures = const_cast<char*>(""), *StrokeColor = const_cast<char*>("Black"), *Language = const_cast<char*>("");
-	double FontSize = 200, FillShade = 1, StrokeShade = 1, ScaleH = 1, ScaleV = 1, BaselineOffset = 0, ShadowXOffset = 0, ShadowYOffset = 0, OutlineWidth = 0, UnderlineOffset = 0, UnderlineWidth = 0, StrikethruOffset = 0, StrikethruWidth = 0, Tracking = 0;
-	if (!PyArg_ParseTupleAndKeywords(args, keywords, "es|esdesesdesddddddddddddes", keywordargs,
-																									"utf-8", &Name, "utf-8", &Font, &FontSize, "utf-8", &Features,
-																									"utf-8", &FillColor, &FillShade, "utf-8", &StrokeColor, &StrokeShade, &BaselineOffset, &ShadowXOffset,
-																									&ShadowYOffset, &OutlineWidth, &UnderlineOffset, &UnderlineWidth, &StrikethruOffset, &StrikethruWidth,
-																									&ScaleH, &ScaleV, &Tracking, "utf-8", &Language))
-		return nullptr;
+		const_cast<char*>("name"),
+		const_cast<char*>("font"),
+		const_cast<char*>("fontsize"),
+		const_cast<char*>("features"),
+		const_cast<char*>("fillcolor"),
+		const_cast<char*>("fillshade"),
+		const_cast<char*>("strokecolor"),
+		const_cast<char*>("strokeshade"),
+		const_cast<char*>("baselineoffset"),
+		const_cast<char*>("shadowxoffset"),
+		const_cast<char*>("shadowyoffset"),
+		const_cast<char*>("outlinewidth"),
+		const_cast<char*>("underlineoffset"),
+		const_cast<char*>("underlinewidth"),
+		const_cast<char*>("strikethruoffset"),
+		const_cast<char*>("strikethruwidth"),
+		const_cast<char*>("scaleh"),
+		const_cast<char*>("scalev"),
+		const_cast<char*>("tracking"),
+		const_cast<char*>("language"),
+		const_cast<char*>("fontfeatures"),
+		nullptr};
+
 	if (!checkHaveDocument())
 		return nullptr;
-	if (strlen(Name) == 0)
+
+	const double dbl_min = -std::numeric_limits<double>::max();
+
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	const StyleSet<CharStyle>& charStyles = ScCore->primaryMainWindow()->doc->charStyles();
+	const CharStyle* defaultStyle = charStyles.getDefault();
+
+	char *name = const_cast<char*>(""), *font = const_cast<char*>(""), *features = const_cast<char*>("inherit"), *fillColor = const_cast<char*>(""), *fontFeatures = const_cast<char*>(""), *strokeColor = const_cast<char*>("Black"), *language = const_cast<char*>("");
+	double fontSize = -1;
+	double fillShade = -1, strokeShade = -1;
+	double scaleH = -1, scaleV = -1;
+	double baselineOffset = dbl_min;
+	double shadowXOffset  = dbl_min, shadowYOffset = dbl_min;
+	double outlineWidth = dbl_min, underlineOffset = dbl_min, underlineWidth = dbl_min;
+	double strikethruOffset = dbl_min, strikethruWidth = dbl_min;
+	double tracking = dbl_min;
+	
+	if (!PyArg_ParseTupleAndKeywords(args, keywords, "es|esdesesdesddddddddddddes", keywordargs,
+									"utf-8", &name, "utf-8", &font, &fontSize, "utf-8", &features,
+									"utf-8", &fillColor, &fillShade, "utf-8", &strokeColor, &strokeShade, &baselineOffset, &shadowXOffset,
+									&shadowYOffset, &outlineWidth, &underlineOffset, &underlineWidth, &strikethruOffset, &strikethruWidth,
+									&scaleH, &scaleV, &tracking, "utf-8", &language))
+		return nullptr;
+	
+	if (strlen(name) == 0)
 	{
 		PyErr_SetString(PyExc_ValueError, QObject::tr("Cannot have an empty char style name.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
 
-	QStringList FeaturesList = QString(Features).split(QString(","));
+	QString realFont = QString(font);
+	if (!realFont.isEmpty())
+	{
+		if (!currentDoc->AllFonts->contains(realFont))
+		{
+			PyErr_SetString(PyExc_ValueError, QObject::tr("Specified font is not available.", "python error").toLocal8Bit().constData());
+			return nullptr;
+		}
+	}
 
-	CharStyle TmpCharStyle;
-	TmpCharStyle.setName(Name);
-	TmpCharStyle.setFont((*ScCore->primaryMainWindow()->doc->AllFonts)[QString(Font)]);
-	TmpCharStyle.setFontSize(FontSize * 10);
-	TmpCharStyle.setFontFeatures(FontFeatures);
-	TmpCharStyle.setFeatures(FeaturesList);
-	TmpCharStyle.setFillColor(QString(FillColor));
-	TmpCharStyle.setFillShade(FillShade * 100);
-	TmpCharStyle.setStrokeColor(QString(StrokeColor));
-	TmpCharStyle.setStrokeShade(StrokeShade * 100);
-	TmpCharStyle.setBaselineOffset(BaselineOffset);
-	TmpCharStyle.setShadowXOffset(ShadowXOffset);
-	TmpCharStyle.setShadowYOffset(ShadowYOffset);
-	TmpCharStyle.setOutlineWidth(OutlineWidth);
-	TmpCharStyle.setUnderlineOffset(UnderlineOffset);
-	TmpCharStyle.setUnderlineWidth(UnderlineWidth);
-	TmpCharStyle.setStrikethruOffset(StrikethruOffset);
-	TmpCharStyle.setStrikethruWidth(StrikethruWidth);
-	TmpCharStyle.setScaleH(ScaleH * 1000);
-	TmpCharStyle.setScaleV(ScaleV * 1000);
-	TmpCharStyle.setTracking(Tracking);
-	TmpCharStyle.setLanguage(QString(Language));
+	const ColorList& docColors = currentDoc->PageColors;
+	QString qFillColor = QString(fillColor);
+	QString qStrokeColor = QString(strokeColor);
+	if (!qFillColor.isEmpty())
+	{
+		if ((qFillColor != CommonStrings::None) && (!docColors.contains(qFillColor)))
+		{
+			PyErr_SetString(PyExc_ValueError, QObject::tr("Specified fill color is not available in document.", "python error").toLocal8Bit().constData());
+			return nullptr;
+		}
+	}
+	if (!qStrokeColor.isEmpty())
+	{
+		if ((qStrokeColor != CommonStrings::None) && (!docColors.contains(qStrokeColor)))
+		{
+			PyErr_SetString(PyExc_ValueError, QObject::tr("Specified stroke color is not available in document.", "python error").toLocal8Bit().constData());
+			return nullptr;
+		}
+	}
 
-	StyleSet<CharStyle> TmpStyleSet;
-	TmpStyleSet.create(TmpCharStyle);
-	ScCore->primaryMainWindow()->doc->redefineCharStyles(TmpStyleSet, false);
+	if (fillShade >= 0)
+		fillShade = qMax(0.0, qMin(fillShade, 1.0));
+	if (strokeShade >= 0)
+		strokeShade = qMax(0.0, qMin(strokeShade, 1.0));
+	QStringList featuresList = QString(features).split(',', QString::SkipEmptyParts);
+	QString qLanguage = QString(language);
+
+	CharStyle tmpCharStyle;
+	tmpCharStyle.setName(name);
+	if (!realFont.isEmpty())
+		tmpCharStyle.setFont((*currentDoc->AllFonts)[realFont]);
+	if (fontSize > 0)
+		tmpCharStyle.setFontSize(fontSize * 10);
+	if (fontFeatures != defaultStyle->fontFeatures())
+		tmpCharStyle.setFontFeatures(fontFeatures);
+	if (featuresList != defaultStyle->features())
+		tmpCharStyle.setFeatures(featuresList);
+	if (!qFillColor.isEmpty())
+		tmpCharStyle.setFillColor(qFillColor);
+	if (fillShade >= 0)
+		tmpCharStyle.setFillShade(fillShade * 100);
+	if (!qStrokeColor.isEmpty())
+		tmpCharStyle.setStrokeColor(qStrokeColor);
+	if (strokeShade >= 0)
+		tmpCharStyle.setStrokeShade(strokeShade * 100);
+	if (baselineOffset >= 0)
+		tmpCharStyle.setBaselineOffset(baselineOffset);
+	if (shadowXOffset != dbl_min)
+		tmpCharStyle.setShadowXOffset(shadowXOffset);
+	if (shadowYOffset != dbl_min)
+		tmpCharStyle.setShadowYOffset(shadowYOffset);
+	if (outlineWidth >= 0)
+		tmpCharStyle.setOutlineWidth(outlineWidth);
+	if (underlineOffset >= 0)
+		tmpCharStyle.setUnderlineOffset(underlineOffset);
+	if (underlineWidth >= 0)
+		tmpCharStyle.setUnderlineWidth(underlineWidth);
+	if (strikethruOffset >= 0)
+		tmpCharStyle.setStrikethruOffset(strikethruOffset);
+	if (strikethruWidth >= 0)
+		tmpCharStyle.setStrikethruWidth(strikethruWidth);
+	if (scaleH > 0)
+		tmpCharStyle.setScaleH(scaleH * 1000);
+	if (scaleV > 0)
+		tmpCharStyle.setScaleV(scaleV * 1000);
+	if (tracking != dbl_min)
+		tmpCharStyle.setTracking(tracking);
+	if (!qLanguage.isEmpty())
+		tmpCharStyle.setLanguage(qLanguage);
+
+	StyleSet<CharStyle> tmpStyleSet;
+	tmpStyleSet.create(tmpCharStyle);
+	currentDoc->redefineCharStyles(tmpStyleSet, false);
 	// PV - refresh the Style Manager window.
 	// I thought that this can work but it doesn't:
 	// ScCore->primaryMainWindow()->styleMgr()->reloadStyleView();
@@ -183,55 +286,75 @@ PyObject *scribus_createcustomlinestyle(PyObject * /* self */, PyObject* args)
 		return nullptr;
 	}
 
+	if (!checkHaveDocument())
+		return nullptr;
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+
 	multiLine ml;
-	for (int i = 0; i < PyList_Size(obj); i++) {
+	const ColorList& docColors = currentDoc->PageColors;
+
+	for (int i = 0; i < PyList_Size(obj); i++)
+	{
 		PyObject *line = PyList_GetItem(obj, i);
-		if (!PyDict_Check(line)) {
+		if (!PyDict_Check(line))
+		{
 			PyErr_SetString(PyExc_TypeError, "elements of list must be Dictionary.");
 			return nullptr;
 		}
 		struct SingleLine sl;
 		PyObject *val;
+
 		val = PyDict_GetItemString(line, "Color");
-		if (val) {
+		if (val)
 			sl.Color = PyString_AsString(val);
-		} else 
-			sl.Color = ScCore->primaryMainWindow()->doc->itemToolPrefs().lineColor;;
+		else 
+			sl.Color = currentDoc->itemToolPrefs().lineColor;
+
 		val = PyDict_GetItemString(line, "Dash");
-		if (val) {
+		if (val)
 			sl.Dash = PyInt_AsLong(val);
-		} else 
+		else 
 			sl.Dash = Qt::SolidLine;
+
 		val = PyDict_GetItemString(line, "LineEnd");
-		if (val) {
+		if (val)
 			sl.LineEnd = PyInt_AsLong(val);
-		} else 
+		else 
 			sl.LineEnd = Qt::FlatCap;
+
 		val = PyDict_GetItemString(line, "LineJoin");
-		if (val) {
+		if (val)
 			sl.LineJoin = PyInt_AsLong(val);
-		} else 
+		else 
 			sl.LineJoin = Qt::MiterJoin;
+
 		val = PyDict_GetItemString(line, "Shade");
-		if (val) {
+		if (val)
 			sl.Shade = PyInt_AsLong(val);
-		} else 
-			sl.Shade = ScCore->primaryMainWindow()->doc->itemToolPrefs().lineColorShade;
+		else 
+			sl.Shade = currentDoc->itemToolPrefs().lineColorShade;
+
 		val = PyDict_GetItemString(line, "Width");
-		if (val) {
+		if (val)
 			sl.Width = PyFloat_AsDouble(val);
-		} else 
-			sl.Width = ScCore->primaryMainWindow()->doc->itemToolPrefs().lineWidth;
+		else 
+			sl.Width = currentDoc->itemToolPrefs().lineWidth;
 
 		val = PyDict_GetItemString(line, "Shortcut");
-		if (val) {
+		if (val)
 			ml.shortcut = PyString_AsString(val);
-		} else 
+		else 
 			ml.shortcut = "";
+
+		if (!docColors.contains(sl.Color))
+		{
+			PyErr_SetString(PyExc_ValueError, QObject::tr("Specified color is not available in document.", "python error").toLocal8Bit().constData());
+			return nullptr;
+		}
 		ml.push_back(sl);
 	}
 	if (!ml.empty())
-		ScCore->primaryMainWindow()->doc->MLineStyles[Name] = ml;
+		currentDoc->MLineStyles[Name] = ml;
 	Py_RETURN_NONE;
 }
 

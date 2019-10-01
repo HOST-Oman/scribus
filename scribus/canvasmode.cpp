@@ -85,20 +85,20 @@ CanvasMode::CanvasMode (ScribusView* view) :
 {
 	m_pen["outline"]	= QPen(Qt::gray, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["outline"].setCosmetic(true);
-	m_pen["selection"]	= QPen(PrefsManager::instance()->appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	m_pen["selection"]	= QPen(PrefsManager::instance().appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["selection"].setCosmetic(true);
 	m_pen["selection-group"] = QPen(Qt::red, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["selection-group"].setCosmetic(true);
-	m_pen["selection-group-inside"] = QPen(PrefsManager::instance()->appPrefs.displayPrefs.frameGroupColor, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	m_pen["selection-group-inside"] = QPen(PrefsManager::instance().appPrefs.displayPrefs.frameGroupColor, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["selection-group-inside"].setCosmetic(true);
-	m_pen["handle"]		= QPen(PrefsManager::instance()->appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	m_pen["handle"]		= QPen(PrefsManager::instance().appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["handle"].setCosmetic(true);
 	
 	m_brush["outline"]	= Qt::NoBrush;
 	m_brush["selection"]	= Qt::NoBrush;
 	m_brush["selection-group"] = QColor(255,0,0,10);
 	m_brush["selection-group-inside"] = Qt::NoBrush;
-	m_brush["handle"]	= PrefsManager::instance()->appPrefs.displayPrefs.frameColor;
+	m_brush["handle"]	= PrefsManager::instance().appPrefs.displayPrefs.frameColor;
 
 	m_keyRepeat = false;
 	m_arrowKeyDown = false;
@@ -225,9 +225,9 @@ void CanvasMode::updateViewMode(CanvasViewMode* viewmode)
 
 void CanvasMode::drawSelectionHandles(QPainter *psx, QRectF selectionRect, bool background, bool insideGroup, double sx, double sy)
 {
-	m_pen["handle"]		= QPen(PrefsManager::instance()->appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	m_pen["handle"]		= QPen(PrefsManager::instance().appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["handle"].setCosmetic(true);
-	m_pen["selection-group-inside"] = QPen(PrefsManager::instance()->appPrefs.displayPrefs.frameGroupColor, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	m_pen["selection-group-inside"] = QPen(PrefsManager::instance().appPrefs.displayPrefs.frameGroupColor, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["selection-group-inside"].setCosmetic(true);
 	QPen ba = QPen(Qt::white, 3.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	ba.setCosmetic(true);
@@ -269,9 +269,9 @@ void CanvasMode::drawSelectionHandles(QPainter *psx, QRectF selectionRect, bool 
 
 void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 {
-	m_pen["selection"]	= QPen(PrefsManager::instance()->appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	m_pen["selection"]	= QPen(PrefsManager::instance().appPrefs.displayPrefs.frameColor, 1.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["selection"].setCosmetic(true);
-	m_pen["selection-group-inside"] = QPen(PrefsManager::instance()->appPrefs.displayPrefs.frameGroupColor, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+	m_pen["selection-group-inside"] = QPen(PrefsManager::instance().appPrefs.displayPrefs.frameGroupColor, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["selection-group-inside"].setCosmetic(true);
 	QPen ba = QPen(Qt::white, 3.0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	ba.setCosmetic(true);
@@ -280,7 +280,7 @@ void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 	psx->scale(m_canvas->scale(), m_canvas->scale());
 	psx->translate(-m_doc->minCanvasCoordinate.x(), -m_doc->minCanvasCoordinate.y());
 	psx->setClipping(true);
-	psx->setClipRegion(QRegion ( m_canvas->exposedRect() ) );
+	psx->setClipRegion(QRegion(m_canvas->exposedRect()));
 	if (m_doc->m_Selection->isMultipleSelection())
 	{
 		PageItem *curItem(nullptr);
@@ -527,9 +527,9 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 //			QRectF br(currItem->getVisualBoundingRect());
 #ifdef GESTURE_FRAME_PREVIEW
 			QImage *pixItem(0);
-			if ( m_pixmapCache.contains(currItem) )
+			if (m_pixmapCache.contains(currItem))
 			{
-				if ( m_pixmapCache.value(currItem)->isReady() )
+				if (m_pixmapCache.value(currItem)->isReady())
 					pixItem = m_pixmapCache.value(currItem)->getImage();
 			}
 			else
@@ -542,7 +542,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 				p->save();
 				p->translate(br.x(),br.y());
 				p->translate(deltax, deltay);
-				p->drawImage( br.toRect(), *pixItem, pixItem->rect() );
+				p->drawImage(br.toRect(), *pixItem, pixItem->rect());
 				p->restore();
 			}
 #endif // GESTURE_FRAME_PREVIEW
@@ -686,9 +686,9 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 //						QRectF br(currItem->getVisualBoundingRect());
 #ifdef GESTURE_FRAME_PREVIEW
 						QImage *pixItem(0);
-						if ( m_pixmapCache.contains(currItem) )
+						if (m_pixmapCache.contains(currItem))
 						{
-							if ( m_pixmapCache.value(currItem)->isReady() )
+							if (m_pixmapCache.value(currItem)->isReady())
 								pixItem = m_pixmapCache.value(currItem)->getImage();
 						}
 						else
@@ -701,7 +701,7 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 						{
 							p->save();
 //							p->translate(br.x() /*- x*/, br.y() /*- y*/);
-							p->drawImage( br.toRect(), *pixItem, pixItem->rect() );
+							p->drawImage(br.toRect(), *pixItem, pixItem->rect());
 							p->restore();
 						}
 #endif  // GESTURE_FRAME_PREVIEW
@@ -771,57 +771,57 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 
 QCursor CanvasMode::modeCursor()
 {
-	IconManager* im=IconManager::instance();
+	IconManager& im=IconManager::instance();
 	QCursor cursor;
 	switch (m_doc->appMode)
 	{
 		case modeDrawShapes:
 		case modeDrawArc:
 		case modeDrawSpiral:
-			cursor = im->loadCursor("drawframe.png");
+			cursor = im.loadCursor("drawframe.png");
 			break;
 		case modeDrawImage:
-			cursor = im->loadCursor("drawimageframe.png");
+			cursor = im.loadCursor("drawimageframe.png");
 			break;
 		case modeDrawLatex:
-			cursor = im->loadCursor("drawlatexframe.png");
+			cursor = im.loadCursor("drawlatexframe.png");
 			break;
 		case modeDrawText:
-			cursor = im->loadCursor("drawtextframe.png");
+			cursor = im.loadCursor("drawtextframe.png");
 			break;
 		case modeDrawTable2:
-			cursor = im->loadCursor("drawtable.png");
+			cursor = im.loadCursor("drawtable.png");
 			break;
 		case modeDrawRegularPolygon:
-			cursor = im->loadCursor("drawpolyline.png");
+			cursor = im.loadCursor("drawpolyline.png");
 			break;
 		case modeDrawLine:
 		case modeDrawBezierLine:
 			cursor = QCursor(Qt::CrossCursor);
 			break;
 		case modeDrawFreehandLine:
-			cursor = im->loadCursor("DrawFreeLine.png", 0, 31);
+			cursor = im.loadCursor("DrawFreeLine.png", 0, 31);
 			break;
 		case modeDrawCalligraphicLine:
-			cursor = im->loadCursor("drawcalligraphy.png", 4, 4);
+			cursor = im.loadCursor("drawcalligraphy.png", 4, 4);
 			break;
 		case modeImportObject:
-			cursor = im->loadCursor("dragpix.png");
+			cursor = im.loadCursor("dragpix.png");
 			break;
 		case modeMagnifier:
 			if (m_view->Magnify)
-				cursor = im->loadCursor("lupez.png");
+				cursor = im.loadCursor("lupez.png");
 			else
-				cursor = im->loadCursor("lupezm.png");
+				cursor = im.loadCursor("lupezm.png");
 			break;
 		case modePanning:
-			cursor = im->loadCursor("handc.png");
+			cursor = im.loadCursor("handc.png");
 			break;
 		case modeEyeDropper:
-			cursor = im->loadCursor("colorpickercursor.png", 0, 31);
+			cursor = im.loadCursor("colorpickercursor.png", 0, 31);
 			break;
 		case modeLinkFrames:
-			cursor = im->loadCursor("LinkTextFrame.png", 0, 31);
+			cursor = im.loadCursor("LinkTextFrame.png", 0, 31);
 			break;
 		case modeMeasurementTool:
 		case modeEditGradientVectors:
@@ -851,57 +851,57 @@ QCursor CanvasMode::modeCursor()
 
 void CanvasMode::setModeCursor()
 {
-	IconManager* im=IconManager::instance();
+	IconManager& im=IconManager::instance();
 	//NOTE: Merge with similar code in ScribusMainWindow::setAppMode()
 	switch (m_doc->appMode)
 	{
 		case modeDrawShapes:
 		case modeDrawArc:
 		case modeDrawSpiral:
-			m_view->setCursor(im->loadCursor("drawframe.png"));
+			m_view->setCursor(im.loadCursor("drawframe.png"));
 			break;
 		case modeDrawImage:
-			m_view->setCursor(im->loadCursor("drawimageframe.png"));
+			m_view->setCursor(im.loadCursor("drawimageframe.png"));
 			break;
 		case modeDrawLatex:
-			m_view->setCursor(im->loadCursor("drawlatexframe.png"));
+			m_view->setCursor(im.loadCursor("drawlatexframe.png"));
 			break;
 		case modeDrawText:
-			m_view->setCursor(im->loadCursor("drawtextframe.png"));
+			m_view->setCursor(im.loadCursor("drawtextframe.png"));
 			break;
 		case modeDrawTable2:
-			m_view->setCursor(im->loadCursor("drawtable.png"));
+			m_view->setCursor(im.loadCursor("drawtable.png"));
 			break;
 		case modeDrawRegularPolygon:
-			m_view->setCursor(im->loadCursor("drawpolyline.png"));
+			m_view->setCursor(im.loadCursor("drawpolyline.png"));
 			break;
 		case modeDrawLine:
 		case modeDrawBezierLine:
 			m_view->setCursor(QCursor(Qt::CrossCursor));
 			break;
 		case modeDrawFreehandLine:
-			m_view->setCursor(im->loadCursor("DrawFreeLine.png", 0, 31));
+			m_view->setCursor(im.loadCursor("DrawFreeLine.png", 0, 31));
 			break;
 		case modeDrawCalligraphicLine:
-			m_view->setCursor(im->loadCursor("drawcalligraphy.png", 4, 4));
+			m_view->setCursor(im.loadCursor("drawcalligraphy.png", 4, 4));
 			break;
 		case modeImportObject:
-			m_view->setCursor(im->loadCursor("dragpix.png"));
+			m_view->setCursor(im.loadCursor("dragpix.png"));
 			break;
 		case modeMagnifier:
 			if (m_view->Magnify)
-				m_view->setCursor(im->loadCursor("lupez.png"));
+				m_view->setCursor(im.loadCursor("lupez.png"));
 			else
-				m_view->setCursor(im->loadCursor("lupezm.png"));
+				m_view->setCursor(im.loadCursor("lupezm.png"));
 			break;
 		case modePanning:
-			m_view->setCursor(im->loadCursor("handc.png"));
+			m_view->setCursor(im.loadCursor("handc.png"));
 			break;
 		case modeEyeDropper:
-			m_view->setCursor(im->loadCursor("colorpickercursor.png", 0, 31));
+			m_view->setCursor(im.loadCursor("colorpickercursor.png", 0, 31));
 			break;
 		case modeLinkFrames:
-			m_view->setCursor(im->loadCursor("LinkTextFrame.png", 0, 31));
+			m_view->setCursor(im.loadCursor("LinkTextFrame.png", 0, 31));
 			break;
 		case modeMeasurementTool:
 		case modeEditGradientVectors:
@@ -1031,19 +1031,19 @@ void CanvasMode::commonDrawControls(QPainter* p, bool drawHandles)
 void CanvasMode::commonDrawTextCursor(QPainter* p, PageItem_TextFrame* textframe, const QPointF& offset)
 {
 	QLineF cursor;
-	QPen cPen ( Qt::black, 0.9 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin );
+	QPen cPen (Qt::black, 0.9 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 
 	// normalize Current Position
 	textframe->itemText.normalizeCursorPosition();
-	int textCursorPos ( textframe->itemText.cursorPosition() );
+	int textCursorPos (textframe->itemText.cursorPosition());
 	cursor = textframe->textLayout.positionToPoint(textCursorPos);
 
 	cPen.setColor(ScColorEngine::getRGBColor(m_doc->PageColors[textframe->itemText.charStyle(textCursorPos).fillColor()], m_doc));
 
 	p->save();
 	p->setTransform(textframe->getTransform(), true);
-	p->setPen ( cPen );
-	p->setRenderHint ( QPainter::Antialiasing, true );
+	p->setPen(cPen);
+	p->setRenderHint(QPainter::Antialiasing, true);
 	p->drawLine(cursor.translated(offset));
 	p->restore();
 }
@@ -1058,8 +1058,8 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 	
 	QMdiArea* mdiArea = mainWindow->mdiArea;
 	QMdiSubWindow* w  = nullptr;
-	PrefsManager*   prefsManager      = PrefsManager::instance();
-	OutlinePalette* outlinePalette    = mainWindow->outlinePalette;
+	PrefsManager& prefsManager = PrefsManager::instance();
+	OutlinePalette* outlinePalette = mainWindow->outlinePalette;
 	CheckDocument*  docCheckerPalette = mainWindow->docCheckerPalette;
 	QMap<QString, QPointer<ScrAction> >& scrActions(mainWindow->scrActions);
 
@@ -1097,9 +1097,9 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 		m_doc->SubMode = -1;
 		m_doc->ElemToLink = nullptr;
 		mainWindow->slotSelect();
-		if (m_doc->m_Selection->count() == 0)
+		if (m_doc->m_Selection->isEmpty())
 			mainWindow->HaveNewSel();
-		prefsManager->appPrefs.uiPrefs.stickyTools = false;
+		prefsManager.appPrefs.uiPrefs.stickyTools = false;
 		scrActions["stickyTools"]->setChecked(false);
 		return;
 	}
@@ -1115,7 +1115,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 		{
 			ContextMenu* cmen=nullptr;
 			m_view->setCursor(QCursor(Qt::ArrowCursor));
-			if (m_doc->m_Selection->count() == 0)
+			if (m_doc->m_Selection->isEmpty())
 			{
 				//CB We should be able to get this calculated by the canvas.... it is already in m_canvas->globalToCanvas(m->globalPos());
 				FPoint fp = m_canvas->globalToCanvas(QCursor::pos());
@@ -1141,9 +1141,9 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 		 * - With Tab, change active document windowActivated
 		 */
 
-		if (m_doc->m_Selection->count() == 0)
+		if (m_doc->m_Selection->isEmpty())
 		{
-			int wheelVal = prefsManager->mouseWheelJump();
+			int wheelVal = prefsManager.mouseWheelJump();
 			if ((buttonModifiers & Qt::ShiftModifier) && !(buttonModifiers & Qt::ControlModifier) && !(buttonModifiers & Qt::AltModifier))
 				wheelVal = qMax(qRound(wheelVal / 10.0), 1);
 			switch (kk)
@@ -1196,7 +1196,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 						}
 						outlinePalette->buildReopenVals();
 						docCheckerPalette->clearErrorList();
-						if ( w )
+						if (w)
 							w->showNormal();
 						mainWindow->newActWin(w);
 					}
@@ -1210,7 +1210,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 		{
 			case Qt::Key_PageUp:
 				if (m_doc->masterPageMode() || m_doc->symbolEditMode())
-					m_view->scrollBy(0, -prefsManager->mouseWheelJump());
+					m_view->scrollBy(0, -prefsManager.mouseWheelJump());
 				else
 				{
 					int pg = m_doc->currentPageNumber();
@@ -1226,7 +1226,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 				break;
 			case Qt::Key_PageDown:
 				if (m_doc->masterPageMode() || m_doc->symbolEditMode())
-					m_view->scrollBy(0, prefsManager->mouseWheelJump());
+					m_view->scrollBy(0, prefsManager.mouseWheelJump());
 				else
 				{
 					int pg = m_doc->currentPageNumber();
@@ -1338,15 +1338,16 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 						if ((m_doc->appMode == modeEditClip) && (m_doc->nodeEdit.hasNodeSelected()))
 						{
 							int storedClRe = m_doc->nodeEdit.clre();
-							if ((m_doc->nodeEdit.selNode().count() != 0) && (m_doc->nodeEdit.edPoints()))
+							const auto& nodeSelection = m_doc->nodeEdit.selNode();
+							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
 								if ((currItem->imageFlippedH() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
-								for (int itm = 0; itm < m_doc->nodeEdit.selNode().count(); ++itm)
+								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
-									int clRe = m_doc->nodeEdit.selNode().at(itm);
+									int clRe = nodeSelection.at(itm);
 									if (m_doc->nodeEdit.isContourLine())
 										np = currItem->ContourLine.point(clRe);
 									else
@@ -1428,15 +1429,16 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 						if ((m_doc->appMode == modeEditClip) && (m_doc->nodeEdit.hasNodeSelected()))
 						{
 							int storedClRe = m_doc->nodeEdit.clre();
-							if ((m_doc->nodeEdit.selNode().count() != 0) && (m_doc->nodeEdit.edPoints()))
+							const auto& nodeSelection = m_doc->nodeEdit.selNode();
+							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
 								if ((currItem->imageFlippedH() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
-								for (int itm = 0; itm < m_doc->nodeEdit.selNode().count(); ++itm)
+								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
-									int clRe = m_doc->nodeEdit.selNode().at(itm);
+									int clRe = nodeSelection.at(itm);
 									if (m_doc->nodeEdit.isContourLine())
 										np = currItem->ContourLine.point(clRe);
 									else
@@ -1518,15 +1520,16 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 						if ((m_doc->appMode == modeEditClip) && (m_doc->nodeEdit.hasNodeSelected()))
 						{
 							int storedClRe = m_doc->nodeEdit.clre();
-							if ((m_doc->nodeEdit.selNode().count() != 0) && (m_doc->nodeEdit.edPoints()))
+							const auto& nodeSelection = m_doc->nodeEdit.selNode();
+							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
 								if ((currItem->imageFlippedV() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
-								for (int itm = 0; itm < m_doc->nodeEdit.selNode().count(); ++itm)
+								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
-									int clRe = m_doc->nodeEdit.selNode().at(itm);
+									int clRe = nodeSelection.at(itm);
 									if (m_doc->nodeEdit.isContourLine())
 										np = currItem->ContourLine.point(clRe);
 									else
@@ -1608,15 +1611,16 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 						if ((m_doc->appMode == modeEditClip) && (m_doc->nodeEdit.hasNodeSelected()))
 						{
 							int storedClRe = m_doc->nodeEdit.clre();
-							if ((m_doc->nodeEdit.selNode().count() != 0) && (m_doc->nodeEdit.edPoints()))
+							const auto& nodeSelection = m_doc->nodeEdit.selNode();
+							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
 								if ((currItem->imageFlippedV() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
-								for (int itm = 0; itm < m_doc->nodeEdit.selNode().count(); ++itm)
+								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
-									int clRe = m_doc->nodeEdit.selNode().at(itm);
+									int clRe = nodeSelection.at(itm);
 									if (m_doc->nodeEdit.isContourLine())
 										np = currItem->ContourLine.point(clRe);
 									else
@@ -1712,7 +1716,7 @@ void CanvasMode::commonkeyReleaseEvent(QKeyEvent *e)
 	if ((m_doc->appMode == modePanning) && (e->key() == Qt::Key_Control) && (QApplication::mouseButtons() & Qt::RightButton))
 		m_view->requestMode(modeNormal);
 	if (m_doc->appMode == modeMagnifier)
-		m_view->setCursor(IconManager::instance()->loadCursor("lupez.png"));
+		m_view->setCursor(IconManager::instance().loadCursor("lupez.png"));
 	if (e->isAutoRepeat() || !m_arrowKeyDown)
 		return;
 	switch(e->key())

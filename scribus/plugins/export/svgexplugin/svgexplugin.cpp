@@ -130,7 +130,7 @@ bool SVGExportPlugin::run(ScribusDoc* doc, const QString& filename)
 	QString fileName;
 	if (doc!=nullptr)
 	{
-		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("svgex");
+		PrefsContext* prefs = PrefsManager::instance().prefsFile->getPluginContext("svgex");
 		QString wdir = prefs->get("wdir", ".");
 		QScopedPointer<CustomFDialog> openDia( new CustomFDialog(doc->scMW(), wdir, QObject::tr("Save as"), QObject::tr("%1;;All Files (*)").arg(FormatsManager::instance()->extensionsForFormat(FormatsManager::SVG)), fdHidePreviewCheckBox) );
 		openDia->setSelection(getFileNameByPage(doc, doc->currentPage()->pageNr(), "svg"));
@@ -257,7 +257,7 @@ bool SVGExPlug::doExport( const QString& fName, SVGOptions &Opts )
 		m_Doc->Layers.levelToLayer(ll, la);
 		if (ll.isPrintable)
 		{
-			page = m_Doc->MasterPages.at(m_Doc->MasterNames[m_Doc->currentPage()->MPageNam]);
+			page = m_Doc->MasterPages.at(m_Doc->MasterNames[m_Doc->currentPage()->masterPageName()]);
 			ProcessPageLayer(page, ll);
 			page = m_Doc->currentPage();
 			ProcessPageLayer(page, ll);
@@ -297,7 +297,7 @@ void SVGExPlug::ProcessPageLayer(ScPage *page, ScLayer& layer)
 	PageItem *Item;
 	QList<PageItem*> Items;
 	ScPage* SavedAct = m_Doc->currentPage();
-	if (page->pageName().isEmpty())
+	if (page->pageNameEmpty())
 		Items = m_Doc->DocItems;
 	else
 		Items = m_Doc->MasterItems;
@@ -316,7 +316,7 @@ void SVGExPlug::ProcessPageLayer(ScPage *page, ScLayer& layer)
 	for (int j = 0; j < Items.count(); ++j)
 	{
 		Item = Items.at(j);
-		if (Item->LayerID != layer.ID)
+		if (Item->m_layerID != layer.ID)
 			continue;
 		if (!Item->printEnabled())
 			continue;
@@ -330,7 +330,7 @@ void SVGExPlug::ProcessPageLayer(ScPage *page, ScLayer& layer)
 		double h2 = Item->BoundingH;
 		if (!( qMax( x, x2 ) <= qMin( x+w, x2+w2 ) && qMax( y, y2 ) <= qMin( y+h, y2+h2 )))
 			continue;
-		if ((!page->pageName().isEmpty()) && (Item->OwnPage != static_cast<int>(page->pageNr())) && (Item->OwnPage != -1))
+		if ((!page->pageNameEmpty()) && (Item->OwnPage != static_cast<int>(page->pageNr())) && (Item->OwnPage != -1))
 			continue;
 		ProcessItemOnPage(Item->xPos()-page->xOffset(), Item->yPos()-page->yOffset(), Item, &layerGroup);
 	}
@@ -1154,7 +1154,7 @@ public:
 		, m_trans(trans)
 	{}
 
-	void drawGlyph(const GlyphCluster& gc)
+	void drawGlyph(const GlyphCluster& gc) override
 	{
 		if (gc.isControlGlyphs() || gc.isEmpty())
 			return;
@@ -1163,7 +1163,7 @@ public:
 		{
 			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			{
-				current_x += gl.xadvance;
+				current_x += gl.xadvance * gl.scaleH;
 				continue;
 			}
 
@@ -1178,11 +1178,11 @@ public:
 			glyph.setAttribute("style", fill + stroke);
 			m_elem.appendChild(glyph);
 
-			current_x += gl.xadvance;
+			current_x += gl.xadvance * gl.scaleH;
 		}
 	}
 
-	void drawGlyphOutline(const GlyphCluster& gc, bool hasFill)
+	void drawGlyphOutline(const GlyphCluster& gc, bool hasFill) override
 	{
 		if (gc.isControlGlyphs() | gc.isEmpty())
 			return;
@@ -1192,7 +1192,7 @@ public:
 		{
 			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			{
-				current_x += gl.xadvance;
+				current_x += gl.xadvance * gl.scaleH;
 				continue;
 			}
 
@@ -1210,11 +1210,11 @@ public:
 			glyph.setAttribute("style", fill + stroke);
 			m_elem.appendChild(glyph);
 
-			current_x += gl.xadvance;
+			current_x += gl.xadvance * gl.scaleH;
 		}
 	}
 
-	void drawLine(QPointF start, QPointF end)
+	void drawLine(QPointF start, QPointF end) override
 	{
 		QTransform transform = matrix();
 		transform.translate(x(), y());
@@ -1231,7 +1231,7 @@ public:
 		m_elem.appendChild(path);
 	}
 
-	void drawRect(QRectF rect)
+	void drawRect(QRectF rect) override
 	{
 		QTransform transform = matrix();
 		transform.translate(x(), y());
@@ -1247,7 +1247,7 @@ public:
 		m_elem.appendChild(path);
 	}
 
-	void drawObject(PageItem* item)
+	void drawObject(PageItem* item) override
 	{
 		QTransform transform = matrix();
 		transform.translate(x() + item->gXpos, y() + item->gYpos);

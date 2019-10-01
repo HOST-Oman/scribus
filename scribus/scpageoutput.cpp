@@ -110,18 +110,18 @@ void ScPageOutput::drawPage( ScPage* page, ScPainterExBase* painter)
 void ScPageOutput::drawMasterItems(ScPainterExBase *painter, ScPage *page, ScLayer& layer, QRect clip)
 {
 	PageItem* currItem;
-	if (page->MPageNam.isEmpty())
+	if (page->masterPageNameEmpty())
 		return;
 	if (page->FromMaster.count() <= 0)
 		return;
 	if (!layer.isViewable || !layer.isPrintable)
 		return;
-	ScPage* Mp = m_doc->MasterPages.at(m_doc->MasterNames[page->MPageNam]);
-	uint pageFromMasterCount = page->FromMaster.count();
-	for (uint a = 0; a < pageFromMasterCount; ++a)
+	ScPage* Mp = m_doc->MasterPages.at(m_doc->MasterNames[page->masterPageName()]);
+	int pageFromMasterCount = page->FromMaster.count();
+	for (int i = 0; i < pageFromMasterCount; ++i)
 	{
-		currItem = page->FromMaster.at(a);
-		if (currItem->LayerID != layer.ID)
+		currItem = page->FromMaster.at(i);
+		if (currItem->m_layerID != layer.ID)
 			continue;
 		if ((currItem->OwnPage != -1) && (currItem->OwnPage != static_cast<int>(Mp->pageNr())))
 			continue;
@@ -170,7 +170,7 @@ void ScPageOutput::drawPageItems(ScPainterExBase *painter, ScPage *page, ScLayer
 	for (int it = 0; it < m_doc->Items->count(); ++it)
 	{
 		currItem = m_doc->Items->at(it);
-		if (currItem->LayerID != layer.ID)
+		if (currItem->m_layerID != layer.ID)
 			continue;
 		if (!currItem->printEnabled())
 			continue;
@@ -950,31 +950,31 @@ public:
 		, m_scpage(scpage)
 	{}
 
-	void translate(double xp, double yp)
+	void translate(double xp, double yp) override
 	{
 		TextLayoutPainter::translate(xp, yp);
 		m_painter->translate(xp, yp);
 	}
 
-	void save()
+	void save() override
 	{
 		TextLayoutPainter::save();
 		m_painter->save();
 	}
 
-	void restore()
+	void restore() override
 	{
 		TextLayoutPainter::restore();
 		m_painter->restore();
 	}
 
-	void setScale(double h, double v)
+	void setScale(double h, double v) override
 	{
 		TextLayoutPainter::setScale(h, v);
 		m_painter->scale(h, v);
 	}
 
-	void drawGlyph(const GlyphCluster& gc)
+	void drawGlyph(const GlyphCluster& gc) override
 	{
 		if (gc.isControlGlyphs())
 			return;
@@ -1002,7 +1002,7 @@ public:
 			if (outline.size() > 3)
 				m_painter->fillPath();
 			m_painter->restore();
-			m_painter->translate(gl.xadvance, 0.0);
+			m_painter->translate(gl.xadvance * gl.scaleH, 0.0);
 		}
 
 		m_painter->setFillMode(fm);
@@ -1010,7 +1010,7 @@ public:
 		m_painter->restore();
 	}
 
-	void drawGlyphOutline(const GlyphCluster& gc, bool fill)
+	void drawGlyphOutline(const GlyphCluster& gc, bool fill) override
 	{
 		if (gc.isControlGlyphs())
 			return;
@@ -1030,9 +1030,11 @@ public:
 			m_painter->translate(gl.xoffset + current_x, -(fontSize() * gc.scaleV()) + gl.yoffset);
 
 			FPointArray outline = font().glyphOutline(gl.glyph);
-			double scaleH = gc.scaleH() * fontSize() / 10.0;
-			double scaleV = gc.scaleV() * fontSize() / 10.0;
-			m_painter->scale(scaleH, scaleV);
+			double scaleH = gl.scaleH * fontSize() / 10.0;
+			double scaleV = gl.scaleV * fontSize() / 10.0;
+			QTransform trans;
+			trans.scale(scaleH, scaleV);
+			outline.map(trans);
 			m_painter->setupPolygon(&outline, true);
 			if (outline.size() > 3)
 			{
@@ -1040,14 +1042,14 @@ public:
 				m_painter->strokePath();
 			}
 			m_painter->restore();
-			current_x += gl.xadvance;
+			current_x += gl.xadvance * gl.scaleH;
 		}
 
 		m_painter->setFillRule(fr);
 		m_painter->restore();
 	}
 
-	void drawLine(QPointF start, QPointF end)
+	void drawLine(QPointF start, QPointF end) override
 	{
 		m_painter->save();
 		setupState();
@@ -1055,7 +1057,7 @@ public:
 		m_painter->restore();
 	}
 
-	void drawRect(QRectF rect)
+	void drawRect(QRectF rect) override
 	{
 		m_painter->save();
 		setupState();
@@ -1065,7 +1067,7 @@ public:
 		m_painter->restore();
 	}
 
-	void drawObject(PageItem* embedded)
+	void drawObject(PageItem* embedded) override
 	{
 		QRect cullingArea;
 		if (!embedded)
@@ -1140,11 +1142,14 @@ void ScPageOutput::drawItem_PolyLine( PageItem_PolyLine* item, ScPainterExBase* 
 			}
 			if (item->PoLine.isMarker(n))
 			{
-				cli.addPoint(item->PoLine.point(n-2));
-				cli.addPoint(item->PoLine.point(n-2));
-				cli.addPoint(Start);
-				cli.addPoint(Start);
-				cli.setMarker();
+				if (n >= 2)
+				{
+					cli.addPoint(item->PoLine.point(n - 2));
+					cli.addPoint(item->PoLine.point(n - 2));
+					cli.addPoint(Start);
+					cli.addPoint(Start);
+					cli.setMarker();
+				}
 				firstp = true;
 				continue;
 			}

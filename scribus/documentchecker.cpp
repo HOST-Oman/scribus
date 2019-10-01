@@ -14,7 +14,7 @@ for which a new license (GPL+exception) is in place.
 
 /***************************************************************************
 *																		 *
-*   ScMW program is free software; you can redistribute it and/or modify  *
+*   Scribus program is free software; you can redistribute it and/or modify  *
 *   it under the terms of the GNU General Public License as published by  *
 *   the Free Software Foundation; either version 2 of the License, or	 *
 *   (at your option) any later version.								   *
@@ -43,12 +43,12 @@ class MissingGlyphsPainter: public TextLayoutPainter
 //	const TextLayout& m_textLayout;
 
 public:
-	MissingGlyphsPainter(errorCodes& itemError, const TextLayout& textLayout)
+	MissingGlyphsPainter(errorCodes& itemError, const TextLayout&  /*textLayout*/)
 		: m_itemError(itemError)
 //		, m_textLayout(textLayout)
 	{ }
 
-	void drawGlyph(const GlyphCluster& gc)
+	void drawGlyph(const GlyphCluster& gc) override
 	{
 		if (gc.isEmpty())
 		{
@@ -56,13 +56,13 @@ public:
 			m_itemError.insert(MissingGlyph, pos);
 		}
 	}
-	void drawGlyphOutline(const GlyphCluster& gc, bool)
+	void drawGlyphOutline(const GlyphCluster& gc, bool) override
 	{
 		drawGlyph(gc);
 	}
-	void drawLine(QPointF, QPointF) { }
-	void drawRect(QRectF) { }
-	void drawObject(PageItem*) { }
+	void drawLine(QPointF, QPointF) override { }
+	void drawRect(QRectF) override { }
+	void drawObject(PageItem*) override { }
 };
 
 bool isPartFilledImageFrame(PageItem * currItem)
@@ -77,8 +77,20 @@ bool isPartFilledImageFrame(PageItem * currItem)
 
 bool DocumentChecker::checkDocument(ScribusDoc *currDoc)
 {
+	const auto& checkerProfiles = currDoc->checkerProfiles();
+	if (!checkerProfiles.contains(currDoc->curCheckProfile()))
+		return false;
+	return checkDocument(currDoc, currDoc->curCheckProfile());
+}
+
+bool DocumentChecker::checkDocument(ScribusDoc *currDoc, const QString& checkerProfile)
+{
+	const auto& checkerProfiles = currDoc->checkerProfiles();
+	if (!checkerProfiles.contains(checkerProfile))
+		return false;
+
 	struct CheckerPrefs checkerSettings;
-	checkerSettings=currDoc->checkerProfiles()[currDoc->curCheckProfile()];
+	checkerSettings = checkerProfiles[checkerProfile];
 	currDoc->pageErrors.clear();
 	currDoc->docItemErrors.clear();
 	currDoc->masterItemErrors.clear();
@@ -105,7 +117,7 @@ void DocumentChecker::checkPages(ScribusDoc *currDoc, struct CheckerPrefs checke
 			bool error = false;
 			int masterPageNumber = -1, masterPageLocation = -1;
 			PageLocation pageLoc = currDoc->locationOfPage(i);
-			masterPageNumber = currDoc->MasterNames.value(currDoc->DocPages[i]->MPageNam, -1);
+			masterPageNumber = currDoc->MasterNames.value(currDoc->DocPages[i]->masterPageName(), -1);
 			if (masterPageNumber >= 0)
 				masterPageLocation = currDoc->MasterPages[masterPageNumber]->LeftPg;
 			if (currDoc->pagePositioning() == singlePage)
@@ -178,7 +190,7 @@ void DocumentChecker::checkItems(ScribusDoc *currDoc, struct CheckerPrefs checke
 			currItem = allItems.at(ii);
 			if (!currItem->printEnabled())
 				continue;
-			if (!(currDoc->layerPrintable(currItem->LayerID)) && (checkerSettings.ignoreOffLayers))
+			if (!(currDoc->layerPrintable(currItem->m_layerID)) && (checkerSettings.ignoreOffLayers))
 				continue;
 			itemError.clear();
 			if (((currItem->isAnnotation()) || (currItem->isBookmark)) && (checkerSettings.checkAnnotations))
@@ -426,7 +438,7 @@ void DocumentChecker::checkItems(ScribusDoc *currDoc, struct CheckerPrefs checke
 			currItem = allItems.at(ii);
 			if (!currItem->printEnabled())
 				continue;
-			if (!(currDoc->layerPrintable(currItem->LayerID)) && (checkerSettings.ignoreOffLayers))
+			if (!(currDoc->layerPrintable(currItem->m_layerID)) && (checkerSettings.ignoreOffLayers))
 				continue;
 			itemError.clear();
 			if ((currItem->hasSoftShadow() || (currItem->fillTransparency() != 0.0) || (currItem->lineTransparency() != 0.0) || (currItem->fillBlendmode() != 0) || (currItem->lineBlendmode() != 0)) && (checkerSettings.checkTransparency))

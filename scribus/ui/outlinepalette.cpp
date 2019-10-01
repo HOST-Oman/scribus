@@ -141,7 +141,7 @@ void OutlineWidget::dropEvent(QDropEvent *e)
 					OutlineTreeItem* childItem = dynamic_cast<OutlineTreeItem*>(itemPg->child(j));
 					if (!childItem)
 						qFatal("OutlineWidget::dropEvent !childItem");
-					if (item->PageItemObject->LayerID == childItem->LayerID)
+					if (item->PageItemObject->m_layerID == childItem->LayerID)
 					{
 						itemPl = childItem;
 						break;
@@ -181,7 +181,7 @@ void OutlineWidget::dropEvent(QDropEvent *e)
 					item->PageItemObject->setXYPos(xx, yy);
 					item->DocObject->addToGroup(group, item->PageItemObject);
 					group->groupItemList.insert(d, item->PageItemObject);
-					item->PageItemObject->setLayer(group->LayerID);
+					item->PageItemObject->setLayer(group->m_layerID);
 				}
 				else
 				{
@@ -243,7 +243,7 @@ void OutlineWidget::dropEvent(QDropEvent *e)
 					item->PageItemObject->setXYPos(xx, yy);
 					item->DocObject->addToGroup(group, item->PageItemObject);
 					group->groupItemList.append(item->PageItemObject);
-					item->PageItemObject->setLayer(group->LayerID);
+					item->PageItemObject->setLayer(group->m_layerID);
 				}
 			}
 			item->PageItemObject->setRedrawBounding();
@@ -339,7 +339,7 @@ bool OutlineWidget::viewportEvent(QEvent *event)
 		PageItem *pgItem = item->PageItemObject;
 		QPainter p;
 		QImage pm = QImage(80, 80, QImage::Format_ARGB32_Premultiplied);
-		QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
+		QBrush b(QColor(205,205,205), IconManager::instance().loadPixmap("testfill.png"));
 		p.begin(&pm);
 		p.fillRect(QRectF(0, 0, 80, 80), b);
 		QImage thumb = pgItem->DrawObj_toImage(80);
@@ -478,26 +478,26 @@ OutlinePalette::OutlinePalette( QWidget* parent) : ScDockPalette( parent, "Tree"
 	setWidget( containerWidget );
 
 	unsetDoc();
-	IconManager* im = IconManager::instance();
-	imageIcon = im->loadPixmap("22/insert-image.png");
-	latexIcon = im->loadPixmap("22/insert-latex.png");
-	lineIcon = im->loadPixmap("stift.png");
-	textIcon = im->loadPixmap("22/insert-text-frame.png");
-	polylineIcon = im->loadPixmap("22/draw-path.png");
-	polygonIcon = im->loadPixmap("22/draw-polygon.png");
-	arcIcon = im->loadPixmap("22/draw-arc.png");
-	spiralIcon = im->loadPixmap("22/draw-spiral.png");
-	tableIcon = im->loadPixmap("22/insert-table.png");
-	groupIcon = im->loadPixmap("u_group.png");
-	buttonIcon = im->loadPixmap("22/insert-button.png");
-	radiobuttonIcon = im->loadPixmap("22/radiobutton.png");
-	textFieldIcon = im->loadPixmap("22/text-field.png");
-	checkBoxIcon = im->loadPixmap("22/checkbox.png");
-	comboBoxIcon = im->loadPixmap("22/combobox.png");
-	listBoxIcon = im->loadPixmap("22/list-box.png");
-	annotTextIcon = im->loadPixmap("22/pdf-annotations.png");
-	annotLinkIcon = im->loadPixmap("goto.png");
-	annot3DIcon = im->loadPixmap("22/annot3d.png");
+	IconManager& im = IconManager::instance();
+	imageIcon = im.loadPixmap("22/insert-image.png");
+	latexIcon = im.loadPixmap("22/insert-latex.png");
+	lineIcon = im.loadPixmap("stift.png");
+	textIcon = im.loadPixmap("22/insert-text-frame.png");
+	polylineIcon = im.loadPixmap("22/draw-path.png");
+	polygonIcon = im.loadPixmap("22/draw-polygon.png");
+	arcIcon = im.loadPixmap("22/draw-arc.png");
+	spiralIcon = im.loadPixmap("22/draw-spiral.png");
+	tableIcon = im.loadPixmap("22/insert-table.png");
+	groupIcon = im.loadPixmap("u_group.png");
+	buttonIcon = im.loadPixmap("22/insert-button.png");
+	radiobuttonIcon = im.loadPixmap("22/radiobutton.png");
+	textFieldIcon = im.loadPixmap("22/text-field.png");
+	checkBoxIcon = im.loadPixmap("22/checkbox.png");
+	comboBoxIcon = im.loadPixmap("22/combobox.png");
+	listBoxIcon = im.loadPixmap("22/list-box.png");
+	annotTextIcon = im.loadPixmap("22/pdf-annotations.png");
+	annotLinkIcon = im.loadPixmap("goto.png");
+	annot3DIcon = im.loadPixmap("22/annot3d.png");
 	selectionTriggered = false;
 	m_MainWindow  = nullptr;
 	freeObjects   = nullptr;
@@ -624,7 +624,10 @@ void OutlinePalette::setActiveLayer(int layerID)
 
 void OutlinePalette::setLayerVisible(int layerID)
 {
-	currDoc->setLayerVisible(layerID, !currDoc->layerVisible(layerID));
+	bool isLayerVisible = !currDoc->layerVisible(layerID);
+	currDoc->setLayerVisible(layerID, isLayerVisible);
+	if (!isLayerVisible)
+		currDoc->m_Selection->removeItemsOfLayer(layerID);
 	currDoc->scMW()->showLayer();
 	currDoc->scMW()->layerPalette->rebuildList();
 	currDoc->scMW()->layerPalette->markActiveLayer();
@@ -632,7 +635,10 @@ void OutlinePalette::setLayerVisible(int layerID)
 
 void OutlinePalette::setLayerLocked(int layerID)
 {
-	currDoc->setLayerLocked(layerID, !currDoc->layerLocked(layerID));
+	bool isLayerLocked = !currDoc->layerLocked(layerID);
+	currDoc->setLayerLocked(layerID, isLayerLocked);
+	if (isLayerLocked)
+		currDoc->m_Selection->removeItemsOfLayer(layerID);
 	currDoc->scMW()->layerPalette->rebuildList();
 	currDoc->scMW()->layerPalette->markActiveLayer();
 }
@@ -1022,7 +1028,7 @@ void OutlinePalette::slotSelect(QTreeWidgetItem* ite, int)
 			if (!currDoc->masterPageMode())
 				emit selectMasterPage(item->PageItemObject->OnMasterPage);
 			pgItem = item->PageItemObject;
-			currDoc->setActiveLayer(pgItem->LayerID);
+			currDoc->setActiveLayer(pgItem->m_layerID);
 			m_MainWindow->changeLayer(currDoc->activeLayer());
 			if (item->PageItemObject->isGroup())
 				emit selectElementByItem(pgItem, false);
@@ -1045,7 +1051,7 @@ void OutlinePalette::slotSelect(QTreeWidgetItem* ite, int)
 				return;
 			pgItem = item->PageItemObject;
 			m_MainWindow->closeActiveWindowMasterPageEditor();
-			currDoc->setActiveLayer(pgItem->LayerID);
+			currDoc->setActiveLayer(pgItem->m_layerID);
 			m_MainWindow->changeLayer(currDoc->activeLayer());
 			if (pgItem->isGroup())
 				emit selectElementByItem(pgItem, false);
@@ -1109,7 +1115,7 @@ void OutlinePalette::BuildTree(bool storeVals)
 	clearPalette();
 	OutlineTreeItem * item = new OutlineTreeItem( reportDisplay, nullptr );
 	rootObject = item;
-	item->setText( 0, currDoc->DocName.section( '/', -1 ) );
+	item->setText( 0, currDoc->documentFileName().section( '/', -1 ) );
 	item->type = -2;
 	item->setFlags(Qt::ItemIsSelectable | Qt::ItemIsEnabled);
 	OutlineTreeItem * pagep = nullptr;
@@ -1231,7 +1237,7 @@ void OutlinePalette::BuildTree(bool storeVals)
 					for (int it = 0; it < pgItems.count(); ++it)
 					{
 						pgItem = pgItems.at(it);
-						if (pgItem->LayerID != layer.ID)
+						if (pgItem->m_layerID != layer.ID)
 							continue;
 						if (!pgItem->isGroup())
 						{
@@ -1327,7 +1333,7 @@ void OutlinePalette::BuildTree(bool storeVals)
 					for (int it = 0; it < pgItems.count(); ++it)
 					{
 						pgItem = pgItems.at(it);
-						if (pgItem->LayerID != layer.ID)
+						if (pgItem->m_layerID != layer.ID)
 							continue;
 						if (!pgItem->isGroup())
 						{

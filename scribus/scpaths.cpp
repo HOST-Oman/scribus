@@ -52,20 +52,33 @@ void ScPaths::destroy()
 }
 
 // Protected "real" constructor
-// All paths are initialized to compile-time defaults passed in
-// as preprocessor macros and set by autoconf.
-ScPaths::ScPaths() :
-	m_docDir(DOCDIR),
-	m_fontDir(),
-	m_iconDir(ICONDIR),
-	m_libDir(LIBDIR),
-	m_pluginDir(PLUGINDIR),
-	m_qmlDir(QMLDIR),
-	m_sampleScriptDir(SAMPLESDIR),
-	m_scriptDir(SCRIPTSDIR),
-	m_shareDir(SHAREDIR),
-	m_templateDir(TEMPLATEDIR)
+ScPaths::ScPaths()
 {
+// On *nix, all paths are initialized to compile-time defaults passed in
+// as preprocessor macros and set by autoconf.
+#if !defined(Q_OS_MAC) && !defined(_WIN32) && defined(WANT_RELOCATABLE)
+	QString appPath = qApp->applicationDirPath();
+	m_docDir = appPath + "/../" + QString(DOCDIR);
+	m_iconDir = appPath + "/../" + QString(ICONDIR);
+	m_libDir = appPath + "/../" + QString(LIBDIR);
+	m_pluginDir = appPath + "/../" + QString(PLUGINDIR);
+	m_qmlDir = appPath + "/../" + QString(QMLDIR);
+	m_sampleScriptDir = appPath + "/../" + QString(SAMPLESDIR);
+	m_scriptDir = appPath + "/../" + QString(SCRIPTSDIR);
+	m_shareDir = appPath + "/../" + QString(SHAREDIR);
+	m_templateDir = appPath + "/../" + QString(TEMPLATEDIR);
+#elif !defined(Q_OS_MAC) && !defined(_WIN32)
+	m_docDir = QString(DOCDIR);
+	m_iconDir = QString(ICONDIR);
+	m_libDir = QString(LIBDIR);
+	m_pluginDir = QString(PLUGINDIR);
+	m_qmlDir = QString(QMLDIR);
+	m_sampleScriptDir = QString(SAMPLESDIR);
+	m_scriptDir = QString(SCRIPTSDIR);
+	m_shareDir = QString(SHAREDIR);
+	m_templateDir = QString(TEMPLATEDIR);
+#endif
+
 // On MacOS/X, override the compile-time settings with a location
 // obtained from the system.
 #ifdef Q_OS_MAC
@@ -129,7 +142,7 @@ ScPaths::ScPaths() :
 // 	if (!m_pluginDir.endsWith("/"))       m_pluginDir += "/";
 }
 
-ScPaths::~ScPaths() {};
+ScPaths::~ScPaths() = default;
 
 QString ScPaths::bundleDir() const
 {
@@ -179,7 +192,7 @@ QString ScPaths::bundleDir() const
 	CFRelease(macPath);
 	return q_pathPtr;
 #endif
-	return QString::null;
+	return QString();
 }
 
 QString ScPaths::defaultImageEditorApp()
@@ -223,22 +236,22 @@ const QString&  ScPaths::sampleScriptDir() const
 	return m_sampleScriptDir;
 }
 
-const QString&  ScPaths::scriptDir() const
+const QString& ScPaths::scriptDir() const
 {
 	return m_scriptDir;
 }
 
-const QString&  ScPaths::templateDir() const
+const QString& ScPaths::templateDir() const
 {
 	return m_templateDir;
 }
 
-const QString&  ScPaths::shareDir() const
+const QString& ScPaths::shareDir() const
 {
 	return m_shareDir;
 }
 
-const QString&  ScPaths::qmlDir() const
+const QString& ScPaths::qmlDir() const
 {
 	return m_qmlDir;
 }
@@ -390,6 +403,15 @@ QStringList ScPaths::systemFontDirs()
 	fontDirs.append("/Network/Library/Fonts/");
 	fontDirs.append("/System/Library/Fonts/");
 #elif defined(_WIN32)
+	QDir d;
+	QString localFontDir = windowsSpecialDir(CSIDL_LOCAL_APPDATA)+"Microsoft/Windows/Fonts"; // Added by Windows 10 1809
+	QString roamingFontDir = windowsSpecialDir(CSIDL_APPDATA)+"Microsoft/Windows/Fonts"; // Added by Windows 10 1809
+	d.setPath(localFontDir);
+	if (d.exists())
+		fontDirs.append(localFontDir);
+	d.setPath(roamingFontDir);
+	if (d.exists())
+		fontDirs.append(roamingFontDir);
 	fontDirs.append(windowsSpecialDir(CSIDL_FONTS));
 #endif
 	return fontDirs;
@@ -599,9 +621,9 @@ QString ScPaths::userPaletteFilesDir(bool createIfNotExists)
 
 QString ScPaths::userTemplateDir(bool createIfNotExists)
 {
-	if (PrefsManager::instance()->appPrefs.pathPrefs.documentTemplates.isEmpty())
+	if (PrefsManager::instance().appPrefs.pathPrefs.documentTemplates.isEmpty())
 		return QString();
-	QDir useFilesDirectory(PrefsManager::instance()->appPrefs.pathPrefs.documentTemplates);
+	QDir useFilesDirectory(PrefsManager::instance().appPrefs.pathPrefs.documentTemplates);
 	if (createIfNotExists && !useFilesDirectory.exists())
 		useFilesDirectory.mkpath(useFilesDirectory.absolutePath());
 	return useFilesDirectory.absolutePath()+"/";

@@ -53,7 +53,7 @@ gtImporterDialog::gtImporterDialog(const QString& fileName, const QStringList& i
 		ext.prepend(".");
 
 	setWindowTitle( tr("Choose the importer to use"));
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 
 	QBoxLayout* layout = new QVBoxLayout(this);
 
@@ -128,13 +128,13 @@ gtDialogs::gtDialogs()
 	m_fileName = "";
 	m_encoding = "";
 	m_importer = -1;
-	m_prefs = PrefsManager::instance()->prefsFile->getContext("gtDialogs");
+	m_prefs = PrefsManager::instance().prefsFile->getContext("gtDialogs");
 }
 
 bool gtDialogs::runFileDialog(const QString& filters, const QStringList& importers)
 {
 	bool accepted = false;
-	PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+	PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 	QString dir = dirs->get("get_text", ".");
 	
 	m_fdia = new gtFileDialog(filters, importers, dir);

@@ -23,6 +23,11 @@ Prefs_ItemTools::Prefs_ItemTools(QWidget* parent, ScribusDoc* doc)
 	showFontPreview(false)
 {
 	setupUi(this);
+	languageChange();
+
+	m_caption = tr("Item Tools");
+	m_icon = "tools_16.png";
+
 	lineEndArrowComboBox->setStartDirection(false);
 	shapeLineWidthSpinBox->setNewUnit(0);
 	shapeLineWidthSpinBox->setMaximum(36);
@@ -46,12 +51,9 @@ Prefs_ItemTools::Prefs_ItemTools(QWidget* parent, ScribusDoc* doc)
 	textSizeSpinBox->setNewUnit(0);
 	textSizeSpinBox->setMinimum(0.5);
 	textSizeSpinBox->setMaximum(2048);
-	languageChange();
 }
 
-Prefs_ItemTools::~Prefs_ItemTools()
-{
-}
+Prefs_ItemTools::~Prefs_ItemTools() = default;
 
 
 void Prefs_ItemTools::languageChange()
@@ -77,8 +79,8 @@ void Prefs_ItemTools::restoreDefaults(struct ApplicationPrefs *prefsData)
 	double unitRatio = unitGetRatioFromIndex(docUnitIndex);
 	unitChange(docUnitIndex);
 
-	PrefsManager* prefsManager=PrefsManager::instance();
-	ColorList* colorList = (m_doc != nullptr) ? (&m_doc->PageColors) : prefsManager->colorSetPtr();
+	PrefsManager& prefsManager=PrefsManager::instance();
+	ColorList* colorList = (m_doc != nullptr) ? (&m_doc->PageColors) : prefsManager.colorSetPtr();
 
 	//Text Tool
 	for (int i=0; i<textFontComboBox->count(); ++i)
@@ -378,8 +380,8 @@ void Prefs_ItemTools::updateFontPreview()
 		}
 		else
 		{
-			PrefsManager* prefsManager=PrefsManager::instance();
-			ColorList* colorList=prefsManager->colorSetPtr();
+			PrefsManager& prefsManager=PrefsManager::instance();
+			ColorList* colorList=prefsManager.colorSetPtr();
 			si.setBgColor((*colorList)[textFrameFillColorComboBox->currentText()].getRawRGBColor());
 		}
 		si.setBgShade(textFrameFillShadingSpinBox->value());
@@ -395,8 +397,8 @@ void Prefs_ItemTools::updateFontPreview()
 		}
 		else
 		{
-			PrefsManager* prefsManager=PrefsManager::instance();
-			ColorList* colorList=prefsManager->colorSetPtr();
+			PrefsManager& prefsManager=PrefsManager::instance();
+			ColorList* colorList=prefsManager.colorSetPtr();
 			si.setTxColor((*colorList)[textColorComboBox->currentText()].getRawRGBColor());
 		}
 		si.setTxShade(textColorShadingSpinBox->value());

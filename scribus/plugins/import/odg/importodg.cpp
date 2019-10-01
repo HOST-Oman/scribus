@@ -34,7 +34,6 @@ for which a new license (GPL+exception) is in place.
 
 #include "importodg.h"
 
-#include "color.h"
 #include "fileloader.h"
 #include "third_party/fparser/fparser.hh"
 #include "loadsaveplugin.h"
@@ -173,8 +172,8 @@ bool OdgPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 		qApp->processEvents();
 	}
 	/* Set default Page to size defined in Preferences */
-	docWidth = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	docHeight = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	docWidth = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	baseX = 0;
 	baseY = 0;
 	if (!interactive || (flags & LoadSavePlugin::lfInsertPage))
@@ -455,14 +454,14 @@ bool OdgPlug::parseStyleSheetsXML(QDomDocument &designMapDom)
 						ScPage *oldCur = m_Doc->currentPage();
 						ScPage *addedPage = m_Doc->addMasterPage(mpagecount, spf.attribute("style:name"));
 						m_Doc->setCurrentPage(addedPage);
-						addedPage->MPageNam = "";
+						addedPage->clearMasterPageName();
 						m_Doc->view()->addPage(mpagecount, true);
 						baseX = addedPage->xOffset();
 						baseY = addedPage->yOffset();
 						mpagecount++;
 						ObjStyle tmpOStyle;
 						resovleStyle(tmpOStyle, spf.attribute("style:name"));
-						m_Doc->currentPage()->m_pageSize = "Custom";
+						m_Doc->currentPage()->setSize("Custom");
 						m_Doc->currentPage()->setInitialHeight(tmpOStyle.page_height);
 						m_Doc->currentPage()->setInitialWidth(tmpOStyle.page_width);
 						m_Doc->currentPage()->setHeight(tmpOStyle.page_height);
@@ -581,14 +580,14 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 						ScPage *oldCur = m_Doc->currentPage();
 						ScPage *addedPage = m_Doc->addMasterPage(mpagecount, spf.attribute("style:name"));
 						m_Doc->setCurrentPage(addedPage);
-						addedPage->MPageNam = "";
+						addedPage->clearMasterPageName();
 						m_Doc->view()->addPage(mpagecount, true);
 						baseX = addedPage->xOffset();
 						baseY = addedPage->yOffset();
 						mpagecount++;
 						ObjStyle tmpOStyle;
 						resovleStyle(tmpOStyle, spf.attribute("style:name"));
-						m_Doc->currentPage()->m_pageSize = "Custom";
+						m_Doc->currentPage()->setSize("Custom");
 						m_Doc->currentPage()->setInitialHeight(tmpOStyle.page_height);
 						m_Doc->currentPage()->setInitialWidth(tmpOStyle.page_width);
 						m_Doc->currentPage()->setHeight(tmpOStyle.page_height);
@@ -673,7 +672,7 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 								{
 									m_Doc->setPage(docWidth, docHeight, topMargin, leftMargin, rightMargin, bottomMargin, m_Doc->PageSp, m_Doc->PageSpa, false, false);
 									m_Doc->setPageSize("Custom");
-									m_Doc->currentPage()->m_pageSize = "Custom";
+									m_Doc->currentPage()->setSize("Custom");
 									m_Doc->currentPage()->setInitialHeight(docHeight);
 									m_Doc->currentPage()->setInitialWidth(docWidth);
 									m_Doc->currentPage()->setHeight(docHeight);
@@ -687,7 +686,7 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 								else
 								{
 									m_Doc->addPage(pagecount);
-									m_Doc->currentPage()->m_pageSize = "Custom";
+									m_Doc->currentPage()->setSize("Custom");
 									m_Doc->currentPage()->setInitialHeight(docHeight);
 									m_Doc->currentPage()->setInitialWidth(docWidth);
 									m_Doc->currentPage()->setHeight(docHeight);
@@ -696,7 +695,7 @@ bool OdgPlug::parseDocReferenceXML(QDomDocument &designMapDom)
 									m_Doc->currentPage()->initialMargins.setBottom(bottomMargin);
 									m_Doc->currentPage()->initialMargins.setLeft(leftMargin);
 									m_Doc->currentPage()->initialMargins.setRight(rightMargin);
-									m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
+									m_Doc->currentPage()->setMasterPageNameNormal();
 									m_Doc->view()->addPage(pagecount, true);
 									pagecount++;
 								}
@@ -739,7 +738,7 @@ PageItem* OdgPlug::parseObj(QDomElement &draw)
 			if (ite != nullptr)
 			{
 				GElements.append(ite);
-				gLayer = ite->LayerID;
+				gLayer = ite->m_layerID;
 			}
 		}
 		if (GElements.count() > 0)
@@ -1568,7 +1567,7 @@ PageItem* OdgPlug::parseFrame(QDomElement &e)
 								retObj->AspectRatio = false;
 								retObj->ScaleType   = false;
 								m_Doc->loadPict(fileName, retObj);
-								retObj->AdjustPictScale();
+								retObj->adjustPictScale();
 							}
 						}
 						delete tempFile;
@@ -1658,7 +1657,7 @@ PageItem* OdgPlug::parseFrame(QDomElement &e)
 										retObj->AspectRatio = false;
 										retObj->ScaleType   = false;
 										m_Doc->loadPict(fileName, retObj);
-										retObj->AdjustPictScale();
+										retObj->adjustPictScale();
 									}
 								}
 								delete tempFile;
@@ -2563,7 +2562,7 @@ void OdgPlug::resovleStyle(ObjStyle &tmpOStyle, const QString& pAttrs)
 				tmpOStyle.fontName = m_fontMap[actStyle.fontName.value];
 			else
 				tmpOStyle.fontName = actStyle.fontName.value;
-			if (!PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.contains(tmpOStyle.fontName))
+			if (!PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.contains(tmpOStyle.fontName))
 			{
 				tmpOStyle.fontName = constructFontName(tmpOStyle.fontName, "");
 				m_fontMap[actStyle.fontName.value] = tmpOStyle.fontName;
@@ -2609,11 +2608,11 @@ void OdgPlug::resovleStyle(ObjStyle &tmpOStyle, const QString& pAttrs)
 		{
 			QString attValue = actStyle.textAlign.value;
 			if (attValue == "left")
-				tmpOStyle.textAlign = ParagraphStyle::Leftaligned;
+				tmpOStyle.textAlign = ParagraphStyle::LeftAligned;
 			else if (attValue == "center")
 				tmpOStyle.textAlign = ParagraphStyle::Centered;
 			else if (attValue == "right")
-				tmpOStyle.textAlign = ParagraphStyle::Rightaligned;
+				tmpOStyle.textAlign = ParagraphStyle::RightAligned;
 			else if (attValue == "justify")
 				tmpOStyle.textAlign = ParagraphStyle::Justified;
 		}
@@ -3227,13 +3226,6 @@ QString OdgPlug::modifyColor(const QString& name, bool darker, int amount)
 	return fNam;
 }
 
-QColor OdgPlug::parseColorN( const QString &rgbColor )
-{
-	int r, g, b;
-	keywordToRGB( rgbColor, r, g, b );
-	return QColor( r, g, b );
-}
-
 QString OdgPlug::parseColor( const QString &s )
 {
 	QColor c;
@@ -3265,13 +3257,8 @@ QString OdgPlug::parseColor( const QString &s )
 		c = QColor(r.toInt(), g.toInt(), b.toInt());
 	}
 	else
-	{
-		QString rgbColor = s.trimmed();
-		if (rgbColor.startsWith( "#" ))
-			c.setNamedColor( rgbColor );
-		else
-			c = parseColorN( rgbColor );
-	}
+		c.setNamedColor(s.trimmed());
+
 	ScColor tmp;
 	tmp.fromQColor(c);
 	tmp.setSpotColor(false);
@@ -3287,13 +3274,13 @@ QString OdgPlug::constructFontName(const QString& fontBaseName, const QString& f
 {
 	QString fontName;
 	bool found = false;
-	SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
+	SCFontsIterator it(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts);
 	for ( ; it.hasNext(); it.next())
 	{
 		if (fontBaseName.toLower() == it.current().family().toLower())
 		{
 			// found the font family, now go for the style
-			QStringList slist = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.fontMap[it.current().family()];
+			QStringList slist = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.fontMap[it.current().family()];
 			slist.sort();
 			if (slist.count() > 0)
 			{
@@ -3327,13 +3314,13 @@ QString OdgPlug::constructFontName(const QString& fontBaseName, const QString& f
 	if (!found)
 	{
 		if (importerFlags & LoadSavePlugin::lfCreateThumbnail)
-			fontName = PrefsManager::instance()->appPrefs.itemToolPrefs.textFont;
+			fontName = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
 		else
 		{
 			QString family = fontBaseName;
 			if (!fontStyle.isEmpty())
 				family += " " + fontStyle;
-			if (!PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(family))
+			if (!PrefsManager::instance().appPrefs.fontPrefs.GFontSub.contains(family))
 			{
 				qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 				MissingFont *dia = new MissingFont(nullptr, family, m_Doc);
@@ -3341,10 +3328,10 @@ QString OdgPlug::constructFontName(const QString& fontBaseName, const QString& f
 				fontName = dia->getReplacementFont();
 				delete dia;
 				qApp->changeOverrideCursor(QCursor(Qt::WaitCursor));
-				PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family] = fontName;
+				PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family] = fontName;
 			}
 			else
-				fontName = PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family];
+				fontName = PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family];
 		}
 	}
 	return fontName;
@@ -3505,7 +3492,7 @@ void OdgPlug::finishItem(PageItem* item, ObjStyle &obState)
 	item->FrameType = 3;
 	FPoint wh = getMaxClipF(&item->PoLine);
 	item->setWidthHeight(wh.x(), wh.y());
-	item->Clip = FlattenPath(item->PoLine, item->Segments);
+	item->Clip = flattenPath(item->PoLine, item->Segments);
 	m_Doc->adjustItemSize(item, true);
 	item->OldB2 = item->width();
 	item->OldH2 = item->height();

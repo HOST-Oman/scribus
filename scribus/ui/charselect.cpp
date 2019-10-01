@@ -22,21 +22,19 @@ for which a new license (GPL+exception) is in place.
 #include "util.h"
 #include "iconmanager.h"
 
-
-
 CharSelect::CharSelect(QWidget* parent) : ScrPaletteBase(parent, "CharSelect"), m_doc(nullptr), m_enhanced(nullptr), m_Item(nullptr)
 {
 	setupUi(this);
 
 	paletteFileMask = tr("Scribus Char Palette (*.ucp);;All Files (*)");
 
-	enhancedDialogButton->setIcon(IconManager::instance()->loadIcon("16/insert-table.png"));
-	unicodeButton->setIcon(IconManager::instance()->loadIcon("find.png"));
-	uniLoadButton->setIcon(IconManager::instance()->loadIcon("16/document-open.png"));
-	uniSaveButton->setIcon(IconManager::instance()->loadIcon("16/document-save.png"));
-	uniClearButton->setIcon(IconManager::instance()->loadIcon("16/document-new.png"));
+	enhancedDialogButton->setIcon(IconManager::instance().loadIcon("16/insert-table.png"));
+	unicodeButton->setIcon(IconManager::instance().loadIcon("find.png"));
+	uniLoadButton->setIcon(IconManager::instance().loadIcon("16/document-open.png"));
+	uniSaveButton->setIcon(IconManager::instance().loadIcon("16/document-save.png"));
+	uniClearButton->setIcon(IconManager::instance().loadIcon("16/document-new.png"));
 
-	m_userTableModel = new CharTableModel(this, 6, m_doc, PrefsManager::instance()->appPrefs.itemToolPrefs.textFont);
+	m_userTableModel = new CharTableModel(this, 6, m_doc, PrefsManager::instance().appPrefs.itemToolPrefs.textFont);
 	loadUserContent(ScPaths::applicationDataDir() + "charpalette.ucp");
 
 	m_unicodeSearchModel = new UnicodeSearchModel(this);
@@ -255,48 +253,47 @@ void CharSelect::setEnabled(bool state, PageItem* item)
 void CharSelect::uniLoadButton_clicked()
 {
 	QString f = QFileDialog::getOpenFileName(this, tr("Open Character Palette"), QDir::currentPath(), paletteFileMask);
-	if (!f.isNull())
+	if (!f.isEmpty())
 		loadUserContent(f);
 }
 
 void CharSelect::loadUserContent(const QString& f)
 {
-//     tDebug("loadUserContent start");
 	QFile file(f);
 	if (!file.exists())
 		return;
-	if (file.open(QIODevice::ReadOnly))
+	if (!file.open(QIODevice::ReadOnly))
+		return;
+
+	QTextStream stream(&file);
+	QString line = stream.readLine();
+	if (line != "# Character palette file for Scribus")
 	{
-		QTextStream stream(&file);
-		QString line = stream.readLine();
-		if (line != "# Character palette file for Scribus")
-		{
-			file.close();
-			return;
-		}
-		m_userTableModel->setCharacters(CharClassDef());
-		while (!stream.atEnd())
-		{
-			bool ok = false;
-			line = stream.readLine();
-			if (line.left(1) == "#")
-				continue; // don't mess with a comment
-			int a = line.indexOf(" ");
-			QString si = line.left(a);
-			si.toInt(&ok, 10);
-			if (ok)
-				m_userTableModel->addCharacter(line);
-			else
-			{
-				ScMessageBox::warning(this, tr("Error"),
-				                     "<qt>" + tr("Error reading file %1 - file is corrupted propably.").arg(f) + "</qt>",
-				                     QMessageBox::Ok, QMessageBox::NoButton);
-				break;
-			}
-		}
 		file.close();
+		return;
 	}
-//     tDebug("loadUserContent end");
+
+	m_userTableModel->setCharacters(CharClassDef());
+	while (!stream.atEnd())
+	{
+		bool ok = false;
+		line = stream.readLine();
+		if (line.left(1) == "#")
+			continue; // don't mess with a comment
+		int a = line.indexOf(" ");
+		QString si = line.left(a);
+		si.toInt(&ok, 10);
+		if (ok)
+			m_userTableModel->addCharacter(line);
+		else
+		{
+			ScMessageBox::warning(this, tr("Error"),
+				                    "<qt>" + tr("Error reading file %1 - file is corrupted propably.").arg(f) + "</qt>",
+				                    QMessageBox::Ok, QMessageBox::NoButton);
+			break;
+		}
+	}
+	file.close();
 }
 
 void CharSelect::uniSaveButton_clicked()
@@ -304,10 +301,10 @@ void CharSelect::uniSaveButton_clicked()
 	if (m_userTableModel->characters().count() == 0)
 		return;
 	QString f = QFileDialog::getSaveFileName(this, tr("Save Quick Character Palette"), QDir::currentPath(), paletteFileMask);
-	if (f.isNull())
+	if (f.isEmpty())
 		return;
 	if (!f.endsWith(".ucp"))
-		f+=".ucp";
+		f += ".ucp";
 //#9832: Qt does this for us now in getSaveFileName
 //	if (!overwrite(this, f))
 //		return;
@@ -317,22 +314,23 @@ void CharSelect::uniSaveButton_clicked()
 void CharSelect::saveUserContent(const QString& f)
 {
 	QFile file(f);
-	if (file.open(QIODevice::WriteOnly))
+	if (!file.open(QIODevice::WriteOnly))
 	{
-		QTextStream stream(&file);
-		CharClassDef chars = m_userTableModel->characters();
-		QStringList fonts = m_userTableModel->fonts();
-		stream << "# Character palette file for Scribus\n";
-		for (int a = 0; a < chars.count(); a++)
-		{
-			stream << chars[a] << " " << fonts[a] << "\n";
-		}
-		file.close();
-	}
-	else
 		ScMessageBox::warning(this, tr("Error"),
-		                     "<qt>" + tr("Cannot write file %1").arg(f) + "</qt>",
-		                     QMessageBox::Ok, QMessageBox::NoButton);
+			"<qt>" + tr("Cannot write file %1").arg(f) + "</qt>",
+			QMessageBox::Ok, QMessageBox::NoButton);
+		return;
+	}
+
+	QTextStream stream(&file);
+	CharClassDef chars = m_userTableModel->characters();
+	QStringList fonts = m_userTableModel->fonts();
+	stream << "# Character palette file for Scribus\n";
+	for (int a = 0; a < chars.count(); a++)
+	{
+		stream << chars[a] << " " << fonts[a] << "\n";
+	}
+	file.close();
 }
 
 void CharSelect::uniClearButton_clicked()

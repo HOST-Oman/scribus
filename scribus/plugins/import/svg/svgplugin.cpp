@@ -18,7 +18,6 @@ for which a new license (GPL+exception) is in place.
 
 #include "svgplugin.h"
 
-#include "color.h"
 #include "commonstrings.h"
 #include "fonts/scfontmetrics.h"
 #include "fpointarray.h"
@@ -160,7 +159,7 @@ bool SVGImportPlugin::import(QString filename, int flags)
 	if (filename.isEmpty())
 	{
 		flags |= lfInteractive;
-		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("SVGPlugin");
+		PrefsContext* prefs = PrefsManager::instance().prefsFile->getPluginContext("SVGPlugin");
 		QString wdir = prefs->get("wdir", ".");
 		CustomFDialog diaf(mw, wdir, QObject::tr("Open"), FormatsManager::instance()->fileDialogFormatList(FormatsManager::SVG));
 		if (diaf.exec())
@@ -567,13 +566,7 @@ void SVGPlug::addGraphicContext()
 	if (m_gc.top())
 	{
 		*gc = *(m_gc.top());
-		if (m_gc.top()->forGroup)
-		{
-			gc->forGroup = false;
-			gc->Opacity = 1.0;
-			gc->FillOpacity = 1.0;
-			gc->StrokeOpacity = 1.0;
-		}
+		gc->Opacity = 1.0; // opacity is not inheritable contrary to fill-opacity or stroke-opacity
 		gc->filter.clear(); // filter is not inheritable
 	}
 	m_gc.push(gc);
@@ -655,7 +648,7 @@ PageItem *SVGPlug::finishNode(const QDomNode &e, PageItem* item)
 //			if (item->asPolyLine())
 //				item->setPolyClip(qRound(qMax(item->lineWidth() / 2.0, 1)));
 //			else
-//				item->Clip = FlattenPath(item->PoLine, item->Segments);
+//				item->Clip = flattenPath(item->PoLine, item->Segments);
 			FPoint wx = getMinClipF(&item->PoLine);
 			inGroupXOrigin = qMin(inGroupXOrigin, wx.x());
 			inGroupYOrigin = qMin(inGroupYOrigin, wx.y());
@@ -1101,7 +1094,7 @@ void SVGPlug::parseClipPath(const QDomElement &e)
 		while (b2.nodeName() == "use")
 			b2 = getReferencedNode(b2);
 		if (b2.nodeName() == "path")
-			parseSVG(b2.attribute("d"), &clip);
+			clip.parseSVG(b2.attribute("d"));
 		else if (b2.nodeName() == "rect")
 		{
 			double x = parseUnit(b2.attribute("x", "0.0"));
@@ -1211,16 +1204,17 @@ QList<PageItem*> SVGPlug::parseGroup(const QDomElement &e)
 {
 	FPointArray clipPath;
 	QList<PageItem*> GElements, gElements;
+
 	if ((importerFlags & LoadSavePlugin::lfCreateDoc) && (e.hasAttribute("inkscape:groupmode")) && (e.attribute("inkscape:groupmode") == "layer"))
 	{
 		setupNode(e);
-		QString LayerName = e.attribute("inkscape:label", "Layer");
+		QString layerName = e.attribute("inkscape:label", "Layer");
 		double trans = m_gc.top()->Opacity;
 		int currentLayer = 0;
 		if (!firstLayer)
-			currentLayer = m_Doc->addLayer(LayerName, true);
+			currentLayer = m_Doc->addLayer(layerName, true);
 		else
-			m_Doc->changeLayerName(currentLayer, LayerName);
+			m_Doc->changeLayerName(currentLayer, layerName);
 		m_Doc->setLayerVisible(currentLayer, true);
 		m_Doc->setLayerLocked(currentLayer, false);
 		m_Doc->setLayerPrintable(currentLayer, true);
@@ -1240,127 +1234,129 @@ QList<PageItem*> SVGPlug::parseGroup(const QDomElement &e)
 				GElements.append(el.at(ec));
 		}
 		delete (m_gc.pop());
+		return GElements;
+	}
+
+	double baseX = m_Doc->currentPage()->xOffset();
+	double baseY = m_Doc->currentPage()->yOffset();
+	groupLevel++;
+	setupNode(e);
+	parseClipPathAttr(e, clipPath);
+	int z = m_Doc->itemAdd(PageItem::Group, PageItem::Rectangle, baseX, baseY, 1, 1, 0, CommonStrings::None, CommonStrings::None);
+	PageItem *neu = m_Doc->Items->at(z);
+	for (QDomNode n = e.firstChild(); !n.isNull(); n = n.nextSibling())
+	{
+		QDomElement b = n.toElement();
+		if (b.isNull() || isIgnorableNode(b))
+			continue;
+		SvgStyle svgStyle;
+		parseStyle(&svgStyle, b);
+		if (!svgStyle.Display) 
+			continue;
+		QList<PageItem*> el = parseElement(b);
+		for (int ec = 0; ec < el.count(); ++ec)
+			gElements.append(el.at(ec));
+	}
+	groupLevel--;
+	SvgStyle *gc = m_gc.top();
+	if (clipPath.empty())
+	{
+		if (!gc->clipPath.empty())
+			clipPath = gc->clipPath.copy();
+	}
+	parseFilterAttr(e, neu);
+
+	if (gElements.count() == 0 || (gElements.count() < 2 && (clipPath.empty()) && (gc->Opacity == 1.0)))
+	{
+		// Unfortunately we have to take the long route here, or we risk crash on undo/redo
+		// FIXME : create group object after parsing grouped objects
+		/*m_Doc->Items->takeAt(z);
+		delete neu;*/
+		Selection tmpSelection(m_Doc, false);
+		tmpSelection.addItem(neu);
+		m_Doc->itemSelection_DeleteItem(&tmpSelection);
+		for (int gr = 0; gr < gElements.count(); ++gr)
+		{
+			GElements.append(gElements.at(gr));
+		}
+		delete (m_gc.pop());
+		return GElements;
+	}
+
+	double minx =  std::numeric_limits<double>::max();
+	double miny =  std::numeric_limits<double>::max();
+	double maxx = -std::numeric_limits<double>::max();
+	double maxy = -std::numeric_limits<double>::max();
+	GElements.append(neu);
+	for (int gr = 0; gr < gElements.count(); ++gr)
+	{
+		PageItem* currItem = gElements.at(gr);
+		double x1, x2, y1, y2;
+		currItem->getVisualBoundingRect(&x1, &y1, &x2, &y2);
+		minx = qMin(minx, x1);
+		miny = qMin(miny, y1);
+		maxx = qMax(maxx, x2);
+		maxy = qMax(maxy, y2);
+	}
+	double gx = minx;
+	double gy = miny;
+	double gw = maxx - minx;
+	double gh = maxy - miny;
+	if (((gx > -9999999) && (gx < 9999999)) && ((gy > -9999999) && (gy < 9999999)) && ((gw > 0) && (gw < 9999999)) && ((gh > 0) && (gh < 9999999)))
+	{
+		neu->setXYPos(gx, gy);
+		neu->setWidthHeight(gw, gh);
+		if (!clipPath.empty())
+		{
+			QTransform mm = gc->matrix;
+			neu->PoLine = clipPath.copy();
+			neu->PoLine.map(mm);
+			neu->PoLine.translate(-gx + baseX, -gy + baseY);
+			clipPath.resize(0);
+			neu->Clip = flattenPath(neu->PoLine, neu->Segments);
+			neu->ClipEdited = true;
+			neu->FrameType = 3;
+		}
+		else
+			neu->SetRectFrame();
+		if (!e.attribute("id").isEmpty())
+			neu->setItemName(e.attribute("id"));
+		else
+			neu->setItemName( tr("Group%1").arg(m_Doc->GroupCounter));
+		neu->setFillTransparency(1 - gc->Opacity);
+		neu->gXpos = neu->xPos() - gx;
+		neu->gYpos = neu->yPos() - gy;
+		neu->groupWidth = gw;
+		neu->groupHeight = gh;
+		for (int gr = 0; gr < gElements.count(); ++gr)
+		{
+			PageItem* currItem = gElements.at(gr);
+			currItem->gXpos = currItem->xPos() - gx;
+			currItem->gYpos = currItem->yPos() - gy;
+			currItem->gWidth = gw;
+			currItem->gHeight = gh;
+			currItem->Parent = neu;
+			neu->groupItemList.append(currItem);
+			m_Doc->Items->removeAll(currItem);
+		}
+		neu->setRedrawBounding();
+		neu->setTextFlowMode(PageItem::TextFlowDisabled);
+		m_Doc->GroupCounter++;
 	}
 	else
 	{
-		double baseX = m_Doc->currentPage()->xOffset();
-		double baseY = m_Doc->currentPage()->yOffset();
-		groupLevel++;
-		setupNode(e);
-		parseClipPathAttr(e, clipPath);
-		m_gc.top()->forGroup = true;
-		int z = m_Doc->itemAdd(PageItem::Group, PageItem::Rectangle, baseX, baseY, 1, 1, 0, CommonStrings::None, CommonStrings::None);
-		PageItem *neu = m_Doc->Items->at(z);
-		for (QDomNode n = e.firstChild(); !n.isNull(); n = n.nextSibling())
+		// Group is out of valid coordinates, remove it
+		GElements.removeAll(neu);
+		Selection tmpSelection(m_Doc, false);
+		tmpSelection.addItem(neu);
+		for (int gr = 0; gr < gElements.count(); ++gr)
 		{
-			QDomElement b = n.toElement();
-			if (b.isNull() || isIgnorableNode(b))
-				continue;
-			SvgStyle svgStyle;
-			parseStyle(&svgStyle, b);
-			if (!svgStyle.Display) 
-				continue;
-			QList<PageItem*> el = parseElement(b);
-			for (int ec = 0; ec < el.count(); ++ec)
-				gElements.append(el.at(ec));
+			tmpSelection.addItem(gElements.at(gr));
 		}
-		groupLevel--;
-		SvgStyle *gc = m_gc.top();
-		if (clipPath.empty())
-		{
-			if (!gc->clipPath.empty())
-				clipPath = gc->clipPath.copy();
-		}
-		parseFilterAttr(e, neu);
-		if (gElements.count() == 0 || (gElements.count() < 2 && (clipPath.empty()) && (gc->Opacity == 1.0)))
-		{
-			// Unfortunately we have to take the long route here, or we risk crash on undo/redo
-			// FIXME : create group object after parsing grouped objects
-			/*m_Doc->Items->takeAt(z);
-			delete neu;*/
-			Selection tmpSelection(m_Doc, false);
-			tmpSelection.addItem(neu);
-			m_Doc->itemSelection_DeleteItem(&tmpSelection);
-			for (int gr = 0; gr < gElements.count(); ++gr)
-			{
-				GElements.append(gElements.at(gr));
-			}
-		}
-		else
-		{
-			double minx =  std::numeric_limits<double>::max();
-			double miny =  std::numeric_limits<double>::max();
-			double maxx = -std::numeric_limits<double>::max();
-			double maxy = -std::numeric_limits<double>::max();
-			GElements.append(neu);
-			for (int gr = 0; gr < gElements.count(); ++gr)
-			{
-				PageItem* currItem = gElements.at(gr);
-				double x1, x2, y1, y2;
-				currItem->getVisualBoundingRect(&x1, &y1, &x2, &y2);
-				minx = qMin(minx, x1);
-				miny = qMin(miny, y1);
-				maxx = qMax(maxx, x2);
-				maxy = qMax(maxy, y2);
-			}
-			double gx = minx;
-			double gy = miny;
-			double gw = maxx - minx;
-			double gh = maxy - miny;
-			if (((gx > -9999999) && (gx < 9999999)) && ((gy > -9999999) && (gy < 9999999)) && ((gw > 0) && (gw < 9999999)) && ((gh > 0) && (gh < 9999999)))
-			{
-				neu->setXYPos(gx, gy);
-				neu->setWidthHeight(gw, gh);
-				if (!clipPath.empty())
-				{
-					QTransform mm = gc->matrix;
-					neu->PoLine = clipPath.copy();
-					neu->PoLine.map(mm);
-					neu->PoLine.translate(-gx + baseX, -gy + baseY);
-					clipPath.resize(0);
-					neu->Clip = FlattenPath(neu->PoLine, neu->Segments);
-				}
-				else
-					neu->SetRectFrame();
-				if (!e.attribute("id").isEmpty())
-					neu->setItemName(e.attribute("id"));
-				else
-					neu->setItemName( tr("Group%1").arg(m_Doc->GroupCounter));
-				neu->setFillTransparency(1 - gc->Opacity);
-				neu->gXpos = neu->xPos() - gx;
-				neu->gYpos = neu->yPos() - gy;
-				neu->groupWidth = gw;
-				neu->groupHeight = gh;
-				for (int gr = 0; gr < gElements.count(); ++gr)
-				{
-					PageItem* currItem = gElements.at(gr);
-					currItem->gXpos = currItem->xPos() - gx;
-					currItem->gYpos = currItem->yPos() - gy;
-					currItem->gWidth = gw;
-					currItem->gHeight = gh;
-					currItem->Parent = neu;
-					neu->groupItemList.append(currItem);
-					m_Doc->Items->removeAll(currItem);
-				}
-				neu->setRedrawBounding();
-				neu->setTextFlowMode(PageItem::TextFlowDisabled);
-				m_Doc->GroupCounter++;
-			}
-			else
-			{
-				// Group is out of valid coordinates, remove it
-				GElements.removeAll(neu);
-				Selection tmpSelection(m_Doc, false);
-				tmpSelection.addItem(neu);
-				for (int gr = 0; gr < gElements.count(); ++gr)
-				{
-					tmpSelection.addItem(gElements.at(gr));
-				}
-				m_Doc->itemSelection_DeleteItem(&tmpSelection);
-			}
-		}
-		delete (m_gc.pop());
+		m_Doc->itemSelection_DeleteItem(&tmpSelection);
 	}
+	delete (m_gc.pop());
+
 	return GElements;
 }
 
@@ -1615,7 +1611,7 @@ QList<PageItem*> SVGPlug::parseImage(const QDomElement &e)
 		ite->PoLine = clipPath.copy();
 	clipPath.resize(0);
 	ite->PoLine.map(QTransform(1.0, 0.0, 0.0, 1.0, x, y));
-	ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+	ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 	finishNode(e, ite);
 	IElements.append(ite);
 	delete (m_gc.pop());
@@ -1685,18 +1681,15 @@ QList<PageItem*> SVGPlug::parsePath(const QDomElement &e)
 	double baseY = m_Doc->currentPage()->yOffset();
 	setupNode(e);
 	SvgStyle *gc = m_gc.top();
-	PageItem::ItemType itype = parseSVG(e.attribute("d"), &pArray) ? PageItem::PolyLine : PageItem::Polygon; 
+	PageItem::ItemType itype = pArray.parseSVG(e.attribute("d")) ? PageItem::PolyLine : PageItem::Polygon; 
 	int z = m_Doc->itemAdd(itype, PageItem::Unspecified, baseX, baseY, 10, 10, gc->LWidth, gc->FillCol, gc->StrokeCol);
 	PageItem* ite = m_Doc->Items->at(z);
 	ite->fillRule = (gc->fillRule != "nonzero");
 	ite->PoLine = pArray;
 	if (ite->PoLine.size() < 4)
 	{
-// 			m_Doc->m_Selection->addItem(ite);
 		tmpSel->addItem(ite);
-// 			m_Doc->itemSelection_DeleteItem();
 		m_Doc->itemSelection_DeleteItem(tmpSel);
-// 			m_Doc->m_Selection->clear();
 	}
 	else
 	{
@@ -2327,20 +2320,6 @@ const char * SVGPlug::getCoord(const char *ptr, double &number)
 	return ptr;
 }
 
-bool SVGPlug::parseSVG(const QString &s, FPointArray *ite)
-{
-	return ite->parseSVG(s);
-}
-
-
-QColor SVGPlug::parseColorN(const QString &rgbColor)
-{
-	int r, g, b;
-	keywordToRGB(rgbColor.toLower(), r, g, b);
-	return QColor(r, g, b);
-}
-
-
 QString SVGPlug::parseColor(const QString &s)
 {
 	QColor c;
@@ -2380,16 +2359,8 @@ QString SVGPlug::parseColor(const QString &s)
 		c = QColor(r.toInt(), g.toInt(), b.toInt());
 	}
 	else
-	{
-		QString rgbColor = s.trimmed();
-		if (rgbColor.startsWith("#"))
-		{
-			rgbColor = rgbColor.left(7);
-			c.setNamedColor(rgbColor);
-		}
-		else
-			c = parseColorN(rgbColor);
-	}
+		c.setNamedColor(s.trimmed());
+
 	ScColor tmp;
 	tmp.fromQColor(c);
 	tmp.setSpotColor(false);
@@ -2480,6 +2451,7 @@ void SVGPlug::parsePA(SvgStyle *obj, const QString &command, const QString &para
 		else if (params == "none")
 		{
 			obj->FillCol = CommonStrings::None;
+			obj->FillGradientType = 0;
 		}
 		else if (params.startsWith( "url(" ))
 		{
@@ -2569,7 +2541,10 @@ void SVGPlug::parsePA(SvgStyle *obj, const QString &command, const QString &para
 			obj->FillCol = CommonStrings::None;
 		}
 		else
+		{
 			obj->FillCol = parseColor(params);
+			obj->FillGradientType = 0;
+		}
 	}
 	else if (command == "fill-rule")
 	{
@@ -2594,6 +2569,7 @@ void SVGPlug::parsePA(SvgStyle *obj, const QString &command, const QString &para
 		else if (params == "none")
 		{
 			obj->StrokeCol = CommonStrings::None;
+			obj->StrokeGradientType = 0;
 		}
 		else if (params.startsWith( "url(" ) )
 		{
@@ -2683,24 +2659,10 @@ void SVGPlug::parsePA(SvgStyle *obj, const QString &command, const QString &para
 			obj->StrokeCol = CommonStrings::None;
 		}
 		else
+		{
 			obj->StrokeCol = parseColor(params);
-		/*		if (params == "none")
-					gc->stroke.setType(VStroke::none);
-				else if (params.startsWith( "url(" ))
-				{
-					unsigned int start = params.find("#") + 1;
-					unsigned int end = params.lastIndexOf(")");
-					QString key = params.mid(start, end - start);
-					gc->stroke.gradient() = m_gradients[ key ].gradient;
-					gc->stroke.gradient().transform(m_gradients[ key ].gradientTransform);
-					gc->stroke.gradient().transform(gc->matrix);
-					gc->stroke.setType(VStroke::grad);
-				}
-				else
-				{
-					parseColor(strokecolor, params);
-					gc->stroke.setType(VStroke::solid);
-				} */
+			obj->StrokeGradientType = 0;
+		}
 	}
 	else if (command == "stroke-width")
 		obj->LWidth = parseUnit(params);

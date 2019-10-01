@@ -54,8 +54,6 @@
 CanvasMode_Magnifier::CanvasMode_Magnifier(ScribusView* view) : CanvasMode(view)
 {
 	m_Mxp = m_Myp = -1;
-	m_Dxp = m_Dyp = -1;
-	m_SeRx = m_SeRy = -1;
 	m_lastPosWasOverGuide = false;
 }
 
@@ -89,7 +87,6 @@ void CanvasMode_Magnifier::activate(bool fromGesture)
 	m_canvas->m_viewMode.operItemResizing = false;
 	m_view->MidButt = false;
 	m_Mxp = m_Myp = -1;
-	m_Dxp = m_Dyp = -1;
 	setModeCursor();
 	if (fromGesture)
 	{
@@ -127,7 +124,7 @@ void CanvasMode_Magnifier::mouseMoveEvent(QMouseEvent *m)
 		newY = qRound(m_Myp + ((m_SeRx - m_Mxp) * m_view->visibleHeight()) / m_view->visibleWidth());
 		m_SeRx = newX;
 		m_SeRy = newY;
-		QPoint startP = m_canvas->canvasToGlobal(m_doc->appMode == modeDrawTable2 ? QPointF(m_Dxp, m_Dyp) : QPointF(m_Mxp, m_Myp));
+		QPoint startP = m_canvas->canvasToGlobal(QPointF(m_Mxp, m_Myp));
 		m_view->redrawMarker->setGeometry(QRect(m_view->mapFromGlobal(startP), m_view->mapFromGlobal(m->globalPos())).normalized());
 		m_view->setRedrawMarkerShown(true);
 		m_view->HaveSelRect = true;
@@ -166,12 +163,12 @@ void CanvasMode_Magnifier::mousePressEvent(QMouseEvent *m)
 	if ((m->modifiers() == Qt::ShiftModifier) || (m->button() == Qt::RightButton))
 	{
 		m_view->Magnify = false;
-		m_view->setCursor(IconManager::instance()->loadCursor("lupezm.png"));
+		m_view->setCursor(IconManager::instance().loadCursor("lupezm.png"));
 	}
 	else
 	{
 		m_view->Magnify = true;
-		m_view->setCursor(IconManager::instance()->loadCursor("lupez.png"));
+		m_view->setCursor(IconManager::instance().loadCursor("lupez.png"));
 	}
 	m_Mxp = mousePointDoc.x(); //m->globalPos().x();
 	m_Myp = mousePointDoc.y(); //m->globalPos().y();
@@ -214,7 +211,7 @@ void CanvasMode_Magnifier::mouseReleaseEvent(QMouseEvent *m)
 	{
 		int mx = qRound(mousePointDoc.x());
 		int my = qRound(mousePointDoc.y());
-		m_view->Magnify ? m_view->slotZoomIn(mx, my) : m_view->slotZoomOut(mx, my);
+		m_view->Magnify ? m_view->slotZoomIn(mx, my, true) : m_view->slotZoomOut(mx, my, true);
 		if (sc == m_canvas->scale())
 		{
 			m_view->HaveSelRect = false;
@@ -223,9 +220,9 @@ void CanvasMode_Magnifier::mouseReleaseEvent(QMouseEvent *m)
 		else
 		{
 			if (m->modifiers() & Qt::ShiftModifier)
-				m_view->setCursor(IconManager::instance()->loadCursor("lupezm.png"));
+				m_view->setCursor(IconManager::instance().loadCursor("lupezm.png"));
 			else
-				m_view->setCursor(IconManager::instance()->loadCursor("lupez.png"));
+				m_view->setCursor(IconManager::instance().loadCursor("lupez.png"));
 		}
 	}
 

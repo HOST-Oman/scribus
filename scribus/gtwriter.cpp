@@ -30,33 +30,13 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "scribusstructs.h"
 
-// gtWriter::gtWriter(bool append)
-// {
-// 	action = new gtAction(append, ScMW->doc->m_Selection->itemAt(0));
-// 	errorSet = false;
-// 	action->setProgressInfo();
-// 	setDefaultStyle();
-// 	unsetCharacterStyle();
-// 	unsetParagraphStyle();
-// // 	if (!append)
-// // 		action->clearFrame();
-// // 	else
-// // 		this->append("\n");
-// }
-
 gtWriter::gtWriter(bool append, PageItem *pageitem)
 {
 	m_action = new gtAction(append, pageitem);
-	m_defaultStyle = nullptr;
-	m_currentStyle = nullptr;
-	m_errorSet = false;
-
 	m_action->setProgressInfo();
 	setDefaultStyle();
 	unsetCharacterStyle();
 	unsetParagraphStyle();
-	inNote = false;
-	inNoteBody = false;
 }
 
 gtFrameStyle* gtWriter::getDefaultStyle()

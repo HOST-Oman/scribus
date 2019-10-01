@@ -12,6 +12,8 @@ for which a new license (GPL+exception) is in place.
 #include <QFont>
 #include <QList>
 #include <QMap>
+#include <QVector>
+#include <QPair>
 #include <QString>
 #include <QStringList>
 
@@ -38,10 +40,11 @@ class SCRIBUS_API SCFonts : public QMap<QString,ScFace>
 	public:
 		SCFonts();
 		~SCFonts();
+
 		void updateFontMap();
-		void GetFonts(const QString& pf, bool showFontInfo=false);
-		ScFace LoadScalableFont(const QString &filename);
-		void AddScalableFonts(const QString& path, const QString& DocName = "");
+		void getFonts(const QString& pf, bool showFontInfo=false);
+		ScFace loadScalableFont(const QString &filename);
+		void addScalableFonts(const QString& path, const QString& DocName = "");
 		/// Returns a font with that name; creates a replacement font if not found
 		const ScFace& findFont(const QString& fontName, ScribusDoc* doc = nullptr);
 		const ScFace& findFont(const QString& fontFamily, const QString& fontStyle, ScribusDoc* doc = nullptr);
@@ -51,34 +54,39 @@ class SCRIBUS_API SCFonts : public QMap<QString,ScFace>
 		void setSubstitutions(const QMap<QString,QString>& substitutes, ScribusDoc* doc = nullptr);
 		void removeFont(const QString& name);
 		/// Write checked fonts file
-		void WriteCacheList();
+		void writeFontCache();
+
 		/// maps family name to face variants
 		QMap<QString, QStringList> fontMap;
+		QMap<QString, QString>     rejectedFonts;
+
 	private:
-		void ReadCacheList(const QString& pf);
-		void WriteCacheList(const QString& pf);
-		void AddPath(QString p);
-		bool AddScalableFont(const QString& filename, FT_Library &library, const QString& DocName);
-		void AddUserPath(const QString& pf);
+		void readFontCache(const QString& pf);
+		void writeFontCache(const QString& pf);
+		void addPath(QString p);
+		bool addScalableFont(const QString& filename, FT_Library &library, const QString& DocName);
+		void addRejectedFont(const QString& fontPath, const QString& message);
+		void addUserPath(const QString& pf);
 #ifdef HAVE_FONTCONFIG
-		void AddFontconfigFonts();
+		void addFontconfigFonts();
 #else
 #ifndef Q_OS_MAC
-		void AddXFontServerPath();
-		void AddXFontPath();
+		void addXFontServerPath();
+		void addXFontPath();
 #endif
 #endif
-		QStringList FontPath;
-		QString ExtraPath;
+		QStringList m_fontPaths;
+
 		struct testCache
 		{
 			bool isOK;
 			bool isChecked;
 			QDateTime lastMod;
 		};
-		QMap<QString, testCache> checkedFonts;
+		QMap<QString, testCache> m_checkedFonts;
+
 	protected:
-		bool showFontInformation;
+		bool m_showFontInfo;
 };
 
 struct SCFontsIterator

@@ -511,10 +511,10 @@ QString getFileNameByPage(ScribusDoc* currDoc, uint pageNo, const QString& exten
 {
 	uint number = pageNo + currDoc->FirstPnum;
 	QString defaultName;
-	if (prefix!=QString::null)
+	if (!prefix.isNull())
 		defaultName=prefix;
 	else
-		defaultName=currDoc->DocName;
+		defaultName=currDoc->documentFileName();
 	if (defaultName.isNull())
 		defaultName = "export";
 	else
@@ -522,7 +522,7 @@ QString getFileNameByPage(ScribusDoc* currDoc, uint pageNo, const QString& exten
 		QFileInfo fi(defaultName);
 		defaultName = fi.completeBaseName();
 	}
-	return QString("%1-%2%3.%4").arg(defaultName).arg(QObject::tr("page", "page export")).arg(number, 3, 10, QChar('0')).arg(extension);
+	return QString("%1-%2%3.%4").arg(defaultName, QObject::tr("page", "page export")).arg(number, 3, 10, QChar('0')).arg(extension);
 }
 
 const QString getStringFromSequence(NumFormat type, uint position, const QString& asterix)
@@ -553,6 +553,9 @@ const QString getStringFromSequence(NumFormat type, uint position, const QString
 		case Type_Abjad_ar:
 			retVal = numberToLetterSequence(abjad, position);
 			break;
+		case Type_Hebrew:
+			retVal = numberToHebrew(position);
+			break;
 		case Type_I_II_III:
 			retVal = numberToRoman(position);
 			break;
@@ -577,7 +580,7 @@ const QString getStringFromSequence(NumFormat type, uint position, const QString
 
 const QString numberToLetterSequence(const QString& letters, uint num)
 {
-	QString retVal("");
+	QString retVal;
 	unsigned digits = 1;
 	unsigned offset = 0;
 	uint column = num - 1;
@@ -1014,7 +1017,7 @@ bool convertOldTable(ScribusDoc *m_Doc, PageItem* gItem, QList<PageItem*> &gpL, 
 		it->isTableItem = false;
 		if (it->nextInChain() || it->prevInChain())
 			hasTextLinks = true;
-		if (it->LeftLink || it->RightLink || it->BottomLink || it->TopLink)
+		if (it->m_leftLink || it->m_rightLink || it->m_bottomLink || it->m_topLink)
 			hasTableLinks = true;
 	}
 
@@ -1025,20 +1028,20 @@ bool convertOldTable(ScribusDoc *m_Doc, PageItem* gItem, QList<PageItem*> &gpL, 
 	for (int i = 0; i < gpL.count(); i++)
 	{
 		PageItem* it = gpL[i];
-		if ((it->TopLink == nullptr) && (it->LeftLink == nullptr))	// we got the topleft item
+		if ((it->m_topLink == nullptr) && (it->m_leftLink == nullptr))	// we got the topleft item
 		{
 			topLeft = it;
 			PageItem *tl = it;
-			while (tl->RightLink != nullptr)
+			while (tl->m_rightLink != nullptr)
 			{
 				colWidths.append(tl->width());
-				tl = tl->RightLink;
+				tl = tl->m_rightLink;
 			}
 			colWidths.append(tl->width());
-			while (tl->BottomLink != nullptr)
+			while (tl->m_bottomLink != nullptr)
 			{
 				rowHeights.append(tl->height());
-				tl = tl->BottomLink;
+				tl = tl->m_bottomLink;
 			}
 			rowHeights.append(tl->height());
 			break;
@@ -1053,7 +1056,7 @@ bool convertOldTable(ScribusDoc *m_Doc, PageItem* gItem, QList<PageItem*> &gpL, 
 	int z = m_Doc->itemAdd(PageItem::Table, PageItem::Unspecified, gItem->xPos(), gItem->yPos(), gItem->width(), gItem->height(), 0.0, CommonStrings::None, CommonStrings::None);
 	PageItem_Table* currItem = m_Doc->Items->takeAt(z)->asTable();
 
-	currItem->LayerID = gItem->LayerID;
+	currItem->m_layerID = gItem->m_layerID;
 	currItem->OwnPage = gItem->OwnPage;
 	currItem->OnMasterPage = gItem->OnMasterPage;
 
@@ -1106,16 +1109,16 @@ bool convertOldTable(ScribusDoc *m_Doc, PageItem* gItem, QList<PageItem*> &gpL, 
 			if (colCount == colWidths.count()-1)
 				break;
 			colCount++;
-			tl = tl->RightLink;
+			tl = tl->m_rightLink;
 		}
 		if (rowCount == rowHeights.count()-1)
 			break;
 		colCount = 0;
 		rowCount++;
-		tr = tr->BottomLink;
+		tr = tr->m_bottomLink;
 	}
 	m_Doc->dontResize = true;
-	currItem->setLayer(gItem->LayerID);
+	currItem->setLayer(gItem->m_layerID);
 	currItem->setMasterPage(gItem->OwnPage, gItem->OnMasterPage);
 	currItem->adjustFrameToTable();
 	if (target != nullptr)
@@ -1173,6 +1176,45 @@ void getUniqueName(QString &name, const QStringList& list, const QString& separa
 	name = newName;
 }
 
+const QString numberToHebrew(uint i)
+{
+	const QString hebrew("אבגדהוזחטיכלמנסעפצקרשת");
+	QString result;
+
+	if (i > 999)
+	{
+		result.append(numberToHebrew(i / 1000));
+		result.append(QChar(0x05F3));
+		i %= 1000;
+	}
+
+	int hundreds = i / 100;
+	int tens = (i - hundreds * 100) / 10;
+	int ones = i % 10;
+
+	while (hundreds > 4)
+	{
+		result.append(hebrew.at(21));
+		hundreds -= 4;
+	}
+
+	if (hundreds)
+		result.append(hebrew.at(hundreds + 17));
+
+	if (tens == 1 && ones == 5)
+		result.append("טו");
+	else if (tens == 1 && ones == 6)
+		result.append("טז");
+	else
+	{
+		if (tens)
+			result.append(hebrew.at(tens + 8));
+		if (ones)
+			result.append(hebrew.at(ones - 1));
+	}
+
+	return result;
+}
 
 const QString numberToCJK(uint i)
 {

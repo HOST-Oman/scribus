@@ -25,14 +25,14 @@ class SCRIBUS_API Prefs_Fonts : public Prefs_Pane, Ui::Prefs_Fonts
 	public:
 		Prefs_Fonts(QWidget* parent, ScribusDoc* doc=nullptr);
 		~Prefs_Fonts();
-		virtual void restoreDefaults(struct ApplicationPrefs *prefsData);
-		virtual void saveGuiToPrefs(struct ApplicationPrefs *prefsData) const;
+
+		void restoreDefaults(struct ApplicationPrefs *prefsData) override;
+		void saveGuiToPrefs(struct ApplicationPrefs *prefsData) const override;
 		virtual void changeUnit(struct ApplicationPrefs *prefsData) const;
 
 	public slots:
 		void languageChange();
 		void ReplaceSel();
-		void updateFontList();
 		void DelEntry();
 		void SelectPath(QListWidgetItem *c);
 		void AddPath();
@@ -42,6 +42,9 @@ class SCRIBUS_API Prefs_Fonts : public Prefs_Pane, Ui::Prefs_Fonts
 	protected:
 		void readPaths();
 		void writePaths() const;
+
+		void updateFontList();
+		void updateRejectedFontList();
 
 		QMap<QString,QString> RList;
 		QList<ScComboBox*> FlagsRepl;

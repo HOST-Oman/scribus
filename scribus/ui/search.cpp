@@ -77,7 +77,7 @@ SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, b
 
 	setModal(true);
 	setWindowTitle( tr( "Search/Replace" ) );
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 
 	SearchReplaceLayout = new QVBoxLayout( this );
 	SearchReplaceLayout->setMargin(10);
@@ -391,7 +391,7 @@ SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, b
 	setTabOrder( DoReplace, AllReplace );
 	setTabOrder( AllReplace, Leave );
 
-	m_prefs = PrefsManager::instance()->prefsFile->getContext("SearchReplace");
+	m_prefs = PrefsManager::instance().prefsFile->getContext("SearchReplace");
 	readPrefs();
 }
 
@@ -554,7 +554,7 @@ void SearchReplace::slotDoSearch()
 				xOffset = m_item->width() / 2.0;
 				yOffset = m_item->height() / 2.0;
 				QPointF point = itemTrans.map(QPointF(xOffset, yOffset));
-				m_doc->view()->SetCCPo(point.x(), point.y());
+				m_doc->view()->setCanvasCenterPos(point.x(), point.y());
 
 				if (rep)
 				{
@@ -798,11 +798,12 @@ void SearchReplace::slotDoReplace()
 	{
 		QString repl, sear;
 		int cs, cx;
-		int textLen = m_item->itemText.lengthOfSelection();
+		int textLen = m_item->itemText.selectionLength();
 		if (RText->isChecked())
 		{
 			repl = RTextVal->text();
 			sear = STextVal->text();
+			textLen = m_item->itemText.selectionLength();
 			if (textLen == repl.length())
 			{
 				for (cs = 0; cs < textLen; ++cs)
@@ -857,7 +858,7 @@ void SearchReplace::slotDoReplace()
 			m_doc->itemSelection_SetFont(RFontVal->currentText());
 		if (RSize->isChecked())
 			m_doc->itemSelection_SetFontSize(qRound(RSizeVal->value() * 10.0));
-		if (REffect->isChecked() && (m_item->itemText.lengthOfSelection() > 0))
+		if (REffect->isChecked() && (m_item->itemText.selectionLength() > 0))
 		{
 			int s = REffVal->getStyle() & ScStyle_UserStyles;
 			m_doc->currentStyle.charStyle().setFeatures(static_cast<StyleFlag>(s).featureList()); // ???
@@ -1160,7 +1161,7 @@ void SearchReplace::updateReplaceButtonsState()
 	}
 	replaceEnabled |= RText->isChecked();
 	if (m_itemMode)
-		replaceEnabled &= (m_item->itemText.lengthOfSelection() > 0);
+		replaceEnabled &= (m_item->itemText.selectionLength() > 0);
 	else if (m_doc->scMW()->CurrStED != nullptr)
 		replaceEnabled &= m_doc->scMW()->CurrStED->Editor->textCursor().hasSelection();
 	else

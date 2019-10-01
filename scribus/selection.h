@@ -98,6 +98,10 @@ class SCRIBUS_API Selection : public QObject
 		 */
 		bool removeItem(PageItem *item);
 		/**
+		 * \briefRemove items from specified layer
+		 */
+		bool removeItemsOfLayer(int layedID);
+		/**
 		 * \brief Remove the first item from the list
 		 * @return If the remove was successful
 		 */
@@ -125,7 +129,7 @@ class SCRIBUS_API Selection : public QObject
 		/**
 		 * \brief Check if the selection is empty.
 		 */
-		bool isEmpty() const { return m_SelList.count()==0; }
+		bool isEmpty() const { return m_SelList.count() == 0; }
 		/**
 		 * \brief Clear a list
 		 */
@@ -154,6 +158,8 @@ class SCRIBUS_API Selection : public QObject
 		bool containsItemType(PageItem::ItemType type) const;
 		//!\brief Test to see if all items in the selection are the same typedef
 		bool itemsAreSameType() const;
+		//!\brief Test to see if all items in the selection are on same page
+		bool itemsAreOnSamePage() const;
 
 		/**
 		 * \brief get the layer ID of items in the selection

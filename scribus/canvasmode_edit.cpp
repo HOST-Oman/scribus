@@ -382,7 +382,7 @@ void CanvasMode_Edit::mouseDoubleClickEvent(QMouseEvent *m)
 					currItem->itemText.setCursorPosition(newPos);
 				}
 			}
-			currItem->HasSel = (currItem->itemText.lengthOfSelection() > 0);
+			currItem->HasSel = (currItem->itemText.selectionLength() > 0);
 		}
 	}
 	else
@@ -417,7 +417,7 @@ void CanvasMode_Edit::mouseMoveEvent(QMouseEvent *m)
 			{
 				if (m->modifiers() & Qt::ShiftModifier)
 				{
-					m_view->setCursor(IconManager::instance()->loadCursor("Rotieren2.png"));
+					m_view->setCursor(IconManager::instance().loadCursor("Rotieren2.png"));
 					QTransform p = currItem->getTransform();
 					p.translate(currItem->imageXOffset()*currItem->imageXScale(), currItem->imageYOffset()*currItem->imageYScale());
 					QPointF rotP = p.map(QPointF(0.0, 0.0));
@@ -427,7 +427,7 @@ void CanvasMode_Edit::mouseMoveEvent(QMouseEvent *m)
 				}
 				else
 				{
-					m_view->setCursor(IconManager::instance()->loadCursor("handc.png"));
+					m_view->setCursor(IconManager::instance().loadCursor("handc.png"));
 					QTransform mm1 = currItem->getTransform();
 					QTransform mm2 = mm1.inverted();
 					QPointF rota = mm2.map(QPointF(newX, newY)) - mm2.map(QPointF(Mxp, Myp));
@@ -496,9 +496,9 @@ void CanvasMode_Edit::mouseMoveEvent(QMouseEvent *m)
 						if (currItem->asImageFrame())
 						{
 							if (m->modifiers() & Qt::ShiftModifier)
-								m_view->setCursor(IconManager::instance()->loadCursor("Rotieren2.png"));
+								m_view->setCursor(IconManager::instance().loadCursor("Rotieren2.png"));
 							else
-								m_view->setCursor(IconManager::instance()->loadCursor("handc.png"));
+								m_view->setCursor(IconManager::instance().loadCursor("handc.png"));
 						}
 					}
 				}
@@ -642,7 +642,7 @@ void CanvasMode_Edit::mousePressEvent(QMouseEvent *m)
 				//<<CB Add in shift select to text frames
 				if (m->modifiers() & Qt::ShiftModifier)
 				{
-					if (currItem->itemText.lengthOfSelection() > 0)
+					if (currItem->itemText.selectionLength() > 0)
 					{
 						if (currItem->itemText.cursorPosition() < (currItem->itemText.startOfSelection() + currItem->itemText.endOfSelection()) / 2)
 						{
@@ -854,7 +854,7 @@ void CanvasMode_Edit::mouseReleaseEvent(QMouseEvent *m)
 		}
 	}
 	//CB Drag selection performed here
-	if ((m_doc->m_Selection->count() == 0) && (m_view->HaveSelRect) && (!m_view->MidButt))
+	if ((m_doc->m_Selection->isEmpty()) && (m_view->HaveSelRect) && (!m_view->MidButt))
 	{
 		QRectF Sele = QRectF(Dxp, Dyp, SeRx-Dxp, SeRy-Dyp).normalized();
 		if (!m_doc->masterPageMode())
@@ -888,7 +888,7 @@ void CanvasMode_Edit::mouseReleaseEvent(QMouseEvent *m)
 				QRect apr2(docItem->getRedrawBounding(1.0));
 				if ((m_doc->masterPageMode()) && (docItem->OnMasterPage != m_doc->currentPage()->pageName()))
 					continue;
-				if (((Sele.contains(apr.boundingRect())) || (Sele.contains(apr2))) && ((docItem->LayerID == m_doc->activeLayer()) || (m_doc->layerSelectable(docItem->LayerID))) && (!m_doc->layerLocked(docItem->LayerID)))
+				if (((Sele.contains(apr.boundingRect())) || (Sele.contains(apr2))) && m_doc->canSelectItemOnLayer(docItem->m_layerID))
 				{
 					bool redrawSelection=false;
 					m_view->SelectItemNr(a, redrawSelection);
@@ -950,7 +950,7 @@ void CanvasMode_Edit::mouseReleaseEvent(QMouseEvent *m)
 	}
 	if (GetItem(&currItem) && currItem->asTextFrame())
 	{
-		if (currItem->itemText.lengthOfSelection() > 0)
+		if (currItem->itemText.selectionLength() > 0)
 			m_ScMW->EnableTxEdit();
 		else
 			m_ScMW->DisableTxEdit();

@@ -63,13 +63,13 @@ PropertiesPalette_Text::PropertiesPalette_Text( QWidget* parent) : QWidget(paren
 	setupUi(this);
 
 	fontSize->setPrefix( "" );
-	fontSizeLabel->setPixmap(IconManager::instance()->loadPixmap("zeichen.png"));
-	lineSpacingLabel->setPixmap(IconManager::instance()->loadPixmap("linespacing2.png"));
+	fontSizeLabel->setPixmap(IconManager::instance().loadPixmap("zeichen.png"));
+	lineSpacingLabel->setPixmap(IconManager::instance().loadPixmap("linespacing2.png"));
 
 	paraStyleLabel->setBuddy(paraStyleCombo);
-	paraStyleClear->setIcon(IconManager::instance()->loadPixmap("16/edit-clear.png"));
+	paraStyleClear->setIcon(IconManager::instance().loadPixmap("16/edit-clear.png"));
 	charStyleLabel->setBuddy(charStyleCombo);
-	charStyleClear->setIcon(IconManager::instance()->loadPixmap("16/edit-clear.png"));
+	charStyleClear->setIcon(IconManager::instance().loadPixmap("16/edit-clear.png"));
 
 	colorWidgets = new PropertyWidget_TextColor(textTree);
 	colorWidgetsItem = textTree->addItem( colorWidgets, tr("Color && Effects") );
@@ -311,7 +311,7 @@ void PropertiesPalette_Text::handleUpdateRequest(int updateFlags)
 	}
 }
 
-void PropertiesPalette_Text::setCurrentItem(PageItem *i)
+void PropertiesPalette_Text::setCurrentItem(PageItem *item)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
@@ -323,10 +323,10 @@ void PropertiesPalette_Text::setCurrentItem(PageItem *i)
 	//	return;
 
 	if (!m_doc)
-		setDoc(i->doc());
+		setDoc(item->doc());
 
 	m_haveItem = false;
-	m_item = i;
+	m_item = item;
 
 	showFirstLinePolicy(m_item->firstLineOffset());
 
@@ -637,15 +637,15 @@ void PropertiesPalette_Text::handleDirection(int d)
 	tempSelection.addItem(m_item, true);
 	m_doc->itemSelection_SetDirection(d, &tempSelection);
 	// If current text alignment is left or right, change it to match direction
-	if (d == ParagraphStyle::RTL && textAlignment->selectedId() == ParagraphStyle::Leftaligned)
+	if (d == ParagraphStyle::RTL && textAlignment->selectedId() == ParagraphStyle::LeftAligned)
 	{
-		m_doc->itemSelection_SetAlignment(ParagraphStyle::Rightaligned, &tempSelection);
-		textAlignment->setTypeStyle(ParagraphStyle::Rightaligned);
+		m_doc->itemSelection_SetAlignment(ParagraphStyle::RightAligned, &tempSelection);
+		textAlignment->setTypeStyle(ParagraphStyle::RightAligned);
 	}
-	else if (d == ParagraphStyle::LTR && textAlignment->selectedId() == ParagraphStyle::Rightaligned)
+	else if (d == ParagraphStyle::LTR && textAlignment->selectedId() == ParagraphStyle::RightAligned)
 	{
-		m_doc->itemSelection_SetAlignment(ParagraphStyle::Leftaligned, &tempSelection);
-		textAlignment->setTypeStyle(ParagraphStyle::Leftaligned);
+		m_doc->itemSelection_SetAlignment(ParagraphStyle::LeftAligned, &tempSelection);
+		textAlignment->setTypeStyle(ParagraphStyle::LeftAligned);
 	}
 }
 

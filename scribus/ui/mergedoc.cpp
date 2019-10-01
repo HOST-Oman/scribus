@@ -36,7 +36,7 @@ MergeDoc::MergeDoc(QWidget* parent, bool importMasterPages, int targetDocPageCou
 	masterPages = importMasterPages;
 	setModal(true);
 	setWindowTitle((masterPages) ? tr("Import Master Page") : tr( "Import Page(s)" ));
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 
 	count = 0;
 	dialogLayout = new QVBoxLayout(this);
@@ -138,7 +138,7 @@ void MergeDoc::changeFile()
 	QString fn;
 	int dummy;
 	count = 0;
-	PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+	PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 	QString wdir = dirs->get("merge", ".");
 	CustomFDialog *dia = new CustomFDialog(this, wdir, tr("Open"), tr("Documents (*.sla *.sla.gz *.scd *.scd.gz);;All Files (*)"));
 	if (!fromDocData->text().isEmpty())

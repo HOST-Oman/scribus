@@ -72,7 +72,7 @@ typedef struct
 	Word	numRecords;
 } pdb_header;
 
-/*! \brief Some compilers pad structures out to DWord boundaries so using 
+/*! \brief Some compilers pad structures out to DWord boundaries so using
 sizeof() doesn't give the intended result.
 */
 #define PDB_HEADER_SIZE 78
@@ -92,8 +92,8 @@ typedef struct {
 /*! \brief Binary buffer */
 typedef struct {
 	Byte buf[BUFFER_SIZE];
-	UT_uint32   len;
-	UT_uint32   position;
+	size_t   len;
+	size_t   position;
 } buffer;
 
 #define GET_Word(f,n)   { size_t result = fread( &n, 2, 1, f ); if (result == 1) n = swap_Word ( n ); }
@@ -136,7 +136,7 @@ private:
 	bool m_littlendian;
 	//! \brief A "document uses that strange compress algorithm" flag.
 	bool bCompressed;
-	
+
 	/*! \brief Parse the PDB file.
 	\param fname a filename to open */
 	void loadFile(const QString& fname);

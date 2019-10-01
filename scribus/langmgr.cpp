@@ -122,7 +122,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("an",       "an_ES",    "Aragonese",               QObject::tr("Aragonese")));
 	m_langTable.append(LangDef("hy",       "",         "Armenian",                QObject::tr("Armenian")));
 	m_langTable.append(LangDef("rup",      "",         "Aromanian",               QObject::tr("Aromanian")));
-	m_langTable.append(LangDef("as",       "",         "Assamese",                QObject::tr("Assamese")));
+	m_langTable.append(LangDef("as",       "as_IN",    "Assamese",                QObject::tr("Assamese")));
 	m_langTable.append(LangDef("ast",      "",         "Asturian",                QObject::tr("Asturian")));
 	m_langTable.append(LangDef("ath",      "",         "Athapaskan",              QObject::tr("Athapaskan")));
 	m_langTable.append(LangDef("av",       "",         "Avaric",                  QObject::tr("Avaric")));
@@ -154,7 +154,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("bdy",      "",         "Bandjalang",              QObject::tr("Bandjalang")));
 	m_langTable.append(LangDef("bem",      "",         "Bemba",                   QObject::tr("Bemba")));
 	m_langTable.append(LangDef("be",       "be_BY",    "Belarusian",              QObject::tr("Belarusian")));
-	m_langTable.append(LangDef("bn",       "",         "Bengali",                 QObject::tr("Bengali")));
+	m_langTable.append(LangDef("bn",       "bn_IN",    "Bengali",                 QObject::tr("Bengali")));
 	m_langTable.append(LangDef("bn_BD",    "",         "Bengali (Bangladesh)",    QObject::tr("Bengali (Bangladesh)")));
 	m_langTable.append(LangDef("ber",      "",         "Berber",                  QObject::tr("Berber")));
 	m_langTable.append(LangDef("btb",      "",         "Beti (Cameroon)",         QObject::tr("Beti (Cameroon)")));
@@ -287,7 +287,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("hz",       "",         "Herero",                  QObject::tr("Herero")));
 	m_langTable.append(LangDef("mrj",      "",         "High Mari",               QObject::tr("High Mari")));
 	m_langTable.append(LangDef("hil",      "",         "Hiligaynon",              QObject::tr("Hiligaynon")));
-	m_langTable.append(LangDef("hi_IN",    "",         "Hindi",                   QObject::tr("Hindi")));
+	m_langTable.append(LangDef("hi",       "hi_IN",    "Hindi",                   QObject::tr("Hindi")));
 	m_langTable.append(LangDef("hno",      "",         "Hindko (Northern)",       QObject::tr("Hindko (Northern)")));
 	m_langTable.append(LangDef("hnd",      "",         "Hindko (Southern)",       QObject::tr("Hindko (Southern)")));
 	m_langTable.append(LangDef("ho",       "",         "Hiri Motu",               QObject::tr("Hiri Motu")));
@@ -321,7 +321,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("kln",      "",         "Kalenjin",                QObject::tr("Kalenjin")));
 	m_langTable.append(LangDef("kam",      "",         "Kamba (Kenya)",           QObject::tr("Kamba (Kenya)")));
 	m_langTable.append(LangDef("bjj",      "",         "Kanauji",                 QObject::tr("Kanauji")));
-	m_langTable.append(LangDef("kn_IN",    "kn",       "Kannada",                 QObject::tr("Kannada")));
+	m_langTable.append(LangDef("kn",       "kn_IN",    "Kannada",                 QObject::tr("Kannada")));
 	m_langTable.append(LangDef("kr",       "",         "Kanuri",                  QObject::tr("Kanuri")));
 	m_langTable.append(LangDef("pam",      "",         "Kapampangan",             QObject::tr("Kapampangan")));
 	m_langTable.append(LangDef("kdr",      "",         "Karaim",                  QObject::tr("Karaim")));
@@ -428,7 +428,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("mlq",      "",         "Maninkakan (Western)",    QObject::tr("Maninkakan (Western)")));
 	m_langTable.append(LangDef("mns",      "",         "Mansi",                   QObject::tr("Mansi")));
 	m_langTable.append(LangDef("gv",       "",         "Manx",                    QObject::tr("Manx")));
-	m_langTable.append(LangDef("mr",       "",         "Marathi",                 QObject::tr("Marathi")));
+	m_langTable.append(LangDef("mr",       "mr_IN",    "Marathi",                 QObject::tr("Marathi")));
 	m_langTable.append(LangDef("mh",       "",         "Marshallese",             QObject::tr("Marshallese")));
 	m_langTable.append(LangDef("mwr",      "",         "Marwari",                 QObject::tr("Marwari")));
 	m_langTable.append(LangDef("mve",      "",         "Marwari (Pakistan)",      QObject::tr("Marwari (Pakistan)")));
@@ -473,7 +473,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("nog",      "",         "Nogai",                   QObject::tr("Nogai")));
 	m_langTable.append(LangDef("no",       "no_NO",    "Norwegian",               QObject::tr("Norwegian")));
 	m_langTable.append(LangDef("nb",       "nb_NO",    "Norwegian (Bokmål)",      QObject::trUtf8("Norwegian (Bokm\303\245l)")));
-	m_langTable.append(LangDef("nn",       "nn_NO",    "Norwegian (Nnyorsk)",     QObject::tr("Norwegian (Nnyorsk)")));
+	m_langTable.append(LangDef("nn",       "nn_NO",    "Norwegian (Nynorsk)",     QObject::tr("Norwegian (Nynorsk)")));
 	m_langTable.append(LangDef("nov",      "",         "Novial",                  QObject::tr("Novial")));
 	m_langTable.append(LangDef("nym",      "",         "Nyamwezi",                QObject::tr("Nyamwezi")));
 	m_langTable.append(LangDef("nyn",      "",         "Nyankole",                QObject::tr("Nyankole")));
@@ -482,14 +482,14 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("oj",       "",         "Ojibwa",                  QObject::tr("Ojibwa")));
 	m_langTable.append(LangDef("ojs",      "",         "Oji-Cree",                QObject::tr("Oji-Cree")));
 	m_langTable.append(LangDef("om",       "",         "Oromo",                   QObject::tr("Oromo")));
-	m_langTable.append(LangDef("or",       "",         "Oriya",                   QObject::tr("Oriya")));
+	m_langTable.append(LangDef("or",       "or_IN",    "Oriya",                   QObject::tr("Oriya")));
 	m_langTable.append(LangDef("os",       "",         "Ossetian",                QObject::tr("Ossetian")));
 	m_langTable.append(LangDef("blk",      "",         "Pa'O",                    QObject::tr("Pa'O")));
 	m_langTable.append(LangDef("pce",      "",         "Palaung (Ruching)",       QObject::tr("Palaung (Ruching)")));
 	m_langTable.append(LangDef("pll",      "",         "Palaung (Shwe)",          QObject::tr("Palaung (Shwe)")));
 	m_langTable.append(LangDef("pi",       "",         "Pali",                    QObject::tr("Pali")));
 	m_langTable.append(LangDef("plp",      "",         "Palpa",                   QObject::tr("Palpa")));
-	m_langTable.append(LangDef("pa",       "",         "Panjabi",                 QObject::tr("Panjabi")));
+	m_langTable.append(LangDef("pa",       "pa_IN",    "Panjabi",                 QObject::tr("Panjabi")));
 	m_langTable.append(LangDef("pnb",      "",         "Panjabi Western",         QObject::tr("Panjabi Western")));
 	m_langTable.append(LangDef("pag",      "",         "Pangasinan",              QObject::tr("Pangasinan")));
 	m_langTable.append(LangDef("ps",       "",         "Pashto",                  QObject::tr("Pashto")));
@@ -576,7 +576,8 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("suq",      "",         "Suri",                    QObject::tr("Suri")));
 	m_langTable.append(LangDef("sva",      "",         "Svan",                    QObject::tr("Svan")));
 	m_langTable.append(LangDef("sw",       "",         "Swahili",                 QObject::tr("Swahili")));
-	m_langTable.append(LangDef("sv",       "",         "Swedish",                 QObject::tr("Swedish")));
+	m_langTable.append(LangDef("sv",       "sv_SE",    "Swedish",                 QObject::tr("Swedish")));
+	m_langTable.append(LangDef("sv_FI",    "",         "Swedish (Finland)",       QObject::tr("Swedish (Finland)")));
 	m_langTable.append(LangDef("ss",       "",         "Swati",                   QObject::tr("Swati")));
 	m_langTable.append(LangDef("syl",      "",         "Sylheti",                 QObject::tr("Sylheti")));
 	m_langTable.append(LangDef("syr",      "",         "Syriac",                  QObject::tr("Syriac")));
@@ -587,7 +588,7 @@ void LanguageManager::generateLangList()
 	m_langTable.append(LangDef("tdd",      "",         "Tai Nüa",                 QObject::trUtf8("Tai N\303\274a")));
 	m_langTable.append(LangDef("tg",       "",         "Tajik",                   QObject::tr("Tajik")));
 	m_langTable.append(LangDef("tmh",      "",         "Tamashek",                QObject::tr("Tamashek")));
-	m_langTable.append(LangDef("ta",       "",         "Tamil",                   QObject::tr("Tamil")));
+	m_langTable.append(LangDef("ta",       "ta_IN",    "Tamil",                   QObject::tr("Tamil")));
 	m_langTable.append(LangDef("tt",       "",         "Tatar",                   QObject::tr("Tatar")));
 	m_langTable.append(LangDef("te",       "te_IN",    "Telugu",                  QObject::tr("Telugu")));
 	m_langTable.append(LangDef("tem",      "",         "Temne",                   QObject::tr("Temne")));
@@ -654,23 +655,21 @@ void LanguageManager::generateInstalledGUILangList()
 	QString langAbbrev;
 	QMap<QString, langPair>::Iterator it;
 	QDir dir(path , "*.*", QDir::Name, QDir::Files | QDir::NoSymLinks);
-	if (dir.exists() && (dir.count() != 0))
+	if (!dir.exists() || (dir.count() == 0))
+		return;
+
+	for (uint i = 0; i < dir.count(); ++i)
 	{
-		for (uint i = 0; i < dir.count(); ++i)
-		{
-			QFileInfo file(path + dir[i]);
-			if (file.suffix().toLower() == "qm")
-			{
-				langAbbrev = file.completeSuffix().remove(".qm");
-				int j=langTableIndex(langAbbrev);
-				if (j!=-1)
-				{
-					m_langTable[j].m_transAvailable=true;
-					m_langTable[j].m_transFile=file.absoluteFilePath();
-					//qDebug()<<"Found installed GUI translation file:"<<langAbbrev<<" : "<<langTable[j].m_transFile<<langTable[j].m_transName;
-				}
-			}
-		}
+		QFileInfo file(path + dir[i]);
+		if (file.suffix().toLower() != "qm")
+			continue;
+		langAbbrev = file.completeSuffix().remove(".qm");
+		int j = langTableIndex(langAbbrev);
+		if (j < 0)
+			continue;
+		m_langTable[j].m_transAvailable = true;
+		m_langTable[j].m_transFile = file.absoluteFilePath();
+		//qDebug()<<"Found installed GUI translation file:"<<langAbbrev<<" : "<<langTable[j].m_transFile<<langTable[j].m_transName;
 	}
 }
 
@@ -685,18 +684,18 @@ void LanguageManager::generateInstalledHyphLangList()
 	}
 	QMap<QString, QString> dictionaryMap;
 	findHyphDictionarySets(dictionaryPaths, dictionaryMap);
-	if (dictionaryMap.count()==0)
+	if (dictionaryMap.count() == 0)
 		return;
 
 	QMap<QString, QString>::iterator it = dictionaryMap.begin();
 //	qDebug()<<"Installed Hyphenation Dictonaries:";
 	while (it != dictionaryMap.end())
 	{
-		int j=langTableIndex(it.key());
-		if (j!=-1)
+		int j = langTableIndex(it.key());
+		if (j != -1)
 		{
-			m_langTable[j].m_hyphAvailable=true;
-			m_langTable[j].m_hyphFile=it.value();
+			m_langTable[j].m_hyphAvailable = true;
+			m_langTable[j].m_hyphFile = it.value();
 			//qDebug()<<"Found installed hyphenation dictionary:"<<it.key()<<" : "<<it.value();
 		}
 		++it;
@@ -714,18 +713,18 @@ void LanguageManager::generateInstalledSpellLangList()
 	}
 	QMap<QString, QString> dictionaryMap;
 	findSpellingDictionarySets(dictionaryPaths, dictionaryMap);
-	if (dictionaryMap.count()==0)
+	if (dictionaryMap.count() == 0)
 		return;
 
 	QMap<QString, QString>::iterator it = dictionaryMap.begin();
 //	qDebug()<<"Installed Spelling Dictonaries:";
 	while (it != dictionaryMap.end())
 	{
-		int j=langTableIndex(it.key());
-		if (j!=-1)
+		int j = langTableIndex(it.key());
+		if (j != -1)
 		{
-			m_langTable[j].m_spellAvailable=true;
-			m_langTable[j].m_spellFile=it.value();
+			m_langTable[j].m_spellAvailable = true;
+			m_langTable[j].m_spellFile = it.value();
 //			qDebug()<<"Found installed spelling dictionary:"<<it.key()<<" : "<<it.value();
 		}
 		++it;
@@ -742,7 +741,7 @@ int LanguageManager::langTableIndex(const QString &abbrev)
 	for (int i = 0; i < m_langTable.size(); ++i)
 	{
 //		qDebug()<<abbrev<<langTable[i].m_priAbbrev<<langTable[i].m_altAbbrev;
-		if (m_langTable[i].m_priAbbrev==abbrev || m_langTable[i].m_altAbbrev==abbrev)
+		if (m_langTable[i].m_priAbbrev == abbrev || m_langTable[i].m_altAbbrev == abbrev)
 			return i;
 	}
 	return -1;
@@ -755,13 +754,13 @@ const QString LanguageManager::getLangFromAbbrev(QString langAbbrev, bool getTra
 //	qDebug()<<"Index of"<<langAbbrev<<":"<<i;
 	if (i==-1)
 	{
-		if (langAbbrev.length()>5)
+		if (langAbbrev.length() > 5)
 		{
 			langAbbrev.truncate(5);
-			i=langTableIndex(langAbbrev);
+			i = langTableIndex(langAbbrev);
 		}
 	}
-	if (i!=-1)
+	if (i != -1)
 	{
 		if (getTranslated)
 			return m_langTable[i].m_transName;
@@ -777,13 +776,13 @@ const QString LanguageManager::getAbbrevFromLang(const QString& lang, bool useIn
 	{
 		if (useInstalled)
 		{
-			if (m_langTable[i].m_transAvailable && (m_langTable[i].m_name==lang || m_langTable[i].m_transName==lang))
+			if (m_langTable[i].m_transAvailable && (m_langTable[i].m_name == lang || m_langTable[i].m_transName == lang))
 				return m_langTable[i].m_priAbbrev;
 		}
 		else
 		{
 			//qDebug()<<lang<<langTable[i].m_priAbbrev<<langTable[i].m_name<<langTable[i].m_transName;
-			if (m_langTable[i].m_name==lang || m_langTable[i].m_transName==lang)
+			if (m_langTable[i].m_name == lang || m_langTable[i].m_transName == lang)
 				return m_langTable[i].m_priAbbrev;
 		}
 	}
@@ -794,7 +793,7 @@ const QString LanguageManager::getLangFromTransLang(const QString& transLang)
 {
 	for (int i = 0; i < m_langTable.size(); ++i)
 	{
-		if (m_langTable[i].m_transName==transLang)
+		if (m_langTable[i].m_transName == transLang)
 			return m_langTable[i].m_name;
 	}
 	return "";
@@ -804,7 +803,7 @@ const QString LanguageManager::getTransLangFromLang(const QString& lang)
 {
 	for (int i = 0; i < m_langTable.size(); ++i)
 	{
-		if (m_langTable[i].m_name==lang)
+		if (m_langTable[i].m_name == lang)
 			return m_langTable[i].m_transName;
 	}
 	return "";
@@ -817,7 +816,7 @@ const QString LanguageManager::getShortAbbrevFromAbbrev(QString langAbbrev)
 	//	qDebug()<<"Index of"<<langAbbrev<<":"<<i;
 	if (i == -1)
 	{
-		if (langAbbrev.length()>5)
+		if (langAbbrev.length() > 5)
 		{
 			langAbbrev.truncate(5);
 			i=langTableIndex(langAbbrev);
@@ -849,7 +848,7 @@ const QString LanguageManager::getShortAbbrevFromAbbrevDecomposition(const QStri
 const QString LanguageManager::getAlternativeAbbrevfromAbbrev(const QString& langAbbrev)
 {
 	int i=langTableIndex(langAbbrev);
-	if (i!=-1)
+	if (i != -1)
 		return m_langTable[i].m_altAbbrev;
 	return "";
 }
@@ -978,37 +977,37 @@ QString LanguageManager::numericSequence(const QString& seq)
 	switch (1)
 	{
 		case nsBengali:
-			retSeq+="";
+			retSeq += "";
 			break;
 		case nsDevanagari:
-			retSeq+="०१२३४५६७८९";
+			retSeq += "०१२३४५६७८९";
 			break;
 		case nsGujarati:
-			retSeq+="૦૧૨૩૪૫૬૭૮૯";
+			retSeq += "૦૧૨૩૪૫૬૭૮૯";
 			break;
 		case nsGurumukhi:
-			retSeq+="੦੧੨੩੪੫੬੭੮੯";
+			retSeq += "੦੧੨੩੪੫੬੭੮੯";
 			break;
 		case nsKannada:
-			retSeq+="";
+			retSeq += "";
 			break;
 		case nsMalayalam:
-			retSeq+="";
+			retSeq += "";
 			break;
 		case nsOriya:
-			retSeq+="";
+			retSeq += "";
 			break;
 		case nsTamil:
-			retSeq+="";
+			retSeq += "";
 			break;
 		case nsTelugu:
-			retSeq+="";
+			retSeq += "";
 			break;
 		case nsTibetan:
-			retSeq+="";
+			retSeq += "";
 			break;
 		case nsLepcha:
-			retSeq+="";
+			retSeq += "";
 			break;
 		default:
 			retSeq="0123456789";
@@ -1025,7 +1024,7 @@ bool LanguageManager::findSpellingDictionaries(QStringList &sl)
 
 void LanguageManager::findSpellingDictionarySets(QStringList &dictionaryPaths, QMap<QString, QString> &dictionaryMap)
 {
-	for (int i=0; i<dictionaryPaths.count(); ++i)
+	for (int i = 0; i<dictionaryPaths.count(); ++i)
 	{
 		// Find the dic and aff files in the location
 		QDir dictLocation(dictionaryPaths.at(i));
@@ -1034,30 +1033,30 @@ void LanguageManager::findSpellingDictionarySets(QStringList &dictionaryPaths, Q
 		dictList.replaceInStrings(".dic","");
 
 		//Ensure we have aff+dic file pairs, remove any hyphenation dictionaries from the list
-
-		foreach(const QString& dictName, dictList)
+		for (const QString& dictName : qAsConst(dictList))
 		{
-			if (!QFile::exists(dictionaryPaths.at(i)+dictName+".aff"))
-				dictList.removeAll(dictName);
-			else
+			if (!QFile::exists(dictionaryPaths.at(i) + dictName + ".aff"))
 			{
-				if (!dictionaryMap.contains(dictName))
-				{
-					if (dictName.length()<=5)
-					{
-						//QString shortAbbrev(LanguageManager::getShortAbbrevFromAbbrev(dictName));
-						//qDebug()<<"findSpellingDictionarySets"<<dictName<<shortAbbrev;
-						dictionaryMap.insert(dictName, dictionaryPaths.at(i)+dictName);
-						//dictionaryMap.insert(shortAbbrev, dictionaryPaths.at(i)+dictName);
-					}
-					//qDebug()<<"Spell Finder:"<<dictName<<dictionaryPaths.at(i)+dictName;
-					if (dictName.length()>5)
-					{
-						QString shortAbbrev(LanguageManager::getShortAbbrevFromAbbrev(dictName));
-						//qDebug()<<shortAbbrev;
-						dictionaryMap.insert(shortAbbrev, dictionaryPaths.at(i)+dictName);
-					}
-				}
+				dictList.removeAll(dictName);
+				continue;
+			}
+				
+			if (dictionaryMap.contains(dictName))
+				continue;
+
+			if (dictName.length() <= 5)
+			{
+				//QString shortAbbrev(LanguageManager::getShortAbbrevFromAbbrev(dictName));
+				//qDebug()<<"findSpellingDictionarySets"<<dictName<<shortAbbrev;
+				dictionaryMap.insert(dictName, dictionaryPaths.at(i)+dictName);
+				//dictionaryMap.insert(shortAbbrev, dictionaryPaths.at(i)+dictName);
+			}
+			//qDebug()<<"Spell Finder:"<<dictName<<dictionaryPaths.at(i)+dictName;
+			if (dictName.length() > 5)
+			{
+				QString shortAbbrev(LanguageManager::getShortAbbrevFromAbbrev(dictName));
+				//qDebug()<<shortAbbrev;
+				dictionaryMap.insert(shortAbbrev, dictionaryPaths.at(i)+dictName);
 			}
 		}
 //		qDebug()<<"Number of dictionaries/AFFs found in"<<dictionaryPaths.at(i)<<":"<<dictList.count();
@@ -1067,7 +1066,7 @@ void LanguageManager::findSpellingDictionarySets(QStringList &dictionaryPaths, Q
 	while (it != dictionaryMap.end())
 	{
 		QString lang(it.key());
-		if (lang.length()==5)
+		if (lang.length() == 5)
 		{
 			QString shortAbbrev(LanguageManager::getShortAbbrevFromAbbrev(lang));
 			if (!dictionaryMap.contains(shortAbbrev))
@@ -1078,7 +1077,7 @@ void LanguageManager::findSpellingDictionarySets(QStringList &dictionaryPaths, Q
 			//else
 				//qDebug()<<"Short abbreviation:"<<shortAbbrev<<"already exists for:"<<lang;
 		}
-		if (lang.length()==2)
+		if (lang.length() == 2)
 		{
 			QString altAbbrev(LanguageManager::getAlternativeAbbrevfromAbbrev(lang));
 			if (!dictionaryMap.contains(altAbbrev))
@@ -1101,34 +1100,34 @@ bool LanguageManager::findHyphDictionaries(QStringList& sl)
 
 void LanguageManager::findHyphDictionarySets(QStringList& dictionaryPaths, QMap<QString, QString>& dictionaryMap)
 {
-	for (int i=0; i<dictionaryPaths.count(); ++i)
+	for (int i = 0; i<dictionaryPaths.count(); ++i)
 	{
 		// Find the dic and aff files in the location
 		QDir dictLocation(dictionaryPaths.at(i));
 		QStringList dictFilters("hyph*.dic");
 		if (dictionaryPaths.at(i)==ScPaths::userDictDir(ScPaths::Hyph, false))
-				dictFilters.append("*.dic");
+			dictFilters.append("*.dic");
 		QStringList dictList(dictLocation.entryList(dictFilters, QDir::Files, QDir::Name));
 		dictList.replaceInStrings(".dic","");
-		foreach(const QString& dn, dictList)
+
+		for (const QString& dn : qAsConst(dictList))
 		{
 //			qDebug()<<dn;
 			QString dictName;
 			if (dn.startsWith("hyph_"))
-				dictName=dn.section('_',1);
+				dictName = dn.section('_',1);
 			else
-				dictName=dn;
-			if (!dictionaryMap.contains(dictName))
+				dictName = dn;
+			if (dictionaryMap.contains(dictName))
+				continue;
+			if (dictName.length() <= 2)
 			{
-				if (dictName.length()<=2)
-				{
-					dictionaryMap.insert(dictName, dictionaryPaths.at(i)+dn+".dic");
-				}
-				if (dictName.length()>2)
-				{
-					QString shortAbbrev(LanguageManager::getShortAbbrevFromAbbrev(dictName));
-					dictionaryMap.insert(shortAbbrev, dictionaryPaths.at(i)+dn+".dic");
-				}
+				dictionaryMap.insert(dictName, dictionaryPaths.at(i)+dn+".dic");
+			}
+			if (dictName.length() > 2)
+			{
+				QString shortAbbrev(LanguageManager::getShortAbbrevFromAbbrev(dictName));
+				dictionaryMap.insert(shortAbbrev, dictionaryPaths.at(i)+dn+".dic");
 			}
 		}
 	}
@@ -1142,7 +1141,7 @@ LanguageManager::~LanguageManager()
 const QString LanguageManager::getHyphFilename(const QString & langAbbrev)
 {
 	int j = langTableIndex(langAbbrev);
-	if (j!=-1 && m_langTable[j].m_hyphAvailable)
+	if (j != -1 && m_langTable[j].m_hyphAvailable)
 	{
 //		qDebug()<<"Found requested hyphenation dictionary:"<<langAbbrev<<" : "<<langTable[j].m_hyphFile;
 		return m_langTable[j].m_hyphFile;

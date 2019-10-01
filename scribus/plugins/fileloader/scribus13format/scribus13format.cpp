@@ -141,7 +141,7 @@ QString Scribus13Format::readSLA(const QString & fileName)
 		docBytes = compressor.readAll();
 		compressor.close();
 		if (docBytes.isEmpty())
-			return QString::null;
+			return QString();
 	}
 	else
 	{
@@ -152,7 +152,7 @@ QString Scribus13Format::readSLA(const QString & fileName)
 	if (docBytes.left(16) == "<SCRIBUSUTF8NEW " && !docBytes.left(35).contains("Version=\"1.3.4"))
 		docText = QString::fromUtf8(docBytes);
 	else
-		return QString::null;
+		return QString();
 	if (docText.endsWith(QChar(10)) || docText.endsWith(QChar(13)))
 		docText.truncate(docText.length()-1);
 	return docText;
@@ -237,7 +237,7 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 	TableIDM.clear();
 	TableItemsF.clear();
 	TableIDF.clear();
-	PrefsManager* prefsManager=PrefsManager::instance();
+	PrefsManager& prefsManager=PrefsManager::instance();
 	while (!DOC.isNull())
 	{
 		QDomElement dc=DOC.toElement();
@@ -271,7 +271,7 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 		m_Doc->itemToolPrefs().textSize=qRound(ScCLocale::toDoubleC(dc.attribute("DSIZE")) * 10);
 		Defont=dc.attribute("DFONT");
 		//findFont will use that if it doesnt find the font:
-		m_Doc->itemToolPrefs().textFont = prefsManager->appPrefs.itemToolPrefs.textFont;
+		m_Doc->itemToolPrefs().textFont = prefsManager.appPrefs.itemToolPrefs.textFont;
 		m_AvailableFonts->findFont(Defont, m_Doc);
 		m_Doc->itemToolPrefs().textFont = Defont;
 		m_Doc->itemToolPrefs().textColumns= dc.attribute("DCOL", "1").toInt();
@@ -313,7 +313,7 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 		m_Doc->cmsSettings().CMSinUse = static_cast<bool>(dc.attribute("DPuse", "0").toInt());
 		m_Doc->cmsSettings().GamutCheck = static_cast<bool>(dc.attribute("DPgam", "0").toInt());
 		m_Doc->cmsSettings().BlackPoint = static_cast<bool>(dc.attribute("DPbla", "1").toInt());
-		m_Doc->cmsSettings().DefaultMonitorProfile = prefsManager->appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
+		m_Doc->cmsSettings().DefaultMonitorProfile = prefsManager.appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
 		m_Doc->cmsSettings().DefaultPrinterProfile = dc.attribute("DPPr","");
 		m_Doc->cmsSettings().DefaultImageRGBProfile = dc.attribute("DPIn","");
 		m_Doc->cmsSettings().DefaultImageCMYKProfile = dc.attribute("DPInCMYK","");
@@ -353,8 +353,8 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 		m_Doc->setHyphAutomatic(static_cast<bool>(dc.attribute("AUTOMATIC", "1").toInt()));
 		m_Doc->setHyphAutoCheck(static_cast<bool>(dc.attribute("AUTOCHECK", "0").toInt()));
 		m_Doc->GuideLock = static_cast<bool>(dc.attribute("GUIDELOCK", "0").toInt());
-		m_Doc->guidesPrefs().minorGridSpacing = ScCLocale::toDoubleC(dc.attribute("MINGRID"), prefsManager->appPrefs.guidesPrefs.minorGridSpacing);
-		m_Doc->guidesPrefs().majorGridSpacing = ScCLocale::toDoubleC(dc.attribute("MAJGRID"), prefsManager->appPrefs.guidesPrefs.majorGridSpacing);
+		m_Doc->guidesPrefs().minorGridSpacing = ScCLocale::toDoubleC(dc.attribute("MINGRID"), prefsManager.appPrefs.guidesPrefs.minorGridSpacing);
+		m_Doc->guidesPrefs().majorGridSpacing = ScCLocale::toDoubleC(dc.attribute("MAJGRID"), prefsManager.appPrefs.guidesPrefs.majorGridSpacing);
 		m_Doc->guidesPrefs().gridShown = static_cast<bool>(dc.attribute("SHOWGRID", "0").toInt());
 		m_Doc->guidesPrefs().guidesShown = static_cast<bool>(dc.attribute("SHOWGUIDES", "1").toInt());
 		m_Doc->guidesPrefs().colBordersShown = static_cast<bool>(dc.attribute("showcolborders", "0").toInt());
@@ -811,11 +811,11 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 				QString Mus = "";
 				Mus = pg.attribute("MNAM","Normal");
 				if (!m_Doc->masterPageMode())
-					Apage->MPageNam = Mus;
+					Apage->setMasterPageName(Mus);
 				else
-					Apage->MPageNam = "";
+					Apage->clearMasterPageName();
 				if (pg.hasAttribute("Size"))
-					Apage->m_pageSize = pg.attribute("Size");
+					Apage->setSize(pg.attribute("Size"));
 				if (pg.hasAttribute("Orientation"))
 					Apage->setOrientation(pg.attribute("Orientation").toInt());
 				Apage->setXOffset( ScCLocale::toDoubleC(pg.attribute("PAGEXPOS")) );
@@ -1004,21 +1004,21 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 		{
 			PageItem* ta = TableItemsF.at(ttc);
 			if (ta->TopLinkID != -1)
-				ta->TopLink = FrameItems.at(TableIDF[ta->TopLinkID]);
+				ta->m_topLink = FrameItems.at(TableIDF[ta->TopLinkID]);
 			else
-				ta->TopLink = nullptr;
+				ta->m_topLink = nullptr;
 			if (ta->LeftLinkID != -1)
-				ta->LeftLink = FrameItems.at(TableIDF[ta->LeftLinkID]);
+				ta->m_leftLink = FrameItems.at(TableIDF[ta->LeftLinkID]);
 			else
-				ta->LeftLink = nullptr;
+				ta->m_leftLink = nullptr;
 			if (ta->RightLinkID != -1)
-				ta->RightLink = FrameItems.at(TableIDF[ta->RightLinkID]);
+				ta->m_rightLink = FrameItems.at(TableIDF[ta->RightLinkID]);
 			else
-				ta->RightLink = nullptr;
+				ta->m_rightLink = nullptr;
 			if (ta->BottomLinkID != -1)
-				ta->BottomLink = FrameItems.at(TableIDF[ta->BottomLinkID]);
+				ta->m_bottomLink = FrameItems.at(TableIDF[ta->BottomLinkID]);
 			else
-				ta->BottomLink = nullptr;
+				ta->m_bottomLink = nullptr;
 		}
 	}
 	if (TableItemsM.count() != 0)
@@ -1027,21 +1027,21 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 		{
 			PageItem* ta = TableItemsM.at(ttc);
 			if (ta->TopLinkID != -1)
-				ta->TopLink = m_Doc->MasterItems.at(TableIDM[ta->TopLinkID]);
+				ta->m_topLink = m_Doc->MasterItems.at(TableIDM[ta->TopLinkID]);
 			else
-				ta->TopLink = nullptr;
+				ta->m_topLink = nullptr;
 			if (ta->LeftLinkID != -1)
-				ta->LeftLink = m_Doc->MasterItems.at(TableIDM[ta->LeftLinkID]);
+				ta->m_leftLink = m_Doc->MasterItems.at(TableIDM[ta->LeftLinkID]);
 			else
-				ta->LeftLink = nullptr;
+				ta->m_leftLink = nullptr;
 			if (ta->RightLinkID != -1)
-				ta->RightLink = m_Doc->MasterItems.at(TableIDM[ta->RightLinkID]);
+				ta->m_rightLink = m_Doc->MasterItems.at(TableIDM[ta->RightLinkID]);
 			else
-				ta->RightLink = nullptr;
+				ta->m_rightLink = nullptr;
 			if (ta->BottomLinkID != -1)
-				ta->BottomLink = m_Doc->MasterItems.at(TableIDM[ta->BottomLinkID]);
+				ta->m_bottomLink = m_Doc->MasterItems.at(TableIDM[ta->BottomLinkID]);
 			else
-				ta->BottomLink = nullptr;
+				ta->m_bottomLink = nullptr;
 		}
 	}
 	if (TableItems.count() != 0)
@@ -1050,21 +1050,21 @@ bool Scribus13Format::loadFile(const QString & fileName, const FileFormat & /* f
 		{
 			PageItem* ta = TableItems.at(ttc);
 			if (ta->TopLinkID != -1)
-				ta->TopLink = m_Doc->Items->at(TableID[ta->TopLinkID]);
+				ta->m_topLink = m_Doc->Items->at(TableID[ta->TopLinkID]);
 			else
-				ta->TopLink = nullptr;
+				ta->m_topLink = nullptr;
 			if (ta->LeftLinkID != -1)
-				ta->LeftLink = m_Doc->Items->at(TableID[ta->LeftLinkID]);
+				ta->m_leftLink = m_Doc->Items->at(TableID[ta->LeftLinkID]);
 			else
-				ta->LeftLink = nullptr;
+				ta->m_leftLink = nullptr;
 			if (ta->RightLinkID != -1)
-				ta->RightLink = m_Doc->Items->at(TableID[ta->RightLinkID]);
+				ta->m_rightLink = m_Doc->Items->at(TableID[ta->RightLinkID]);
 			else
-				ta->RightLink = nullptr;
+				ta->m_rightLink = nullptr;
 			if (ta->BottomLinkID != -1)
-				ta->BottomLink = m_Doc->Items->at(TableID[ta->BottomLinkID]);
+				ta->m_bottomLink = m_Doc->Items->at(TableID[ta->BottomLinkID]);
 			else
-				ta->BottomLink = nullptr;
+				ta->m_bottomLink = nullptr;
 		}
 	}
 	m_Doc->setMasterPageMode(false);
@@ -1750,6 +1750,7 @@ PageItem* Scribus13Format::PasteItem(QDomElement *obj, ScribusDoc *doc, const QS
 	currItem->itemText.setDefaultStyle(pstyle);
 
 	currItem->setRotation(ScCLocale::toDoubleC(obj->attribute("ROT")));
+	currItem->oldRot = currItem->rotation();
 	currItem->setTextToFrameDist(ScCLocale::toDoubleC(obj->attribute("EXTRA")),
 								ScCLocale::toDoubleC(obj->attribute("REXTRA"), 1.0),
 								ScCLocale::toDoubleC(obj->attribute("TEXTRA"), 1.0),
@@ -1761,13 +1762,13 @@ PageItem* Scribus13Format::PasteItem(QDomElement *obj, ScribusDoc *doc, const QS
 	currItem->setPrintEnabled(obj->attribute("PRINTABLE").toInt());
 	currItem->setIsAnnotation(obj->attribute("ANNOTATION", "0").toInt());
 	currItem->annotation().setType(obj->attribute("ANTYPE", "0").toInt());
-	QString AnName = obj->attribute("ANNAME","");
-	if (!AnName.isEmpty())
+	QString itemName = obj->attribute("ANNAME","");
+	if (!itemName.isEmpty())
 	{
-		if (currItem->itemName() == AnName)
+		if (currItem->itemName() == itemName)
 			currItem->AutoName = true;
 		else
-			currItem->setItemName(AnName);
+			currItem->setItemName(itemName);
 	}
 
 	currItem->annotation().setAction(obj->attribute("ANACTION",""));
@@ -1874,8 +1875,8 @@ PageItem* Scribus13Format::PasteItem(QDomElement *obj, ScribusDoc *doc, const QS
 	currItem->setLineBlendmode(0);
 	if (obj->attribute("TRANSPARENT", "0").toInt() == 1)
 		currItem->setFillColor(CommonStrings::None);
-	currItem->Cols   = obj->attribute("COLUMNS", "1").toInt();
-	currItem->ColGap = ScCLocale::toDoubleC(obj->attribute("COLGAP"), 0.0);
+	currItem->m_columns   = obj->attribute("COLUMNS", "1").toInt();
+	currItem->m_columnGap = ScCLocale::toDoubleC(obj->attribute("COLGAP"), 0.0);
 	if (obj->attribute("LAYER", "0").toInt() != -1)
 		currItem->setLayer(obj->attribute("LAYER", "0").toInt());
 	tmp = "";
@@ -1934,7 +1935,7 @@ PageItem* Scribus13Format::PasteItem(QDomElement *obj, ScribusDoc *doc, const QS
 	else
 		currItem->ContourLine = currItem->PoLine.copy();
 	if (!currItem->asLine())
-		currItem->Clip = FlattenPath(currItem->PoLine, currItem->Segments);
+		currItem->Clip = flattenPath(currItem->PoLine, currItem->Segments);
 	else
 	{
 		int ph = static_cast<int>(qMax(1.0, currItem->lineWidth() / 2.0));
@@ -1946,7 +1947,7 @@ PageItem* Scribus13Format::PasteItem(QDomElement *obj, ScribusDoc *doc, const QS
 		currItem->setHeight(1.0);
 	}
 	if (currItem->asImageFrame())
-		currItem->AdjustPictScale();
+		currItem->adjustPictScale();
 	if (currItem->asPathText())
 		currItem->updatePolyClip();
 	currItem->GrType = obj->attribute("GRTYP", "0").toInt();
@@ -2208,7 +2209,7 @@ bool Scribus13Format::loadPage(const QString & fileName, int pageNumber, bool Mp
 						Apage->setPageName(pg.attribute("NAM",""));
 				}
 				if (pg.hasAttribute("Size"))
-					Apage->m_pageSize = pg.attribute("Size");
+					Apage->setSize(pg.attribute("Size"));
 				if (pg.hasAttribute("Orientation"))
 					Apage->setOrientation(pg.attribute("Orientation").toInt());
 				if (pg.hasAttribute("PAGEWIDTH"))
@@ -2290,7 +2291,7 @@ bool Scribus13Format::loadPage(const QString & fileName, int pageNumber, bool Mp
 						Neu->setMasterPageName(QString());
 					else if (Mpage && !renamedPageName.isEmpty())
 						Neu->setMasterPageName(renamedPageName);
-					Neu->setLayer(layerTrans.value(Neu->LayerID, Neu->LayerID));
+					Neu->setLayer(layerTrans.value(Neu->m_layerID, Neu->m_layerID));
 					/*m_Doc->GroupCounter = docGc;*/
 					QDomNode IT=pg.firstChild();
 					LastStyles * last = new LastStyles();
@@ -2398,21 +2399,21 @@ bool Scribus13Format::loadPage(const QString & fileName, int pageNumber, bool Mp
 		{
 			PageItem* ta = TableItems.at(ttc);
 			if (ta->TopLinkID != -1)
-				ta->TopLink = m_Doc->Items->at(TableID[ta->TopLinkID]);
+				ta->m_topLink = m_Doc->Items->at(TableID[ta->TopLinkID]);
 			else
-				ta->TopLink = nullptr;
+				ta->m_topLink = nullptr;
 			if (ta->LeftLinkID != -1)
-				ta->LeftLink = m_Doc->Items->at(TableID[ta->LeftLinkID]);
+				ta->m_leftLink = m_Doc->Items->at(TableID[ta->LeftLinkID]);
 			else
-				ta->LeftLink = nullptr;
+				ta->m_leftLink = nullptr;
 			if (ta->RightLinkID != -1)
-				ta->RightLink = m_Doc->Items->at(TableID[ta->RightLinkID]);
+				ta->m_rightLink = m_Doc->Items->at(TableID[ta->RightLinkID]);
 			else
-				ta->RightLink = nullptr;
+				ta->m_rightLink = nullptr;
 			if (ta->BottomLinkID != -1)
-				ta->BottomLink = m_Doc->Items->at(TableID[ta->BottomLinkID]);
+				ta->m_bottomLink = m_Doc->Items->at(TableID[ta->BottomLinkID]);
 			else
-				ta->BottomLink = nullptr;
+				ta->m_bottomLink = nullptr;
 		}
 	}
 	// reestablish textframe links
@@ -2575,12 +2576,12 @@ void Scribus13Format::GetStyle(QDomElement *pg, ParagraphStyle *vg, StyleSet<Par
 
 QString Scribus13Format::AskForFont(const QString& fStr, ScribusDoc *doc)
 {
-	PrefsManager *prefsManager=PrefsManager::instance();
+	PrefsManager& prefsManager=PrefsManager::instance();
 //	QFont fo;
 	QString tmpf = fStr;
 	if ((!(*m_AvailableFonts).contains(tmpf)) || (!(*m_AvailableFonts)[tmpf].usable()))
 	{
-		if ((!prefsManager->appPrefs.fontPrefs.GFontSub.contains(tmpf)) || (!(*m_AvailableFonts)[prefsManager->appPrefs.fontPrefs.GFontSub[tmpf]].usable()))
+		if ((!prefsManager.appPrefs.fontPrefs.GFontSub.contains(tmpf)) || (!(*m_AvailableFonts)[prefsManager.appPrefs.fontPrefs.GFontSub[tmpf]].usable()))
 		{
 			qApp->setOverrideCursor(QCursor(Qt::ArrowCursor));
 			MissingFont *dia = new MissingFont(nullptr, tmpf, doc);
@@ -2588,10 +2589,10 @@ QString Scribus13Format::AskForFont(const QString& fStr, ScribusDoc *doc)
 			tmpf = dia->getReplacementFont();
 			delete dia;
 			qApp->restoreOverrideCursor();
-			prefsManager->appPrefs.fontPrefs.GFontSub[fStr] = tmpf;
+			prefsManager.appPrefs.fontPrefs.GFontSub[fStr] = tmpf;
 		}
 		else
-			tmpf = prefsManager->appPrefs.fontPrefs.GFontSub[tmpf];
+			tmpf = prefsManager.appPrefs.fontPrefs.GFontSub[tmpf];
 		ReplacedFonts[fStr] = tmpf;
 	}
 	if (!doc->UsedFonts.contains(tmpf))

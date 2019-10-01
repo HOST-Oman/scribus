@@ -226,10 +226,8 @@ PyObject* scribus_getpropertynames(PyObject* /*self*/, PyObject* args, PyObject*
 	QStringList propertyNames;
 	int propertyOffset = includesuper ? 0 : objmeta->propertyOffset();
 	for (int i = propertyOffset; i < objmeta->propertyCount(); ++i)
-	{
-		QString propName = objmeta->property(i).name();
 		propertyNames << QString::fromLatin1(objmeta->property(i).name());
-	}
+
 	return convert_QStringList_to_PyListObject(propertyNames);
 }
 
@@ -384,11 +382,7 @@ PyObject* scribus_setproperty(PyObject* /*self*/, PyObject* args, PyObject* kw)
 	else if (propertyType == "int")
 	{
 		matched = true;
-		if (PyObject_IsTrue(objValue) == 0)
-			success = obj->setProperty(propertyName, 0);
-		else if (PyObject_IsTrue(objValue) == 1)
-			success = obj->setProperty(propertyName, 1);
-		else if (PyInt_Check(objValue))
+		if (PyInt_Check(objValue))
 			success = obj->setProperty(propertyName, (int)PyInt_AsLong(objValue));
 		else if (PyLong_Check(objValue))
 			success = obj->setProperty(propertyName, (int)PyLong_AsLong(objValue));

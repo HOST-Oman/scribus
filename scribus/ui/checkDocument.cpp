@@ -19,7 +19,9 @@ for which a new license (GPL+exception) is in place.
 #include <QTreeWidgetItem>
 #include <QVBoxLayout>
 
+#include "commonstrings.h"
 #include "documentchecker.h"
+#include "pdfoptions.h"
 #include "prefsmanager.h"
 #include "sccombobox.h"
 #include "scpage.h"
@@ -43,12 +45,12 @@ CheckDocument::CheckDocument( QWidget* parent, bool modal )
 	minResDPI(0),
 	maxResDPI(0)
 {
-	showPagesWithoutErrors=PrefsManager::instance()->appPrefs.verifierPrefs.showPagesWithoutErrors;
-	showNonPrintingLayerErrors=PrefsManager::instance()->appPrefs.verifierPrefs.showNonPrintingLayerErrors;
+	showPagesWithoutErrors=PrefsManager::instance().appPrefs.verifierPrefs.showPagesWithoutErrors;
+	showNonPrintingLayerErrors=PrefsManager::instance().appPrefs.verifierPrefs.showNonPrintingLayerErrors;
 
-	graveError = IconManager::instance()->loadPixmap("22/dialog-error.png");
-	onlyWarning = IconManager::instance()->loadPixmap("22/dialog-warning.png");
-	noErrors = IconManager::instance()->loadPixmap("ok.png");
+	graveError = IconManager::instance().loadPixmap("22/dialog-error.png");
+	onlyWarning = IconManager::instance().loadPixmap("22/dialog-warning.png");
+	noErrors = IconManager::instance().loadPixmap("ok.png");
 	checkDocumentLayout = new QVBoxLayout( this );
 	checkDocumentLayout->setMargin(5);
 	checkDocumentLayout->setSpacing(5);
@@ -93,7 +95,6 @@ CheckDocument::CheckDocument( QWidget* parent, bool modal )
 	connect(curCheckProfile, SIGNAL(activated(const QString&)), this, SLOT(newScan(const QString&)));
 	connect(reScan, SIGNAL(clicked()), this, SLOT(doReScan()));
 }
-
 
 void CheckDocument::changeEvent(QEvent *e)
 {
@@ -146,6 +147,40 @@ void CheckDocument::languageChange()
 	warnMap.insert(PV_LAYER_PRINTVIS_MISMATCH,	qMakePair(tr("Print/Visible mismatch"),									tr("This layer uses transparency, only an issue if using older printing profiles. You may safely ignore this when using modern printing methods, or exporting to PDF version greater than 1.4.")));
 }
 
+QString CheckDocument::bestCheckerProfileForCheckMode(const QString& defaultProfile)
+{
+	QString bestProfile = bestCheckerProfileForCheckMode(this->checkMode, defaultProfile);
+	return bestProfile;
+}
+
+QString CheckDocument::bestCheckerProfileForCheckMode(CheckMode mode, const QString& defaultProfile)
+{
+	QString bestProfile = defaultProfile;
+
+	if (mode == CheckDocument::checkPDF)
+	{
+		PDFOptions::PDFVersion pdfVersion = m_Doc->pdfOptions().Version;
+		if (pdfVersion == PDFOptions::PDFVersion_13)
+			bestProfile = CommonStrings::PDF_1_3;
+		else if (pdfVersion == PDFOptions::PDFVersion_14)
+			bestProfile = CommonStrings::PDF_1_4;
+		else if (pdfVersion == PDFOptions::PDFVersion_15)
+			bestProfile = CommonStrings::PDF_1_5;
+		else if (pdfVersion == PDFOptions::PDFVersion_X1a)
+			bestProfile = CommonStrings::PDF_X1a;
+		else if (pdfVersion == PDFOptions::PDFVersion_X3)
+			bestProfile = CommonStrings::PDF_X3;
+		else if (pdfVersion == PDFOptions::PDFVersion_X4)
+			bestProfile = CommonStrings::PDF_X4;
+	}
+	else if (mode == CheckDocument::checkEPS)
+		bestProfile = CommonStrings::PostScript;
+
+	const auto& checkerProfiles = m_Doc->checkerProfiles();
+	if (checkerProfiles.contains(bestProfile))
+		return bestProfile;
+	return defaultProfile;
+}
 
 void CheckDocument::setDoc(ScribusDoc *doc)
 {
@@ -166,7 +201,7 @@ void CheckDocument::slotSelect(QTreeWidgetItem* ite)
 		if (itemMap[ite].isNull())
 			return;
 		ScCore->primaryMainWindow()->closeActiveWindowMasterPageEditor();
-		m_Doc->setActiveLayer(itemMap[ite]->LayerID);
+		m_Doc->setActiveLayer(itemMap[ite]->m_layerID);
 		ScCore->primaryMainWindow()->changeLayer(m_Doc->activeLayer());
 		if (itemMap[ite]->isTextFrame())
 			emit selectElement(itemMap[ite], true, posMap[ite]);
@@ -202,7 +237,7 @@ void CheckDocument::slotSelect(QTreeWidgetItem* ite)
 			return;
 		if (!m_Doc->masterPageMode())
 			emit selectMasterPage(masterPageItemMap[ite]->OnMasterPage);
-		m_Doc->setActiveLayer(masterPageItemMap[ite]->LayerID);
+		m_Doc->setActiveLayer(masterPageItemMap[ite]->m_layerID);
 		ScCore->primaryMainWindow()->changeLayer(m_Doc->activeLayer());
 		if (masterPageItemMap[ite]->isTextFrame())
 			emit selectElement(masterPageItemMap[ite], true, posMap[ite]);
@@ -214,8 +249,8 @@ void CheckDocument::slotSelect(QTreeWidgetItem* ite)
 
 void CheckDocument::doReScan()
 {
-	showPagesWithoutErrors=PrefsManager::instance()->appPrefs.verifierPrefs.showPagesWithoutErrors;
-	showNonPrintingLayerErrors=PrefsManager::instance()->appPrefs.verifierPrefs.showNonPrintingLayerErrors;
+	showPagesWithoutErrors=PrefsManager::instance().appPrefs.verifierPrefs.showPagesWithoutErrors;
+	showNonPrintingLayerErrors=PrefsManager::instance().appPrefs.verifierPrefs.showNonPrintingLayerErrors;
 	newScan(curCheckProfile->currentText());
 }
 
@@ -358,7 +393,7 @@ void CheckDocument::buildItem(QTreeWidgetItem * item,
 			break;
 	};
 	// additional informations
-	const ScLayer* layer = m_Doc->Layers.layerByID(pageItem->LayerID);
+	const ScLayer* layer = m_Doc->Layers.layerByID(pageItem->m_layerID);
 	if (layer)
 	{
 		item->setText(COLUMN_LAYER, layer->Name);
@@ -489,7 +524,7 @@ void CheckDocument::buildErrorList(ScribusDoc *doc)
 					|| (masterItemErrorsIt.key()->OnMasterPage == doc->MasterPages.at(mPage)->pageName()))
 					&&
 					((showNonPrintingLayerErrors) ||
-					(!showNonPrintingLayerErrors && doc->layerPrintable(masterItemErrorsIt.key()->LayerID)))
+					(!showNonPrintingLayerErrors && doc->layerPrintable(masterItemErrorsIt.key()->m_layerID)))
 					)
 				{
 					if (!showPagesWithoutErrors && page==nullptr)
@@ -590,7 +625,7 @@ void CheckDocument::buildErrorList(ScribusDoc *doc)
 			{
 				if (docItemErrorsIt.key()->OwnPage == aPage &&
 					((showNonPrintingLayerErrors) ||
-					(!showNonPrintingLayerErrors && doc->layerPrintable(docItemErrorsIt.key()->LayerID)))
+					(!showNonPrintingLayerErrors && doc->layerPrintable(docItemErrorsIt.key()->m_layerID)))
 					)
 				{
 					if (!showPagesWithoutErrors && page==nullptr)

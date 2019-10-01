@@ -18,7 +18,6 @@ for which a new license (GPL+exception) is in place.
 
 #include <cstdlib>
 
-#include "color.h"
 #include "commonstrings.h"
 #include "fileloader.h"
 #include "loadsaveplugin.h"
@@ -70,24 +69,23 @@ void RawPainterPres::startDocument(const librevenge::RVNGPropertyList &propList)
 void RawPainterPres::endDocument()
 {
 	painter->endDocument();
-	if (pageElements.count() > 1)
+	if (pageElements.isEmpty())
+		return;
+	for (int i = 1; i < pageElements.count(); ++i)
 	{
-		for (int a = 1; a < pageElements.count(); ++a)
+		if (i < mDoc->Pages->count())
 		{
-			if (a < mDoc->Pages->count())
+			double bX = mDoc->Pages->at(i)->xOffset();
+			double bY = mDoc->Pages->at(i)->yOffset();
+			for (int j = 0; j < pageElements[i].count(); ++j)
 			{
-				double bX = mDoc->Pages->at(a)->xOffset();
-				double bY = mDoc->Pages->at(a)->yOffset();
-				for (int b = 0; b < pageElements[a].count(); ++b)
-				{
-					PageItem *item = pageElements[a][b];
-					item->setXYPos(item->xPos() + bX, item->yPos() + bY, true);
-					if (item->isGroup())
-						mDoc->GroupOnPage(item);
-					else
-						item->OwnPage = mDoc->OnPage(item);
-					item->setRedrawBounding();
-				}
+				PageItem *item = pageElements[i][j];
+				item->setXYPos(item->xPos() + bX, item->yPos() + bY, true);
+				if (item->isGroup())
+					mDoc->GroupOnPage(item);
+				else
+					item->OwnPage = mDoc->OnPage(item);
+				item->setRedrawBounding();
 			}
 		}
 	}
@@ -513,8 +511,8 @@ void RawPainter::startPage(const librevenge::RVNGPropertyList &propList)
 		m_Doc->currentPage()->setInitialHeight(docHeight);
 		m_Doc->currentPage()->setWidth(docWidth);
 		m_Doc->currentPage()->setHeight(docHeight);
-		m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
-		m_Doc->currentPage()->m_pageSize = "Custom";
+		m_Doc->currentPage()->setMasterPageNameNormal();
+		m_Doc->currentPage()->setSize("Custom");
 		m_Doc->reformPages(true);
 		baseX = m_Doc->currentPage()->xOffset();
 		baseY = m_Doc->currentPage()->yOffset();
@@ -623,7 +621,7 @@ void RawPainter::endLayer()
 				ite->ClipEdited = true;
 				ite->OldB2 = ite->width();
 				ite->OldH2 = ite->height();
-				ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+				ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 				ite->updateGradientVectors();
 			}
 			Elements->append(ite);
@@ -993,7 +991,7 @@ void RawPainter::drawPolygon(const librevenge::RVNGPropertyList &propList)
 						  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
 						  if (fmt)
 						  {
-							  fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							  fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 							  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							  if (m_Doc->m_Selection->count() > 0)
 							  {
@@ -1146,7 +1144,7 @@ void RawPainter::drawPath(const librevenge::RVNGPropertyList &propList)
 						  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
 						  if (fmt)
 						  {
-							  fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							  fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 							  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							  if (m_Doc->m_Selection->count() > 0)
 							  {
@@ -1288,7 +1286,7 @@ void RawPainter::drawGraphicObject(const librevenge::RVNGPropertyList &propList)
 						const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
 						if (fmt)
 						{
-							fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							fmt->setupTargets(m_Doc, nullptr, nullptr, nullptr, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 							fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							if (m_Doc->m_Selection->count() > 0)
 							{
@@ -1563,11 +1561,11 @@ void RawPainter::openParagraph(const librevenge::RVNGPropertyList &propList)
 	{
 		QString align = QString(propList["fo:text-align"]->getStr().cstr());
 		if (align == "left")
-			textStyle.setAlignment(ParagraphStyle::Leftaligned);
+			textStyle.setAlignment(ParagraphStyle::LeftAligned);
 		else if (align == "center")
 			textStyle.setAlignment(ParagraphStyle::Centered);
 		else if (align == "right")
-			textStyle.setAlignment(ParagraphStyle::Rightaligned);
+			textStyle.setAlignment(ParagraphStyle::RightAligned);
 		else if (align == "justify")
 			textStyle.setAlignment(ParagraphStyle::Justified);
 	}
@@ -2348,7 +2346,7 @@ void RawPainter::endLayer()
 				ite->ClipEdited = true;
 				ite->OldB2 = ite->width();
 				ite->OldH2 = ite->height();
-				ite->Clip = FlattenPath(ite->PoLine, ite->Segments);
+				ite->Clip = flattenPath(ite->PoLine, ite->Segments);
 				ite->updateGradientVectors();
 			}
 			Elements->append(ite);
@@ -2669,7 +2667,7 @@ void RawPainter::drawPolygon(const ::WPXPropertyListVector &vertices)
 					  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
 					  if (fmt)
 					  {
-						  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+						  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 						  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 						  if (m_Doc->m_Selection->count() > 0)
 						  {
@@ -2817,7 +2815,7 @@ void RawPainter::drawPath(const ::WPXPropertyListVector &path)
 						  const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
 						  if (fmt)
 						  {
-							  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							  fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 							  fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							  if (m_Doc->m_Selection->count() > 0)
 							  {
@@ -2952,7 +2950,7 @@ void RawPainter::drawGraphicObject(const ::WPXPropertyList &propList, const ::WP
 						const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
 						if (fmt)
 						{
-							fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+							fmt->setupTargets(m_Doc, 0, 0, 0, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 							fmt->loadFile(fileName, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted);
 							if (m_Doc->m_Selection->count() > 0)
 							{
@@ -3094,11 +3092,11 @@ void RawPainter::startTextLine(const ::WPXPropertyList &propList)
 	{
 		QString align = QString(propList["fo:text-align"]->getStr().cstr());
 		if (align == "left")
-			textStyle.setAlignment(ParagraphStyle::Leftaligned);
+			textStyle.setAlignment(ParagraphStyle::LeftAligned);
 		else if (align == "center")
 			textStyle.setAlignment(ParagraphStyle::Centered);
 		else if (align == "right")
-			textStyle.setAlignment(ParagraphStyle::Rightaligned);
+			textStyle.setAlignment(ParagraphStyle::RightAligned);
 		else if (align == "justify")
 			textStyle.setAlignment(ParagraphStyle::Justified);
 	}
@@ -3432,13 +3430,13 @@ QString RawPainter::constructFontName(const QString& fontBaseName, const QString
 {
 	QString fontName;
 	bool found = false;
-	SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
+	SCFontsIterator it(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts);
 	for ( ; it.hasNext(); it.next())
 	{
 		if (fontBaseName.toLower() == it.current().family().toLower())
 		{
 			// found the font family, now go for the style
-			QStringList slist = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.fontMap[it.current().family()];
+			QStringList slist = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.fontMap[it.current().family()];
 			slist.sort();
 			if (slist.count() > 0)
 			{
@@ -3472,13 +3470,13 @@ QString RawPainter::constructFontName(const QString& fontBaseName, const QString
 	if (!found)
 	{
 		if (importerFlags & LoadSavePlugin::lfCreateThumbnail)
-			fontName = PrefsManager::instance()->appPrefs.itemToolPrefs.textFont;
+			fontName = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
 		else
 		{
 			QString family = fontBaseName;
 			if (!fontStyle.isEmpty())
 				family += " " + fontStyle;
-			if (!PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(family))
+			if (!PrefsManager::instance().appPrefs.fontPrefs.GFontSub.contains(family))
 			{
 				qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 				MissingFont *dia = new MissingFont(nullptr, family, m_Doc);
@@ -3486,10 +3484,10 @@ QString RawPainter::constructFontName(const QString& fontBaseName, const QString
 				fontName = dia->getReplacementFont();
 				delete dia;
 				qApp->changeOverrideCursor(QCursor(Qt::WaitCursor));
-				PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family] = fontName;
+				PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family] = fontName;
 			}
 			else
-				fontName = PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family];
+				fontName = PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family];
 		}
 	}
 	return fontName;
@@ -3506,13 +3504,6 @@ double RawPainter::fromPercentage( const QString &s )
 		return ScCLocale::toDoubleC(s1) / 100.0;
 	}
 	return ScCLocale::toDoubleC(s1) / 100.0;
-}
-
-QColor RawPainter::parseColorN( const QString &rgbColor )
-{
-	int r, g, b;
-	keywordToRGB( rgbColor.toLower(), r, g, b );
-	return QColor( r, g, b );
 }
 
 QString RawPainter::parseColor( const QString &s )
@@ -3544,16 +3535,8 @@ QString RawPainter::parseColor( const QString &s )
 		c = QColor(r.toInt(), g.toInt(), b.toInt());
 	}
 	else
-	{
-		QString rgbColor = s.trimmed();
-		if (rgbColor.startsWith( "#" ))
-		{
-			rgbColor = rgbColor.left(7);
-			c.setNamedColor( rgbColor );
-		}
-		else
-			c = parseColorN( rgbColor );
-	}
+		c.setNamedColor( s.trimmed() );
+
 	ScColor tmp;
 	tmp.fromQColor(c);
 	tmp.setSpotColor(false);
@@ -3605,14 +3588,14 @@ void RawPainter::insertImage(PageItem* ite, const QString& imgExt, QByteArray &i
 		{
 			int rot = QString(m_style["librevenge:rotate"]->getStr().cstr()).toInt();
 			ite->setImageRotation(rot);
-			ite->AdjustPictScale();
+			ite->adjustPictScale();
 		}
 #else
 		if (m_style["libwpg:rotate"])
 		{
 			int rot = QString(m_style["libwpg:rotate"]->getStr().cstr()).toInt();
 			ite->setImageRotation(rot);
-			ite->AdjustPictScale();
+			ite->adjustPictScale();
 		}
 #endif
 	}

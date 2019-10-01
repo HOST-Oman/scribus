@@ -221,7 +221,7 @@ PyObject *scribus_getcolumns(PyObject* /* self */, PyObject* args)
 		PyErr_SetString(WrongFrameTypeError, QObject::tr("Cannot get column count of non-text frame.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-	return PyInt_FromLong(static_cast<long>(item->Cols));
+	return PyInt_FromLong(static_cast<long>(item->m_columns));
 }
 
 PyObject *scribus_getcolumngap(PyObject* /* self */, PyObject* args)
@@ -239,7 +239,7 @@ PyObject *scribus_getcolumngap(PyObject* /* self */, PyObject* args)
 		PyErr_SetString(WrongFrameTypeError, QObject::tr("Cannot get column gap of non-text frame.", "python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-	return PyFloat_FromDouble(PointToValue(static_cast<double>(item->ColGap)));
+	return PyFloat_FromDouble(PointToValue(static_cast<double>(item->m_columnGap)));
 }
 
 PyObject *scribus_getfontfeatures(PyObject* /* self */, PyObject* args)
@@ -625,7 +625,7 @@ PyObject *scribus_setfont(PyObject* /* self */, PyObject* args)
 		PyErr_SetString(WrongFrameTypeError, QObject::tr("Cannot set font on a non-text frame.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-	if (!PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.contains(QString::fromUtf8(Font)))
+	if (!PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.contains(QString::fromUtf8(Font)))
 	{
 		PyErr_SetString(PyExc_ValueError, QObject::tr("Font not found.", "python error").toLocal8Bit().constData());
 		return nullptr;
@@ -675,8 +675,7 @@ PyObject *scribus_setlinespace(PyObject* /* self */, PyObject* args)
 		doc->appMode = modeEdit;
 	doc->itemSelection_SetLineSpacing(w, &tmpSelection);
 	doc->appMode = oldAppMode;
-		
-//	item->setLineSpacing(w);
+
 	Py_RETURN_NONE;
 }
 
@@ -762,7 +761,7 @@ PyObject *scribus_setcolumngap(PyObject* /* self */, PyObject* args)
 		PyErr_SetString(WrongFrameTypeError, QObject::tr("Cannot set column gap on a non-text frame.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-	item->ColGap = ValueToPoint(w);
+	item->m_columnGap = ValueToPoint(w);
 
 	Py_RETURN_NONE;
 }
@@ -788,7 +787,7 @@ PyObject *scribus_setcolumns(PyObject* /* self */, PyObject* args)
 		PyErr_SetString(WrongFrameTypeError, QObject::tr("Cannot set number of columns on a non-text frame.","python error").toLocal8Bit().constData());
 		return nullptr;
 	}
-	item->Cols = w;
+	item->m_columns = w;
 
 	Py_RETURN_NONE;
 }

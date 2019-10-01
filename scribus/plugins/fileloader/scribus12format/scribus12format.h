@@ -34,14 +34,14 @@ class PLUGIN_API Scribus12Format : public LoadSavePlugin
 		virtual void deleteAboutData(const AboutData* about) const;
 		virtual void languageChange();
 		//Not the same as readSLA. This one only reads max 4k of the file for speed.
-		virtual bool fileSupported(QIODevice* file, const QString & fileName=QString::null) const;
+		virtual bool fileSupported(QIODevice* file, const QString & fileName=QString()) const;
 
 		virtual bool loadFile(const QString & fileName, const FileFormat & fmt, int flags, int index = 0);
 		virtual bool saveFile(const QString & fileName, const FileFormat & fmt);
 		virtual void addToMainWindowMenu(ScribusMainWindow *) {};
 
 		// Special features - .sla page extraction support
-		virtual bool loadPage(const QString & fileName, int pageNumber, bool Mpage, const QString& renamedPageName=QString::null);
+		virtual bool loadPage(const QString & fileName, int pageNumber, bool Mpage, const QString& renamedPageName=QString());
 		virtual bool readStyles(const QString& fileName, ScribusDoc* doc, StyleSet<ParagraphStyle> &docParagraphStyles);
 		virtual bool readLineStyles(const QString& fileName, QHash<QString, multiLine> *Sty);
 		virtual bool readColors(const QString& fileName, ColorList & colors);
@@ -57,8 +57,8 @@ class PLUGIN_API Scribus12Format : public LoadSavePlugin
 		/**
 		 * @brief Paste an item to the document.
 		 * The bulk of a paste item process runs here for want of a better place, but its a better place
-		 * than the view where it used to be. 
-		 * TODO Once the pageitem restructure is done, this is probably unnecessary but it removes the 
+		 * than the view where it used to be.
+		 * TODO Once the pageitem restructure is done, this is probably unnecessary but it removes the
 		 * unnecessary part from the view for now which is overloaded with non ScrollView code.
 		 */
 		//TODO: void PasteItem(struct CopyPasteBuffer *Buffer, bool loading, bool drag = false);
@@ -192,7 +192,7 @@ class PLUGIN_API Scribus12Format : public LoadSavePlugin
 			bool isBookmark;
 			bool m_isAnnotation;
 			Annotation m_annotation;
-			QString AnName;
+			QString itemName;
 			double Extra;
 			double TExtra;
 			double BExtra;
@@ -259,7 +259,7 @@ class PLUGIN_API Scribus12Format : public LoadSavePlugin
 		};
 		void PasteItem(struct CopyPasteBuffer *Buffer, bool drag = false, bool noResize = true);
 		void GetItemProps(QDomElement *obj, struct CopyPasteBuffer *OB, const QString& baseDir, bool newVersion);
-		
+
 };
 
 extern "C" PLUGIN_API int scribus12format_getPluginAPIVersion();

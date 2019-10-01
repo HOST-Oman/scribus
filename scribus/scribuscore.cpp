@@ -32,6 +32,7 @@ for which a new license (GPL+exception) is in place.
 #include "commonstrings.h"
 #include "filewatcher.h"
 #include "iconmanager.h"
+#include "langmgr.h"
 #include "localemgr.h"
 #include "pluginmanager.h"
 #include "prefsmanager.h"
@@ -47,7 +48,9 @@ for which a new license (GPL+exception) is in place.
 
 //extern ScribusQApp* ScQApp;
 
-ScribusCore::ScribusCore() : defaultEngine(colorMgmtEngineFactory.createDefaultEngine())
+ScribusCore::ScribusCore() : defaultEngine(colorMgmtEngineFactory.createDefaultEngine()),
+							m_iconManager(IconManager::instance()),
+							 m_prefsManager(PrefsManager::instance())
 {
 	m_ScribusInitialized = false;
 	m_currScMW = 0;
@@ -56,9 +59,7 @@ ScribusCore::ScribusCore() : defaultEngine(colorMgmtEngineFactory.createDefaultE
 	fileWatcher = nullptr;
 
 	m_SplashScreen = nullptr;
-	m_iconManager = nullptr;
 	m_undoManager = nullptr;
-	m_prefsManager = nullptr;
 
 	m_UseGUI = false;
 	m_HaveCMS = false;
@@ -108,13 +109,13 @@ const QString& ScribusCore::getGuiLanguage() const
 
 int ScribusCore::startGUI(bool showSplash, bool showFontInfo, bool showProfileInfo, const QString& newGuiLanguage)
 {
-	ScribusMainWindow* scribus = new ScribusMainWindow();
+	auto* scribus = new ScribusMainWindow();
 	Q_CHECK_PTR(scribus);
 	if (!scribus)
 		return(EXIT_FAILURE);
 	m_ScMWList.append(scribus);
 	m_currScMW=0;
-	int retVal=initScribusCore(showSplash, showFontInfo, showProfileInfo,newGuiLanguage);
+	int retVal=initScribusCore(showSplash, showFontInfo, showProfileInfo, newGuiLanguage);
 	if (retVal == EXIT_FAILURE)
 		return(EXIT_FAILURE);
 	
@@ -140,13 +141,13 @@ int ScribusCore::startGUI(bool showSplash, bool showFontInfo, bool showProfileIn
 		{
 			if (!scribus->recoverFile(recoverFiles))
 			{
-				if (PrefsManager::instance()->appPrefs.uiPrefs.showStartupDialog)
+				if (PrefsManager::instance().appPrefs.uiPrefs.showStartupDialog)
 					scribus->startUpDialog();
 			}
 		}
 		else
 		{
-			if (PrefsManager::instance()->appPrefs.uiPrefs.showStartupDialog && usingGUI())
+			if (PrefsManager::instance().appPrefs.uiPrefs.showStartupDialog && usingGUI())
 				scribus->startUpDialog();
 			else
 				scribus->setFocus();
@@ -159,39 +160,39 @@ int ScribusCore::startGUI(bool showSplash, bool showFontInfo, bool showProfileIn
 	return EXIT_SUCCESS;
 }
 
-int ScribusCore::initScribusCore(bool showSplash, bool showFontInfo, bool showProfileInfo, const QString newGuiLanguage)
+int ScribusCore::initScribusCore(bool showSplash, bool showFontInfo, bool showProfileInfo, const QString& newGuiLanguage)
 {
 	CommonStrings::languageChange();
-	m_iconManager = IconManager::instance();
-	if (!m_iconManager->setup())
+	LanguageManager::instance()->languageChange();
+
+	if (!m_iconManager.setup())
 		return EXIT_FAILURE;
 
 	// FIXME: Splash needs the prefs loaded by initDefaults() to know if it must force the image to grayscale
 	initSplash(showSplash);
 	LocaleManager::instance();
-	m_prefsManager = PrefsManager::instance();
-	m_prefsManager->setup();
+	m_prefsManager.setup();
 	//CB #4428 Get fonts before prefs are set to default
-	bool haveFonts=false;
-	haveFonts=ScCore->initFonts(showFontInfo);
+	bool haveFonts = false;
+	haveFonts = ScCore->initFonts(showFontInfo);
 	if (!haveFonts)
 		return EXIT_FAILURE;
-	m_prefsManager->initDefaults();
-	m_prefsManager->initDefaultGUIFont(qApp->font());
-	m_prefsManager->initArrowStyles();
+	m_prefsManager.initDefaults();
+	m_prefsManager.initDefaultGUIFont(qApp->font());
+	m_prefsManager.initArrowStyles();
 	m_undoManager = UndoManager::instance();
 	fileWatcher = new FileWatcher(this);
 	pluginManager = new PluginManager();
 
 	setSplashStatus( tr("Initializing Keyboard Shortcuts") );
-	m_prefsManager->initDefaultActionKeys();
+	m_prefsManager.initDefaultActionKeys();
 	setSplashStatus( tr("Reading Preferences") );
-	m_prefsManager->ReadPrefs();
-	m_prefsManager->appPrefs.uiPrefs.showSplashOnStartup=showSplash;
-	if (!m_iconManager->setActiveFromPrefs(m_prefsManager->appPrefs.uiPrefs.iconSet))
+	m_prefsManager.ReadPrefs();
+	m_prefsManager.appPrefs.uiPrefs.showSplashOnStartup=showSplash;
+	if (!m_iconManager.setActiveFromPrefs(m_prefsManager.appPrefs.uiPrefs.iconSet))
 	{
 		//reset prefs name to chosen name based on version, when prefs is empty or not found
-		m_prefsManager->appPrefs.uiPrefs.iconSet=m_iconManager->activeSetBasename();
+		m_prefsManager.appPrefs.uiPrefs.iconSet=m_iconManager.activeSetBasename();
 	}
 
 	m_HaveGS = testGSAvailability();
@@ -207,10 +208,10 @@ int ScribusCore::initScribusCore(bool showSplash, bool showFontInfo, bool showPr
 
 	setSplashStatus( tr("Initializing Image Cache") );
 	ScImageCacheManager & icm = ScImageCacheManager::instance();
-	icm.setEnabled(m_prefsManager->appPrefs.imageCachePrefs.cacheEnabled);
-	icm.setMaxCacheSizeMiB(m_prefsManager->appPrefs.imageCachePrefs.maxCacheSizeMiB);
-	icm.setMaxCacheEntries(m_prefsManager->appPrefs.imageCachePrefs.maxCacheEntries);
-	icm.setCompressionLevel(m_prefsManager->appPrefs.imageCachePrefs.compressionLevel);
+	icm.setEnabled(m_prefsManager.appPrefs.imageCachePrefs.cacheEnabled);
+	icm.setMaxCacheSizeMiB(m_prefsManager.appPrefs.imageCachePrefs.maxCacheSizeMiB);
+	icm.setMaxCacheEntries(m_prefsManager.appPrefs.imageCachePrefs.maxCacheEntries);
+	icm.setCompressionLevel(m_prefsManager.appPrefs.imageCachePrefs.compressionLevel);
 	icm.initialize();
 	return 0;
 }
@@ -220,7 +221,7 @@ void ScribusCore::initSplash(bool showSplash)
 	m_SplashScreen = nullptr;
 	if (!showSplash)
 		return;
-	QPixmap pix = IconManager::instance()->loadPixmap("scribus_splash.png", true);
+	QPixmap pix = IconManager::instance().loadPixmap("scribus_splash.png", true);
 	m_SplashScreen = new ScSplashScreen(pix, Qt::WindowStaysOnTopHint);
 	if (m_SplashScreen != nullptr)
 		m_SplashScreen->show();
@@ -285,7 +286,7 @@ bool ScribusCore::isWinGUI() const
 bool ScribusCore::initFonts(bool showFontInfo)
 {
 	setSplashStatus( tr("Searching for Fonts") );
-	bool haveFonts=m_prefsManager->GetAllFonts(showFontInfo);
+	bool haveFonts=m_prefsManager.GetAllFonts(showFontInfo);
 	if (!haveFonts)
 	{
 		closeSplash();
@@ -309,7 +310,7 @@ void ScribusCore::getCMSProfiles(bool showInfo)
 	InputProfilesCMYK.clear();
 	LabProfiles.clear();
 	profDirs = ScPaths::systemProfilesDirs();
-	profDirs.prepend( m_prefsManager->appPrefs.pathPrefs.colorProfiles );
+	profDirs.prepend( m_prefsManager.appPrefs.pathPrefs.colorProfiles );
 	profDirs.prepend( ScPaths::instance().shareDir()+"profiles/");
 	for (int i = 0; i < profDirs.count(); i++)
 	{
@@ -413,20 +414,34 @@ void ScribusCore::getCMSProfilesDir(const QString& pfad, bool showInfo, bool rec
 
 void ScribusCore::InitDefaultColorTransforms()
 {
-	QString defaultRGBString  = "sRGB IEC61966-2.1";
-	QString defaultCMYKString = "Fogra27L CMYK Coated Press";
+	QString defaultRGBString;
+	QString defaultRGBString1  = "sRGB display profile (ICC v2.2)";
+	QString defaultRGBString2  = "sRGB IEC61966-2.1";
+	QString defaultCMYKString1 = "ISO Coated v2 300% (basICColor)";
+	QString defaultCMYKString2 = "Fogra27L CMYK Coated Press";
 
 	// Ouvre le profile RGB par d�fault
-	if (InputProfiles.contains(defaultRGBString))
-		defaultRGBProfile = defaultEngine.openProfileFromFile(InputProfiles[defaultRGBString]);
+	if (InputProfiles.contains(defaultRGBString1))
+	{
+		defaultRGBProfile = defaultEngine.openProfileFromFile(InputProfiles[defaultRGBString1]);
+		defaultRGBString = defaultRGBString1;
+	}
+	else if (InputProfiles.contains(defaultRGBString2))
+	{
+		defaultRGBProfile = defaultEngine.openProfileFromFile(InputProfiles[defaultRGBString2]);
+		defaultRGBString = defaultRGBString2;
+	}
 	else
+	{
 		defaultRGBProfile = defaultEngine.createProfile_sRGB();
+		defaultRGBString = defaultRGBString2;
+	}
 
 	// Ouvre le profile CMYK par d�faut
-	if (InputProfilesCMYK.contains(defaultCMYKString))
-	{
-		defaultCMYKProfile = defaultEngine.openProfileFromFile(InputProfilesCMYK[defaultCMYKString]);
-	}
+	if (InputProfilesCMYK.contains(defaultCMYKString1))
+		defaultCMYKProfile = defaultEngine.openProfileFromFile(InputProfilesCMYK[defaultCMYKString1]);
+	else if (InputProfilesCMYK.contains(defaultCMYKString2))
+		defaultCMYKProfile = defaultEngine.openProfileFromFile(InputProfilesCMYK[defaultCMYKString2]);
 
 	// Keep all chance to have monitor profile set
 	monitorProfile = defaultRGBProfile;
@@ -445,12 +460,12 @@ void ScribusCore::InitDefaultColorTransforms()
 		MonitorProfiles.insert(defaultRGBString, defaultRGBProfile.profilePath());
 
 	// Open monitor profile as defined by user preferences
-	QString displayProfile = m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
+	QString displayProfile = m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
 	if (MonitorProfiles.contains(displayProfile))
 		monitorProfile = defaultEngine.openProfileFromFile( MonitorProfiles[displayProfile] );
 	if (monitorProfile.isNull())
 	{
-		m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile = defaultRGBString;
+		m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile = defaultRGBString;
 		monitorProfile = defaultRGBProfile;
 	}
 
@@ -494,53 +509,82 @@ void ScribusCore::ResetDefaultColorTransforms()
 
 void ScribusCore::initCMS()
 {
-	if (m_HaveCMS)
+	if (!m_HaveCMS)
+		return;
+
+	ProfilesL::Iterator ip;
+	QString defaultRGBString1 = "sRGB display profile (ICC v2.2)";
+	QString defaultRGBString2 = "sRGB IEC61966-2.1";
+	QString defaultCMYKString1 = "ISO Coated v2 300% (basICColor)";
+	QString defaultCMYKString2 = "Fogra27L CMYK Coated Press";
+
+	QString defaultImageRGBProfile = m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultImageRGBProfile;
+	if ((defaultImageRGBProfile.isEmpty()) || (!InputProfiles.contains(defaultImageRGBProfile)))
 	{
-		ProfilesL::Iterator ip;
-		if ((m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultImageRGBProfile.isEmpty()) || (!InputProfiles.contains(m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultImageRGBProfile)))
-		{
-			ip = InputProfiles.find("sRGB IEC61966-2.1");
-			if (ip == InputProfiles.end())
-				ip = InputProfiles.begin();
-			m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultImageRGBProfile = ip.key();
-		}
-		if ((m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultImageCMYKProfile.isEmpty()) || (!InputProfilesCMYK.contains(m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultImageCMYKProfile)))
-		{
-			ip = InputProfilesCMYK.find("Fogra27L CMYK Coated Press");
-			if (ip == InputProfilesCMYK.end())
-				ip = InputProfilesCMYK.begin();
-			m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultImageCMYKProfile = ip.key();
-		}
-		if ((m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultSolidColorRGBProfile.isEmpty()) || (!InputProfiles.contains(m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultSolidColorRGBProfile)))
-		{
-			ip = InputProfiles.find("sRGB IEC61966-2.1");
-			if (ip == InputProfiles.end())
-				ip = InputProfiles.begin();
-			m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultSolidColorRGBProfile = ip.key();
-		}
-		if ((m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultSolidColorCMYKProfile.isEmpty()) || (!InputProfilesCMYK.contains(m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultSolidColorCMYKProfile)))
-		{
-			ip = InputProfilesCMYK.find("Fogra27L CMYK Coated Press");
-			if (ip == InputProfilesCMYK.end())
-				ip = InputProfilesCMYK.begin();
-			m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultSolidColorCMYKProfile = ip.key();
-		}
-		if ((m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile.isEmpty()) || (!MonitorProfiles.contains(m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile)))
-		{
-			ip = MonitorProfiles.find("sRGB IEC61966-2.1");
-			if (ip == MonitorProfiles.end())
-				ip = MonitorProfiles.begin();
-			m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile = ip.key();
-		}
-		if ((m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultPrinterProfile.isEmpty()) || (!PrinterProfiles.contains(m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultPrinterProfile)))
-		{
-			ip = PrinterProfiles.find("Fogra27L CMYK Coated Press");
-			if (ip == PrinterProfiles.end())
-				ip = PrinterProfiles.begin();
-			m_prefsManager->appPrefs.colorPrefs.DCMSset.DefaultPrinterProfile = ip.key();
-		}
-		InitDefaultColorTransforms();
+		ip = InputProfiles.find(defaultRGBString1);
+		if (ip == InputProfiles.end())
+			ip = InputProfiles.find(defaultRGBString2);
+		if (ip == InputProfiles.end())
+			ip = InputProfiles.begin();
+		m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultImageRGBProfile = ip.key();
 	}
+
+	QString defaultImageCMYKProfile = m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultImageCMYKProfile;
+	if ((defaultImageCMYKProfile.isEmpty()) || (!InputProfilesCMYK.contains(defaultImageCMYKProfile)))
+	{
+		ip = InputProfilesCMYK.find(defaultCMYKString1);
+		if (ip == InputProfilesCMYK.end())
+			ip = InputProfilesCMYK.find(defaultCMYKString2);
+		if (ip == InputProfilesCMYK.end())
+			ip = InputProfilesCMYK.begin();
+		m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultImageCMYKProfile = ip.key();
+	}
+
+	QString defaultSolidColorRGBProfile = m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultSolidColorRGBProfile;
+	if ((defaultSolidColorRGBProfile.isEmpty()) || (!InputProfiles.contains(defaultSolidColorRGBProfile)))
+	{
+		ip = InputProfiles.find(defaultRGBString1);
+		if (ip == InputProfiles.end())
+			ip = InputProfiles.find(defaultRGBString2);
+		if (ip == InputProfiles.end())
+			ip = InputProfiles.begin();
+		m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultSolidColorRGBProfile = ip.key();
+	}
+
+	QString defaultSolidColorCMYKProfile = m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultSolidColorCMYKProfile;
+	if ((defaultSolidColorCMYKProfile.isEmpty()) || (!InputProfilesCMYK.contains(defaultSolidColorCMYKProfile)))
+	{
+		ip = InputProfilesCMYK.find(defaultCMYKString1);
+		if (ip == InputProfilesCMYK.end())
+			ip = InputProfilesCMYK.find(defaultCMYKString2);
+		if (ip == InputProfilesCMYK.end())
+			ip = InputProfilesCMYK.begin();
+		m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultSolidColorCMYKProfile = ip.key();
+	}
+
+	QString defaultMonitorProfile = m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
+	if ((defaultMonitorProfile.isEmpty()) || (!MonitorProfiles.contains(defaultMonitorProfile)))
+	{
+		ip = MonitorProfiles.find(defaultRGBString1);
+		if (ip == MonitorProfiles.end())
+			ip = MonitorProfiles.find(defaultRGBString2);
+		if (ip == MonitorProfiles.end())
+			ip = MonitorProfiles.begin();
+		m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile = ip.key();
+	}
+
+	QString defaultPrinterProfile = m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultPrinterProfile;
+	if ((defaultPrinterProfile.isEmpty()) || (!PrinterProfiles.contains(defaultPrinterProfile)))
+	{
+		ip = PrinterProfiles.find(defaultCMYKString1);
+		if (ip == PrinterProfiles.end())
+			ip = PrinterProfiles.find(defaultCMYKString2);
+		if (ip == PrinterProfiles.end())
+			ip = PrinterProfiles.begin();
+		m_prefsManager.appPrefs.colorPrefs.DCMSset.DefaultPrinterProfile = ip.key();
+	}
+
+	InitDefaultColorTransforms();
 }
 
 ScribusMainWindow * ScribusCore::primaryMainWindow()

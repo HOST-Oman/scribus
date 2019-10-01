@@ -38,6 +38,7 @@ for which a new license (GPL+exception) is in place.
 #include <QTimer>
 #include <QFile>
 
+#include "appmodes.h"
 #include "gtgettext.h" //CB For the ImportSetup struct and itemadduserframe
 #include "scribusapi.h"
 #include "colormgmt/sccolormgmtengine.h"
@@ -100,10 +101,10 @@ public:
 	bool inASpecialEditMode() const;
 	QList<PageItem*> getAllItems(QList<PageItem*> &items);
 	QList<PageItem*> *parentGroup(PageItem* item, QList<PageItem*> *list);
-	void setup(const int, const int, const int, const int, const int, const QString&, const QString&);
-	void setLoading(const bool);
+	void setup(int, int, int, int, int, const QString&, const QString&);
+	void setLoading(bool);
 	bool isLoading() const;
-	void setModified(const bool);
+	void setModified(bool);
 	bool isModified() const;
 /** Setzt die Seitenattribute */
 	void setPage(double w, double h, double t, double l, double r, double b, double sp, double ab, bool atf, int fp);
@@ -123,9 +124,9 @@ public:
 	const ScGuardedPtr<ScribusDoc>& guardedPtr() const;
 	
 	UpdateManager* updateManager() { return &m_updateManager; }
-	MassObservable<PageItem*> * itemsChanged() { return &m_itemsChanged; }
-	MassObservable<ScPage*>     * pagesChanged() { return &m_pagesChanged; }
-	MassObservable<QRectF>    * regionsChanged() { return &m_regionsChanged; }
+	MassObservable<PageItem*>* itemsChanged() { return &m_itemsChanged; }
+	MassObservable<ScPage*>* pagesChanged() { return &m_pagesChanged; }
+	MassObservable<QRectF>* regionsChanged() { return &m_regionsChanged; }
 	
 	void invalidateAll();
 	void invalidateLayer(int layerID);
@@ -163,7 +164,7 @@ public:
 	void setAutoSaveCount(int i) { m_docPrefsData.docSetupPrefs.AutoSaveCount=i; }
 	void setAutoSaveKeep(bool i) { m_docPrefsData.docSetupPrefs.AutoSaveKeep=i; }
 	void setAutoSaveInDocDir(bool i) { m_docPrefsData.docSetupPrefs.AutoSaveLocation=i; }
-	void setAutoSaveDir(QString i) { m_docPrefsData.docSetupPrefs.AutoSaveDir = i; }
+	void setAutoSaveDir(const QString& autoDaveDir) { m_docPrefsData.docSetupPrefs.AutoSaveDir = autoDaveDir; }
 	//FIXME (maybe) :non const, the loaders make a mess here
 	PDFOptions& pdfOptions() { return m_docPrefsData.pdfPrefs; }
 	ObjAttrVector& itemAttributes() { return m_docPrefsData.itemAttrPrefs.defaultItemAttributes; }
@@ -221,11 +222,11 @@ public:
 
 	// Add, delete and move pages
 	
-	ScPage* addPage(const int pageNumber, const QString& masterPageName=QString::null, const bool addAutoFrame=false);
-	void deletePage(const int);
+	ScPage* addPage(int pageNumber, const QString& masterPageName=QString(), bool addAutoFrame=false);
+	void deletePage(int);
 	//! @brief Add a master page with this function, do not use addPage
-	ScPage* addMasterPage(const int, const QString&);
-	void deleteMasterPage(const int);
+	ScPage* addMasterPage(int, const QString&);
+	void deleteMasterPage(int);
 	//! @brief Rebuild master name list
 	void rebuildMasterNames();
 	//! @brief Replace a master page by default one
@@ -241,7 +242,7 @@ public:
 	 * @param pageNumber page number
 	 * @return number of frame
 	 */
-	int addAutomaticTextFrame(const int pageNumber);
+	int addAutomaticTextFrame(int pageNumber);
 	/**
 	 * Set the left and right margins based on the location of the page
 	 * @param pageIndex 
@@ -252,7 +253,7 @@ public:
 	 * @param a page index
 	 * @param b page index
 	 */
-	void swapPage(const int a, const int b);
+	void swapPage(int a, int b);
 	/**
 	 * @brief Move page(s) within the document
 	 * @param fromPage page index
@@ -260,7 +261,7 @@ public:
 	 * @param count target to move to (page index)
 	 * @param position Before, After or at the end
 	 */
-	void movePage(const int fromPage, const int toPage, const int dest, const int position);
+	void movePage(int fromPage, int toPage, int dest, int position);
 	
 	/**
 	 * @brief Copy a page (pageNumberToCopy) copyCount times, whereToInsert(before or after) the existingPage or at the end.
@@ -278,7 +279,7 @@ public:
 	 * @param activate the layer active
 	 * @return Number of the layer created
 	 */
-	int addLayer(const QString& layerName=QString::null, const bool activate=false);
+	int addLayer(const QString& layerName, bool activate=false);
 	/**
 	 * @brief Copies a layer from the current document
 	 * @param layerIDToCopy source layer
@@ -292,7 +293,7 @@ public:
 	 * @param deleteItems the items on the layer too?
 	 * @return Success or failure
 	 */
-	bool deleteLayer(const int layerID, const bool deleteItems);
+	bool deleteLayer(int layerID, bool deleteItems);
 	/**
 	 * @brief Return the number of the current layer
 	 * @return Active layer number
@@ -309,7 +310,7 @@ public:
 	 * @param layerToActivate Number of the layer
 	 * @return Success or failure
 	 */
-	bool setActiveLayer(const int layerToActivate);
+	bool setActiveLayer(int layerToActivate);
 	/**
 	 * @brief Set the active layer via the layer name
 	 * @param layerNameToActivate Name of the layer
@@ -322,129 +323,129 @@ public:
 	 * @param isPrintable bool true = layer is prantable
 	 * @return Success or failure
 	 */
-	bool setLayerPrintable(const int layerID, const bool isPrintable);
+	bool setLayerPrintable(int layerID, bool isPrintable);
 	/**
 	 * @brief Is the layer printable
 	 * @param layerID ID of the layer
 	 * @return Printable or not
 	 */
-	bool layerPrintable(const int layerID) const;
+	bool layerPrintable(int layerID) const;
 	/**
 	 * @brief Set the layer visible via the layer number
 	 * @param layerID ID of the layer
 	 * @param isViewable true = layer is visible
 	 * @return Success or failure
 	 */
-	bool setLayerVisible(const int layerID, const bool isViewable);
+	bool setLayerVisible(int layerID, bool isViewable);
 	/**
 	 * @brief Is the layer visible
 	 * @param layerID ID of the layer
 	 * @return Visible or not
 	 */
-	bool layerVisible(const int layerID) const;
+	bool layerVisible(int layerID) const;
 	/**
 	 * @brief are objects on the layer selectable
 	 * @param layerID ID of the layer
 	 * @return Items selectable or not
 	 */
-	bool layerSelectable(const int layerID) const;
+	bool layerSelectable(int layerID) const;
 	/**
 	 * @brief Set objects on the layer selectable via the layer ID
 	 * @param layerID ID of the layer
 	 * @param isSelectable true = layer objects are selectable
 	 * @return bool Success or failure
 	 */
-	bool setLayerSelectable(const int layerID, const bool isSelectable);
+	bool setLayerSelectable(int layerID, bool isSelectable);
 	/**
 	 * @brief Set the layer locked via the layer number
 	 * @param layerID ID of the layer
 	 * @param isLocked true = layer is locked
 	 * @return Success or failure
 	 */
-	bool setLayerLocked(const int layerID, const bool isLocked);
+	bool setLayerLocked(int layerID, bool isLocked);
 	/**
 	 * @brief Is the layer locked
 	 * @param layerID ID of the layer
 	 * @return Locked or not
 	 */
-	bool layerLocked(const int layerID) const;
+	bool layerLocked(int layerID) const;
 	/**
 	 * @brief Set the layer flow via the layer number
 	 * @param layerID ID of the layer
 	 * @param flow true = Text flows around objects on this layer
 	 * @return Success or failure
 	 */
-	bool setLayerFlow(const int layerID, const bool flow);
+	bool setLayerFlow(int layerID, bool flow);
 	/**
 	 * @brief does text flow around objects on this layer
 	 * @param layerID ID of the layer
 	 * @return flow or not
 	 */
-	bool layerFlow(const int layerID) const;
+	bool layerFlow(int layerID) const;
 	/**
 	 * @brief Set the layer transparency via the layer number
 	 * @param layerID ID of the layer
 	 * @param trans transparency value 0.0 - 1.0
 	 * @return Success or failure
 	 */
-	bool setLayerTransparency(const int layerID, double trans);
+	bool setLayerTransparency(int layerID, double trans);
 	/**
 	 * @brief returns the layer transparency
 	 * @param layerID ID of the layer
 	 * @return transparency value 0.0 - 1.0
 	 */
-	double layerTransparency(const int layerID) const;
+	double layerTransparency(int layerID) const;
 	/**
 	 * @brief Set the layer layerBlendMode via the layer number
 	 * @param layerID ID of the layer
 	 * @param blend layerBlendMode
 	 * @return Success or failure
 	 */
-	bool setLayerBlendMode(const int ID, int blend);
+	bool setLayerBlendMode(int ID, int blend);
 	/**
 	 * @brief returns the layer BlendMode
 	 * @param layerID ID of the layer
 	 * @return layerBlendMode
 	 */
-	int layerBlendMode(const int ID) const;
+	int layerBlendMode(int ID) const;
 	/**
 	 * @brief Return the level of the requested layer
 	 * @param layerID ID of the layer
 	 * @return Level of the layer
 	 */
-	int layerLevelFromID(const int layerID) const;
+	int layerLevelFromID(int layerID) const;
 	/**
 	 * @brief Set the layer marker color
 	 * @param ID Number of the layer
 	 * @param color color of the marker
 	 * @return Success or failure
 	 */
-	bool setLayerMarker(const int layerID, const QColor& color);
+	bool setLayerMarker(int layerID, const QColor& color);
 	/**
 	 * @brief returns the layer marker color
 	 * @param layerID ID of the layer
 	 * @return marker color
 	 */
-	QColor layerMarker(const int layerID) const;
+	QColor layerMarker(int layerID) const;
 	/**
 	 * @brief Set the layer outline mode via the layer number
 	 * @param layerID ID of the layer
 	 * @param outline true = layer is displayed in outlines only
 	 * @return Success or failure
 	 */
-	bool setLayerOutline(const int layerID, const bool outline);
+	bool setLayerOutline(int layerID, bool outline);
 	/**
 	 * @brief is this layer in outline mode
 	 * @param layerID ID of the layer
 	 * @return outline or not
 	 */
-	bool layerOutline(const int layerID) const;
+	bool layerOutline(int layerID) const;
 	/**
 	 * @brief Return the number of the layer at a certain level
 	 * @param layerLevel Layer level
 	 * @return Layer ID
 	 */
-	int layerIDFromLevel(const int layerLevel) const;
+	int layerIDFromLevel(int layerLevel) const;
 	/**
 	 * @brief Return the layer count
 	 * @return Number of layers in doc
@@ -456,51 +457,61 @@ public:
 	 * @param layerID ID of the layer
 	 * @return Success or failure
 	 */
-	bool lowerLayer(const int layerID);
+	bool lowerLayer(int layerID);
 	/**
 	 * @brief Lower a layer using the level
 	 * @param layerLevel Level of the layer
 	 * @return Success or failure
 	 */
-	bool lowerLayerByLevel(const int layerLevel);
+	bool lowerLayerByLevel(int layerLevel);
 	/**
 	 * @brief Raise a layer
 	 * @param layerID ID of the layer
 	 * @return Success or failure
 	 */
-	bool raiseLayer(const int layerID);
+	bool raiseLayer(int layerID);
 	/**
 	 * @brief Raise a layer using the level
 	 * @param layerLevel Level of the layer
 	 * @return Success or failure
 	 */
-	bool raiseLayerByLevel(const int layerLevel);
+	bool raiseLayerByLevel(int layerLevel);
 	/**
 	 * @brief Return the layer name
 	 * @param layerID ID of the layer
 	 * @return Name of the layer
 	 */
-	QString layerName(const int layerID) const;
+	QString layerName(int layerID) const;
 	/**
 	 * @brief Change the name of a layer
 	 * @param layerID ID of the layer
 	 * @param newName new name of the layer
 	 * @return Success or failure
 	 */
-	bool changeLayerName(const int layerID, const QString& newName);
+	bool changeLayerName(int layerID, const QString& newName);
+	/**
+	 * @brief Test if items can be selected on a specific layer
+	 * 
+	 * This function check if items can be selected on the specified layer
+	 * by checking layer visibility and selectable property etc...
+	 *
+	 * @param layerID ID of the layer
+	 * @return a boolean
+	 */
+	bool canSelectItemOnLayer(int layerID) const;
 	/**
 	 * @brief Does the layer have items on it?
 	 * @param layerID ID of the layer
 	 * @return Layer contains items bool
 	 */
-	bool layerContainsItems(const int layerID);
+	bool layerContainsItems(int layerID) const;
 	/**
 	 * @brief Renumber a layer. Used in particular for reinsertion for undo/redo
 	 * @param layerID old layer ID
 	 * @param newLayerID New layer ID
 	 * @return Success or failure
 	 */
-	bool renumberLayer(const int layerID, const int newLayerID);
+	bool renumberLayer(int layerID, int newLayerID);
 	/**
 	 * @brief Return a list of the layers in their order
 	 * @param list QStringList to insert the layer names into
@@ -650,12 +661,7 @@ public:
 	 * @author Riku Leino
 	 */
 	void restore(UndoState* state, bool isUndo);
-	/**
-	 * @brief Sets the name of the document
-	 * @param name Name for the document
-	 * @author Riku Leino
-	 */
-	void setName(const QString& name);
+
 	/*!
 	 * @brief Returns a stringlist of the item attributes within the document
 	 */
@@ -730,13 +736,13 @@ public:
 	/**
 	 * @brief Set and get the document's unit index
 	 */
-	void setUnitIndex(const int);
+	void setUnitIndex(int);
 	int unitIndex() const;
 	double unitRatio() const;
 	/**
 	 * @brief Apply a master page
 	 */
-	bool applyMasterPage(const QString& pageName, const int pageNumber);
+	bool applyMasterPage(const QString& pageName, int pageNumber);
 	/**
 	 * @brief Undo function for applying a master page
 	 */
@@ -764,7 +770,7 @@ public:
 	/**
 	 * @brief Set the page margins. Current code uses current page only, also provide a (currently, TODO) option for this.
 	 */
-	bool changePageProperties(const double initialTop, const double initialBottom, const double initialLeft, const double initialRight, const double initialHeight, const double initialWidth, const double Height, const double width, const int orientation, const QString& pageSize, const int marginPreset, const bool moveObjects, const int pageNumber=-1, const int pageType = 0);
+	bool changePageProperties(double initialTop, double initialBottom, double initialLeft, double initialRight, double initialHeight, double initialWidth, double Height, double width, int orientation, const QString& pageSize, int marginPreset, bool moveObjects, int pageNumber=-1, int pageType = 0);
 	/**
 	 * @brief Recalculate the colors after CMS settings change. Update the items in the doc accordingly.
 	 */
@@ -774,7 +780,7 @@ public:
 	/**
 	 * @brief Copies a normal page to be a master pages
 	 */
-	bool copyPageToMasterPage(const int, const int, const int, const QString&, bool);
+	bool copyPageToMasterPage(int, int, int, const QString&, bool);
 	
 	
 	/**
@@ -800,10 +806,10 @@ public:
 	\param outline outline color name
 	\param noteFrame optional (default false) indicates that noteframes should be created, not text frame
 	*/
-	int itemAdd(const PageItem::ItemType itemType, const PageItem::ItemFrameType frameType, const double x, const double y, const double b, const double h, const double w, const QString& fill, const QString& outline, PageItem::ItemKind itemKind = PageItem::StandardItem);
+	int itemAdd(const PageItem::ItemType itemType, const PageItem::ItemFrameType frameType, double x, double y, double b, double h, double w, const QString& fill, const QString& outline, PageItem::ItemKind itemKind = PageItem::StandardItem);
 
 	/** Add an item to the page based on the x/y position. Item will be fitted to the closest guides/margins */
-	int itemAddArea(const PageItem::ItemType itemType, const PageItem::ItemFrameType frameType, const double x, const double y, const double w, const QString& fill, const QString& outline, PageItem::ItemKind itemKind = PageItem::StandardItem);
+	int itemAddArea(const PageItem::ItemType itemType, const PageItem::ItemFrameType frameType, double x, double y, double w, const QString& fill, const QString& outline, PageItem::ItemKind itemKind = PageItem::StandardItem);
 	
 	/**
 	 * @brief Allow the user to create a frame easily with some simple placement and sizing options
@@ -842,7 +848,7 @@ public:
 	 * @brief Doc uses automatic text frames?
 	 */
 	bool usesAutomaticTextFrames() const;
-	void setUsesAutomaticTextFrames(const bool);
+	void setUsesAutomaticTextFrames(bool);
 	
 	/**
 	 * 
@@ -867,11 +873,16 @@ public:
 	 * @param dia optional progress widget
 	 */
 	void RecalcPictures(QList<PageItem*>* items, ProfilesL *Pr, ProfilesL *PrCMYK, QProgressBar *dia = nullptr);
+
 	/**
-	 *
 	 * @brief Find the minX,MinY and maxX,maxY for the canvas required for the doc
 	 */
 	void canvasMinMax(FPoint&, FPoint&);
+
+	/**
+	 * @brief Find the optimal area for canvas
+	 */
+	QRectF canvasOptimalRect();
 	
 	int  OnPage(double x2, double  y2);
 	int  OnPage(PageItem *currItem);
@@ -895,8 +906,8 @@ public:
 	 * @retval double containing the offset. Returns -1.0 if page not in Pages list (as -ve is not possible).
 	 * Mostly saves bringing in extra includes into files that already have scribusdoc.h
 	 */
-	double getXOffsetForPage(const int);
-	double getYOffsetForPage(const int);
+	double getXOffsetForPage(int);
+	double getYOffsetForPage(int);
 	void getBleeds(int pageNumber, MarginStruct& bleedData);
 	void getBleeds(const ScPage* page, MarginStruct& bleedData);
 	void getBleeds(const ScPage* page, const MarginStruct& baseValues, MarginStruct& bleedData);
@@ -924,6 +935,7 @@ public:
 	 * Do we need to return if the move to master page mode was successful?
 	 */
 	void setMasterPageMode(bool);
+	void assignPageModeLists();
 
 	/*** Is the document in master page mode? */
 	bool masterPageMode() const { return m_masterPageMode; }
@@ -949,48 +961,47 @@ public:
 	 * @brief Add a section to the document sections list
 	 * Set number to -1 to add in the default section if the map is empty
 	 */
-	void addSection(const int number=0, const QString& name=QString::null, const uint fromindex=0, const uint toindex=0, const  NumFormat type=Type_1_2_3, const uint sectionstartindex=0, const bool reversed=false, const bool active=true, const QChar fillChar=QChar(), int fieldWidth=0);
+	void addSection(int number=0, const QString& name=QString(), const uint fromindex=0, const uint toindex=0, const  NumFormat type=Type_1_2_3, const uint sectionstartindex=0, bool reversed=false, bool active=true, const QChar fillChar=QChar(), int fieldWidth=0);
 	/**
 	 * @brief Delete a section from the document sections list
 	 */
-	bool deleteSection(const uint);
+	bool deleteSection(uint);
 	/**
 	 * @brief Gets the page number to be printed based on the section it is in.
-	 * Returns QString::null on failure to find the pageIndex
+	 * Returns QString() on failure to find the pageIndex
 	 */
-	const QString getSectionPageNumberForPageIndex(const uint) const;
+	const QString getSectionPageNumberForPageIndex(uint) const;
 	/**
 	 * @brief Gets the page number fill character to be printed based on the section it is in.
-	 * Returns QString::null on failure to find the pageIndex
+	 * Returns QString() on failure to find the pageIndex
 	 */
-	const QChar getSectionPageNumberFillCharForPageIndex(const uint) const;
+	const QChar getSectionPageNumberFillCharForPageIndex(uint) const;
 	/**
 	 * @brief Gets the page number fill character to be printed based on the section it is in.
-	 * Returns QString::null on failure to find the pageIndex
+	 * Returns QString() on failure to find the pageIndex
 	 */
-	int getSectionPageNumberWidthForPageIndex(const uint) const;
+	int getSectionPageNumberWidthForPageIndex(uint) const;
 	/**
 	 * @brief Gets the key of the sections map based on the section the page index is in.
 	 * Returns -1 on failure to find the pageIndex
 	 */
-	int getSectionKeyForPageIndex(const uint pageIndex) const;
+	int getSectionKeyForPageIndex(uint pageIndex) const;
 	/**
 	 *
 	 *
 	 */
 	void updateSectionPageNumbersToPages();
 	/**
-	 * 
 	 * @param otherPageIndex 
 	 * @param location 
 	 * @param count 
 	 */
-	void addPageToSection(const uint otherPageIndex, const uint location, const uint count=1);
+	void addPageToSection(uint otherPageIndex, uint location, uint count=1);
 	/**
 	 * 
 	 * @param pageIndex 
 	 */
-	void removePageFromSection(const uint pageIndex);
+	void removePageFromSection(uint pageIndex);
 	/**
 	 * 
 	 */
@@ -999,7 +1010,17 @@ public:
 	 * @param pageIndex page nr
 	 * @brief Returns name of section where page is located
 	 */
-	QString getSectionNameForPageIndex(const uint pageIndex) const;
+	QString getSectionNameForPageIndex(uint pageIndex) const;
+
+	/**
+	 * Update annotation links when a page is added
+	 */
+	void addPageToAnnotLinks(int otherPageIndex, int location, int count=1);
+
+	/**
+	 * Update annotation links when a page is removed
+	 */
+	void removePageFromAnnotLinks(int pageIndex);
 
 	//! @brief Some internal align tools
 	typedef enum {alignFirst, alignLast, alignPage, alignMargins, alignGuide, alignSelection } AlignTo;
@@ -1052,13 +1073,10 @@ public:
 	void itemSelection_SetCharStyle(const CharStyle & newstyle, Selection* customSelection = nullptr);
 	void itemSelection_EraseParagraphStyle(Selection* customSelection = nullptr);
 	void itemSelection_EraseCharStyle(Selection* customSelection = nullptr);
-
 	void itemSelection_SetNamedParagraphStyle(const QString & name, Selection* customSelection = nullptr);
 	void itemSelection_SetNamedCharStyle(const QString & name, Selection* customSelection = nullptr);
 	void itemSelection_SetNamedLineStyle(const QString & name, Selection* customSelection = nullptr);
-
 	void itemSelection_SetSoftShadow(bool has, QString color, double dx, double dy, double radius, int shade, double opac, int blend, bool erase, bool objopa);
-
 	void itemSelection_SetLineWidth(double w);
 	void itemSelection_SetLineArt(Qt::PenStyle w);
 	void itemSelection_SetLineJoin(Qt::PenJoinStyle w);
@@ -1129,7 +1147,7 @@ public:
 						item->loadImage(item->Pfile, true, -1, false);
 					item->setImageFlippedH(fho);
 					item->setImageFlippedV(fvo);
-					item->AdjustPictScale();
+					item->adjustPictScale();
 				}
 			}
 			allItems.clear();
@@ -1163,14 +1181,24 @@ public:
 	QRectF ApplyGridF(const QRectF& in);
 	/*! \brief Does this doc have any TOC setups and potentially a TOC to generate */
 	bool hasTOCSetup() { return !m_docPrefsData.tocPrefs.defaultToCSetups.empty(); }
+
+	enum SelectionSkipBehavior
+	{
+		IncludeSelection = 0,
+		ExcludeSelection = 1
+	};
+
 	//! \brief Get the closest guide to the given point
-	void getClosestGuides(double xin, double yin, double *xout, double *yout, int *GxM, int *GyM, ScPage* refPage = nullptr);
+	void getClosestGuides(double xin, double yin, double *xout, double *yout, ScPage* refPage = nullptr);
 	//! \brief Get the closest border of another element to the given point
-	void getClosestElementBorder(double xin, double yin, double *xout, double *yout, int *GxM, int *GyM, ScPage* refPage = nullptr);
+	void getClosestElementBorder(double xin, double yin, double *xout, double *yout, SelectionSkipBehavior behavior = IncludeSelection);
+	//! \brief Get the closest page margin or bleed
+	void getClosestPageBoundaries(double xin, double yin, double &xout, double &yout, ScPage* refPage);
 	//! \brief Snap an item to the guides
 	void SnapToGuides(PageItem *currItem);
 	bool ApplyGuides(double *x, double *y, bool elementSnap = false);
 	bool ApplyGuides(FPoint* point, bool elementSnap = false);
+
 	bool moveItem(double newX, double newY, PageItem* ite);
 	void rotateItem(double win, PageItem *currItem);
 	void moveRotated(PageItem *currItem, const FPoint& npv);
@@ -1191,7 +1219,7 @@ public:
 	//! \brief Get rotation mode
 	int rotationMode() const {return m_rotMode;}
 	//! \brief Set rotation mode
-	void setRotationMode(const int val);
+	void setRotationMode(int val);
 
 	//! \brief Fonctions which avoid doc updater and update manager to send too much
 	// unncessary signals when doing updates on multiple items
@@ -1207,52 +1235,54 @@ public:
 protected:
 	void addSymbols();
 	void applyPrefsPageSizingAndMargins(bool resizePages, bool resizeMasterPages, bool resizePageMargins, bool resizeMasterPageMargins);
-	bool m_hasGUI;
-	QFileDevice::Permissions m_docFilePermissions;
+	bool m_hasGUI {false};
+	QFileDevice::Permissions m_docFilePermissions {QFileDevice::ReadOwner|QFileDevice::WriteOwner};
 	ApplicationPrefs& m_appPrefsData;
 	ApplicationPrefs m_docPrefsData;
 	UndoManager * const m_undoManager;
-	bool m_loading;
-	bool m_modified;
-	int m_ActiveLayer;
+	bool m_loading {false};
+	bool m_modified {false};
+	int m_ActiveLayer {0};
 	double m_docUnitRatio;
-	int m_rotMode;
+	int m_rotMode {0};
 	bool m_automaticTextFrames; // Flag for automatic Textframes
-	bool m_masterPageMode;
-	bool m_symbolEditMode;
-	bool m_inlineEditMode;
-	int  m_storedLayerID;
-	bool m_storedLayerLock;
-	bool m_storedLayerVis;
+	bool m_masterPageMode {false};
+	bool m_symbolEditMode {false};
+	bool m_inlineEditMode {false};
+	int  m_storedLayerID {0};
+	bool m_storedLayerLock {false};
+	bool m_storedLayerVis {false};
 	QMap<QString, double> m_constants;
-	ScribusMainWindow* m_ScMW;
-	ScribusView* m_View;
+	ScribusMainWindow* m_ScMW {nullptr};
+	ScribusView* m_View {nullptr};
 	ScGuardedObject<ScribusDoc> m_guardedObject;
-	Serializer *m_serializer, *m_tserializer;
+	Serializer *m_serializer {nullptr};
+	Serializer *m_tserializer {nullptr};
 	QString m_currentEditedSymbol;
-	int m_currentEditedIFrame;
+	int m_currentEditedIFrame {0};
+	QString m_documentFileName;
 
 public: // Public attributes
-	bool is12doc; //public for now, it will be removed later
-	int NrItems;
-	int First;
-	int Last;
-	int viewCount;
-	int viewID;
-	bool SnapGrid;
-	bool SnapGuides;
-	bool SnapElement;
-	bool GuideLock;
-	bool dontResize;
+	bool is12doc {false}; //public for now, it will be removed later
+	int NrItems {0};
+	int First {1};
+	int Last {0};
+	int viewCount {0};
+	int viewID {0};
+	bool SnapGrid {false};
+	bool SnapGuides {false};
+	bool SnapElement {false};
+	bool GuideLock {false};
+	bool dontResize {false};
 	/** \brief Minimum and Maximum Points of Document */
 	FPoint minCanvasCoordinate;
 	FPoint maxCanvasCoordinate;
 	FPoint stored_minCanvasCoordinate;
 	FPoint stored_maxCanvasCoordinate;
-	double rulerXoffset;
-	double rulerYoffset;
+	double rulerXoffset {0.0};
+	double rulerYoffset {0.0};
 	/** \brief List of Pages */
-	QList<ScPage*>* Pages;
+	QList<ScPage*>* Pages {nullptr};
 	/** \brief List of Master Pages */
 	QList<ScPage*> MasterPages;
 	/** \brief List of Document Pages */
@@ -1262,42 +1292,40 @@ public: // Public attributes
 	/** \brief Mapping Master Page Name to Master Page numbers */
 	QMap<QString,int> MasterNames;
 	/** \brief List of Objects */
-	QList<PageItem*>* Items;
+	QList<PageItem*>* Items {nullptr};
 	QList<PageItem*> MasterItems;
 	QList<PageItem*> DocItems;
 	QHash<int, PageItem*> FrameItems;
 	QList<PageItem*> EditFrameItems;
-	PageItem *currentEditedTextframe;
+
 	Selection* const m_Selection;
 	/** \brief Number of Columns */
-	double PageSp;
+	double PageSp {1.0};
 	/** \brief Distance of Columns */
-	double PageSpa;
+	double PageSpa {0.0};
 	///** \brief current Pagelayout */
 	//int currentPageLayout;
-	/** \brief Erste Seitennummer im Dokument */
-	int FirstPnum;
+	/** \brief First page number in document */
+	int FirstPnum {1};
 	/** \brief Im Dokument benutzte Farben */
 	ColorList PageColors;
-	int appMode;
-	int SubMode;
-	double *ShapeValues;
-	int ValCount;
-	QString DocName;
+	int appMode {modeNormal};
+	int SubMode {-1};
+	double *ShapeValues {nullptr};
+	int ValCount {0};
 	QMap<QString,int> UsedFonts;
 	SCFonts * const AllFonts;
 	QList<AlignObjs> AObjects;
-	int CurrentSel;
 	ParagraphStyle currentStyle;
 	NodeEditContext nodeEdit;
 	/** \brief Letztes Element fuer AutoTextrahmen */
-	PageItem *LastAuto;
+	PageItem *LastAuto {nullptr};
 	/** \brief Erstes Element fuer AutoTextrahmen */
-	PageItem *FirstAuto;
-	bool DragP;
-	bool leaveDrag;
-	PageItem *DraggedElem;
-	PageItem *ElemToLink;
+	PageItem *FirstAuto {nullptr};
+	bool DragP {false};
+	bool leaveDrag {false};
+	PageItem *DraggedElem {nullptr};
+	PageItem *ElemToLink {nullptr};
 	QList<PageItem*> DragElements;
 private:
 	StyleSet<ParagraphStyle> m_docParagraphStyles;
@@ -1307,7 +1335,7 @@ private:
 public:
 	ScLayers Layers;
 	//bool marginColored;
-	int GroupCounter;
+	int GroupCounter {1};
 
 	ScColorMgmtEngine colorEngine;
 	ScColorProfile DocInputImageRGBProf;
@@ -1332,16 +1360,16 @@ public:
 	ScColorTransform stdLabToScreenTrans;
 	ScColorTransform stdProofLab;
 	ScColorTransform stdProofLabGC;
-	bool BlackPoint;
-	bool SoftProofing;
-	bool Gamut;
+	bool BlackPoint {true};
+	bool SoftProofing {false};
+	bool Gamut {false};
 	eRenderIntent IntentColors;
 	eRenderIntent IntentImages;
-	bool HasCMS;
+	bool HasCMS {false};
 	QMap<QString,QString> JavaScripts;
-	int TotalItems;
+	int TotalItems {0};
 	PrintOptions Print_Options;
-	bool RePos;
+	bool RePos {false};
 	struct BookMa {
 		QString Title;
 		QString Text;
@@ -1357,20 +1385,20 @@ public:
 		bool operator<(const BookMa& other) const { return ItemNr < other.ItemNr; }
 	};
 	QList<BookMa> BookMarks;
-	bool OldBM;
-	bool hasName;
-	bool isConverted;
+	bool OldBM {false};
+	bool hasName {false};
+	bool isConverted {false};
 	QTimer * const autoSaveTimer;
 	QList<QString> autoSaveFiles;
 	QHash<QString,multiLine> MLineStyles;
 	QHash<QString, ScPattern> docPatterns;
 	QHash<QString, VGradient> docGradients;
-	QWidget* WinHan;
-	bool DoDrawing;
-	bool drawAsPreview;
-	bool viewAsPreview;
-	bool editOnPreview;
-	int previewVisual;
+	QWidget* WinHan {nullptr};
+	bool DoDrawing {true};
+	bool drawAsPreview {false};
+	bool viewAsPreview {false};
+	bool editOnPreview {false};
+	int previewVisual {0};
 	struct OpenNodesList
 	{
 		int type;
@@ -1378,7 +1406,7 @@ public:
 		PageItem *item;
 	};
 	QList<OpenNodesList> OpenNodes;
-	QTimer *CurTimer;
+	QTimer *CurTimer {nullptr};
 	QMap<int, errorCodes> pageErrors;
 	QMap<int, errorCodes> docLayerErrors;
 	QMap<PageItem*, errorCodes> docItemErrors;
@@ -1390,19 +1418,19 @@ public:
 	FPointArray symNewCol;
 	FPointArray symNewFrame;
 	
-	Hyphenator * docHyphenator;
+	Hyphenator* docHyphenator {nullptr};
 	void itemResizeToMargin(PageItem* item, int direction); //direction reflect enum numbers from Canvas::FrameHandle
 
 private:
 	UndoTransaction m_itemCreationTransaction;
 	UndoTransaction m_alignTransaction;
 
-	ScPage* m_currentPage;
+	ScPage* m_currentPage {nullptr};
 	UpdateManager m_updateManager;
 	MassObservable<PageItem*> m_itemsChanged;
 	MassObservable<ScPage*> m_pagesChanged;
 	MassObservable<QRectF> m_regionsChanged;
-	DocUpdater* m_docUpdater;
+	DocUpdater* m_docUpdater {nullptr};
 	
 signals:
 	//Lets make our doc talk to our GUI rather than confusing all our normal stuff
@@ -1483,20 +1511,20 @@ public slots:
 	void itemSelection_SetImageScale(double x, double y, Selection* customSelection = nullptr);
 	void itemSelection_SetImageScaleAndOffset(double ox, double oy, double sx, double sy, Selection* customSelection = nullptr);
 	void itemSelection_SetImageRotation(double rot, Selection* customSelection = nullptr);
-	void itemSelection_AlignItemLeft(int i, double newX, AlignMethod how);
-	void itemSelection_AlignItemRight(int i, double newX, AlignMethod how);
-	void itemSelection_AlignItemTop(int i, double newY, AlignMethod how);
-	void itemSelection_AlignItemBottom(int i, double newY, AlignMethod how);
-	void itemSelection_AlignLeftOut(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignRightOut(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignBottomIn(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignRightIn(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignBottomOut(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignCenterHor(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignLeftIn(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignCenterVer(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignTopOut(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
-	void itemSelection_AlignTopIn(AlignTo currAlignTo, AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignItemLeft(int i, double newX, ScribusDoc::AlignMethod how);
+	void itemSelection_AlignItemRight(int i, double newX, ScribusDoc::AlignMethod how);
+	void itemSelection_AlignItemTop(int i, double newY, ScribusDoc::AlignMethod how);
+	void itemSelection_AlignItemBottom(int i, double newY, ScribusDoc::AlignMethod how);
+	void itemSelection_AlignLeftOut(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignRightOut(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignBottomIn(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignRightIn(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignBottomOut(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignCenterHor(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignLeftIn(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignCenterVer(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignTopOut(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
+	void itemSelection_AlignTopIn(ScribusDoc::AlignTo currAlignTo, ScribusDoc::AlignMethod currAlignMethod, double guidePosition);
 
 	void sendItemSelectionToBack();
 	void bringItemSelectionToFront();
@@ -1514,7 +1542,7 @@ public slots:
 	void itemSelection_DistributeTop();
 	void itemSelection_SwapLeft();
 	void itemSelection_SwapRight();
-	void itemSelection_MultipleDuplicate(ItemMultipleDuplicateData&);
+	void itemSelection_MultipleDuplicate(const ItemMultipleDuplicateData&);
 	void itemSelection_UniteItems(Selection* customSelection = nullptr);
 	void itemSelection_SplitItems(Selection* customSelection = nullptr);
 	/**
@@ -1693,7 +1721,9 @@ private:
 	QList<Mark*> m_docMarksList;
 	QList<TextNote*> m_docNotesList;
 	//flags used for indicating needs of updates
-	bool m_flag_notesChanged;
+	bool m_flag_notesChanged {false};
+
+	void multipleDuplicateByPage(const ItemMultipleDuplicateData& mdData, Selection& selection, QString& tooltip);
 
 public:
 	const QList<Mark*> marksList() { return m_docMarksList; }
@@ -1708,10 +1738,10 @@ public:
 	//flags used for indicating needs of updates
 	bool notesChanged() { return m_flag_notesChanged; }
 	void setNotesChanged(bool on) { m_flag_notesChanged = on; }
-	bool flag_restartMarksRenumbering;
-	bool flag_updateMarksLabels;
-	bool flag_updateEndNotes;
-	bool flag_layoutNotesFrames;
+	bool flag_restartMarksRenumbering {false};
+	bool flag_updateMarksLabels {false};
+	bool flag_updateEndNotes {false};
+	bool flag_layoutNotesFrames {true};
 
 	//returns list of marks labels for given mark type
 	QStringList marksLabelsList(MarkType type);
@@ -1822,8 +1852,8 @@ public:
 	void setupNumerations(); //read styles for used auto-numerations, initialize numCounters
 	QString getNumberStr(const QString& numName, int level, bool reset, const ParagraphStyle &style);
 	void setNumerationCounter(const QString& numName, int level, int number);
-	bool flag_Renumber;
-	bool flag_NumUpdateRequest;
+	bool flag_Renumber {false};
+	bool flag_NumUpdateRequest {false};
 	// for local numeration of paragraphs
 	bool updateLocalNums(StoryText& itemText); //return true if any num strings were updated and item need s invalidation
 	void updateNumbers(bool updateNumerations = false);
@@ -1834,6 +1864,8 @@ public:
 	void SubmitForm();
 	void ImportData();
 	void ResetFormFields();
+	QString documentFileName() const;
+	void setDocumentFileName(const QString& documentFileName);
 };
 
 Q_DECLARE_METATYPE(ScribusDoc*);

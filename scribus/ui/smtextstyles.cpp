@@ -109,7 +109,7 @@ QList<StyleName> SMParagraphStyle::styles(bool reloadFromDoc)
 		if (m_tmpStyles[i].hasName())
 		{
 			QString styleName(m_tmpStyles[i].displayName());
-			QString parentName(QString::null);
+			QString parentName;
 
 			if (m_tmpStyles[i].hasParent())
 			{
@@ -121,7 +121,7 @@ QList<StyleName> SMParagraphStyle::styles(bool reloadFromDoc)
 			tmpList << StyleName(styleName, parentName);
 		}
 	}
-	qSort(tmpList.begin(), tmpList.end(), sortingQPairOfStrings);
+	std::sort(tmpList.begin(), tmpList.end(), sortingQPairOfStrings);
 
 	return tmpList;
 }
@@ -160,7 +160,7 @@ void SMParagraphStyle::selected(const QStringList &styleNames)
 			m_selection.append(&m_tmpStyles[index]);
 	}
 
-	m_pwidget->show(m_selection, pstyles, cstyles, m_doc->unitIndex(), PrefsManager::instance()->appPrefs.docSetupPrefs.language);
+	m_pwidget->show(m_selection, pstyles, cstyles, m_doc->unitIndex(), PrefsManager::instance().appPrefs.docSetupPrefs.language);
 
 	setupConnections();
 }
@@ -179,7 +179,7 @@ QList<CharStyle> SMParagraphStyle::getCharStyles()
 
 QString SMParagraphStyle::fromSelection() const
 {
-	QString lsName(QString::null);
+	QString lsName;
 	if (!m_doc)
 		return lsName; // no doc available
 
@@ -196,7 +196,7 @@ QString SMParagraphStyle::fromSelection() const
 		}
 		else if (!lsName.isNull() && !tmpName.isEmpty() && tmpName != "" && lsName != tmpName)
 		{
-			lsName = QString::null;
+			lsName.clear();
 			break;
 		}
 	}
@@ -225,7 +225,7 @@ void SMParagraphStyle::toSelection(const QString &styleName) const
 QString SMParagraphStyle::newStyle()
 {
 	if (!m_doc)
-		return QString::null;
+		return QString();
 
 	QString s(getUniqueName( tr("New Style")));
 	ParagraphStyle p;
@@ -246,14 +246,14 @@ QString SMParagraphStyle::newStyle(const QString &fromStyle)
 
 	Q_ASSERT(m_tmpStyles.resolve(copiedStyleName));
 	if (!m_tmpStyles.resolve(copiedStyleName))
-		return QString::null;
+		return QString();
 
 	//Copy the style with the original name
 	QString s(getUniqueName( tr("Clone of %1").arg(fromStyle)));
 	ParagraphStyle p(m_tmpStyles.get(copiedStyleName));
 	p.setDefaultStyle(false);
 	p.setName(s);
-	p.setShortcut(QString::null); // do not clone the sc
+	p.setShortcut(QString()); // do not clone the sc
 	m_tmpStyles.create(p);
 
 	return s;
@@ -351,7 +351,7 @@ void SMParagraphStyle::setDefaultStyle(bool ids)
 
 QString SMParagraphStyle::shortcut(const QString &stylename) const
 {
-	QString s(QString::null);
+	QString s;
 
 	int index = m_tmpStyles.find(stylename);
 	if (index > -1)
@@ -1173,14 +1173,17 @@ void SMParagraphStyle::slotSelectionDirty()
 	}
 }
 
-void SMParagraphStyle::slotNumFormat(int numFormat)
+void SMParagraphStyle::slotNumFormat(int)
 {
-	if (m_pwidget->numFormatCombo->useParentValue())
+	if (m_pwidget->numFormatCombo->useParentFormat())
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->resetNumFormat();
 	else
+	{
+		NumFormat numFormat = m_pwidget->numFormatCombo->currentFormat();
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->setNumFormat(numFormat);
+	}
 
 	if (!m_selectionIsDirty)
 	{
@@ -1804,13 +1807,13 @@ void SMParagraphStyle::slotHyphenChar()
 {
 	if (m_pwidget->cpage->hyphenCharLineEdit->useParentValue())
 		for (int i = 0; i < m_selection.count(); ++i)
-			m_selection[i]->charStyle().resetHyphenWordMin();
+			m_selection[i]->charStyle().resetHyphenChar();
 	else
 	{
-		int wm = m_pwidget->cpage->smallestWordSpinBox->value();
-
+		QString hyphenText = m_pwidget->cpage->hyphenCharLineEdit->text();
+		uint ch = hyphenText.isEmpty() ? 0 : hyphenText.toUcs4()[0];
 		for (int i = 0; i < m_selection.count(); ++i)
-			m_selection[i]->charStyle().setHyphenWordMin(wm);
+			m_selection[i]->charStyle().setHyphenChar(ch);
 	}
 
 	if (!m_selectionIsDirty)
@@ -1936,7 +1939,7 @@ void SMParagraphStyle::slotFont(const QString& s)
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->charStyle().resetFont();
 	else {
-		ScFace sf = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[s];
+		ScFace sf = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[s];
 		
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->charStyle().setFont(sf);
@@ -1994,14 +1997,14 @@ void SMParagraphStyle::slotParentChanged(const QString &parent)
 
 void SMParagraphStyle::slotCharParentChanged(const QString &parent)
 {
-	Q_ASSERT(parent != QString::null);
+	Q_ASSERT(!parent.isNull());
 
 	QStringList sel;
 
 	for (int i = 0; i < m_selection.count(); ++i)
 	{
 		m_selection[i]->charStyle().erase();
-		if (parent != QString::null)
+		if (!parent.isNull())
 			m_selection[i]->charStyle().setParent(parent);
 
 		sel << m_selection[i]->name();
@@ -2145,7 +2148,7 @@ QList<StyleName> SMCharacterStyle::styles(bool reloadFromDoc)
 		if (m_tmpStyles[i].hasName())
 		{
 			QString styleName(m_tmpStyles[i].displayName());
-			QString parentName(QString::null);
+			QString parentName;
 
 			if (m_tmpStyles[i].hasParent())
 			{
@@ -2188,13 +2191,13 @@ void SMCharacterStyle::selected(const QStringList &styleNames)
 			m_selection.append(&m_tmpStyles[index]);
 
 	}
-	m_page->show(m_selection, cstyles, PrefsManager::instance()->appPrefs.docSetupPrefs.language, m_doc->unitIndex());
+	m_page->show(m_selection, cstyles, PrefsManager::instance().appPrefs.docSetupPrefs.language, m_doc->unitIndex());
 	setupConnections();
 }
 
 QString SMCharacterStyle::fromSelection() const
 {
-	QString lsName(QString::null);
+	QString lsName;
 	if (!m_doc)
 		return lsName; // no doc available
 
@@ -2211,7 +2214,7 @@ QString SMCharacterStyle::fromSelection() const
 		}
 		else if (!lsName.isNull() && !tmpName.isEmpty() && tmpName != "" && lsName != tmpName)
 		{
-			lsName = QString::null;
+			lsName.clear();
 			break;
 		}
 	}
@@ -2261,13 +2264,13 @@ QString SMCharacterStyle::newStyle(const QString &fromStyle)
 
 	Q_ASSERT(m_tmpStyles.resolve(copiedStyleName));
 	if (!m_tmpStyles.resolve(copiedStyleName))
-		return QString::null;
+		return QString();
 	//Copy the style with the original name
 	QString s(getUniqueName( tr("Clone of %1").arg(fromStyle)));
 	CharStyle c(m_tmpStyles.get(copiedStyleName));
 	c.setDefaultStyle(false);
 	c.setName(s);
-	c.setShortcut(QString::null);
+	c.setShortcut(QString());
 	m_tmpStyles.create(c);
 
 	return s;
@@ -2365,7 +2368,7 @@ void SMCharacterStyle::setDefaultStyle(bool ids)
 
 QString SMCharacterStyle::shortcut(const QString &stylename) const
 {
-	QString s(QString::null);
+	QString s;
 	int index = m_tmpStyles.find(stylename);
 	if (index > -1)
 		s = m_tmpStyles[index].shortcut();
@@ -2984,7 +2987,8 @@ void SMCharacterStyle::slotHyphenChar()
 			m_selection[i]->resetHyphenChar();
 	else
 	{
-		uint ch = m_page->hyphenCharLineEdit->text().toUcs4()[0];
+		QString hyphenText = m_page->hyphenCharLineEdit->text();
+		uint ch = hyphenText.isEmpty() ? 0 : hyphenText.toUcs4()[0];
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->setHyphenChar(ch);
 	}
@@ -3021,7 +3025,7 @@ void SMCharacterStyle::slotFont(const QString& s)
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->resetFont();
 	else {
-		ScFace sf = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[s];
+		ScFace sf = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[s];
 
 		for (int i = 0; i < m_selection.count(); ++i)
 			m_selection[i]->setFont(sf);

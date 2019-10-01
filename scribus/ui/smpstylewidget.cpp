@@ -37,11 +37,11 @@ SMPStyleWidget::SMPStyleWidget(ScribusDoc* doc, StyleSet<CharStyle> *cstyles) :
 	setupUi(this);
 	//Not used yet
 // 	optMarginCheckLeftProtruding->setVisible(false);
-	lineSpacingLabel->setPixmap(IconManager::instance()->loadPixmap("linespacing2.png"));
-	spaceAboveLabel->setPixmap(IconManager::instance()->loadPixmap("above.png") );
-	spaceBelowLabel->setPixmap(IconManager::instance()->loadPixmap("below.png") );
-	backIcon->setPixmap(IconManager::instance()->loadPixmap("16/color-fill.png"));
-	backShadeLabel->setPixmap(IconManager::instance()->loadPixmap("shade.png"));
+	lineSpacingLabel->setPixmap(IconManager::instance().loadPixmap("linespacing2.png"));
+	spaceAboveLabel->setPixmap(IconManager::instance().loadPixmap("above.png") );
+	spaceBelowLabel->setPixmap(IconManager::instance().loadPixmap("below.png") );
+	backIcon->setPixmap(IconManager::instance().loadPixmap("16/color-fill.png"));
+	backShadeLabel->setPixmap(IconManager::instance().loadPixmap("shade.png"));
 	
 	backColor_->setPixmapType(ColorCombo::fancyPixmaps);
 	backColor_->clear();
@@ -66,8 +66,7 @@ SMPStyleWidget::SMPStyleWidget(ScribusDoc* doc, StyleSet<CharStyle> *cstyles) :
 	parEffectOffset->setSuffix(unitGetSuffixFromIndex(0));
 
 	fillBulletStrEditCombo();
-	bulletCharTableButton->setIcon(IconManager::instance()->loadPixmap("22/insert-table.png"));
-	fillNumFormatCombo();
+	bulletCharTableButton->setIcon(IconManager::instance().loadPixmap("22/insert-table.png"));
 	numStartSpin->setMinimum(1);
 	numStartSpin->setMaximum(9999);
 	numLevelSpin->setMinimum(1);
@@ -189,12 +188,6 @@ void SMPStyleWidget::fillBulletStrEditCombo()
 		bulletStrEdit->setEditText(QChar(0x2022));
 }
 
-void SMPStyleWidget::fillNumFormatCombo()
-{
-	numFormatCombo->clear();
-	numFormatCombo->addItems(getFormatList());
-}
-
 void SMPStyleWidget::fillNumerationsCombo()
 {
 	QStringList numNames;
@@ -257,7 +250,6 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 	maxConsecutiveCountSpinBox->clear();
 	
 	//fillBulletStrEditCombo();
-	//fillNumFormatCombo();
 	//fillNumerationsCombo();
 	//fillNumRestartCombo();
 
@@ -367,8 +359,8 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 			numComboBox->setParentItem(numComboBox->findText(parent->numName()));
 		else
 			numComboBox->setParentItem(0);
-		numFormatCombo->setCurrentItem(pstyle->numFormat());
-		numFormatCombo->setParentItem(parent->numFormat());
+		numFormatCombo->setCurrentFormat((NumFormat) pstyle->numFormat());
+		numFormatCombo->setParentFormat((NumFormat) parent->numFormat());
 		numLevelSpin->setValue(pstyle->numLevel() +1, pstyle->isInhNumLevel());
 		NumStruct * numS = m_Doc->numerations.value(pstyle->numName());
 		if (numS)
@@ -425,7 +417,7 @@ void SMPStyleWidget::show(ParagraphStyle *pstyle, QList<ParagraphStyle> &pstyles
 			numName = "default";
 		numComboBox->setCurrentItem(numComboBox->findText(numName));
 		numNewLineEdit->clear();
-		numFormatCombo->setCurrentIndex(pstyle->numFormat());
+		numFormatCombo->setCurrentFormat((NumFormat) pstyle->numFormat());
 		numLevelSpin->setValue(pstyle->numLevel()+1);
 		NumStruct * numS = m_Doc->numerations.value(pstyle->numName());
 		if (numS)
@@ -1134,8 +1126,9 @@ void SMPStyleWidget::slotBullets(bool isOn)
 	connectPESignals();
 }
 
-void SMPStyleWidget::insertSpecialChars(const QString &chars)
+void SMPStyleWidget::insertSpecialChars(const QVector<uint> &charCodes)
 {
+	QString chars = QString::fromUcs4(charCodes.data(), charCodes.length());
 	bulletStrEdit->lineEdit()->setText(chars);
 }
 
@@ -1194,7 +1187,7 @@ void SMPStyleWidget::openEnhanced()
 	QApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 	m_enhanced = new CharSelectEnhanced(this);
 	m_enhanced->setModal(true);
-	connect(m_enhanced, SIGNAL(insertSpecialChars(const QString &)), this, SLOT(insertSpecialChars(const QString &)));
+	connect(m_enhanced, SIGNAL(insertSpecialChars(const QVector<uint> &)), this, SLOT(insertSpecialChars(const QVector<uint> &)));
 	connect(m_enhanced, SIGNAL(paletteShown(bool)), bulletCharTableButton, SLOT(setChecked(bool)));
 	m_enhanced->setDoc(m_Doc);
 	m_enhanced->setEnabled(true);
@@ -1215,7 +1208,7 @@ void SMPStyleWidget::closeEnhanced(bool show)
 {
 	if (!m_enhanced || show)
 		return;
-	disconnect(m_enhanced, SIGNAL(insertSpecialChars(const QString &)), this, SLOT(insertSpecialChars(const QString &)));
+	disconnect(m_enhanced, SIGNAL(insertSpecialChars(const QVector<uint> &)), this, SLOT(insertSpecialChars(const QVector<uint> &)));
 	disconnect(m_enhanced, SIGNAL(paletteShown(bool)), bulletCharTableButton, SLOT(setChecked(bool)));
 	m_enhanced->close();
 	delete m_enhanced;

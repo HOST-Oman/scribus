@@ -1274,6 +1274,9 @@ void Scribus150Format::writeSections(ScXmlStreamWriter & docu)
 			case Type_Abjad_ar:
 				docu.writeAttribute("Type", "Type_Abjad_ar");
 				break;
+			case Type_Hebrew:
+				docu.writeAttribute("Type", "Type_Hebrew");
+				break;
 			case Type_asterix:
 				docu.writeAttribute("Type", "Type_asterix");
 				break;
@@ -1365,6 +1368,9 @@ void Scribus150Format::writeNotesStyles(ScXmlStreamWriter & docu)
 				break;
 			case Type_Abjad_ar:
 				docu.writeAttribute("Type", "Type_Abjad_ar");
+				break;
+			case Type_Hebrew:
+				docu.writeAttribute("Type", "Type_Hebrew");
 				break;
 			case Type_asterix:
 				docu.writeAttribute("Type", "Type_asterix");
@@ -1552,8 +1558,8 @@ void Scribus150Format::WritePages(ScribusDoc *doc, ScXmlStreamWriter& docu, QPro
 		docu.writeAttribute("BORDERBOTTOM",page->initialMargins.bottom());
 		docu.writeAttribute("NUM",page->pageNr());
 		docu.writeAttribute("NAM",page->pageName());
-		docu.writeAttribute("MNAM",page->MPageNam);
-		docu.writeAttribute("Size", page->m_pageSize);
+		docu.writeAttribute("MNAM",page->masterPageName());
+		docu.writeAttribute("Size", page->size());
 		docu.writeAttribute("Orientation", page->orientation());
 		docu.writeAttribute("LEFT", page->LeftPg);
 		docu.writeAttribute("PRESET", page->marginPreset);
@@ -1992,7 +1998,7 @@ void Scribus150Format::WriteObjects(ScribusDoc *doc, ScXmlStreamWriter& docu, co
 		if (! item->itemText.defaultStyle().isInhAlignment())
 			docu.writeAttribute("ALIGN", item->itemText.defaultStyle().alignment());
 		
-		docu.writeAttribute("LAYER", item->LayerID);
+		docu.writeAttribute("LAYER", item->m_layerID);
 		if (item->isBookmark)
 			docu.writeAttribute("BOOKMARK", 1);
 

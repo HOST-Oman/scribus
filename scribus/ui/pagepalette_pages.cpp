@@ -39,7 +39,7 @@ PagePalette_Pages::PagePalette_Pages(QWidget* parent) : QWidget(parent)
 	setSizePolicy( QSizePolicy(QSizePolicy::Minimum, QSizePolicy::Minimum));
 
 	masterPageList->setMinimumSize(QSize(130,70));
-	masterPageList->Thumb = false;
+	masterPageList->m_thumb = false;
 	masterPageList->setIconSize(QSize(60, 60));
 
 	QHeaderView *Header = pageView->verticalHeader();
@@ -60,7 +60,7 @@ PagePalette_Pages::PagePalette_Pages(QWidget* parent) : QWidget(parent)
 	trash->setMinimumSize(QSize(32,32));
 	trash->setMaximumSize(QSize(32,32));
 
-	pix = IconManager::instance()->loadPixmap("32/page-simple.png");
+	pix = IconManager::instance().loadPixmap("32/page-simple.png");
 
 	currView = nullptr;
 	Rebuild();
@@ -91,7 +91,7 @@ void PagePalette_Pages::deleteMasterPage(const QString& tmp)
 	QString extraWarn = "";
 	for (int i=0; i < currView->Doc->DocPages.count(); ++i )
 	{
-		if (currView->Doc->DocPages[i]->MPageNam == tmp)
+		if (currView->Doc->DocPages[i]->masterPageName() == tmp)
 			extraWarn = tr("This master page is used at least once in the document.");
 	}
 	int exit = ScMessageBox::warning(this,
@@ -129,16 +129,16 @@ void PagePalette_Pages::pageView_applyMasterPage(const QString& masterpageName, 
 	m_scMW->Apply_MasterPage(masterpageName, pageIndex, false);
 	currView->reformPages();
 	currView->DrawNew();
-	SeItem* pageItem = pageView->GetPageItem(pageIndex);
+	SeItem* pageItem = pageView->getPageItem(pageIndex);
 	if (pageItem)
 		pageItem->setIcon(createIcon(pageIndex, masterpageName, pix));
 }
 
 void PagePalette_Pages::pageView_movePage(int r, int c)
 {
-	if (r == c || r == pageView->MaxC)
+	if ((r == c) || (r >= pageView->m_pageCount))
 		return;
-	if (c > pageView->MaxC)
+	if (c >= pageView->m_pageCount)
 		currView->Doc->movePage(r, r + 1, c, 2);
 	else
 		currView->Doc->movePage(r, r + 1, c, 0);
@@ -153,7 +153,7 @@ void PagePalette_Pages::pageView_gotoPage(int r, int c, int b)
 	{
 		int p;
 		bool dummy;
-		p = pageView->GetPage(r, c, &dummy);
+		p = pageView->getPage(r, c, &dummy);
 		emit gotoPage(p);
 	}
 }
@@ -208,7 +208,7 @@ void PagePalette_Pages::rebuildMasters()
 	{
 		const QString& pageName = it.key();
 		QString pageLabel = (pageName == CommonStrings::masterPageNormal) ? CommonStrings::trMasterPageNormal : pageName;
-		if (masterPageList->Thumb)
+		if (masterPageList->m_thumb)
 		{
 			pm = QPixmap::fromImage(currView->MPageToPixmap(pageName, 60));
 			item = new QListWidgetItem(QIcon(pm), pageLabel, masterPageList);
@@ -241,7 +241,8 @@ void PagePalette_Pages::rebuildPages()
 	pageLayout->selectItem(currView->Doc->pagePositioning());
 	pageLayout->firstPage->setCurrentIndex(currView->Doc->pageSets()[currView->Doc->pagePositioning()].FirstPage);
 	pageLayout->binding->setCurrentIndex(currView->Doc->pageBinding());
-	pageView->MaxC = currView->Doc->DocPages.count()-1;
+	pageView->m_pageCount = currView->Doc->DocPages.count();
+
 	int counter = currView->Doc->pageSets()[currView->Doc->pagePositioning()].FirstPage;
 	int cols = currView->Doc->pageSets()[currView->Doc->pagePositioning()].Columns;
 	int rows = (currView->Doc->DocPages.count()+counter) / currView->Doc->pageSets()[currView->Doc->pagePositioning()].Columns;
@@ -276,16 +277,16 @@ void PagePalette_Pages::rebuildPages()
 			pageView->setItem(rr, cc, tW);
 		}
 	}
-	pageView->coladd = coladd;
-	pageView->colmult = colmult;
-	pageView->rowadd = rowadd;
-	pageView->rowmult = rowmult;
-	pageView->firstP = counter;
-	pageView->cols = currView->Doc->pageSets()[currView->Doc->pagePositioning()].Columns;
+	pageView->m_coladd = coladd;
+	pageView->m_colmult = colmult;
+	pageView->m_rowadd = rowadd;
+	pageView->m_rowmult = rowmult;
+	pageView->m_firstPage = counter;
+	pageView->m_cols = currView->Doc->pageSets()[currView->Doc->pagePositioning()].Columns;
 	pageList.clear();
 	for (int a = 0; a < currView->Doc->DocPages.count(); ++a)
 	{
-		str = currView->Doc->DocPages.at(a)->MPageNam;
+		str = currView->Doc->DocPages.at(a)->masterPageName();
 		SeItem *it = new SeItem(str, a, createIcon(a, str, pix));
 		pageList.append(it);
 		pageView->setItem(rowcounter*rowmult+rowadd, counter*colmult+coladd, (QTableWidgetItem *)it);
@@ -360,9 +361,9 @@ void PagePalette_Pages::setView(ScribusView *view)
 
 void PagePalette_Pages::selMasterPage()
 {
-	if (masterPageList->CurItem == nullptr)
+	if (masterPageList->m_currItem == nullptr)
 		return;
-	QVariant pageVar = masterPageList->CurItem->data(Qt::UserRole);
+	QVariant pageVar = masterPageList->m_currItem->data(Qt::UserRole);
 	emit gotoMasterPage(pageVar.toString());
 }
 

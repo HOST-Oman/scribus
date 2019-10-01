@@ -76,7 +76,7 @@ ColorsAndFillsDialog::ColorsAndFillsDialog(QWidget* parent, QHash<QString, VGrad
 	m_doc = doc;
 	m_colorList = doco;
 	mainWin = scMW;
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 	dataTree->setContextMenuPolicy(Qt::CustomContextMenu);
 	dataTree->setIconSize(QSize(60, 48));
 	colorItems = new QTreeWidgetItem(dataTree);
@@ -179,13 +179,13 @@ void ColorsAndFillsDialog::leaveDialog()
 QTreeWidgetItem* ColorsAndFillsDialog::updatePatternList(const QString& addedName)
 {
 	QList<QTreeWidgetItem*> lg = patternItems->takeChildren();
-	for (int a = 0; a < lg.count(); a++)
+	for (int i = 0; i < lg.count(); i++)
 	{
-		delete lg[a];
+		delete lg[i];
 	}
 	QTreeWidgetItem* ret = nullptr;
 	QStringList patK = dialogPatterns.keys();
-	qSort(patK);
+	patK.sort();
 	for (int a = 0; a < patK.count(); a++)
 	{
 		ScPattern sp = dialogPatterns.value(patK[a]);
@@ -213,19 +213,19 @@ QTreeWidgetItem* ColorsAndFillsDialog::updatePatternList(const QString& addedNam
 QTreeWidgetItem* ColorsAndFillsDialog::updateGradientList(const QString& addedName)
 {
 	QList<QTreeWidgetItem*> lg = gradientItems->takeChildren();
-	for (int a = 0; a < lg.count(); a++)
+	for (int i = 0; i < lg.count(); i++)
 	{
-		delete lg[a];
+		delete lg[i];
 	}
 	QTreeWidgetItem* ret = nullptr;
 	QStringList patK = dialogGradients.keys();
-	qSort(patK);
+	patK.sort();
 	for (int a = 0; a < patK.count(); a++)
 	{
 		VGradient gr = dialogGradients.value(patK[a]);
 		QImage pixm(48, 12, QImage::Format_ARGB32);
 		QPainter pb;
-		QBrush b(QColor(205,205,205), IconManager::instance()->loadPixmap("testfill.png"));
+		QBrush b(QColor(205,205,205), IconManager::instance().loadPixmap("testfill.png"));
 		pb.begin(&pixm);
 		pb.fillRect(0, 0, 48, 12, b);
 		pb.end();
@@ -1033,7 +1033,7 @@ void ColorsAndFillsDialog::importColorItems()
 		formats += tr("Gimp Gradient Files \"*.ggr\" (*.ggr *.GGR);;");
 		formats += tr("All Files (*)");
 		allFormats += formats;
-		PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+		PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 		QString wdir = dirs->get("gradients", ".");
 		CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdHidePreviewCheckBox | fdExistingFiles | fdDisableOk);
 		if (dia.exec() == QDialog::Accepted)
@@ -1042,7 +1042,7 @@ void ColorsAndFillsDialog::importColorItems()
 			return;
 		if (!fileName.isEmpty())
 		{
-			PrefsManager::instance()->prefsFile->getContext("dirs")->set("gradients", fileName.left(fileName.lastIndexOf("/")));
+			PrefsManager::instance().prefsFile->getContext("dirs")->set("gradients", fileName.left(fileName.lastIndexOf("/")));
 			QFileInfo fi(fileName);
 			QString ext = fi.suffix().toLower();
 			if (ext == "sgr")
@@ -1066,7 +1066,7 @@ void ColorsAndFillsDialog::importColorItems()
 		QString extra = allFormatsV.join(" *.");
 		extra.prepend(" *.");
 		QString fileName;
-		PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+		PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 		QString wdir = dirs->get("colors", ".");
 		QString docexts("*.sla *.sla.gz *.scd *.scd.gz");
 		QString aiepsext(FormatsManager::instance()->extensionListForFormat(FormatsManager::EPS|FormatsManager::PS|FormatsManager::AI, 0));
@@ -1184,9 +1184,9 @@ void ColorsAndFillsDialog::importColorItems()
 		imgFormats.append("eps");
 		imgFormats.append("epsi");
 		imgFormats.append("ps");
-		qSort(formats);
+		formats.sort();
 		allFormats += formats.join(";;");
-		PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+		PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 		QString wdir = dirs->get("patterns", ".");
 		CustomFDialog dia(this, wdir, tr("Open"), allFormats, fdHidePreviewCheckBox | fdExistingFiles | fdDisableOk);
 		if (dia.exec() != QDialog::Accepted)
@@ -1195,7 +1195,7 @@ void ColorsAndFillsDialog::importColorItems()
 		if (fileName.isEmpty())
 			return;
 		qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
-		PrefsManager::instance()->prefsFile->getContext("dirs")->set("patterns", fileName.left(fileName.lastIndexOf("/")));
+		PrefsManager::instance().prefsFile->getContext("dirs")->set("patterns", fileName.left(fileName.lastIndexOf("/")));
 		QFileInfo fi(fileName);
 		if ((fi.suffix().toLower() == "sce") || (!imgFormats.contains(fi.suffix().toLower())))
 		{
@@ -1223,80 +1223,79 @@ void ColorsAndFillsDialog::importColorItems()
 
 void ColorsAndFillsDialog::loadPatternDir()
 {
-	PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+	PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 	QString wdir = dirs->get("patterndir", ".");
 	QString fileName = QFileDialog::getExistingDirectory(this, tr("Choose a Directory"), wdir);
-	if (!fileName.isEmpty())
+	if (fileName.isEmpty())
+		return;
+
+	QStringList formats;
+	formats += "eps";
+	formats += "epsi";
+	formats += "pdf";
+	QString form1 = "";
+	for (int i = 0; i < QImageReader::supportedImageFormats().count(); ++i)
 	{
-		QStringList formats;
-		formats += "eps";
-		formats += "epsi";
-		formats += "pdf";
-		QString form1 = "";
-		for ( int i = 0; i < QImageReader::supportedImageFormats().count(); ++i )
+		form1 = QString(QImageReader::supportedImageFormats().at(i)).toLower();
+		if (form1 == "jpeg")
+			form1 = "jpg";
+		if ((form1 == "png") || (form1 == "xpm") || (form1 == "gif"))
+		formats += form1;
+		else if (form1 == "jpg")
 		{
-			form1 = QString(QImageReader::supportedImageFormats().at(i)).toLower();
-			if (form1 == "jpeg")
-				form1 = "jpg";
-			if ((form1 == "png") || (form1 == "xpm") || (form1 == "gif"))
-			formats += form1;
-			else if (form1 == "jpg")
-			{
-				formats += "jpg";
-				formats += "jpeg";
-			}
-		}
-		formats += "tif";
-	 	formats += "tiff";
-		formats += "psd";
-		formats += "pat";
-		QDir d(fileName, "*", QDir::Name, QDir::Files | QDir::Readable | QDir::NoSymLinks);
-		if ((d.exists()) && (d.count() != 0))
-		{
-			mainWin->setStatusBarInfoText( tr("Loading Patterns"));
-			mainWin->mainWindowProgressBar->reset();
-			mainWin->mainWindowProgressBar->setMaximum(d.count() * 2);
-			qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
-			qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-			for (uint dc = 0; dc < d.count(); ++dc)
-			{
-				mainWin->mainWindowProgressBar->setValue(dc);
-				qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-				QFileInfo fi(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
-				QString ext = fi.suffix().toLower();
-				if ((ext == "sce") || (!formats.contains(ext)))
-					loadVectors(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
-			}
-			for (uint dc = 0; dc < d.count(); ++dc)
-			{
-				mainWin->mainWindowProgressBar->setValue(d.count() + dc);
-				qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
-				QFileInfo fi(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
-				QString ext = fi.suffix().toLower();
-				if ((ext == "sce") || (!formats.contains(ext)))
-					continue;
-				if (formats.contains(ext))
-				{
-					QString patNam = fi.baseName().trimmed().simplified().replace(" ", "_");
-					if (!dialogPatterns.contains(patNam))
-					{
-						ScPattern pat = ScPattern();
-						pat.setDoc(m_doc);
-						pat.setPattern(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
-						dialogPatterns.insert(patNam, pat);
-						origNamesPatterns.insert(patNam, patNam);
-					}
-				}
-				else
-					continue;
-			}
-			d.cdUp();
-			dirs->set("patterndir", d.absolutePath());
-			qApp->restoreOverrideCursor();
-			mainWin->setStatusBarInfoText("");
-			mainWin->mainWindowProgressBar->reset();
+			formats += "jpg";
+			formats += "jpeg";
 		}
 	}
+	formats += "tif";
+	formats += "tiff";
+	formats += "psd";
+	formats += "pat";
+	QDir d(fileName, "*", QDir::Name, QDir::Files | QDir::Readable | QDir::NoSymLinks);
+	if ((!d.exists()) || (d.count() == 0))
+		return;
+
+	mainWin->setStatusBarInfoText( tr("Loading Patterns"));
+	mainWin->mainWindowProgressBar->reset();
+	mainWin->mainWindowProgressBar->setMaximum(d.count() * 2);
+	qApp->setOverrideCursor(QCursor(Qt::WaitCursor));
+	qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+	for (uint dc = 0; dc < d.count(); ++dc)
+	{
+		mainWin->mainWindowProgressBar->setValue(dc);
+		qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+		QFileInfo fi(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
+		QString ext = fi.suffix().toLower();
+		if ((ext == "sce") || (!formats.contains(ext)))
+			loadVectors(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
+	}
+	for (uint dc = 0; dc < d.count(); ++dc)
+	{
+		mainWin->mainWindowProgressBar->setValue(d.count() + dc);
+		qApp->processEvents(QEventLoop::ExcludeUserInputEvents);
+
+		QFileInfo fi(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
+		QString ext = fi.suffix().toLower();
+		if ((ext == "sce") || (!formats.contains(ext)))
+			continue;
+		if (!formats.contains(ext))
+			continue;
+
+		QString patNam = fi.baseName().trimmed().simplified().replace(" ", "_");
+		if (!dialogPatterns.contains(patNam))
+		{
+			ScPattern pat = ScPattern();
+			pat.setDoc(m_doc);
+			pat.setPattern(QDir::cleanPath(QDir::toNativeSeparators(fileName + "/" + d[dc])));
+			dialogPatterns.insert(patNam, pat);
+			origNamesPatterns.insert(patNam, patNam);
+		}
+	}
+	d.cdUp();
+	dirs->set("patterndir", d.absolutePath());
+	qApp->restoreOverrideCursor();
+	mainWin->setStatusBarInfoText("");
+	mainWin->mainWindowProgressBar->reset();
 }
 
 void ColorsAndFillsDialog::loadVectors(const QString& data)
@@ -1325,7 +1324,7 @@ void ColorsAndFillsDialog::loadVectors(const QString& data)
 	if (fi.suffix().toLower() == "sce")
 	{
 		ScriXmlDoc ss;
-		ss.readElem(data, PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts, m_doc, m_doc->currentPage()->xOffset(), m_doc->currentPage()->yOffset(), true, true, PrefsManager::instance()->appPrefs.fontPrefs.GFontSub);
+		ss.readElem(data, PrefsManager::instance().appPrefs.fontPrefs.AvailFonts, m_doc, m_doc->currentPage()->xOffset(), m_doc->currentPage()->yOffset(), true, true, PrefsManager::instance().appPrefs.fontPrefs.GFontSub);
 	}
 	else
 	{
@@ -1337,7 +1336,7 @@ void ColorsAndFillsDialog::loadVectors(const QString& data)
 			const FileFormat * fmt = LoadSavePlugin::getFormatById(testResult);
 			if (fmt)
 			{
-				fmt->setupTargets(m_doc, nullptr, mainWin, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+				fmt->setupTargets(m_doc, nullptr, mainWin, nullptr, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 				fmt->loadFile(data, LoadSavePlugin::lfUseCurrentPage|LoadSavePlugin::lfInteractive|LoadSavePlugin::lfScripted|LoadSavePlugin::lfKeepPatterns|LoadSavePlugin::lfLoadAsPattern);
 			}
 		}
@@ -1965,7 +1964,7 @@ void ColorsAndFillsDialog::doSaveDefaults(const QString& name, bool changed)
 		s_doc->PageColors = m_colorList;
 		s_doc->setGradients(dialogGradients);
 		s_doc->setPatterns(dialogPatterns);
-		fmt->setupTargets(s_doc, nullptr, mainWin, nullptr, &(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts));
+		fmt->setupTargets(s_doc, nullptr, mainWin, nullptr, &(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts));
 		fmt->savePalette(filename);
 		delete s_doc;
 	}

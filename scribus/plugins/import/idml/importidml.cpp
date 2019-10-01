@@ -155,8 +155,8 @@ QImage IdmlPlug::readThumbnail(const QString& fName)
 			progressDialog = nullptr;
 			QFileInfo fi = QFileInfo(fName);
 			baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
-			docWidth = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-			docHeight = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+			docWidth = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+			docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 			m_Doc = new ScribusDoc();
 			m_Doc->setup(0, 1, 1, 1, 1, "Custom", "Custom");
 			m_Doc->setPage(docWidth, docHeight, 0, 0, 0, 0, 0, 0, false, false);
@@ -313,8 +313,8 @@ bool IdmlPlug::import(const QString& fNameIn, const TransactionSettings& trSetti
 		qApp->processEvents();
 	}
 	/* Set default Page to size defined in Preferences */
-	docWidth = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	docHeight = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	docWidth = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	docHeight = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	baseX = 0;
 	baseY = 0;
 	if (!interactive || (flags & LoadSavePlugin::lfInsertPage))
@@ -1492,7 +1492,7 @@ void IdmlPlug::parsePreferencesXMLNode(const QDomElement& prNode)
 		m_Doc->setPage(docWidth, docHeight, topMargin, leftMargin, rightMargin, bottomMargin, pgCols, pgGap, false, facingPages);
 		m_Doc->setPageSize("Custom");
 		m_Doc->bleeds()->set(bleedTop, bleedLeft, bleedBottom, bleedRight);
-		m_Doc->currentPage()->m_pageSize = "Custom";
+		m_Doc->currentPage()->setSize("Custom");
 		m_Doc->currentPage()->setInitialHeight(docHeight);
 		m_Doc->currentPage()->setInitialWidth(docWidth);
 		m_Doc->currentPage()->setHeight(docHeight);
@@ -1546,8 +1546,8 @@ void IdmlPlug::parseSpreadXMLNode(const QDomElement& spNode)
 					if ((importerFlags & LoadSavePlugin::lfCreateDoc) && (!firstPage))
 					{
 						m_Doc->addPage(pagecount);
-						m_Doc->currentPage()->MPageNam = CommonStrings::trMasterPageNormal;
-						m_Doc->currentPage()->m_pageSize = "Custom";
+						m_Doc->currentPage()->setMasterPageNameNormal();
+						m_Doc->currentPage()->setSize("Custom");
 						m_Doc->currentPage()->setInitialHeight(docHeight);
 						m_Doc->currentPage()->setInitialWidth(docWidth);
 						m_Doc->currentPage()->setHeight(docHeight);
@@ -1625,7 +1625,7 @@ void IdmlPlug::parseSpreadXMLNode(const QDomElement& spNode)
 					ScPage *addedPage = m_Doc->addMasterPage(mpagecount, pageNam + "_" + spe.attribute("Self"));
 					m_Doc->setCurrentPage(addedPage);
 					pages.append(spe.attribute("Self"));
-					addedPage->MPageNam = "";
+					addedPage->clearMasterPageName();
 					m_Doc->view()->addPage(mpagecount, true);
 					baseX = addedPage->xOffset();
 					baseY = addedPage->yOffset() + addedPage->height() / 2.0;
@@ -2614,7 +2614,7 @@ QList<PageItem*> IdmlPlug::parseItemXML(const QDomElement& itElem, const QTransf
 							item->setImageXYScale(scXi / item->pixm.imgInfo.xres * 72, scYi / item->pixm.imgInfo.xres * 72);
 							item->setImageXYOffset(-imageDX * scXi / item->imageXScale(), -imageDY * scXi / item->imageYScale());
 							item->setImageRotation(-roti);
-							item->AdjustPictScale();
+							item->adjustPictScale();
 						}
 					}
 					delete tempFile;
@@ -2650,7 +2650,7 @@ QList<PageItem*> IdmlPlug::parseItemXML(const QDomElement& itElem, const QTransf
 					item->setImageXYOffset(-imageDX * scXi / item->imageXScale(), -imageDY * scXi / item->imageYScale());
 					item->setImageRotation(-roti);
 					if (imageFit != "None")
-						item->AdjustPictScale();
+						item->adjustPictScale();
 				}
 			}
 			GElements.append(m_Doc->Items->takeAt(z));
@@ -3126,11 +3126,11 @@ void IdmlPlug::readParagraphStyleAttributes(ParagraphStyle &newStyle, const QDom
 	{
 		QString align = styleElem.attribute("Justification", "LeftAlign");
 		if (align == "LeftAlign")
-			newStyle.setAlignment(ParagraphStyle::Leftaligned);
+			newStyle.setAlignment(ParagraphStyle::LeftAligned);
 		else if (align == "CenterAlign")
 			newStyle.setAlignment(ParagraphStyle::Centered);
 		else if (align == "RightAlign")
-			newStyle.setAlignment(ParagraphStyle::Rightaligned);
+			newStyle.setAlignment(ParagraphStyle::RightAligned);
 		else if ((align == "LeftJustified") || (align == "CenterJustified") || (align == "RightJustified"))
 			newStyle.setAlignment(ParagraphStyle::Justified);
 		else if (align == "FullyJustified")
@@ -3254,7 +3254,7 @@ void IdmlPlug::resolveObjectStyle(ObjectStyle &nstyle, const QString& baseStyleN
 
 QString IdmlPlug::constructFontName(const QString& fontBaseName, const QString& fontStyle)
 {
-	QString fontName = PrefsManager::instance()->appPrefs.itemToolPrefs.textFont;
+	QString fontName = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
 	if (fontTranslateMap.contains(fontBaseName))
 	{
 		QMap<QString, QString> styleMap = fontTranslateMap[fontBaseName];
@@ -3262,7 +3262,7 @@ QString IdmlPlug::constructFontName(const QString& fontBaseName, const QString& 
 		{
 			QString postName = styleMap[fontStyle];
 			bool found = false;
-			SCFontsIterator it(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts);
+			SCFontsIterator it(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts);
 			for ( ; it.hasNext(); it.next())
 			{
 				if (it.current().psName() == postName)
@@ -3275,12 +3275,12 @@ QString IdmlPlug::constructFontName(const QString& fontBaseName, const QString& 
 			if (!found)
 			{
 				if (importerFlags & LoadSavePlugin::lfCreateThumbnail)
-					fontName = PrefsManager::instance()->appPrefs.itemToolPrefs.textFont;
+					fontName = PrefsManager::instance().appPrefs.itemToolPrefs.textFont;
 				else
 				{
 					QString family = fontBaseName + " " + fontStyle;
 					family = family.remove("$ID/");
-					if (!PrefsManager::instance()->appPrefs.fontPrefs.GFontSub.contains(family))
+					if (!PrefsManager::instance().appPrefs.fontPrefs.GFontSub.contains(family))
 					{
 						qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 						MissingFont *dia = new MissingFont(nullptr, family, m_Doc);
@@ -3288,10 +3288,10 @@ QString IdmlPlug::constructFontName(const QString& fontBaseName, const QString& 
 						fontName = dia->getReplacementFont();
 						delete dia;
 						qApp->changeOverrideCursor(QCursor(Qt::WaitCursor));
-						PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family] = fontName;
+						PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family] = fontName;
 					}
 					else
-						fontName = PrefsManager::instance()->appPrefs.fontPrefs.GFontSub[family];
+						fontName = PrefsManager::instance().appPrefs.fontPrefs.GFontSub[family];
 				}
 			}
 		}

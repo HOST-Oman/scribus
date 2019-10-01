@@ -21,7 +21,7 @@ NodeEditContext::NodeEditContext() :
 {
 }
 
-bool NodeEditContext::hasNodeSelected() 
+bool NodeEditContext::hasNodeSelected() const
 { 
 	return m_ClRe != -1;
 }
@@ -31,6 +31,17 @@ void NodeEditContext::deselect()
 { 
 	m_ClRe = -1;
 	m_SelNode.clear();
+}
+
+void NodeEditContext::selectNode(int i)
+{
+	m_ClRe = i;
+	m_SelNode.append(i);
+}
+
+int NodeEditContext::selectionCount() const
+{
+	return m_SelNode.count();
 }
 
 void NodeEditContext::reset()
@@ -341,7 +352,7 @@ void NodeEditContext::moveClipPoint(PageItem *currItem, const FPoint& ip)
 			currItem->ContourLine = Clip.copy();
 		else
 			currItem->PoLine = Clip.copy();
-		currItem->Clip = FlattenPath(currItem->PoLine, currItem->Segments);
+		currItem->Clip = flattenPath(currItem->PoLine, currItem->Segments);
 	}
 	if (!m_isContourLine)
 		currItem->ContourLine.translate(xposOrig - currItem->xPos(), yposOrig - currItem->yPos());

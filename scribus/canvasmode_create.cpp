@@ -127,13 +127,13 @@ void CreateMode::drawControls(QPainter* p)
 		}
 		else if (createObjectMode == modeDrawRegularPolygon)
 		{
-			QPainterPath path = RegularPolygonPath(localRect.width(), localRect.height(), m_doc->itemToolPrefs().polyCorners, m_doc->itemToolPrefs().polyUseFactor, m_doc->itemToolPrefs().polyFactor, m_doc->itemToolPrefs().polyRotation, m_doc->itemToolPrefs().polyCurvature, m_doc->itemToolPrefs().polyInnerRot, m_doc->itemToolPrefs().polyOuterCurvature);
+			QPainterPath path = regularPolygonPath(localRect.width(), localRect.height(), m_doc->itemToolPrefs().polyCorners, m_doc->itemToolPrefs().polyUseFactor, m_doc->itemToolPrefs().polyFactor, m_doc->itemToolPrefs().polyRotation, m_doc->itemToolPrefs().polyCurvature, m_doc->itemToolPrefs().polyInnerRot, m_doc->itemToolPrefs().polyOuterCurvature);
 			p->translate(localRect.left(), localRect.top());
 			p->drawPath(path);
 		}
 		else if (createObjectMode == modeDrawSpiral)
 		{
-			QPainterPath path = SpiralPath(localRect.width(), localRect.height(), m_doc->itemToolPrefs().spiralStartAngle, m_doc->itemToolPrefs().spiralEndAngle, m_doc->itemToolPrefs().spiralFactor);
+			QPainterPath path = spiralPath(localRect.width(), localRect.height(), m_doc->itemToolPrefs().spiralStartAngle, m_doc->itemToolPrefs().spiralEndAngle, m_doc->itemToolPrefs().spiralFactor);
 			p->translate(localRect.left(), localRect.top());
 			p->drawPath(path);
 		}
@@ -428,7 +428,7 @@ void CreateMode::mouseReleaseEvent(QMouseEvent *m)
 		m_createTransaction.cancel();
 		m_createTransaction.reset();
 	}
-	if (!PrefsManager::instance()->appPrefs.uiPrefs.stickyTools)
+	if (!PrefsManager::instance().appPrefs.uiPrefs.stickyTools)
 	{
 		m_view->requestMode(modeNormal);
 	}
@@ -775,7 +775,7 @@ PageItem* CreateMode::doCreateNewObject()
 		break;
 	case modeDrawTable2:
 		// TODO: Figure out what these conditions actually do.
-		if ((m_doc->m_Selection->count() == 0) && (m_view->HaveSelRect) && (!m_view->MidButt))
+		if ((m_doc->m_Selection->isEmpty()) && (m_view->HaveSelRect) && (!m_view->MidButt))
 		{
 			m_view->HaveSelRect = false;
 			// Calculate table rectangle.
@@ -841,6 +841,7 @@ PageItem* CreateMode::doCreateNewObject()
 		SetupDrawNoResize(z);
 		newObject = m_doc->Items->at(z);
 		newObject->ContourLine = newObject->PoLine.copy();
+		m_doc->setRedrawBounding(newObject);
 	}
 	return newObject;
 }
@@ -854,7 +855,7 @@ bool CreateMode::doOneClick(FPoint& startPoint, FPoint& endPoint)
 	if (QApplication::keyboardModifiers() & Qt::ControlModifier)
 		return true;
 
-	PrefsContext* sizes = PrefsManager::instance()->prefsFile->getContext("ObjectSize");
+	PrefsContext* sizes = PrefsManager::instance().prefsFile->getContext("ObjectSize");
 	bool doRemember     = sizes->getBool("Remember", true);
 
 	int lmode = (createObjectMode == modeDrawLine) ? 1 : 0;

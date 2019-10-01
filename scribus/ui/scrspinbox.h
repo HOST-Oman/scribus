@@ -24,13 +24,13 @@ class SCRIBUS_API ScrSpinBox : public QDoubleSpinBox
 	public:
 		ScrSpinBox(QWidget *parent, int unitIndex=0);
 		ScrSpinBox(double minValue, double maxValue, QWidget *pa, int unitIndex=0);
-		~ScrSpinBox();
+		~ScrSpinBox() override;
 		
 		//overridden members
-		double valueFromText ( const QString & text ) const;
-		QString textFromValue ( double value ) const;
-		QValidator::State validate ( QString & input, int & pos ) const;
-		void fixup ( QString & input ) const;
+		double valueFromText ( const QString & text ) const override;
+		QString textFromValue ( double value ) const override;
+		QValidator::State validate ( QString & input, int & pos ) const override;
+		void fixup ( QString & input ) const override;
 
 		// call QDoubleSpinBox::setValue() without emitting valueChanged() signal
 		void showValue(double val);
@@ -39,24 +39,26 @@ class SCRIBUS_API ScrSpinBox : public QDoubleSpinBox
 		void init(int unitIndex);
 		void setConstants(const QMap<QString, double>* constants);
 		void setNewUnit(int unitIndex);
-		double getValue(int unitIndex=0);
-		void setTabAdvance(bool enable);
+		double getValue(int unitIndex=0) const;
 
-		uint   unitIndex() const { return m_unitIndex; }
+		uint unitIndex() const { return m_unitIndex; }
 		double unitRatio() const;
+
+		// Reimplement QDoubleSpinBox::stepBy() for angle wrapping
+		void stepBy(int steps) override;
 		
 	public slots:
-		void setValues(double min, double max, int deci, double val);
-		void getValues(double *min, double *max, int *deci, double *val);
+		void getValues(double *min, double *max, int *deci, double *val) const;
 		void setValue(int val);
 		void setValue(double val);
+		void setValues(double min, double max, int deci, double val);
 	
 	protected:
-		void setParameters( int s );
 		uint m_unitIndex;
-		bool m_tabAdvance;
 		const QMap<QString, double>* m_constants;
-		bool eventFilter ( QObject * watched, QEvent * event );
+
+		void setParameters(int s);
+		bool eventFilter ( QObject * watched, QEvent * event ) override;
 		
 	protected slots:
 		void textChanged();

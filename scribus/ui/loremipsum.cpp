@@ -97,7 +97,7 @@ LoremParser::LoremParser(const QString& fname)
 QString LoremParser::createLorem(uint parCount, bool random)
 {
 	if (parCount < 1)
-		return QString::null;
+		return QString();
 	// first paragraph is always the same
 	QString lorem = "";
 	if (!loremIpsum.isEmpty())
@@ -138,7 +138,7 @@ LoremManager::LoremManager(ScribusDoc* doc, QWidget* parent) : QDialog( parent )
 	m_Doc=doc;
 	setModal(true);
 	setWindowTitle( tr( "Lorem Ipsum" ) );
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 	LoremManagerLayout = new QGridLayout(this) ;
 	LoremManagerLayout->setMargin(10);
 	LoremManagerLayout->setSpacing(5);
@@ -165,7 +165,7 @@ LoremManager::LoremManager(ScribusDoc* doc, QWidget* parent) : QDialog( parent )
 
 	paraBox = new QSpinBox( this );
 	paraBox->setMinimum( 1 );
-	paraBox->setValue(PrefsManager::instance()->appPrefs.miscPrefs.paragraphsLI);
+	paraBox->setValue(PrefsManager::instance().appPrefs.miscPrefs.paragraphsLI);
 	layout2->addWidget( paraBox );
 
 	paraSpacer = new QSpacerItem( 2, 2, QSizePolicy::Expanding, QSizePolicy::Minimum );
@@ -198,7 +198,7 @@ LoremManager::LoremManager(ScribusDoc* doc, QWidget* parent) : QDialog( parent )
 	languageChange();
 
 	// reading lorems
-	QDir d(getLoremLocation(QString::null), "*.xml");
+	QDir d(getLoremLocation(QString()), "*.xml");
 
 	QFileInfoList list = d.entryInfoList();
 	QListIterator<QFileInfo> it(list);

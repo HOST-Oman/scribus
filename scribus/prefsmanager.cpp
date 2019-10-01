@@ -65,8 +65,6 @@ for which a new license (GPL+exception) is in place.
 
 extern bool emergencyActivated;
 
-PrefsManager* PrefsManager::m_instance = nullptr;
-
 PrefsManager::PrefsManager(QObject *parent) : QObject(parent),
 	prefsFile(nullptr),
 	m_importingFrom12(false),
@@ -80,20 +78,11 @@ PrefsManager::~PrefsManager()
 	delete prefsFile;
 }
 
-PrefsManager* PrefsManager::instance()
+PrefsManager& PrefsManager::instance()
 {
-	if (m_instance == nullptr)
-		m_instance = new PrefsManager();
-
+	static PrefsManager m_instance;
 	return m_instance;
 }
-
-void PrefsManager::deleteInstance()
-{
-	delete m_instance;
-	m_instance = nullptr;
-}
-
 
 ApplicationPrefs* PrefsManager::applicationPrefs()
 {
@@ -287,7 +276,7 @@ void PrefsManager::initDefaults()
 	appPrefs.opToolPrefs.magMin = 1;
 	appPrefs.opToolPrefs.magMax = 32000;
 	appPrefs.opToolPrefs.magStep = 25;
-	appPrefs.docSetupPrefs.docUnitIndex = unitIndexFromString(LocaleManager::instance()->unitForLocale(ScQApp->currGUILanguage()));
+	appPrefs.docSetupPrefs.docUnitIndex = unitIndexFromString(LocaleManager::instance().unitForLocale(ScQApp->currGUILanguage()));
 	appPrefs.itemToolPrefs.polyCorners = 4;
 	appPrefs.itemToolPrefs.polyFactor = 0.5;
 	appPrefs.itemToolPrefs.polyUseFactor = false;
@@ -323,7 +312,7 @@ void PrefsManager::initDefaults()
 	appPrefs.docSetupPrefs.language = LanguageManager::instance()->getShortAbbrevFromAbbrevDecomposition(ScQApp->currGUILanguage());
 	if (appPrefs.docSetupPrefs.language.isEmpty())
 		appPrefs.docSetupPrefs.language = "en_GB";
-	appPrefs.docSetupPrefs.pageSize = LocaleManager::instance()->pageSizeForLocale(ScQApp->currGUILanguage());
+	appPrefs.docSetupPrefs.pageSize = LocaleManager::instance().pageSizeForLocale(ScQApp->currGUILanguage());
 	appPrefs.docSetupPrefs.pageOrientation = 0;
 	appPrefs.docSetupPrefs.binding = 0;
 	PageSize defaultPageSize(appPrefs.docSetupPrefs.pageSize);
@@ -1150,7 +1139,7 @@ int PrefsManager::mouseWheelJump() const
 //Changed to return false when we have no fonts
 bool PrefsManager::GetAllFonts(bool showFontInfo)
 {
-	appPrefs.fontPrefs.AvailFonts.GetFonts(m_prefsLocation, showFontInfo);
+	appPrefs.fontPrefs.AvailFonts.getFonts(m_prefsLocation, showFontInfo);
 	return !appPrefs.fontPrefs.AvailFonts.isEmpty();
 }
 
@@ -1951,10 +1940,11 @@ bool PrefsManager::ReadPref(const QString& ho)
 	QTextStream ts(&f);
 	ts.setCodec("UTF-8");
 	QString errorMsg;
-	int errorLine = 0, errorColumn = 0;
+	int errorLine = 0;
+	int errorColumn = 0;
 	if( !docu.setContent(ts.readAll(), &errorMsg, &errorLine, &errorColumn) )
 	{
-		m_lastError = tr("Failed to read prefs XML from \"%1\": %2 at line %3, col %4").arg(ho).arg(errorMsg).arg(errorLine).arg(errorColumn);
+		m_lastError = tr("Failed to read prefs XML from \"%1\": %2 at line %3, col %4").arg(ho, errorMsg).arg(errorLine).arg(errorColumn);
 		f.close();
 		return false;
 	}

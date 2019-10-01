@@ -110,8 +110,8 @@ QImage CgmPlug::readThumbnail(const QString& fName)
 	QFileInfo fi = QFileInfo(fName);
 	baseFile = QDir::cleanPath(QDir::toNativeSeparators(fi.absolutePath()+"/"));
 	double b, h;
-	b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	progressDialog = nullptr;
@@ -206,8 +206,8 @@ bool CgmPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 		progressDialog->setOverallProgress(1);
 		qApp->processEvents();
 	}
-	b = PrefsManager::instance()->appPrefs.docSetupPrefs.pageWidth;
-	h = PrefsManager::instance()->appPrefs.docSetupPrefs.pageHeight;
+	b = PrefsManager::instance().appPrefs.docSetupPrefs.pageWidth;
+	h = PrefsManager::instance().appPrefs.docSetupPrefs.pageHeight;
 	docWidth = b;
 	docHeight = h;
 	baseX = 0;
@@ -1579,7 +1579,7 @@ void CgmPlug::decodeClass4(QDataStream &ts, quint16 elemID, quint16 paramLen)
 		ite->setImageFlippedH(flipX);
 		ite->setImageFlippedV(flipY);
 		ite->setImageScalingMode(false, false);
-		ite->AdjustPictScale();
+		ite->adjustPictScale();
 		colorPrecision = t_colorPrecision;
 		colorIndexPrecision = t_colorIndexPrecision;
 	}

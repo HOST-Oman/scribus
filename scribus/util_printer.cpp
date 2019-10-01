@@ -83,21 +83,26 @@ bool PrinterUtil::initDeviceSettings(QString printerName, QByteArray& devModeA)
 }
 #endif
 
-bool PrinterUtil::getPrinterMarginValues(const QString& printerName, const QString& pageSize, double& ptsTopMargin, double& ptsBottomMargin, double& ptsLeftMargin, double& ptsRightMargin)
+bool PrinterUtil::getPrinterMarginValues(const QString& printerName, const QSizeF& pageSize, QMarginsF& margins)
 {
-	bool retVal = false;
 	QPrinterInfo pInfo = QPrinterInfo::printerInfo(printerName);
-	if (!pInfo.isNull())
+	if (pInfo.isNull())
+		return false;
+
+	QPrinter printer(pInfo, QPrinter::HighResolution);
+	margins = printer.pageLayout().margins();
+
+	// Unfortunately margin values are not updated when calling QPrinter or QPageLayout's setOrientation()
+	// so we have to adapt margin values according to orientation ourselves
+	if (pageSize.width() > pageSize.height())
 	{
-		QPrinter printer(pInfo, QPrinter::HighResolution);
-		QMarginsF margs = printer.pageLayout().margins(QPageLayout::Point);
-		ptsTopMargin = margs.top();
-		ptsBottomMargin = margs.bottom();
-		ptsLeftMargin = margs.left();
-		ptsRightMargin = margs.right();
-		retVal = true;
+		double l = margins.left();
+		double r = margins.right();
+		double b = margins.bottom();
+		double t = margins.top();
+		margins = QMarginsF(b, l, t, r);
 	}
-	return retVal;
+	return true;
 }
 
 PrintEngine PrinterUtil::getDefaultPrintEngine(const QString& printerName, bool toFile)

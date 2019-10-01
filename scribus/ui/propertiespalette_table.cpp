@@ -34,12 +34,12 @@ PropertiesPalette_Table::PropertiesPalette_Table(QWidget* parent) : QWidget(pare
 	setupUi(this);
 	setSizePolicy( QSizePolicy(QSizePolicy::Maximum, QSizePolicy::Maximum));
 
-	addBorderLineButton->setIcon(IconManager::instance()->loadIcon("penciladd.png"));
-	removeBorderLineButton->setIcon(IconManager::instance()->loadIcon("pencilsub.png"));
+	addBorderLineButton->setIcon(IconManager::instance().loadIcon("penciladd.png"));
+	removeBorderLineButton->setIcon(IconManager::instance().loadIcon("pencilsub.png"));
 	labelTable->setBuddy(tableStyleCombo);
-	buttonClearTableStyle->setIcon(IconManager::instance()->loadIcon("16/edit-clear.png"));
+	buttonClearTableStyle->setIcon(IconManager::instance().loadIcon("16/edit-clear.png"));
 	labelCells->setBuddy(cellStyleCombo);
-	buttonClearCellStyle->setIcon(IconManager::instance()->loadIcon("16/edit-clear.png"));
+	buttonClearCellStyle->setIcon(IconManager::instance().loadIcon("16/edit-clear.png"));
 	connect(tableStyleCombo, SIGNAL(newStyle(const QString&)), this, SLOT(setTableStyle(const QString&)));
 	connect(cellStyleCombo, SIGNAL(newStyle(const QString&)), this, SLOT(setCellStyle(const QString&)));
 }
@@ -313,7 +313,7 @@ void PropertiesPalette_Table::updateBorderLineList()
 	borderLineList->clear();
 	for (const TableBorderLine& borderLine : m_currentBorder.borderLines())
 	{
-		QString text = QString(" %1%2 %3").arg(borderLine.width()).arg(borderLineWidth->suffix()).arg(CommonStrings::translatePenStyleName(borderLine.style()));
+		QString text = QString(" %1%2 %3").arg(borderLine.width()).arg(borderLineWidth->suffix(), CommonStrings::translatePenStyleName(borderLine.style()));
 		if (borderLine.color() != CommonStrings::None)
 		{
 			QPixmap *icon = getWidePixmap(getColor(borderLine.color(), borderLine.shade()));
@@ -344,7 +344,7 @@ void PropertiesPalette_Table::updateBorderLineList(const TableBorderLine& curren
 void PropertiesPalette_Table::updateBorderLineListItem()
 {
 	QListWidgetItem* item = borderLineList->currentItem();
-	QString text = QString(" %1%2 %3").arg(borderLineWidth->getValue()).arg(borderLineWidth->suffix()).arg(CommonStrings::translatePenStyleName(static_cast<Qt::PenStyle>(borderLineStyle->currentIndex() + 1)));
+	QString text = QString(" %1%2 %3").arg(borderLineWidth->getValue()).arg(borderLineWidth->suffix(), CommonStrings::translatePenStyleName(static_cast<Qt::PenStyle>(borderLineStyle->currentIndex() + 1)));
 	if (borderLineColor->currentColor() != CommonStrings::None)
 	{
 		QPixmap *icon = getWidePixmap(getColor(borderLineColor->currentColor(), borderLineShade->value()));

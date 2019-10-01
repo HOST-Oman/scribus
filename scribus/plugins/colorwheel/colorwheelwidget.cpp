@@ -7,7 +7,7 @@ for which a new license (GPL+exception) is in place.
 
 #include "colorwheelwidget.h"
 
-#if defined(_MSC_VER)
+#if defined(_MSC_VER) && !defined(_USE_MATH_DEFINES)
 #define _USE_MATH_DEFINES
 #endif
 #include <cmath>
@@ -201,10 +201,10 @@ void ColorWheel::makeMonochromatic()
 	baseColor();
 	QColor col(ScColorEngine::getRGBColor(actualColor, currentDoc));
 	ScColor l;
-	l.fromQColor(col.light());
+	l.fromQColor(col.lighter());
 	l = ScColorEngine::convertToModel(l, currentDoc, currentColorSpace);
 	colorList[tr("Monochromatic Light")] = l;
-	l.fromQColor(col.dark());
+	l.fromQColor(col.darker());
 	l = ScColorEngine::convertToModel(l, currentDoc, currentColorSpace);
 	colorList[tr("Monochromatic Dark")] = l;
 	currentType = Monochromatic;

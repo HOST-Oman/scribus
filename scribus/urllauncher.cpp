@@ -18,28 +18,10 @@ for which a new license (GPL+exception) is in place.
 #include "scribuscore.h"
 #include "util.h"
 
-UrlLauncher* UrlLauncher::_instance = nullptr;
-
-UrlLauncher::UrlLauncher()
+UrlLauncher& UrlLauncher::instance()
 {
-}
-
-UrlLauncher::~UrlLauncher()
-{
-}
-
-UrlLauncher* UrlLauncher::instance()
-{
-	if (_instance == nullptr)
-		_instance = new UrlLauncher();
-
+	static UrlLauncher _instance;
 	return _instance;
-}
-
-void UrlLauncher::deleteInstance()
-{
-	delete _instance;
-	_instance = nullptr;
 }
 
 void UrlLauncher::launchUrlExt(const QString& link, QWidget *parent)
@@ -54,15 +36,15 @@ void UrlLauncher::launchUrlExt(const QUrl& link, QWidget *parent)
 		QWidget *p=parent;
 		if (p==nullptr)
 			p=ScCore->primaryMainWindow();
-		QString extBrowser(PrefsManager::instance()->extBrowserExecutable());
+		QString extBrowser(PrefsManager::instance().extBrowserExecutable());
 		if (extBrowser.isEmpty())
 		{
 			if (!QDesktopServices::openUrl(link))
 			{
-				extBrowser = QFileDialog::getOpenFileName(p, tr("Locate your web browser"), QString::null, QString::null);
+				extBrowser = QFileDialog::getOpenFileName(p, tr("Locate your web browser"), QString(), QString());
 				if (!QFileInfo::exists(extBrowser))
-					extBrowser="";
-				PrefsManager::instance()->setExtBrowserExecutable(extBrowser);
+					extBrowser.clear();
+				PrefsManager::instance().setExtBrowserExecutable(extBrowser);
 			}
 		}
 		if (!extBrowser.isEmpty())
@@ -72,7 +54,7 @@ void UrlLauncher::launchUrlExt(const QUrl& link, QWidget *parent)
 			bool ok = QProcess::startDetached(extBrowser, args);
 			if (!ok)
 			{
-				QMessageBox::StandardButton sb=ScMessageBox::critical(p, tr("External Web Browser Failed to Start"), tr("Scribus was not able to start the external web browser application %1. Please check the setting in Preferences.\nWould you like to start the system's default browser instead?").arg(PrefsManager::instance()->extBrowserExecutable()), QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Ok);
+				QMessageBox::StandardButton sb=ScMessageBox::critical(p, tr("External Web Browser Failed to Start"), tr("Scribus was not able to start the external web browser application %1. Please check the setting in Preferences.\nWould you like to start the system's default browser instead?").arg(PrefsManager::instance().extBrowserExecutable()), QMessageBox::Ok|QMessageBox::Cancel, QMessageBox::Ok);
 				if (sb==QMessageBox::Ok)
 					QDesktopServices::openUrl(link);
 			}

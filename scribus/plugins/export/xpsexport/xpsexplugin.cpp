@@ -133,7 +133,7 @@ bool XPSExportPlugin::run(ScribusDoc* doc, const QString& filename)
 	QString fileName;
 	if (doc!=nullptr)
 	{
-		PrefsContext* prefs = PrefsManager::instance()->prefsFile->getPluginContext("xpsex");
+		PrefsContext* prefs = PrefsManager::instance().prefsFile->getPluginContext("xpsex");
 		QString wdir = prefs->get("wdir", ".");
 		QScopedPointer<CustomFDialog> openDia( new CustomFDialog(doc->scMW(), wdir, QObject::tr("Save as"), QObject::tr("Microsoft XPS (*.xps *.XPS);;All Files (*)"), fdHidePreviewCheckBox) );
 
@@ -154,7 +154,7 @@ bool XPSExportPlugin::run(ScribusDoc* doc, const QString& filename)
 		QString fna;
 		if (doc->hasName)
 		{
-			QFileInfo fi(doc->DocName);
+			QFileInfo fi(doc->documentFileName());
 			QString completeBaseName = fi.completeBaseName();
 			if (completeBaseName.endsWith(".xps", Qt::CaseInsensitive))
 				completeBaseName.chop(4);
@@ -168,7 +168,7 @@ bool XPSExportPlugin::run(ScribusDoc* doc, const QString& filename)
 				fna = wdir + "/";
 			else
 				fna = wdir;
-			fna += doc->DocName + ".xps";
+			fna += doc->documentFileName() + ".xps";
 		}
 		openDia->setSelection(fna);
 		openDia->setExtension("xps");
@@ -352,7 +352,7 @@ void XPSExPlug::writePage(QDomElement &doc_root, QDomElement &rel_root, ScPage *
 		m_Doc->Layers.levelToLayer(ll, i);
 		if (ll.isPrintable)
 		{
-			ScPage *mpage = m_Doc->MasterPages.at(m_Doc->MasterNames[Page->MPageNam]);
+			ScPage *mpage = m_Doc->MasterPages.at(m_Doc->MasterNames[Page->masterPageName()]);
 			writePageLayer(doc_root, rel_root, mpage, ll);
 			writePageLayer(doc_root, rel_root, Page, ll);
 		}
@@ -364,7 +364,7 @@ void XPSExPlug::writePageLayer(QDomElement &doc_root, QDomElement &rel_root, ScP
 	PageItem *Item;
 	QList<PageItem*> Items;
 	ScPage* SavedAct = m_Doc->currentPage();
-	if (page->pageName().isEmpty())
+	if (page->pageNameEmpty())
 		Items = m_Doc->DocItems;
 	else
 		Items = m_Doc->MasterItems;
@@ -379,7 +379,7 @@ void XPSExPlug::writePageLayer(QDomElement &doc_root, QDomElement &rel_root, ScP
 	for (int j = 0; j < Items.count(); ++j)
 	{
 		Item = Items.at(j);
-		if (Item->LayerID != layer.ID)
+		if (Item->m_layerID != layer.ID)
 			continue;
 		if (!Item->printEnabled())
 			continue;
@@ -393,7 +393,7 @@ void XPSExPlug::writePageLayer(QDomElement &doc_root, QDomElement &rel_root, ScP
 		double h2 = Item->BoundingH;
 		if (!( qMax( x, x2 ) <= qMin( x+w, x2+w2 ) && qMax( y, y2 ) <= qMin( y+h, y2+h2 )))
 			continue;
-		if ((!page->pageName().isEmpty()) && (Item->OwnPage != static_cast<int>(page->pageNr())) && (Item->OwnPage != -1))
+		if ((!page->pageNameEmpty()) && (Item->OwnPage != static_cast<int>(page->pageNr())) && (Item->OwnPage != -1))
 			continue;
 		writeItemOnPage(Item->xPos() - page->xOffset(), Item->yPos() - page->yOffset(), Item, layerGroup, rel_root);
 	}
@@ -803,6 +803,15 @@ class XPSPainter: public TextLayoutPainter
 	QMap<QString, QString> &m_fontMap;
 	QDomElement &m_relRoot;
 
+	bool    m_restart { true };
+	double  m_current_x { 0.0 };
+	double  m_current_y { 0.0 };
+	double  m_fontSize { 0.0 };
+	QString m_fontUri;
+	TextLayoutColor m_fillColor;
+	QTransform  m_transform;
+	QDomElement m_glyphElem;
+
 public:
 	XPSPainter(PageItem *item, QDomElement &group, XPSExPlug *xps, QMap<QString, QString> &XPSfontMap, QDomElement &rel_root):
 //		m_item(item),
@@ -812,7 +821,7 @@ public:
 		m_relRoot(rel_root)
 	{ }
 
-	void drawGlyph(const GlyphCluster& gc)
+	void drawGlyph(const GlyphCluster& gc) override
 	{
 		if (gc.isControlGlyphs() || gc.isEmpty())
 			return;
@@ -820,40 +829,77 @@ public:
 		if (!m_fontMap.contains(font().replacementName()))
 			m_fontMap.insert(font().replacementName(), m_xps->embedFont(font(), m_relRoot));
 		QTransform transform = matrix();
-		QDomElement glyph = m_xps->p_docu.createElement("Glyphs");
 		double size = fontSize() * qMax(gc.scaleV(), gc.scaleH()) * m_xps->conversionFactor;
-		glyph.setAttribute("RenderTransform", m_xps->MatrixToStr(transform, m_xps->conversionFactor));
-		glyph.setAttribute("BidiLevel", "0");
-		glyph.setAttribute("StyleSimulations", "None");
-		glyph.setAttribute("FontRenderingEmSize", m_xps->FToStr(size));
-		glyph.setAttribute("FontUri", m_fontMap[font().replacementName()]);
-		glyph.setAttribute("Fill", m_xps->SetColor(fillColor().color,fillColor().shade, 0));
-		glyph.setAttribute("OriginX", m_xps->FToStr(x() * m_xps->conversionFactor));
-		glyph.setAttribute("OriginY", m_xps->FToStr(y() * m_xps->conversionFactor));
-		glyph.setAttribute("UnicodeString", gc.getText());
-		QString gcMap = QString("(%1:%2)").arg(gc.getText().size()).arg(gc.glyphs().size());
-		QString indices;
-		double current_x = 0.0;
-		for (const GlyphLayout& gl : gc.glyphs()) 
+		QString fontUri = m_fontMap[font().replacementName()];
+
+		if (m_restart || (size != m_fontSize) || (m_fillColor != fillColor()) || (m_fontUri != fontUri) ||
+			(qAbs(m_current_x - x()) > 1e-6) || (m_current_y != y()) || (m_transform != transform))
 		{
+			m_glyphElem = m_xps->p_docu.createElement("Glyphs");
+			m_glyphElem.setAttribute("RenderTransform", m_xps->MatrixToStr(transform, m_xps->conversionFactor));
+			m_glyphElem.setAttribute("BidiLevel", "0");
+			m_glyphElem.setAttribute("StyleSimulations", "None");
+			m_glyphElem.setAttribute("FontRenderingEmSize", m_xps->FToStr(size));
+			m_glyphElem.setAttribute("FontUri", fontUri);
+			m_glyphElem.setAttribute("Fill", m_xps->SetColor(fillColor().color,fillColor().shade, 0));
+			m_glyphElem.setAttribute("OriginX", m_xps->FToStr(x() * m_xps->conversionFactor));
+			m_glyphElem.setAttribute("OriginY", m_xps->FToStr(y() * m_xps->conversionFactor));
+			m_glyphElem.setAttribute("UnicodeString", QString());
+			m_group.appendChild(m_glyphElem);
+		}
+
+		QString unicodeString = m_glyphElem.attribute("UnicodeString");
+		unicodeString += gc.getText();
+		m_glyphElem.setAttribute("UnicodeString", unicodeString);
+
+		QString gcMap;
+		QString indices, allIndices = m_glyphElem.attribute("Indices");
+
+		int gcTextSize = gc.getText().size();
+		int gcGlyphCount = gc.glyphs().size();
+		if (gcTextSize > 1 || gcGlyphCount > 1)
+			gcMap = QString("(%1:%2)").arg(gcTextSize).arg(gcGlyphCount);
+
+		double current_x = 0.0;
+		double clusterWidth = gc.width();
+		const auto& glyphs = gc.glyphs();
+
+		for (int i = 0; i < glyphs.count(); ++i) 
+		{
+			const GlyphLayout& gl = glyphs.at(i);
 			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			{
-				current_x += gl.xadvance;
+				current_x += gl.xadvance * gl.scaleH;
 				continue;
 			}
 
+			double glWidth = gl.xadvance * gl.scaleH;
+			if (i == glyphs.count() - 1) // Clusters may have some extra width
+				glWidth = clusterWidth - current_x;
+
 			indices += QString("%1,%2,%3,%4;").arg(gl.glyph)
-					.arg(((gl.xadvance + current_x) * m_xps->conversionFactor) / size * 100)
+					.arg((glWidth * m_xps->conversionFactor) / size * 100)
 					.arg((-gl.xoffset * m_xps->conversionFactor) / size * 100)
 					.arg((-gl.yoffset * m_xps->conversionFactor) / size * 100);
-			current_x += gl.xadvance;
+			current_x += glWidth;
 		}
 		indices.chop(1);
-		glyph.setAttribute("Indices", QString("%1%2").arg(gcMap, indices));
-		m_group.appendChild(glyph);
+		
+		if (!allIndices.isEmpty())
+			allIndices += ";";
+		allIndices += QString("%1%2").arg(gcMap, indices);
+		m_glyphElem.setAttribute("Indices", allIndices);
+
+		m_restart = false;
+		m_current_x = x() + clusterWidth;
+		m_current_y = y();
+		m_fontSize = size;
+		m_fontUri = fontUri;
+		m_fillColor = fillColor();
+		m_transform = transform;
 	}
 
-	void drawGlyphOutline(const GlyphCluster& gc, bool fill)
+	void drawGlyphOutline(const GlyphCluster& gc, bool fill) override
 	{
 		if (gc.isControlGlyphs())
 			return;
@@ -863,7 +909,7 @@ public:
 		{
 			if (gl.glyph >= ScFace::CONTROL_GLYPHS)
 			{
-				current_x += gl.xadvance;
+				current_x += gl.xadvance * gl.scaleH;
 				continue;
 			}
 
@@ -886,13 +932,15 @@ public:
 				glyph.setAttribute("StrokeThickness", m_xps->FToStr(strokeWidth() * m_xps->conversionFactor));
 				glyph.setAttribute("Stroke", m_xps->SetColor(strokeColor().color, strokeColor().shade, 0));
 				m_group.appendChild(glyph);
-				qDebug() << "StrokeWidth XPS" << strokeWidth();
+				//qDebug() << "StrokeWidth XPS" << strokeWidth();
 			}
-			current_x += gl.xadvance;
+			current_x += gl.xadvance * gl.scaleH;
 		}
+
+		m_restart = true;
 	}
 
-	void drawLine(QPointF start, QPointF end)
+	void drawLine(QPointF start, QPointF end) override
 	{
 		QTransform transform = matrix();
 		QDomElement path = m_xps->p_docu.createElement("Path");
@@ -901,9 +949,10 @@ public:
 		path.setAttribute("Stroke", m_xps->SetColor(strokeColor().color, strokeColor().shade, 0));
 		path.setAttribute("StrokeThickness", m_xps->FToStr(strokeWidth() * m_xps->conversionFactor));
 		m_group.appendChild(path);
+		m_restart = true;
 	}
 
-	void drawRect(QRectF rect)
+	void drawRect(QRectF rect) override
 	{
 		QTransform transform = matrix();
 		double rx = (x() + rect.x()) * m_xps->conversionFactor;
@@ -922,9 +971,10 @@ public:
 		path.setAttribute("StrokeThickness", m_xps->FToStr(strokeWidth() * m_xps->conversionFactor));
 		path.setAttribute("Stroke", m_xps->SetColor(strokeColor().color, strokeColor().shade, 0));
 		m_group.appendChild(path);
+		m_restart = true;
 	}
 
-	void drawObject(PageItem* item)
+	void drawObject(PageItem* item) override
 	{
 		QDomElement canvas = m_xps->p_docu.createElement("Canvas");
 		QTransform matrix = QTransform();
@@ -936,6 +986,7 @@ public:
 		canvas.setAttribute("RenderTransform", m_xps->MatrixToStr(matrix));
 		m_xps->writeItemOnPage(item->gXpos, item->gYpos, item, canvas, m_relRoot);
 		m_group.appendChild(canvas);
+		m_restart = true;
 	}
 };
 
@@ -1059,9 +1110,6 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 //	parentElem.appendChild(grp);
 	if (Item->itemText.length() != 0)
 	{
-		XPSPainter p(Item, grp, this, xps_fontMap, rel_root);
-		Item->textLayout.renderBackground(&p);
-		Item->textLayout.render(&p);
 		QDomElement grp2 = p_docu.createElement("Canvas");
 		if (grp.hasAttribute("RenderTransform"))
 			grp2.setAttribute("RenderTransform", grp.attribute("RenderTransform"));
@@ -1069,95 +1117,9 @@ void XPSExPlug::processTextItem(double xOffset, double yOffset, PageItem *Item, 
 			grp2.setAttribute("Name", grp.attribute("Name"));
 		if (grp.hasAttribute("Opacity"))
 			grp2.setAttribute("Opacity", grp.attribute("Opacity"));
-		bool first = true;
-		QString RenderTransform = "";
-		QString FontRenderingEmSize = "";
-		QString FontUri = "";
-		QString Fill = "";
-		QString OriginX = "";
-		QString OriginY = "";
-		QString Indices = "";
-		QString UnicodeString = "";
-		QDomElement glyph;
-		for (QDomElement txtGrp = grp.firstChildElement(); !txtGrp.isNull(); txtGrp = txtGrp.nextSiblingElement())
-		{
-			if (txtGrp.tagName() != "Glyphs")
-			{
-				if (!first)
-				{
-					glyph.setAttribute("Indices", Indices);
-					glyph.setAttribute("UnicodeString", UnicodeString);
-					first = true;
-				}
-				grp2.appendChild(txtGrp.cloneNode(true));
-			}
-			else
-			{
-				if (first)
-				{
-					RenderTransform = txtGrp.attribute("RenderTransform");
-					FontRenderingEmSize = txtGrp.attribute("FontRenderingEmSize");
-					FontUri = txtGrp.attribute("FontUri");
-					Fill = txtGrp.attribute("Fill");
-					OriginX = txtGrp.attribute("OriginX");
-					OriginY = txtGrp.attribute("OriginY");
-					Indices = txtGrp.attribute("Indices");
-					UnicodeString = txtGrp.attribute("UnicodeString");
-					glyph = p_docu.createElement("Glyphs");
-					glyph.setAttribute("RenderTransform", RenderTransform);
-					glyph.setAttribute("BidiLevel", "0");
-					glyph.setAttribute("StyleSimulations", "None");
-					glyph.setAttribute("FontRenderingEmSize", FontRenderingEmSize);
-					glyph.setAttribute("FontUri", FontUri);
-					glyph.setAttribute("Fill", Fill);
-					glyph.setAttribute("OriginX", OriginX);
-					glyph.setAttribute("OriginY", OriginY);
-					glyph.setAttribute("Indices", Indices);
-					glyph.setAttribute("UnicodeString", UnicodeString);
-					grp2.appendChild(glyph);
-					first = false;
-				}
-				else
-				{
-					if ((RenderTransform == txtGrp.attribute("RenderTransform")) && (FontRenderingEmSize == txtGrp.attribute("FontRenderingEmSize")) && (FontUri == txtGrp.attribute("FontUri")) && (OriginY == txtGrp.attribute("OriginY")) && (Fill == txtGrp.attribute("Fill")))
-					{
-						Indices.append(";" + txtGrp.attribute("Indices"));
-						UnicodeString.append(txtGrp.attribute("UnicodeString"));
-					}
-					else
-					{
-						glyph.setAttribute("Indices", Indices);
-						glyph.setAttribute("UnicodeString", UnicodeString);
-						RenderTransform = txtGrp.attribute("RenderTransform");
-						FontRenderingEmSize = txtGrp.attribute("FontRenderingEmSize");
-						FontUri = txtGrp.attribute("FontUri");
-						Fill = txtGrp.attribute("Fill");
-						OriginX = txtGrp.attribute("OriginX");
-						OriginY = txtGrp.attribute("OriginY");
-						Indices = txtGrp.attribute("Indices");
-						UnicodeString = txtGrp.attribute("UnicodeString");
-						glyph = p_docu.createElement("Glyphs");
-						glyph.setAttribute("RenderTransform", RenderTransform);
-						glyph.setAttribute("BidiLevel", "0");
-						glyph.setAttribute("StyleSimulations", "None");
-						glyph.setAttribute("FontRenderingEmSize", FontRenderingEmSize);
-						glyph.setAttribute("FontUri", FontUri);
-						glyph.setAttribute("Fill", Fill);
-						glyph.setAttribute("OriginX", OriginX);
-						glyph.setAttribute("OriginY", OriginY);
-						glyph.setAttribute("Indices", Indices);
-						glyph.setAttribute("UnicodeString", UnicodeString);
-						grp2.appendChild(glyph);
-						first = false;
-					}
-				}
-				if (txtGrp == grp.lastChildElement())
-				{
-					glyph.setAttribute("Indices", Indices);
-					glyph.setAttribute("UnicodeString", UnicodeString);
-				}
-			}
-		}
+		XPSPainter p(Item, grp2, this, xps_fontMap, rel_root);
+		Item->textLayout.renderBackground(&p);
+		Item->textLayout.render(&p);
 		parentElem.appendChild(grp2);
 	}
 	if (Item->isTextFrame())

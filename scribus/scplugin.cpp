@@ -11,7 +11,6 @@ for which a new license (GPL+exception) is in place.
 #include "scribusdoc.h"
 #include "scribusapp.h"
 #include "selection.h"
-#include "ui/prefspanel.h"
 #include "ui/prefs_pane.h"
 
 //=====================================================//
@@ -27,18 +26,7 @@ ScPlugin::~ScPlugin()
 {
 }
 
-bool ScPlugin::newPrefsPanelWidget( QWidget* /* parent */,
-									PrefsPanel*& /* panel */,
-									QString& /* caption */,
-									QPixmap& /* icon */)
-{
-	return false;
-}
-
-bool ScPlugin::newPrefsPanelWidget( QWidget* /* parent */,
-									Prefs_Pane*& /* panel */,
-									QString& /* caption */,
-									QPixmap& /* icon */)
+bool ScPlugin::newPrefsPanelWidget( QWidget* /* parent */, Prefs_Pane*& /* panel */)
 {
 	return false;
 }
@@ -167,57 +155,52 @@ bool ScActionPlugin::handleSelection(ScribusDoc* doc, int SelectedType)
 			correctAppMode = true;
 		else if (ai.forAppMode.contains(doc->appMode))
 			correctAppMode = true;
-		if (correctAppMode)
+
+		if (!correctAppMode)
+			return false;
+
+		if (ai.needsNumObjects == -1)
+			return true;
+
+		if (ai.needsNumObjects > 2)
 		{
-			if (ai.needsNumObjects == -1)
-				return true;
-
-
-			if (ai.needsNumObjects > 2)
+			bool setter = true;
+			for (int bx = 0; bx < docSelectionCount; ++bx)
 			{
-				bool setter = true;
-				for (int bx = 0; bx < docSelectionCount; ++bx)
-				{
-					if (ai.notSuitableFor.contains(doc->m_Selection->itemAt(bx)->itemType()))
-						setter = false;
-				}
-				return setter;
+				if (ai.notSuitableFor.contains(doc->m_Selection->itemAt(bx)->itemType()))
+					setter = false;
 			}
-
-
-			if (docSelectionCount == ai.needsNumObjects)
-			{
-				if (ai.needsNumObjects == 2)
-				{
-					int sel1 = doc->m_Selection->itemAt(0)->itemType();
-					int sel2 = doc->m_Selection->itemAt(1)->itemType();
-					if (ai.notSuitableFor.contains(sel1))
-						return false;
-					if (ai.notSuitableFor.contains(sel2))
-						return false;
-					if ((ai.firstObjectType.count() == 0) && (ai.secondObjectType.count() == 0))
-						return true;
-					if ((ai.firstObjectType.count() == 0) && (ai.secondObjectType.count() != 0))
-					{
-						if ((ai.secondObjectType.contains(sel2)) || (ai.secondObjectType.contains(sel1)))
-							return true;
-					}
-					else if ((ai.firstObjectType.count() != 0) && (ai.secondObjectType.count() == 0))
-					{
-						if ((ai.firstObjectType.contains(sel2)) || (ai.firstObjectType.contains(sel1)))
-							return true;
-					}
-					if (((ai.firstObjectType.contains(sel1)) && (ai.secondObjectType.contains(sel2))) || ((ai.firstObjectType.contains(sel2)) && (ai.secondObjectType.contains(sel1))))
-						return true;
-				}
-				else if (!ai.notSuitableFor.contains(SelectedType))
-					return true;
-				else
-					return false;
-			}
-			else
-				return false;
+			return setter;
 		}
+
+		if (docSelectionCount != ai.needsNumObjects)
+			return false;
+
+		if (ai.needsNumObjects == 2)
+		{
+			int sel1 = doc->m_Selection->itemAt(0)->itemType();
+			int sel2 = doc->m_Selection->itemAt(1)->itemType();
+			if (ai.notSuitableFor.contains(sel1))
+				return false;
+			if (ai.notSuitableFor.contains(sel2))
+				return false;
+			if ((ai.firstObjectType.count() == 0) && (ai.secondObjectType.count() == 0))
+				return true;
+			if ((ai.firstObjectType.count() == 0) && (ai.secondObjectType.count() != 0))
+			{
+				if ((ai.secondObjectType.contains(sel2)) || (ai.secondObjectType.contains(sel1)))
+					return true;
+			}
+			else if ((ai.firstObjectType.count() != 0) && (ai.secondObjectType.count() == 0))
+			{
+				if ((ai.firstObjectType.contains(sel2)) || (ai.firstObjectType.contains(sel1)))
+					return true;
+			}
+			if (((ai.firstObjectType.contains(sel1)) && (ai.secondObjectType.contains(sel2))) || ((ai.firstObjectType.contains(sel2)) && (ai.secondObjectType.contains(sel1))))
+				return true;
+		}
+		else if (!ai.notSuitableFor.contains(SelectedType))
+			return true;
 		else
 			return false;
 	}

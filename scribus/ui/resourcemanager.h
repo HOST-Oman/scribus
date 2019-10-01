@@ -80,15 +80,14 @@ class SCRIBUS_API ResourceManager : public QDialog, Ui::ResourceManagerBase
 		void updateAvailablePalettes();
 		void updateAvailableTest();
 
-		QString currentCategory;
-		QMap <int, QString> resourceCategories;
-		QMap <int, QString> dataFiles;
+		QMap <int, QString> m_resourceCategories;
+		QMap <int, QString> m_dataFiles;
 
-		QMap<QString, QString> dictionaryMap;
-		QStringList dictionaryPaths;
-		QList <DownloadItem> availableList;
-		QList <DownloadItem> downloadList;
-		QList <DownloadItem> testList;
+		QMap<QString, QString> m_dictionaryMap;
+		QStringList m_dictionaryPaths;
+		QList <DownloadItem> m_availableList;
+		QList <DownloadItem> m_downloadList;
+		QList <DownloadItem> m_testList;
 		QString affixFileName(QStringList files);
 		QString dictFileName(QStringList files);
 		QString findDestinationFolder();
@@ -101,11 +100,12 @@ class SCRIBUS_API ResourceManager : public QDialog, Ui::ResourceManagerBase
 		void downloadLicenseFinished();
 		void downloadLicenseFileFinished(const QString &);
 		void downloadLicenseFileFailed(const QString &);
+		void installedSelectionChanged();
 		void updateProgressBar();
 		void updateProgressData(qint64 bytesReceived, qint64 bytesTotal);
 		void startDownload();
+		void showInFileBrowser();
 		void showLicense();
-
 };
 
 #endif // RESOURCEMANAGER_H

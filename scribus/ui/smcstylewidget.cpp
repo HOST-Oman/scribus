@@ -21,19 +21,19 @@ SMCStyleWidget::SMCStyleWidget(QWidget *parent) :
 {
 	setupUi(this);
 
-	IconManager* im = IconManager::instance();
-	fontSizeLabel_->setPixmap(im->loadPixmap("zeichen.png"));
-	trackingLabel_->setPixmap(im->loadPixmap("textkern.png"));
-	widthSpaceLabel->setPixmap(im->loadPixmap("spacewidth.png"));
-	baselineOffsetLabel_->setPixmap(im->loadPixmap("textbase.png"));
-	hscaleLabel_->setPixmap(im->loadPixmap("textscaleh.png"));
-	vscaleLabel_->setPixmap(im->loadPixmap("textscalev.png"));
-	FillIcon->setPixmap(im->loadPixmap("16/color-fill.png"));
-	fillShadeLabel->setPixmap(im->loadPixmap("shade.png"));
-	StrokeIcon->setPixmap(im->loadPixmap("16/color-stroke.png"));
-	strokeShadeLabel->setPixmap(im->loadPixmap("shade.png"));
-	backIcon->setPixmap(im->loadPixmap("16/color-fill.png"));
-	backShadeLabel->setPixmap(im->loadPixmap("shade.png"));
+	IconManager& im = IconManager::instance();
+	fontSizeLabel_->setPixmap(im.loadPixmap("zeichen.png"));
+	trackingLabel_->setPixmap(im.loadPixmap("textkern.png"));
+	widthSpaceLabel->setPixmap(im.loadPixmap("spacewidth.png"));
+	baselineOffsetLabel_->setPixmap(im.loadPixmap("textbase.png"));
+	hscaleLabel_->setPixmap(im.loadPixmap("textscaleh.png"));
+	vscaleLabel_->setPixmap(im.loadPixmap("textscalev.png"));
+	FillIcon->setPixmap(im.loadPixmap("16/color-fill.png"));
+	fillShadeLabel->setPixmap(im.loadPixmap("shade.png"));
+	StrokeIcon->setPixmap(im.loadPixmap("16/color-stroke.png"));
+	strokeShadeLabel->setPixmap(im.loadPixmap("shade.png"));
+	backIcon->setPixmap(im.loadPixmap("16/color-fill.png"));
+	backShadeLabel->setPixmap(im.loadPixmap("shade.png"));
 
 	fillColor_->setPixmapType(ColorCombo::fancyPixmaps);
 	fillColor_->clear();
@@ -51,6 +51,8 @@ SMCStyleWidget::SMCStyleWidget(QWidget *parent) :
 	strokeShade_->setEnabled(false);
 	strokeColor_->setEnabled(false);
 	fontfeaturesSetting->resetFontFeatures();
+
+	hyphenCharLineEdit->setMaxLength(1);
 
 	connect(effects_, SIGNAL(State(int)), this, SLOT(slotColorChange()));
 	connect(fontFace_, SIGNAL(fontSelected(QString)), this, SLOT(slotEnableFontFeatures(QString)));
@@ -171,7 +173,7 @@ void SMCStyleWidget::handleUpdateRequest(int updateFlags)
 
 void SMCStyleWidget::slotEnableFontFeatures(const QString& s)
 {
-	const ScFace& font = PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts[s];
+	const ScFace& font = PrefsManager::instance().appPrefs.fontPrefs.AvailFonts[s];
 	fontfeaturesSetting->enableFontFeatures(font.fontFeatures());
 }
 
@@ -249,8 +251,17 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin(), cstyle->isInhHyphenWordMin());
 		smallestWordSpinBox->setParentValue(parent->hyphenWordMin());
 
-		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1), cstyle->isInhHyphenChar());
-		hyphenCharLineEdit->setParentValue(QString::fromUcs4(&parent->hyphenChar(), 1));
+		uint hyphenChar = cstyle->hyphenChar();
+		QString hyphenText;
+		if (hyphenChar)
+			hyphenText = QString::fromUcs4(&hyphenChar, 1);
+		hyphenCharLineEdit->setValue(hyphenText, cstyle->isInhHyphenChar());
+
+		uint parentHyphenChar = parent->hyphenChar();
+		QString parentHyphenText;
+		if (parentHyphenChar)
+			parentHyphenText = QString::fromUcs4(&parentHyphenChar, 1);
+		hyphenCharLineEdit->setParentValue(parentHyphenText);
 	}
 	else
 	{
@@ -270,7 +281,12 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 		fontFace_->setCurrentFont(cstyle->font().scName());
 		fontfeaturesSetting->setFontFeatures(cstyle->fontFeatures(), cstyle->font().fontFeatures());
 		smallestWordSpinBox->setValue(cstyle->hyphenWordMin());
-		hyphenCharLineEdit->setValue(QString::fromUcs4(&cstyle->hyphenChar(), 1));
+
+		uint hyphenChar = cstyle->hyphenChar();
+		QString hyphenText;
+		if (hyphenChar)
+			hyphenText = QString::fromUcs4(&hyphenChar, 1);
+		hyphenCharLineEdit->setValue(hyphenText);
 	}
 
 	effects_->ShadowVal->Xoffset->setValue(cstyle->shadowXOffset() / 10.0);
@@ -311,7 +327,7 @@ void SMCStyleWidget::show(CharStyle *cstyle, QList<CharStyle> &cstyles, const QS
 
 	QString defaultLang(defLang.isEmpty() ? "en_GB" : defLang);
 	QString clang(cstyle->language().isEmpty() ? defaultLang : cstyle->language());
-	QString plang(QString::null);
+	QString plang;
 	if (hasParent)
 		plang = parent->language().isEmpty() ? defaultLang : parent->language();
 
@@ -658,7 +674,11 @@ void SMCStyleWidget::showHyphenChar(const QList<CharStyle *> &cstyles)
 		}
 		ch = cstyles[i]->hyphenChar();
 	}
-	hyphenCharLineEdit->setValue(QString::fromUcs4(&ch, 1));
+
+	QString hyphenText;
+	if (ch)
+		hyphenText = QString::fromUcs4(&ch, 1);
+	hyphenCharLineEdit->setValue(hyphenText);
 }
 
 void SMCStyleWidget::showParent(const QList<CharStyle*> &cstyles)

@@ -51,11 +51,20 @@ int findParagraphStyle(ScribusDoc* doc, const QString &name)
 	return -1;
 }
 
+bool SCRIBUS_API localeAwareLessThan(const QString& s1, const QString& s2)
+{
+	int result = QString::localeAwareCompare(s1, s2);
+	return (result < 0);
+}
+
 StoryText desaxeString(ScribusDoc* doc, const QString& saxedString)
 {
 	assert(!saxedString.isEmpty());
 
 	Serializer* dig = doc->textSerializer();
+	dig->reset();
+	dig->store<ScribusDoc>("<scribusdoc>", doc);
+
 	dig->parseMemory(saxedString);
 
 	StoryText* story = dig->result<StoryText>();

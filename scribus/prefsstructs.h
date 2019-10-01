@@ -80,11 +80,11 @@ struct TypoPrefs
 	int valueStrikeThruPos; //! Strike-through displacement
 	int valueStrikeThruWidth; //! Strike-through line width
 
-	inline bool operator==(const TypoPrefs &other)
+	inline bool operator==(const TypoPrefs &other) const
 	{
 		return (memcmp(this, &other, sizeof(TypoPrefs)) == 0);
 	}
-	inline bool operator!=(const TypoPrefs &other)
+	inline bool operator!=(const TypoPrefs &other) const
 	{
 		return (memcmp(this, &other, sizeof(TypoPrefs)) != 0);
 	}
@@ -515,6 +515,7 @@ struct ScIconSetData
 	QString license;
 	QString author;
 	QString activeversion;
+	QString variant;
 	QMap<QString, QString> nameTranslations;
 };
 

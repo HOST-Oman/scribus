@@ -98,201 +98,110 @@ void PageItem_TextFrame::init()
 	connect(&itemText,SIGNAL(changed(int,int)), this, SLOT(slotInvalidateLayout(int,int)));
 }
 
-static QRegion itemShape(PageItem* docItem, double xOffset, double yOffset)
-{
-	QRegion res;
-	QTransform pp;
-	if (docItem->isGroupChild())
-		pp.translate(docItem->gXpos, docItem->gYpos);
-	else
-		pp.translate(docItem->xPos() - xOffset, docItem->yPos() - yOffset);
-	pp.rotate(docItem->rotation());
-	if (docItem->textFlowUsesBoundingBox())
-	{
-		QRectF bb = docItem->getVisualBoundingRect();
-		if (docItem->isGroupChild())
-		{
-			bb.translate(-docItem->xPos(), -docItem->yPos());
-			bb.translate(docItem->gXpos, docItem->gYpos);
-		}
-		res = QRegion(bb.toRect());
-	}
-	else if ((docItem->textFlowUsesImageClipping()) && (!docItem->imageClip.empty()))
-	{
-		QList<uint> Segs;
-		QPolygon Clip2 = FlattenPath(docItem->imageClip, Segs);
-		res = QRegion(pp.map(Clip2)).intersected(QRegion(pp.map(docItem->Clip)));
-	}
-	else if ((docItem->textFlowUsesContourLine()) && (!docItem->ContourLine.empty()))
-	{
-		QList<uint> Segs;
-		QPolygon Clip2 = FlattenPath(docItem->ContourLine, Segs);
-		res = QRegion(pp.map(Clip2));
-	}
-	else
-	{
-		if (docItem->isSymbol() || docItem->isGroup())
-		{
-			if (docItem->imageFlippedH())
-			{
-				pp.translate(docItem->width(), 0);
-				pp.scale(-1, 1);
-			}
-			if (docItem->imageFlippedV())
-			{
-				pp.translate(0, docItem->height());
-				pp.scale(1, -1);
-			}
-		}
-		if ((((docItem->lineColor() != CommonStrings::None) || (!docItem->patternStrokeVal.isEmpty()) || (docItem->GrTypeStroke > 0)) && (docItem->lineWidth() > 1)) || (!docItem->NamedLStyle.isEmpty()))
-		{
-//			QVector<double> m_array;
-			QPainterPath ppa;
-			QPainterPath result;
-			if (docItem->itemType() == PageItem::PolyLine)
-				ppa = docItem->PoLine.toQPainterPath(false);
-			else
-				ppa = docItem->PoLine.toQPainterPath(true);
-			if (docItem->NamedLStyle.isEmpty())
-			{
-				QPainterPathStroker stroke;
-				stroke.setCapStyle(docItem->lineEnd());
-				stroke.setJoinStyle(docItem->lineJoin());
-				stroke.setDashPattern(Qt::SolidLine);
-				stroke.setWidth(docItem->lineWidth());
-				result = stroke.createStroke(ppa);
-			}
-			else
-			{
-				multiLine ml = docItem->doc()->MLineStyles[docItem->NamedLStyle];
-				int ind = ml.size()-1;
-				if ((ml[ind].Color != CommonStrings::None) && (ml[ind].Width != 0))
-				{
-					QPainterPathStroker stroke;
-					stroke.setCapStyle(static_cast<Qt::PenCapStyle>(ml[ind].LineEnd));
-					stroke.setJoinStyle(static_cast<Qt::PenJoinStyle>(ml[ind].LineJoin));
-					stroke.setDashPattern(Qt::SolidLine);
-					stroke.setWidth(ml[ind].Width);
-					result = stroke.createStroke(ppa);
-				}
-			}
-			res = QRegion(pp.map(docItem->Clip));
-			QList<QPolygonF> pl = result.toSubpathPolygons();
-			for (int b = 0; b < pl.count(); b++)
-			{
-				res = res.united(QRegion(pp.map(pl[b].toPolygon())));
-			}
-		}
-		else
-			res = QRegion(pp.map(docItem->Clip));
-	}
-	return  res;
-}
-
 QRegion PageItem_TextFrame::calcAvailableRegion()
 {
 	QRegion result(this->Clip);
-	if ((!isEmbedded) || (isGroupChild()))
+	if (isEmbedded && !isGroupChild())
+		return result;
+
+	bool invertible(false);
+	QTransform canvasToLocalMat;
+	if (isGroupChild())
+		canvasToLocalMat.translate(gXpos, gYpos);
+	else
+		canvasToLocalMat.translate(m_xPos, m_yPos);
+	canvasToLocalMat.rotate(m_rotation);
+	canvasToLocalMat = canvasToLocalMat.inverted(&invertible);
+
+	if (!invertible)
+		return QRegion();
+
+	int LayerLev = m_Doc->layerLevelFromID(m_layerID);
+	int docItemsCount = m_Doc->Items->count();
+	ScPage* Mp = nullptr;
+	ScPage* Dp = nullptr;
+	PageItem* docItem = nullptr;
+	int LayerLevItem;
+	QList<PageItem*> thisList;
+	if (!OnMasterPage.isEmpty())
 	{
-		bool invertible(false);
-		QTransform canvasToLocalMat;
+		if ((savedOwnPage == -1) || (savedOwnPage >= signed(m_Doc->Pages->count())))
+			return result;
+		Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
+		Dp = m_Doc->Pages->at(savedOwnPage);
 		if (isGroupChild())
-			canvasToLocalMat.translate(gXpos, gYpos);
+			thisList = Parent->asGroupFrame()->groupItemList;
 		else
-			canvasToLocalMat.translate(m_xPos, m_yPos);
-		canvasToLocalMat.rotate(m_rotation);
-		canvasToLocalMat = canvasToLocalMat.inverted(&invertible);
-
-		if (!invertible) return QRegion();
-
-		int LayerLev = m_Doc->layerLevelFromID(LayerID);
-		int docItemsCount = m_Doc->Items->count();
-		ScPage* Mp=nullptr;
-		ScPage* Dp=nullptr;
-		PageItem* docItem=nullptr;
-		int LayerLevItem;
-		QList<PageItem*> thisList;
-		if (!OnMasterPage.isEmpty())
+			thisList = m_Doc->MasterItems;
+		int thisid = thisList.indexOf(this);
+		for (int a = 0; a < m_Doc->MasterItems.count(); ++a)
 		{
-			if ((savedOwnPage == -1) || (savedOwnPage >= signed(m_Doc->Pages->count())))
-				return result;
-			Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
-			Dp = m_Doc->Pages->at(savedOwnPage);
-			if (isGroupChild())
-				thisList = Parent->asGroupFrame()->groupItemList;
-			else
-				thisList = m_Doc->MasterItems;
-			int thisid = thisList.indexOf(this);
-			for (int a = 0; a < m_Doc->MasterItems.count(); ++a)
+			docItem = m_Doc->MasterItems.at(a);
+			// #10642 : masterpage items interact only with items placed on same masterpage
+			if (docItem->OnMasterPage != OnMasterPage)
+				continue;
+			LayerLevItem = m_Doc->layerLevelFromID(docItem->m_layerID);
+			if (((a > thisid) && (docItem->m_layerID == m_layerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->m_layerID)))
 			{
-				docItem = m_Doc->MasterItems.at(a);
-				// #10642 : masterpage items interact only with items placed on same masterpage
-				if (docItem->OnMasterPage != OnMasterPage)
-					continue;
-				LayerLevItem = m_Doc->layerLevelFromID(docItem->LayerID);
-				if (((a > thisid) && (docItem->LayerID == LayerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->LayerID)))
+				if (docItem->textFlowAroundObject())
 				{
-					if (docItem->textFlowAroundObject())
-					{
-						QRegion itemRgn = itemShape(docItem, Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset());
-						result = result.subtracted( canvasToLocalMat.map(itemRgn) );
-					}
+					QRegion itemRgn = docItem->textInteractionRegion(Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset());
+					result = result.subtracted( canvasToLocalMat.map(itemRgn) );
 				}
-			} // for all masterItems
-			// (JG) #6009 : disable possible interaction between master text frames and normal frames
-			// which have the text flow option set
-			/*if (!m_Doc->masterPageMode())
+			}
+		} // for all masterItems
+		// (JG) #6009 : disable possible interaction between master text frames and normal frames
+		// which have the text flow option set
+		/*if (!m_Doc->masterPageMode())
+		{
+			for (uint a = 0; a < docItemsCount; ++a)
 			{
-				for (uint a = 0; a < docItemsCount; ++a)
+				docItem = m_Doc->Items->at(a);
+				Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
+				Dp = m_Doc->Pages->at(OwnPage);
+				if ((docItem->textFlowAroundObject()) && (docItem->OwnPage == OwnPage))
 				{
-					docItem = m_Doc->Items->at(a);
-					Mp = m_Doc->MasterPages.at(m_Doc->MasterNames[OnMasterPage]);
-					Dp = m_Doc->Pages->at(OwnPage);
-					if ((docItem->textFlowAroundObject()) && (docItem->OwnPage == OwnPage))
-					{
-						result = result.subtract(itemShape(docItem, m_Doc->view(), Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset()));
-					}
-				} // for all docItems
-			} // if (! masterPageMode) */
-		} // if (!OnMasterPage.isEmpty())
+					result = result.subtract(itemShape(docItem, m_Doc->view(), Mp->xOffset() - Dp->xOffset(), Mp->yOffset() - Dp->yOffset()));
+				}
+			} // for all docItems
+		} // if (! masterPageMode) */
+	} // if (!OnMasterPage.isEmpty())
+	else
+	{
+		int thisid = 0;
+		if (isGroupChild())
+		{
+			thisid = Parent->asGroupFrame()->groupItemList.indexOf(this);
+			docItemsCount = Parent->asGroupFrame()->groupItemList.count();
+			for (int a = thisid + 1; a < docItemsCount; ++a)
+			{
+				docItem = Parent->asGroupFrame()->groupItemList.at(a);
+				if (docItem->textFlowAroundObject())
+				{
+					QRegion itemRgn = docItem->textInteractionRegion(0, 0);
+					result = result.subtracted( canvasToLocalMat.map(itemRgn) );
+				}
+			}
+		}
 		else
 		{
-			int thisid = 0;
-			if (isGroupChild())
+			thisid = m_Doc->Items->indexOf(this);
+			for (int a = 0; a < docItemsCount; ++a)
 			{
-				thisid = Parent->asGroupFrame()->groupItemList.indexOf(this);
-				docItemsCount = Parent->asGroupFrame()->groupItemList.count();
-				for (int a = thisid + 1; a < docItemsCount; ++a)
+				docItem = m_Doc->Items->at(a);
+				LayerLevItem = m_Doc->layerLevelFromID(docItem->m_layerID);
+				if (((a > thisid) && (docItem->m_layerID == m_layerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->m_layerID)))
 				{
-					docItem = Parent->asGroupFrame()->groupItemList.at(a);
 					if (docItem->textFlowAroundObject())
 					{
-						QRegion itemRgn = itemShape(docItem, 0, 0);
+						QRegion itemRgn = docItem->textInteractionRegion(0, 0);
 						result = result.subtracted( canvasToLocalMat.map(itemRgn) );
 					}
 				}
 			}
-			else
-			{
-				thisid = m_Doc->Items->indexOf(this);
-				for (int a = 0; a < docItemsCount; ++a)
-				{
-					docItem = m_Doc->Items->at(a);
-					LayerLevItem = m_Doc->layerLevelFromID(docItem->LayerID);
-					if (((a > thisid) && (docItem->LayerID == LayerID)) || (LayerLevItem > LayerLev && m_Doc->layerFlow(docItem->LayerID)))
-					{
-						if (docItem->textFlowAroundObject())
-						{
-							QRegion itemRgn = itemShape(docItem, 0, 0);
-							result = result.subtracted( canvasToLocalMat.map(itemRgn) );
-						}
-					}
-				}
-			} // for all docItems
-		} // if(OnMasterPage.isEmpty()
-	} // if(!Embedded)
-	//else
-	//	qDebug() << "QRegion empty";
+		} // for all docItems
+	} // if(OnMasterPage.isEmpty()
+
 	return result;
 }
 
@@ -302,31 +211,36 @@ void PageItem_TextFrame::setShadow()
 		return;
 
 	QString newShadow = m_Doc->masterPageMode() ? OnMasterPage : QString::number(OwnPage);
-	if (newShadow != m_currentShadow) {
-		if (m_currentShadow == OnMasterPage) {
-			// masterpage was edited, clear all shadows
-			m_shadows.clear();
-		}
-		if (!m_shadows.contains(newShadow)) {
-			if (!m_shadows.contains(OnMasterPage)) {
-				m_shadows[OnMasterPage] = itemText;
-//				const ParagraphStyle& pstyle(shadows[OnMasterPage].paragraphStyle(0));
-//				qDebug() << QString("Pageitem_Textframe: style of master: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
-//				qDebug() << QString("Pageitem_Textframe: shadow itemText->%1").arg(OnMasterPage);
-			}
-			if (newShadow != OnMasterPage) {
-				m_shadows[newShadow] = m_shadows[OnMasterPage].copy();
-//				const ParagraphStyle& pstyle(shadows[newShadow].paragraphStyle(0));
-//				qDebug() << QString("Pageitem_Textframe: style of shadow copy: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
-			}
-//			qDebug() << QString("Pageitem_Textframe: shadow %1<-%2").arg(newShadow).arg(OnMasterPage);
-		}
-		itemText = m_shadows[newShadow];
-//		const ParagraphStyle& pstyle(itemText.paragraphStyle(0));
-//		qDebug() << QString("Pageitem_Textframe: style of shadow: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
-		invalid = true;
-		m_currentShadow = newShadow;
+	if (newShadow == m_currentShadow)
+		return;
+
+	if (m_currentShadow == OnMasterPage)
+	{
+		// masterpage was edited, clear all shadows
+		m_shadows.clear();
 	}
+	if (!m_shadows.contains(newShadow))
+	{
+		if (!m_shadows.contains(OnMasterPage))
+		{
+			m_shadows[OnMasterPage] = itemText;
+//			const ParagraphStyle& pstyle(shadows[OnMasterPage].paragraphStyle(0));
+//			qDebug() << QString("Pageitem_Textframe: style of master: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
+//			qDebug() << QString("Pageitem_Textframe: shadow itemText->%1").arg(OnMasterPage);
+		}
+		if (newShadow != OnMasterPage)
+		{
+			m_shadows[newShadow] = m_shadows[OnMasterPage].copy();
+//			const ParagraphStyle& pstyle(shadows[newShadow].paragraphStyle(0));
+//			qDebug() << QString("Pageitem_Textframe: style of shadow copy: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
+		}
+//		qDebug() << QString("Pageitem_Textframe: shadow %1<-%2").arg(newShadow).arg(OnMasterPage);
+	}
+	itemText = m_shadows[newShadow];
+//	const ParagraphStyle& pstyle(itemText.paragraphStyle(0));
+//	qDebug() << QString("Pageitem_Textframe: style of shadow: %1 align=%2").arg(pstyle.parent()).arg(pstyle.alignment());
+	invalid = true;
+	m_currentShadow = newShadow;
 }
 /*
 static void debugLineLayout(const StoryText& itemText, const LineSpec& line)
@@ -1247,7 +1161,7 @@ bool PageItem_TextFrame::moveLinesFromPreviousFrame ()
 	int startingPos = prev->incompletePositions[prev->incompleteLines - pull];
 	for (int i = 0; i < pull; ++i)
 		prev->textLayout.removeLastLine();
-	firstChar = prev->MaxChars = startingPos;
+	firstChar = prev->m_maxChars = startingPos;
 	// keep the remaining incomplete lines flagged as such
 	// this ensures that if pulling one line won't be enough, the subsequent call to layout() will pull more
 	prev->incompleteLines -= pull;
@@ -1297,7 +1211,7 @@ void PageItem_TextFrame::adjustParagraphEndings ()
 			// push this paragraph to the next frame
 			for (int i = 0; i < pull; ++i)
 				textLayout.removeLastLine();
-			MaxChars = incompletePositions[incompleteLines-pull];
+			m_maxChars = incompletePositions[incompleteLines-pull];
 			incompleteLines = 0;
 			incompletePositions.clear();
 		}
@@ -1399,7 +1313,7 @@ void PageItem_TextFrame::layout()
 		{
 			next->invalid = false;
 			next->firstChar = itLen;
-			next->MaxChars = itLen;
+			next->m_maxChars = itLen;
 			next->textLayout.clear();
 			next = dynamic_cast<PageItem_TextFrame*>(next->nextInChain());
 		}
@@ -1428,7 +1342,7 @@ void PageItem_TextFrame::layout()
 		m_availableRegion = calcAvailableRegion();
 		if (m_availableRegion.isEmpty())
 		{
-			MaxChars = firstInFrame();
+			m_maxChars = firstInFrame();
 			goto NoRoom;
 		}
 
@@ -1455,7 +1369,7 @@ void PageItem_TextFrame::layout()
 		QList<GlyphCluster> glyphClusters; // = textShaper.shape();
 		// std::sort(glyphClusters.begin(), glyphClusters.end(), logicalGlyphRunComp);
 
-		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, context,columnWidth(), ColGap);
+		LineControl current(m_width, m_height, m_textDistanceMargins, lineCorr, m_Doc, context,columnWidth(), m_columnGap);
 		current.nextColumn(textLayout);
 
 		lastLineY = m_textDistanceMargins.top();
@@ -1495,7 +1409,7 @@ void PageItem_TextFrame::layout()
 
 		outs = false;
 		OFs = 0;
-		MaxChars = 0;
+		m_maxChars = 0;
 		double realEnd = 0;
 		current.restartIndex = current.restartRowIndex = 0;
 		current.afterOverflow = false;
@@ -1677,7 +1591,7 @@ void PageItem_TextFrame::layout()
 					realCharHeight = font.height(style.charStyle().fontSize() / 10.0);
 				if (realCharAscent == 0.0)
 					realCharAscent = font.ascent(style.charStyle().fontSize() / 10.0);
-				if (current.startOfCol && (firstLineOffsetP == FLOPFontAscent))
+				if (current.startOfCol && (m_firstLineOffset == FLOPFontAscent))
 					realCharAscent = font.ascent(hlcsize10);
 				chsd = ((DropCapDrop + realCharAscent) / realCharHeight) * style.charStyle().fontSize();
 				chs  = ((DropCapDrop + realCharAscent) / realCharAscent) * style.charStyle().fontSize();
@@ -1764,7 +1678,7 @@ void PageItem_TextFrame::layout()
 					if (realCharAscent == 0)
 						realCharAscent = font.ascent(style.charStyle().fontSize() / 10.0);
 					asce = realCharAscent;
-					if (current.startOfCol && (firstLineOffsetP == FLOPFontAscent))
+					if (current.startOfCol && (m_firstLineOffset == FLOPFontAscent))
 						asce = font.ascent(hlcsize10);
 					glyphCluster.setScaleH(glyphCluster.scaleH() / glyphCluster.scaleV());
 					glyphCluster.setScaleV(realAsce / realCharHeight);
@@ -2039,12 +1953,12 @@ void PageItem_TextFrame::layout()
 					if (current.isEndOfCol(realDesc))
 					{
 						current.column++;
-						if (current.column < Cols)
+						if (current.column < m_columns)
 						{
 							newColumn = true;
 							break;
 						}
-						MaxChars = a;
+						m_maxChars = a;
 						goto NoRoom;
 					}
 				}
@@ -2261,13 +2175,13 @@ void PageItem_TextFrame::layout()
 			bool inOverflow = false;
 			if (current.glyphs[currentIndex].hasFlag(ScLayout_HyphenationPossible) || itemText.text(a) == SpecialChars::SHYPHEN)
 				hyphWidth = font.hyphenWidth(charStyle, hlcsize10) * (charStyle.scaleH() / 1000.0);
-			if ((current.isEndOfLine(style.rightMargin() + hyphWidth)) || current.isEndOfCol(realDesc) || SpecialChars::isBreak(itemText.text(a), Cols > 1) || (current.xPos - current.maxShrink + hyphWidth) >= current.mustLineEnd)
+			if ((current.isEndOfLine(style.rightMargin() + hyphWidth)) || current.isEndOfCol(realDesc) || SpecialChars::isBreak(itemText.text(a), m_columns > 1) || (current.xPos - current.maxShrink + hyphWidth) >= current.mustLineEnd)
 			{
 				//end of row reached - right column, end of column, break char or line must end
-				if (current.isEmpty && !current.afterOverflow && !SpecialChars::isBreak(itemText.text(a), Cols > 1))
+				if (current.isEmpty && !current.afterOverflow && !SpecialChars::isBreak(itemText.text(a), m_columns > 1))
 				{
 					//no glyphs in line, so start new row
-					if (SpecialChars::isBreak(itemText.text(a), Cols > 1))
+					if (SpecialChars::isBreak(itemText.text(a), m_columns > 1))
 						current.restartRowIndex = i + 1;
 					i = current.restartRow(true);
 					inOverflow = false;
@@ -2278,7 +2192,7 @@ void PageItem_TextFrame::layout()
 				if (current.breakIndex < 0)
 				{
 					//force break
-					if (!SpecialChars::isBreak(itemText.text(a), Cols > 1))
+					if (!SpecialChars::isBreak(itemText.text(a), m_columns > 1))
 					{
 						//force line end at previouse glyph
 						i--;
@@ -2475,7 +2389,7 @@ void PageItem_TextFrame::layout()
 
 			if ((itemText.text(a) == SpecialChars::FRAMEBREAK) && (a < itemText.length()-1))
 				goNoRoom = true;
-			if ((itemText.text(a) == SpecialChars::COLBREAK) && (Cols > 1))
+			if ((itemText.text(a) == SpecialChars::COLBREAK) && (m_columns > 1))
 				goNextColumn = true;
 
 			if (i != 0 && implicitBreak(itemText.text(glyphClusters[i - 1].lastChar()), itemText.text(current.glyphs[currentIndex].firstChar())))
@@ -2542,7 +2456,7 @@ void PageItem_TextFrame::layout()
 				tabs.active = false;
 				tabs.status = TabNONE;
 				tabs.xPos   = 0.0;
-				if (SpecialChars::isBreak(itemText.text(a), Cols > 1))
+				if (SpecialChars::isBreak(itemText.text(a), m_columns > 1))
 				{
 					// find end of line
 //					qDebug() << "breakline isBreak @" << i;
@@ -2572,7 +2486,7 @@ void PageItem_TextFrame::layout()
 							current.lineData.width += current.opticalRightMargin(itemText);
 
 						OFs = 0;
-						if (style.alignment() == ParagraphStyle::Rightaligned)
+						if (style.alignment() == ParagraphStyle::RightAligned)
 							OFs = current.lineData.width - current.lineData.naturalWidth;
 						if (style.alignment() == ParagraphStyle::Centered)
 							OFs = (current.lineData.width - current.lineData.naturalWidth) / 2;
@@ -2681,7 +2595,7 @@ void PageItem_TextFrame::layout()
 							current.line.naturalWidth += hyphWidth;*/
 
 						OFs = 0;
-						if (style.alignment() == ParagraphStyle::Rightaligned)
+						if (style.alignment() == ParagraphStyle::RightAligned)
 							OFs = current.lineData.width - current.lineData.naturalWidth;
 						if (style.alignment() == ParagraphStyle::Centered)
 							OFs = (current.lineData.width - current.lineData.naturalWidth) / 2;
@@ -2720,10 +2634,10 @@ void PageItem_TextFrame::layout()
 					current.updateHeightMetrics();
 					if (current.isEndOfCol(current.lineData.descent))
 					{
-						if (current.isEmpty || current.column+1 == Cols)
+						if (current.isEmpty || current.column+1 == m_columns)
 						{
 							goNoRoom = true;
-							MaxChars = a + 1;
+							m_maxChars = a + 1;
 							break;
 						}
 						goNextColumn = true;
@@ -2825,14 +2739,14 @@ void PageItem_TextFrame::layout()
 				if (goNoRoom)
 				{
 					goNoRoom = false;
-					MaxChars = a+1;
+					m_maxChars = a+1;
 					goto NoRoom;
 				}
 				if (goNextColumn)
 				{
 					goNextColumn = false;
 					current.column++;
-					if (current.column < Cols)
+					if (current.column < m_columns)
 					{
 						if (firstLineOffset() == FLOPRealGlyphHeight)
 							asce = 0;
@@ -2845,9 +2759,9 @@ void PageItem_TextFrame::layout()
 					}
 					else
 					{
-						MaxChars = a; // Always a+1???
+						m_maxChars = a; // Always a+1???
 						if (itemText.text(a) == SpecialChars::COLBREAK)
-							++MaxChars;
+							++m_maxChars;
 						goto NoRoom;
 					}
 				}
@@ -2927,7 +2841,7 @@ void PageItem_TextFrame::layout()
 				current.lineData.width += current.opticalRightMargin(itemText);
 
 			OFs = 0;
-			if (style.alignment() == ParagraphStyle::Rightaligned)
+			if (style.alignment() == ParagraphStyle::RightAligned)
 				OFs = current.lineData.width - current.lineData.naturalWidth;
 			if (style.alignment() == ParagraphStyle::Centered)
 				OFs = (current.lineData.width - current.lineData.naturalWidth) / 2;
@@ -2976,7 +2890,7 @@ void PageItem_TextFrame::layout()
 			}
 		}
 	}
-	MaxChars = itemText.length();
+	m_maxChars = itemText.length();
 	if (verticalAlign > 0)
 	{
 		double hAdjust = height() - textLayout.box()->naturalHeight() - m_textDistanceMargins.bottom();
@@ -3016,7 +2930,7 @@ void PageItem_TextFrame::layout()
 		while (nextFrame)
 		{
 			nextFrame->invalid   = true;
-			nextFrame->firstChar = MaxChars;
+			nextFrame->firstChar = m_maxChars;
 			nextFrame = dynamic_cast<PageItem_TextFrame*>(nextFrame->NextBox);
 		}
 	}
@@ -3066,16 +2980,16 @@ NoRoom:
 	PageItem_TextFrame * next = dynamic_cast<PageItem_TextFrame*>(NextBox);
 	if (next != nullptr)
 	{
-		if (itemText.cursorPosition() > signed(MaxChars))
+		if (itemText.cursorPosition() > signed(m_maxChars))
 		{
 			int nCP = itemText.cursorPosition();
 			if (m_Doc->appMode == modeEdit)
-				next->itemText.setCursorPosition( qMax(nCP, signed(MaxChars)) );
+				next->itemText.setCursorPosition( qMax(nCP, signed(m_maxChars)) );
 		}
 		while (next)
 		{
 			next->invalid   = true;
-			next->firstChar = MaxChars;
+			next->firstChar = m_maxChars;
 			next = dynamic_cast<PageItem_TextFrame*>(next->NextBox);
 		}
 	}
@@ -3114,7 +3028,7 @@ void PageItem_TextFrame::slotInvalidateLayout(int firstItem, int endItem)
 	{
 		if (firstInvalid->invalid)
 			break;
-		if (firstInvalid->firstChar <= firstItem && firstItem <= firstInvalid->MaxChars)
+		if (firstInvalid->firstChar <= firstItem && firstItem <= firstInvalid->m_maxChars)
 			break;
 		firstInvalid = dynamic_cast<PageItem_TextFrame*>(firstInvalid->NextBox);
 	}
@@ -3165,14 +3079,14 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		pf2.translate(m_xPos, m_yPos);
 	pf2.rotate(m_rotation);
 
-	if (!m_Doc->layerOutline(LayerID))
+	if (!m_Doc->layerOutline(m_layerID))
 	{
 		if ((fillColor() != CommonStrings::None) || (GrType != 0))
 		{
 			if (isAnnotation() && !((m_Doc->appMode == modeEdit) && (m_Doc->m_Selection->findItem(this) != -1)) && ((annotation().Type() == 2) || (annotation().Type() == 5) || (annotation().Type() == 6)))
 			{
 				if ((annotation().Feed() == 1) && annotation().IsOn())
-					p->setBrush(QColor(255 - fillQColor.red(), 255 - fillQColor.green(), 255 - fillQColor.blue(), fillQColor.alpha()));
+					p->setBrush(QColor(255 - m_fillQColor.red(), 255 - m_fillQColor.green(), 255 - m_fillQColor.blue(), m_fillQColor.alpha()));
 			}
 			p->setupPolygon(&PoLine);
 			p->fillPath();
@@ -3195,7 +3109,7 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 		QString cc;
 		if (!((itemText.length() == 1) && (itemText.text(0, 1) == QChar(13))))
 		{
-			for (uint d = 0; d < static_cast<uint>(itemText.length()); ++d)
+			for (int d = 0; d < itemText.length(); ++d)
 			{
 				if (d == 0)
 				{
@@ -3639,9 +3553,9 @@ void PageItem_TextFrame::DrawObj_Item(ScPainter *p, QRectF cullingArea)
 
 void PageItem_TextFrame::DrawObj_Post(ScPainter *p)
 {
-	if (m_Doc->layerOutline(LayerID))
+	if (m_Doc->layerOutline(m_layerID))
 	{
-		p->setPen(m_Doc->layerMarker(LayerID), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		p->setPen(m_Doc->layerMarker(m_layerID), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		p->setFillMode(ScPainter::None);
 		p->setBrushOpacity(1.0);
 		p->setPenOpacity(1.0);
@@ -3663,7 +3577,7 @@ void PageItem_TextFrame::DrawObj_Post(ScPainter *p)
 			{
 				if ((lineColor() != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0))
 				{
-					p->setPen(strokeQColor, m_lineWidth, PLineArt, PLineEnd, PLineJoin);
+					p->setPen(m_strokeQColor, m_lineWidth, PLineArt, PLineEnd, PLineJoin);
 					if (DashValues.count() != 0)
 						p->setDash(DashValues, DashOffset);
 				}
@@ -3692,7 +3606,7 @@ void PageItem_TextFrame::DrawObj_Post(ScPainter *p)
 					{
 						if (lineColor() != CommonStrings::None)
 						{
-							p->setBrush(strokeQColor);
+							p->setBrush(m_strokeQColor);
 							p->setStrokeMode(ScPainter::Solid);
 						}
 						else
@@ -3715,7 +3629,7 @@ void PageItem_TextFrame::DrawObj_Post(ScPainter *p)
 				else if (lineColor() != CommonStrings::None)
 				{
 					p->setStrokeMode(ScPainter::Solid);
-					p->setPen(strokeQColor, m_lineWidth, PLineArt, PLineEnd, PLineJoin);
+					p->setPen(m_strokeQColor, m_lineWidth, PLineArt, PLineEnd, PLineJoin);
 					if (DashValues.count() != 0)
 						p->setDash(DashValues, DashOffset);
 					p->strokePath();
@@ -3766,13 +3680,13 @@ void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 		double scpInv = 0.0;
 		if ((drawFrame()) && (m_Doc->guidesPrefs().framesShown) && (no_stroke))
 		{
-			p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+			p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameNormColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			if ((isBookmark) || (m_isAnnotation))
-				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameAnnotationColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+				p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameAnnotationColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			if ((BackBox != nullptr) || (NextBox != nullptr))
-				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameLinkColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+				p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameLinkColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			if (m_Locked)
-				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameLockColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+				p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameLockColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 
 			p->setFillMode(0);
 			p->setupSharpPolygon(&PoLine);
@@ -3795,12 +3709,12 @@ void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 			drawColumnBorders(p);
 		if ((m_Doc->guidesPrefs().layerMarkersShown) &&
 			(m_Doc->layerCount() > 1) &&
-			(!m_Doc->layerOutline(LayerID)) &&
+			(!m_Doc->layerOutline(m_layerID)) &&
 			(!m_Doc->drawAsPreview))
 		{
 			p->setPen(Qt::black, 0, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			p->setPenOpacity(1.0);
-			p->setBrush(m_Doc->layerMarker(LayerID));
+			p->setBrush(m_Doc->layerMarker(m_layerID));
 			p->setBrushOpacity(1.0);
 			p->setFillMode(ScPainter::Solid);
 			double ofwh = 10;
@@ -3810,9 +3724,9 @@ void PageItem_TextFrame::DrawObj_Decoration(ScPainter *p)
 		}
 		if (no_fill && no_stroke && m_Doc->guidesPrefs().framesShown)
 		{
-			p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+			p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameNormColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			if (m_Locked)
-				p->setPen(PrefsManager::instance()->appPrefs.displayPrefs.frameLockColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+				p->setPen(PrefsManager::instance().appPrefs.displayPrefs.frameLockColor, scpInv, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 			p->setFillMode(ScPainter::None);
 			p->drawSharpRect(0, 0, m_width, m_height);
 			no_fill = false;
@@ -3859,7 +3773,7 @@ void PageItem_TextFrame::truncateContents()
 	{
 		ParagraphStyle defaultStyle = this->itemText.defaultStyle();
 		int pos = itemText.cursorPosition();
-		if (itemText.lengthOfSelection() == 0)
+		if (itemText.selectionLength() == 0)
 		{
 			itemText.select(maxCharsInFrame(), itemText.length() - maxCharsInFrame(), true);
 			deleteSelectedTextFromFrame();
@@ -3994,7 +3908,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 				UndoTransaction trans;
 				if (UndoManager::undoEnabled())
 					trans = undoManager->beginTransaction(Um::Selection,Um::ITextFrame,Um::InsertText,"",Um::IDelete);
-				if (itemText.lengthOfSelection() > 0)
+				if (itemText.selectionLength() > 0)
 					deleteSelectedTextFromFrame();
 				if (conv < 31)
 					conv = 32;
@@ -4302,7 +4216,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Delete:
 		if (itemText.cursorPosition() == itemText.length())
 		{
-			if (itemText.lengthOfSelection() > 0)
+			if (itemText.selectionLength() > 0)
 			{
 				deleteSelectedTextFromFrame();
 				m_Doc->scMW()->setTBvals(this);
@@ -4326,7 +4240,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			keyRepeat = false;
 			return;
 		}
-		if (itemText.lengthOfSelection() == 0)
+		if (itemText.selectionLength() == 0)
 		{
 			int pos1 = itemText.cursorPosition();
 			itemText.moveCursorForward();
@@ -4360,7 +4274,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 	case Qt::Key_Backspace:
 		if (itemText.cursorPosition() == 0)
 		{
-			if (itemText.lengthOfSelection() > 0)
+			if (itemText.selectionLength() > 0)
 			{
 				deleteSelectedTextFromFrame();
 				m_Doc->scMW()->setTBvals(this);
@@ -4379,7 +4293,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 		}
 		if (itemText.length() == 0)
 			break;
-		if (itemText.lengthOfSelection() == 0)
+		if (itemText.selectionLength() == 0)
 		{
 			itemText.setCursorPosition(-1, true);
 			itemText.select(itemText.cursorPosition(), 1, true);
@@ -4427,7 +4341,7 @@ void PageItem_TextFrame::handleModeEditKey(QKeyEvent *k, bool& keyRepeat)
 			break; //avoid inserting chars before first note mark
 		bool doUpdate = false;
 		UndoTransaction activeTransaction;
-		if (itemText.lengthOfSelection() > 0) //(kk < 0x1000)
+		if (itemText.selectionLength() > 0) //(kk < 0x1000)
 		{
 			bool x11Hack=false;
 			bool controlCharHack=false;
@@ -4592,7 +4506,7 @@ void PageItem_TextFrame::deleteSelectedTextFromFrame(/*bool findNotes*/)
 {
 	if (itemText.length() <= 0)
 		return;
-	if (itemText.lengthOfSelection() == 0)
+	if (itemText.selectionLength() == 0)
 	{
 		itemText.select(itemText.cursorPosition(), 1);
 		HasSel = true;
@@ -4782,7 +4696,7 @@ void PageItem_TextFrame::deleteSelectedTextFromFrame(/*bool findNotes*/)
 
 bool PageItem_TextFrame::checkKeyIsShortcut(QKeyEvent *k)
 {
-	QMap<QString, Keys> keyMap=PrefsManager::instance()->appPrefs.keyShortcutPrefs.KeyActions;
+	QMap<QString, Keys> keyMap=PrefsManager::instance().appPrefs.keyShortcutPrefs.KeyActions;
 
 	bool ret = false;
 	int keyCode =0;
@@ -4939,12 +4853,11 @@ void PageItem_TextFrame::ExpandSel(int oldPos)
 	{
 		itemText.extendSelection(oldPos, itemText.cursorPosition());
 	}
-	HasSel = (itemText.lengthOfSelection() > 0);
+	HasSel = (itemText.selectionLength() > 0);
 	if (HasSel)
 	{
 		//CB Replace with direct call for now //emit HasTextSel();
 		m_Doc->scMW()->EnableTxEdit();
-
 	}
 	else
 	{
@@ -4960,7 +4873,7 @@ void PageItem_TextFrame::ExpandSel(int oldPos)
 
 void PageItem_TextFrame::deselectAll()
 {
-	if ( itemText.lengthOfSelection() > 0 )
+	if ( itemText.selectionLength() > 0 )
 	{
 		itemText.deselectAll();
 		PageItem *item = this;
@@ -4986,7 +4899,7 @@ double PageItem_TextFrame::columnWidth()
 		lineCorr = m_lineWidth / 2.0;
 	else
 		lineCorr = 0;
-	return (m_width - (ColGap * (Cols - 1)) - m_textDistanceMargins.left() - m_textDistanceMargins.right() - 2 * lineCorr) / Cols;
+	return (m_width - (m_columnGap * (m_columns - 1)) - m_textDistanceMargins.left() - m_textDistanceMargins.right() - 2 * lineCorr) / m_columns;
 //	return (Width - (ColGap * (Cols - 1)) - m_textDistanceMargins.left() - m_textDistanceMargins.right() - lineCorr) / Cols;
 }
 
@@ -4999,13 +4912,13 @@ void PageItem_TextFrame::drawOverflowMarker(ScPainter *p)
 	qreal top   = Height - sideLength;// * 1.5;
 	qreal bottom = top   + sideLength;
 
-	QColor color(PrefsManager::instance()->appPrefs.displayPrefs.frameNormColor);
+	QColor color(PrefsManager::instance().appPrefs.displayPrefs.frameNormColor);
 	if ((isBookmark) || (m_isAnnotation))
-		color = PrefsManager::instance()->appPrefs.displayPrefs.frameAnnotationColor;
+		color = PrefsManager::instance().appPrefs.displayPrefs.frameAnnotationColor;
 	if ((BackBox != nullptr) || (NextBox != nullptr))
-		color = PrefsManager::instance()->appPrefs.displayPrefs.frameLinkColor;
+		color = PrefsManager::instance().appPrefs.displayPrefs.frameLinkColor;
 	if (m_Locked)
-		color = PrefsManager::instance()->appPrefs.displayPrefs.frameLockColor;
+		color = PrefsManager::instance().appPrefs.displayPrefs.frameLockColor;
 	if (m_Doc->m_Selection->containsItem(this))
 		color = Qt::red;
 
@@ -5039,9 +4952,9 @@ void PageItem_TextFrame::drawColumnBorders(ScPainter *p)
 		p->drawSharpLine(FPoint(m_textDistanceMargins.left() + lineCorr, m_textDistanceMargins.top() + lineCorr), FPoint(m_width - m_textDistanceMargins.right() - lineCorr, m_textDistanceMargins.top() + lineCorr));
 	if (m_textDistanceMargins.bottom() + lineCorr!=0.0)
 		p->drawSharpLine(FPoint(m_textDistanceMargins.left() + lineCorr, m_height - m_textDistanceMargins.bottom() - lineCorr), FPoint(m_width - m_textDistanceMargins.right() - lineCorr, m_height - m_textDistanceMargins.bottom() - lineCorr));
-	while (curCol < Cols)
+	while (curCol < m_columns)
 	{
-		colLeft=(colWidth + ColGap) * curCol + m_textDistanceMargins.left() + lineCorr;
+		colLeft=(colWidth + m_columnGap) * curCol + m_textDistanceMargins.left() + lineCorr;
 		if (colLeft != 0.0)
 			p->drawSharpLine(FPoint(colLeft, m_textDistanceMargins.top() + lineCorr), FPoint(colLeft, m_height - m_textDistanceMargins.bottom() - lineCorr));
 		if (colLeft + colWidth != m_width)
@@ -5146,7 +5059,7 @@ void PageItem_TextFrame::applicableActions(QStringList & actionList)
 	actionList << "toolsEditWithStoryEditor";
 	actionList << "insertSampleText";
 	actionList << "itemPDFIsAnnotation";
-	if (doc()->currentPage()->pageName().isEmpty())
+	if (doc()->currentPage()->pageNameEmpty())
 		actionList << "itemPDFIsBookmark";
 	if (isAnnotation())
 	{
@@ -5616,11 +5529,11 @@ Mark* PageItem_TextFrame::selectedMark(bool onlySelection)
 	int stop = 0;
 	if (onlySelection)
 	{
-		if (itemText.lengthOfSelection() > 0)
+		if (itemText.selectionLength() > 0)
 		{
 			//only selection
 			start = itemText.startOfSelection();
-			stop = start + itemText.lengthOfSelection();
+			stop = start + itemText.selectionLength();
 		}
 		else //in edit mode only one char in cursor position
 		{
@@ -5668,10 +5581,10 @@ TextNote* PageItem_TextFrame::selectedNoteMark(int &foundPos, bool onlySelection
 	int stop = itemText.length();
 	if (onlySelection)
 	{
-		if (itemText.lengthOfSelection() > 0)
+		if (itemText.selectionLength() > 0)
 		{
 			start = itemText.startOfSelection();
-			stop = start + itemText.lengthOfSelection();
+			stop = start + itemText.selectionLength();
 		}
 		else
 			return nullptr;

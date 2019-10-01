@@ -62,7 +62,7 @@ PDFExportDialog::PDFExportDialog( QWidget* parent, const QString & docFileName,
 {
 	setModal(true);
 	setWindowTitle( tr( "Save as PDF" ) );
-	setWindowIcon(IconManager::instance()->loadIcon("AppIcon.png"));
+	setWindowIcon(IconManager::instance().loadIcon("AppIcon.png"));
 	PDFExportLayout = new QVBoxLayout( this );
 	PDFExportLayout->setSpacing( 5 );
 	PDFExportLayout->setMargin( 10 );
@@ -91,7 +91,7 @@ PDFExportDialog::PDFExportDialog( QWidget* parent, const QString & docFileName,
 		}
 		else
 		{
-			PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+			PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 			QString pdfdir = dirs->get("pdf", fi.path());
 			if (pdfdir.right(1) != "/")
 				pdfdir += "/";
@@ -232,7 +232,7 @@ void PDFExportDialog::DoExport()
 
 void PDFExportDialog::ChangeFile()
 {
-	PrefsContext* dirs = PrefsManager::instance()->prefsFile->getContext("dirs");
+	PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 	QString wdir  = dirs->get("pdf", ScPaths::userDocumentDir());
 
 	QString wfile = QDir::fromNativeSeparators(fileNameLineEdit->text()); 

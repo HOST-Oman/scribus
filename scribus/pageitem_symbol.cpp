@@ -56,9 +56,9 @@ void PageItem_Symbol::DrawObj_Item(ScPainter *p, QRectF /*e*/)
 {
 	if (m_Doc->RePos)
 		return;
-	if (!m_Doc->docPatterns.contains(patternVal))
-		patternVal = "";
-	if (patternVal.isEmpty())
+	if (!m_Doc->docPatterns.contains(m_patternName))
+		m_patternName = "";
+	if (m_patternName.isEmpty())
 	{
 		if (m_Doc->guidesPrefs().framesShown)
 		{
@@ -67,7 +67,7 @@ void PageItem_Symbol::DrawObj_Item(ScPainter *p, QRectF /*e*/)
 			p->drawLine(FPoint(0, 0), FPoint(m_width, m_height));
 			p->drawLine(FPoint(0, m_height), FPoint(m_width, 0));
 			const QFont &font = QApplication::font();
-			p->setFont(PrefsManager::instance()->appPrefs.fontPrefs.AvailFonts.findFont(font.family(), QFontInfo(font).styleName()), font.pointSizeF());
+			p->setFont(PrefsManager::instance().appPrefs.fontPrefs.AvailFonts.findFont(font.family(), QFontInfo(font).styleName()), font.pointSizeF());
 			p->drawLine(FPoint(0, 0), FPoint(m_width, 0));
 			p->drawLine(FPoint(m_width, 0), FPoint(m_width, m_height));
 			p->drawLine(FPoint(m_width, m_height), FPoint(0, m_height));
@@ -131,7 +131,7 @@ void PageItem_Symbol::DrawObj_Item(ScPainter *p, QRectF /*e*/)
 	p->setFillRule(fillRule);
 	p->beginLayer(1.0 - fillTransparency(), fillBlendmode(), &PoLine);
 	p->setMaskMode(0);
-	ScPattern pat = m_Doc->docPatterns[patternVal];
+	ScPattern pat = m_Doc->docPatterns[m_patternName];
 	p->scale(m_width / pat.width, m_height / pat.height);
 //		p->translate(pat.items.at(0)->gXpos, pat.items.at(0)->gYpos);
 	for (int em = 0; em < pat.items.count(); ++em)
@@ -147,9 +147,9 @@ void PageItem_Symbol::DrawObj_Item(ScPainter *p, QRectF /*e*/)
 	}
 	p->endLayer();
 	p->restore();
-	if (m_Doc->layerOutline(LayerID))
+	if (m_Doc->layerOutline(m_layerID))
 	{
-		p->setPen(m_Doc->layerMarker(LayerID), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
+		p->setPen(m_Doc->layerMarker(m_layerID), 1, Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 		p->setFillMode(ScPainter::None);
 		p->setBrushOpacity(1.0);
 		p->setPenOpacity(1.0);

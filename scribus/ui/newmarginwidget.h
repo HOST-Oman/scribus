@@ -17,8 +17,8 @@ class SCRIBUS_API NewMarginWidget : public QWidget, Ui::NewMarginWidget
 	Q_OBJECT
 
 	public:
-		NewMarginWidget(QWidget* parent=0);
-		~NewMarginWidget();
+		NewMarginWidget(QWidget* parent = nullptr);
+		~NewMarginWidget() = default;
 
 		enum SetupFlags
 		{
@@ -30,7 +30,7 @@ class SCRIBUS_API NewMarginWidget : public QWidget, Ui::NewMarginWidget
 
 		void setup(const MarginStruct& margs, int layoutType, int unitIndex, int flags = MarginWidgetFlags);
 		/*! \brief Setup the labels by facing pages option */
-		void setFacingPages(bool facing, int pagetype = 0);
+		void setFacingPages(bool facing, int pageType = 0);
 		/*! \brief Setup the spinboxes properties (min/max value etc.) by width */
 		void setPageWidth(double);
 		/*! \brief Setup the spinboxes properties (min/max value etc.) by height */
@@ -41,7 +41,7 @@ class SCRIBUS_API NewMarginWidget : public QWidget, Ui::NewMarginWidget
 		void setNewValues(const MarginStruct& margs);
 		/*! \brief Setup the presetCombo without changing the margin values, only used by tabdocument */
 		void setMarginPreset(int p);
-		const MarginStruct & margins() const { return marginData; };
+		const MarginStruct & margins() const { return m_marginData; };
 
 	public slots:
 		void languageChange();
@@ -58,17 +58,17 @@ class SCRIBUS_API NewMarginWidget : public QWidget, Ui::NewMarginWidget
 	protected:
 		void updateMarginSpinValues();
 
-		MarginStruct marginData;
-		MarginStruct savedMarginData;
-		int savedPresetItem;
-		bool facingPages;
-		int m_flags;
-		int m_unitIndex;
-		double m_unitRatio;
+		MarginStruct m_marginData;
+		MarginStruct m_savedMarginData;
 		QString m_pageSize;
-		double pageWidth;
-		double pageHeight;
-		int pageType;
+		bool   m_facingPages {false};
+		double m_pageHeight {0.0};
+		double m_pageWidth {0.0};
+		double m_unitRatio {1.0};
+		int    m_flags {MarginWidgetFlags};
+		int    m_pageType {0};
+		int    m_savedPresetItem {PresetLayout::none};
+		int    m_unitIndex {0};
 };
 
 #endif // NEWMARGINWIDGET_H
