@@ -88,17 +88,14 @@ class SCRIBUS_API Selection : public QObject
 		bool prependItem(PageItem *item, bool doEmit=true);
 
 		bool containsItem(PageItem *item) const { return m_SelList.contains(item); }
-		/**
-		 * \brief Unused
-		 */
-		bool addGroup();
+
 		/**
 		 * \brief Remove an item from list
 		 * @param item page item
 		 */
 		bool removeItem(PageItem *item);
 		/**
-		 * \briefRemove items from specified layer
+		 * \brief Remove items from specified layer
 		 */
 		bool removeItemsOfLayer(int layedID);
 		/**
@@ -110,6 +107,12 @@ class SCRIBUS_API Selection : public QObject
 		 * \brief Unused
 		 */
 		bool removeGroup();
+
+		/**
+		 * Replace item in selection by another
+		 */
+		void replaceItem(PageItem* oldItem, PageItem* newItem);
+
 		/**
 		 * \brief Remove an item from list listNumber and return a pointer to it
 		 * @param itemIndex Index of the item in the list

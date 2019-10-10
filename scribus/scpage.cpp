@@ -332,7 +332,7 @@ void ScPage::restorePageItemCreation(ScItemState<PageItem*> *state, bool isUndo)
 		return;
 	int stateCode = state->transactionCode;
 	PageItem *ite = state->getItem();
-	bool oldMPMode=m_Doc->masterPageMode();
+	bool oldMPMode = m_Doc->masterPageMode();
 	m_Doc->setMasterPageMode(!ite->OnMasterPage.isEmpty());
 	if (m_Doc->inAnEditMode())
 		m_Doc->view()->requestMode(modeNormal);
@@ -384,11 +384,11 @@ void ScPage::restorePageItemDeletion(ScItemState< QList<PageItem*> > *state, boo
 	if (isUndo)
 	{
 		//CB #3373 reinsert at old position and renumber items
-		PageItem* ite = itemList.at(id2);
-		if (ite->Parent && ite->Parent->isGroup())
-			ite->Parent->asGroupFrame()->groupItemList.insert(id, ite);
+		PageItem* oldItem = itemList.at(id2);
+		if (oldItem->Parent && oldItem->Parent->isGroup())
+			oldItem->Parent->asGroupFrame()->groupItemList.insert(id, oldItem);
 		else
-			m_Doc->Items->insert(id, ite);
+			m_Doc->Items->insert(id, oldItem);
 		for (int i = 0; i < itemList.count(); ++i)
 		{
 			PageItem* ite = itemList.at(i);
@@ -419,19 +419,21 @@ void ScPage::restorePageItemConversion(ScItemState<QPair<PageItem*, PageItem*> >
 	if (!state)
 		return;
 
-	PageItem *oldItem=state->getItem().first;
-	PageItem *newItem=state->getItem().second;
-	bool oldMPMode=m_Doc->masterPageMode();
+	PageItem *oldItem = state->getItem().first;
+	PageItem *newItem = state->getItem().second;
+	bool oldMPMode = m_Doc->masterPageMode();
 	m_Doc->setMasterPageMode(!oldItem->OnMasterPage.isEmpty());
 	if (isUndo)
 	{
 		m_Doc->Items->replace(m_Doc->Items->indexOf(newItem), oldItem);
 		oldItem->updatePolyClip();
 		m_Doc->adjustItemSize(oldItem);
+		m_Doc->m_Selection->replaceItem(newItem, oldItem);
 	}
 	else
 	{
 		m_Doc->Items->replace(m_Doc->Items->indexOf(oldItem), newItem);
+		m_Doc->m_Selection->replaceItem(oldItem, newItem);
 	}
 	m_Doc->setMasterPageMode(oldMPMode);
 }
@@ -442,10 +444,10 @@ void ScPage::restorePageItemConversionToSymbol(ScItemState<QPair<PageItem*, Page
 	if (!state)
 		return;
 
-	PageItem *oldItem=state->getItem().first;
-	PageItem *newItem=state->getItem().second;
-	QString patternName=state->getDescription();
-	bool oldMPMode=m_Doc->masterPageMode();
+	PageItem *oldItem = state->getItem().first;
+	PageItem *newItem = state->getItem().second;
+	QString patternName = state->getDescription();
+	bool oldMPMode = m_Doc->masterPageMode();
 	m_Doc->setMasterPageMode(!oldItem->OnMasterPage.isEmpty());
 	if (isUndo)
 	{
@@ -454,10 +456,12 @@ void ScPage::restorePageItemConversionToSymbol(ScItemState<QPair<PageItem*, Page
 		m_Doc->adjustItemSize(oldItem);
 		if (m_Doc->docPatterns.contains(patternName))
 			m_Doc->removePattern(patternName);
+		m_Doc->m_Selection->replaceItem(newItem, oldItem);
 	}
 	else
 	{
 		m_Doc->Items->replace(m_Doc->Items->indexOf(oldItem), newItem);
+		m_Doc->m_Selection->replaceItem(oldItem, newItem);
 	}
 	m_Doc->setMasterPageMode(oldMPMode);
 }
@@ -504,7 +508,7 @@ void ScPage::setPageSectionNumber(const QString& newPageSectionNumber)
 
 void ScPage::copySizingProperties(ScPage* sourcePage, const MarginStruct& pageMargins)
 {
-	if (sourcePage==nullptr)
+	if (sourcePage == nullptr)
 		return;
 	m_pageSize = sourcePage->m_pageSize;
 	m_orientation = sourcePage->m_orientation;

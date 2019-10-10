@@ -1805,12 +1805,12 @@ void PageItem_TextFrame::layout()
 						{
 							//use rightIndent to not miss with old behavior
 							current.rightIndent = style.firstIndent();
-							// line width should condsider RTL indent when it breaks the line.
+							// line width should consider RTL indent when it breaks the line.
 							current.mustLineEnd = current.colRight - style.firstIndent();
 
-						} else {
-							current.leftIndent += style.firstIndent();
 						}
+						else
+							current.leftIndent += style.firstIndent();
 						if (BulNumMode || DropCmode)
 						{
 							if (style.parEffectIndent())

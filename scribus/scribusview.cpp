@@ -2929,17 +2929,17 @@ void ScribusView::ToPathText()
 	PageItem* currItem = Doc->m_Selection->itemAt(0);
 	PageItem *polyLineItem;
 	if (currItem->asTextFrame())
-		polyLineItem=Doc->m_Selection->itemAt(1);
+		polyLineItem = Doc->m_Selection->itemAt(1);
 	else
 	{
-		polyLineItem=Doc->m_Selection->itemAt(0);
-		currItem=Doc->m_Selection->itemAt(1);
+		polyLineItem = Doc->m_Selection->itemAt(0);
+		currItem = Doc->m_Selection->itemAt(1);
 	}
 	ParagraphStyle dstyle(currItem->itemText.defaultStyle());
 	if (polyLineItem->asPolyLine() || polyLineItem->asPolygon() || polyLineItem->asSpiral() || polyLineItem->asArc() || polyLineItem->asRegularPolygon())
 	{
 		Deselect(true);
-		PageItem* newItem=Doc->convertItemTo(currItem, PageItem::PathText, polyLineItem);
+		PageItem* newItem = Doc->convertItemTo(currItem, PageItem::PathText, polyLineItem);
 		newItem->itemText.setDefaultStyle(dstyle);
 		newItem->itemText.applyCharStyle(0, newItem->itemText.length(), dstyle.charStyle());
 		newItem->invalid = true;
@@ -2956,7 +2956,7 @@ void ScribusView::FromPathText()
 		return;
 
 	Deselect(true);
-	PageItem* newItem=Doc->convertItemTo(currItem, PageItem::TextFrame);
+	PageItem* newItem = Doc->convertItemTo(currItem, PageItem::TextFrame);
 	SelectItem(newItem);
 	Doc->bringItemSelectionToFront();
 	update();
@@ -3165,8 +3165,16 @@ void ScribusView::TextToPath()
 			continue;
 		}
 
+		// We usually don't need any of the undo actions created by TextToPathPainter. If we did take them into account,
+		// the created items woud reappear when redoing an undone TextToPath action
+		int textLen = currItem->itemText.length();
+		if (textLen > 1)
+			undoManager->setUndoEnabled(false);
 		TextToPathPainter p(this, currItem, newGroupedItems);
 		currItem->textLayout.render(&p);
+		if (textLen > 1)
+			undoManager->setUndoEnabled(true);
+
 		if ((currItem->asPathText()) && (currItem->PoShow))
 		{
 			int z = Doc->itemAdd(PageItem::PolyLine, PageItem::Unspecified, currItem->xPos(), currItem->yPos(), currItem->width(), currItem->height(), currItem->lineWidth(), CommonStrings::None, currItem->lineColor());
