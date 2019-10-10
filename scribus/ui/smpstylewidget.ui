@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>695</width>
-    <height>516</height>
+    <width>655</width>
+    <height>562</height>
    </rect>
   </property>
   <layout class="QVBoxLayout">
@@ -20,7 +20,7 @@
       </sizepolicy>
      </property>
      <property name="currentIndex">
-      <number>2</number>
+      <number>0</number>
      </property>
      <widget class="QWidget" name="tab">
       <attribute name="title">
@@ -40,7 +40,7 @@
            <rect>
             <x>0</x>
             <y>0</y>
-            <width>639</width>
+            <width>599</width>
             <height>570</height>
            </rect>
           </property>
