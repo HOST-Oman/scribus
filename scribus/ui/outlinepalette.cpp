@@ -27,6 +27,7 @@ for which a new license (GPL+exception) is in place.
 #include "appmodes.h"
 #include "canvasmode.h"
 #include "commonstrings.h"
+#include "contentpalette.h"
 #include "contextmenu.h"
 #include "iconmanager.h"
 #include "layers.h"
@@ -37,7 +38,6 @@ for which a new license (GPL+exception) is in place.
 #include "scribusdoc.h"
 #include "scribusview.h"
 #include "selection.h"
-#include "textpalette.h"
 #include "undomanager.h"
 #include "units.h"
 #include "util.h"
@@ -704,7 +704,7 @@ void OutlinePalette::slotDoRename(QTreeWidgetItem *ite , int col)
 					{
 						item->PageItemObject->setItemName(NameNew);
 						m_MainWindow->propertiesPalette->setCurrentItem(item->PageItemObject);
-						m_MainWindow->textPalette->setCurrentItem(item->PageItemObject);
+						m_MainWindow->contentPalette->setCurrentItem(item->PageItemObject);
 						currDoc->setModified(true);
 					}
 				}

@@ -28,17 +28,16 @@ for which a new license (GPL+exception) is in place.
 #include "scribusapi.h"
 
 #include "annotation.h"
+#include "colormgmt/sccolormgmtstructs.h"
 #include "fpointarray.h"
-#include "pageitem.h"
 #include "margins.h"
+#include "pageitem.h"
 #include "sccolorstructs.h"
 #include "scfonts.h"
 #include "scimagestructs.h"
 #include "sctextstruct.h"
+#include "util_math.h"
 #include "vgradient.h"
-#include "colormgmt/sccolormgmtstructs.h"
-
-extern bool SCRIBUS_API compareDouble(double, double);
 
 struct CopyContentsBuffer
 {
@@ -409,6 +408,7 @@ enum
 	GS_MAX
 };
 
+//Always add new at the end, leave existing and deprecated items in the list
 enum
 {
 	PAL_ALL,
@@ -423,6 +423,7 @@ enum
 	PAL_VERIFIER,
 	PAL_DOWNLOADS,
 	PAL_TEXT,
+	PAL_CONTENT,
 	PAL_MAX
 };
 

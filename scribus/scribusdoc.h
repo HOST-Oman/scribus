@@ -1204,7 +1204,7 @@ public:
 	void moveRotated(PageItem *currItem, const FPoint& npv);
 	bool sizeItem(double newX, double newY, PageItem *pi, bool fromMP = false, bool DoUpdateClip = true, bool redraw = true);
 	bool moveSizeItem(const FPoint& newX, const FPoint& newY, PageItem* currItem, bool fromMP = false, bool constrainRotation = false);
-	void adjustItemSize(PageItem *currItem, bool includeGroup = false, bool moveInGroup = true);
+	void adjustItemSize(PageItem *currItem, bool includeGroup = false);
 	void moveGroup(double x, double y, Selection* customSelection = nullptr);
 	void rotateGroup(double angle, Selection* customSelection = nullptr);
 	void rotateGroup(double angle, const FPoint& RCenter, Selection* customSelection = nullptr);
@@ -1457,8 +1457,6 @@ signals:
 	//! Temporary signal for SizeItem
 	void widthAndHeight(double, double);
 
-	//! Signal a change in rotation mode (aka basepoint)
-	void rotationMode(int);
 	void updateEditItem();
 	void updateAutoSaveClock();
 	void addBookmark(PageItem *);

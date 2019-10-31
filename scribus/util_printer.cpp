@@ -105,7 +105,7 @@ bool PrinterUtil::getPrinterMarginValues(const QString& printerName, const QSize
 	return true;
 }
 
-PrintEngine PrinterUtil::getDefaultPrintEngine(const QString& printerName, bool toFile)
+PrintEngine PrinterUtil::getDefaultPrintEngine(const QString&  /*printerName*/, bool toFile)
 {
 	if (!toFile)
 	{

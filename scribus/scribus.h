@@ -91,6 +91,7 @@ class PagePalette;
 class PageSelector;
 class PrefsContext;
 class PrefsManager;
+class ContentPalette;
 class PropertiesPalette;
 class ResourceManager;
 class ScMWMenuManager;
@@ -106,7 +107,6 @@ class SimpleState;
 class StoryEditor;
 class StyleManager;
 class SymbolPalette;
-class TextPalette;
 class TOCGenerator;
 class UndoManager;
 class UndoPalette;
@@ -231,7 +231,7 @@ public:
 	GuideManager *guidePalette;
 	CharSelect *charPalette;
 	PropertiesPalette *propertiesPalette;
-	TextPalette *textPalette;
+	ContentPalette *contentPalette;
 	MarksManager *marksManager;
 	NotesStylesEditor *nsEditor;
 	NodePalette *nodePalette;
@@ -626,7 +626,7 @@ private:
 	int m_viewBopal;
 	int m_viewUndoPalette;
 
-	bool m_palettesStatus[12];
+	bool m_palettesStatus[13];
 	bool m_guidesStatus[13];
 
 	bool m_keyrep;

@@ -822,15 +822,15 @@ void ScribusDoc::SetDefaultCMSParams()
 	stdProofLabGC         = ScCore->defaultLabToRGBTrans;
 }
 
-bool ScribusDoc::OpenCMSProfiles(ProfilesL InPo, ProfilesL InPoCMYK, ProfilesL MoPo, ProfilesL PrPo)
+bool ScribusDoc::OpenCMSProfiles(ProfilesL InPo, ProfilesL InPoCMYK, ProfilesL  /*MoPo*/, ProfilesL PrPo)
 {
 	HasCMS = false;
 	ScColorProfile inputProf;
 
 	colorEngine = colorMgmtEngineFactory.createDefaultEngine();
 	ScColorMgmtStrategy colorStrategy;
-	colorStrategy.useBlackPointCompensation = m_docPrefsData.colorPrefs.DCMSset.BlackPoint;
-	colorStrategy.useBlackPreservation      = false;
+	colorStrategy.setUseBlackPointCompensation(m_docPrefsData.colorPrefs.DCMSset.BlackPoint);
+	colorStrategy.setUseBlackPreservation(false);
 	colorEngine.setStrategy(colorStrategy);
 
 	DocDisplayProf   = ScCore->monitorProfile;
@@ -14627,7 +14627,7 @@ bool ScribusDoc::moveSizeItem(const FPoint& newX, const FPoint& newY, PageItem* 
 }
 
 
-void ScribusDoc::adjustItemSize(PageItem *currItem, bool includeGroup, bool moveInGroup)
+void ScribusDoc::adjustItemSize(PageItem *currItem, bool includeGroup)
 {
 	if (currItem->isArc())
 		return;
@@ -14916,12 +14916,12 @@ void ScribusDoc::scaleGroup(double scx, double scy, bool scaleText, Selection* c
 			{
 				double oldGW = item->groupWidth;
 				double oldGH = item->groupHeight;
-				adjustItemSize(item, true, false);
+				adjustItemSize(item, true);
 				item->groupWidth = oldGW;
 				item->groupHeight = oldGH;
 			}
 			else
-				adjustItemSize(item, true, false);
+				adjustItemSize(item, true);
 			if (item->isArc() || item->isSpiral() || item->isRegularPolygon())
 				item->setXYPos(b1.x() + gx, b1.y() + gy);
 			else
@@ -14929,11 +14929,10 @@ void ScribusDoc::scaleGroup(double scx, double scy, bool scaleText, Selection* c
 				QTransform ma3;
 				ma3.translate(gx, gy);
 				ma3.scale(scx, scy);
-				FPoint n(gx - oldPos.x(), gy - oldPos.y());
+				FPoint n(oldPos.x() - gx, oldPos.y() - gy);
 				double x = ma3.m11() * n.x() + ma3.m21() * n.y() + ma3.dx();
 				double y = ma3.m22() * n.y() + ma3.m12() * n.x() + ma3.dy();
-				//moveItem(gx - x, gy - y, item);
-				item->moveBy(gx - x, gy - y);
+				item->moveBy(x - gx, y - gy);
 			}
 			if (oldRot != 0)
 			{
@@ -14946,16 +14945,16 @@ void ScribusDoc::scaleGroup(double scx, double scy, bool scaleText, Selection* c
 				}
 				if (item->isGroup() || item->isSymbol())
 				{
-					// #15759: save/restoring group dimensiosn looks unnecessary
+					// #15759: save/restoring group dimensions looks unnecessary
 					// after fixing adjustItemSize() for groups
 					//double oldGW = item->groupWidth;
 					//double oldGH = item->groupHeight;
-					adjustItemSize(item, true, false);
+					adjustItemSize(item, true);
 					//item->groupWidth = oldGW;
 					//item->groupHeight = oldGH;
 				}
 				else
-					adjustItemSize(item, true, false);
+					adjustItemSize(item, true);
 			}
 		}
 		if (scaleText)
@@ -14965,7 +14964,7 @@ void ScribusDoc::scaleGroup(double scx, double scy, bool scaleText, Selection* c
 				for (int j = 0; j < item->itemText.length(); ++j)
 				{
 					CharStyle fsStyle;
-					fsStyle.setFontSize(qMax(qRound(item->itemText.charStyle(j).fontSize()*((scx+scy)/2)), 1));
+					fsStyle.setFontSize(qMax(qRound(item->itemText.charStyle(j).fontSize() * ((scx + scy) / 2)), 1));
 					item->itemText.applyCharStyle(j, 1, fsStyle);
 				}
 				if (item->asPathText())
@@ -15010,21 +15009,21 @@ void ScribusDoc::scaleGroup(double scx, double scy, bool scaleText, Selection* c
 		switch (m_rotMode)
 		{
 		case 2:
-			moveGroup((origGW-gw) / 2.0, (origGH-gh) / 2.0);
+			moveGroup((origGW - gw) / 2.0, (origGH - gh) / 2.0);
 			break;
 		case 4:
-			moveGroup(origGW-gw, origGH-gh);
+			moveGroup(origGW - gw, origGH - gh);
 			break;
 		case 3:
-			moveGroup(0.0, origGH-gh);
+			moveGroup(0.0, origGH - gh);
 			break;
 		case 1:
-			moveGroup(origGW-gw, 0.0);
+			moveGroup(origGW - gw, 0.0);
 			break;
 		}
 	}
 	updateManager()->setUpdatesEnabled();
-	regionsChanged()->update(QRectF(gx-5, gy-5, gw+10, gh+10).united(oldR));
+	regionsChanged()->update(QRectF(gx - 5, gy - 5, gw + 10, gh + 10).united(oldR));
 	itemSelection->setGroupRect();
 	itemSelection->getGroupRect(&gx, &gy, &gw, &gh);
 	for (int i = 0; i < selectedItemCount; ++i)
@@ -16232,13 +16231,11 @@ Serializer *ScribusDoc::textSerializer()
 	return m_tserializer;
 }
 
-
 void ScribusDoc::setRotationMode(int val)
 {
 	if (m_rotMode == val)
 		return;
 	m_rotMode = val;
-	emit rotationMode(m_rotMode);
 }
 
 void ScribusDoc::setPageSetFirstPage(int layout, int fp)

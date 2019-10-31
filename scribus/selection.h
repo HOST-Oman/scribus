@@ -92,7 +92,7 @@ class SCRIBUS_API Selection : public QObject
 		 * @param doEmit call emitAllToGUI()
 		 * @return If the item was added
 		 */
-		bool prependItem(PageItem *item, bool doEmit=true);
+		bool prependItem(PageItem *item);
 
 		bool containsItem(PageItem *item) const { return m_SelList.contains(item); }
 
@@ -203,13 +203,10 @@ class SCRIBUS_API Selection : public QObject
 
 		int  m_delaySignals;
 		bool m_sigSelectionChanged;
-		bool m_sigSelectionIsMultiple;
 
 		void sendSignals(bool guiConnect = true);
 		
 	signals:
-		void selectionIsMultiple(bool);
-		void empty();
 		void selectionChanged();
 };
 

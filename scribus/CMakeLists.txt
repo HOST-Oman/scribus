@@ -338,6 +338,7 @@ set(SCRIBUS_MOC_CLASSES
 	ui/colorlistbox.h
 	ui/colorlistmodel.h
 	ui/colorsandfills.h
+	ui/contentpalette.h
 	ui/contextmenu.h
 	ui/cpalette.h
 	ui/cupsoptions.h
@@ -545,7 +546,6 @@ set(SCRIBUS_MOC_CLASSES
 	ui/tabmanager.h
 	ui/tabpdfoptions.h
 	ui/tabruler.h
-	ui/textpalette.h
 	ui/transformdialog.h
 	ui/transparencypalette.h
 	tt/simpletreemodel/treemodel.h
@@ -841,6 +841,7 @@ set(SCRIBUS_SOURCES
 	ui/colorlistbox.cpp
 	ui/colorlistmodel.cpp
 	ui/colorsandfills.cpp
+	ui/contentpalette.cpp
 	ui/contextmenu.cpp
 	ui/cpalette.cpp
 	ui/cupsoptions.cpp
@@ -1047,7 +1048,6 @@ set(SCRIBUS_SOURCES
 	ui/tabmanager.cpp
 	ui/tabpdfoptions.cpp
 	ui/tabruler.cpp
-	ui/textpalette.cpp
 	ui/transformdialog.cpp
 	ui/transparencypalette.cpp
 	tt/simpletreemodel/treeitem.cpp
@@ -1286,7 +1286,6 @@ target_link_libraries(${EXE_NAME}
 	${ICU_LIBRARIES}
 	${FONTCONFIG_LIBRARIES}
 	${LIBXML2_LIBRARIES}
-	${PYTHON_LIBRARIES}
 	${TIFF_LIBRARIES}
 	${JPEG_LIBRARIES}
 	${ZLIB_LIBRARIES}

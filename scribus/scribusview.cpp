@@ -51,9 +51,9 @@ for which a new license (GPL+exception) is in place.
 #include <QPolygon>
 #include <QStack>
 #include <QStringList>
+#include <QStyleOptionRubberBand>
 #include <QWheelEvent>
 #include <QWidgetAction>
-#include <QStyleOptionRubberBand>
 
 #include <cstdio>
 #include <cstdlib>
@@ -114,9 +114,7 @@ for which a new license (GPL+exception) is in place.
 #include "ui/pageitemattributes.h"
 #include "ui/pageselector.h"
 #include "ui/propertiespalette.h"
-#include "ui/propertiespalette_image.h"
 #include "ui/propertiespalette_line.h"
-#include "ui/propertiespalette_text.h"
 #include "ui/rulermover.h"
 #include "ui/scrapbookpalette.h"
 #include "ui/storyeditor.h"
@@ -3147,6 +3145,10 @@ void ScribusView::TextToPath()
 
 	UndoTransaction trans(undoManager->beginTransaction(currItem->getUName(), currItem->getUPixmap(), Um::ToOutlines, "", nullptr));
 	int offset = 0;
+
+	int oldRotMode = Doc->rotationMode();
+	Doc->setRotationMode(0);
+
 	for (int i = 0; i < selectedItemCount; ++i)
 	{
 		PageItem *currItem = tmpSelection.itemAt(offset);
@@ -3207,6 +3209,7 @@ void ScribusView::TextToPath()
 		}
 		delItems.append(tmpSelection.takeItem(offset));
 	}
+
 	tmpSelection.clear();
 	int ind = -1;
 	if (currItem->isGroupChild())
@@ -3251,6 +3254,7 @@ void ScribusView::TextToPath()
 		else
 			Doc->Items->insert(ind+1, newGroupedItems.at(0));
 	}
+
 	int toDeleteItemCount = delItems.count();
 	if (toDeleteItemCount != 0)
 	{
@@ -3259,6 +3263,8 @@ void ScribusView::TextToPath()
 			tmpSelection.addItem(delItems.takeAt(0)); //yes, 0, remove the first
 		Doc->itemSelection_DeleteItem(&tmpSelection);
 	}
+
+	Doc->setRotationMode(oldRotMode);
 	m_ScMW->HaveNewSel();
 	Deselect(true);
 	trans.commit();
