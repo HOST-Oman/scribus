@@ -394,7 +394,6 @@ PyObject *scribus_setboxtext(PyObject* /* self */, PyObject* args)
 	currItem->itemText.clear();
 	currItem->itemText.insertChars(0, Daten);
 	currItem->invalidateLayout();
-	currItem->Dirty = false;
 
 	Py_RETURN_NONE;
 }
@@ -428,12 +427,8 @@ PyObject *scribus_inserttext(PyObject* /* self */, PyObject* args)
 	if (pos == -1)
 		pos = item->itemText.length();
 	item->itemText.insertChars(pos, textData, true);
-	item->Dirty = true;
-	if (ScCore->primaryMainWindow()->doc->DoDrawing)
-	{
-		// FIXME adapt to Qt-4 painting style
-		item->Dirty = false;
-	}
+	item->invalidateLayout();
+
 	Py_RETURN_NONE;
 }
 
@@ -468,6 +463,26 @@ PyObject *scribus_inserthtmltext(PyObject* /* self */, PyObject* args)
 	gt.launchImporter(-1, fileName, false, QString("utf-8"), false, true, item);
 
 	// FIXME: PyMem_Free() - are any needed??
+	Py_RETURN_NONE;
+}
+
+PyObject *scribus_layouttext(PyObject* /* self */, PyObject* args)
+{
+	char *Name = const_cast<char*>("");
+	if (!PyArg_ParseTuple(args, "|es", "utf-8", &Name))
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
+	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
+	if (item == nullptr)
+		return nullptr;
+	if (!item->isTextFrame() && !item->isPathText())
+	{
+		PyErr_SetString(WrongFrameTypeError, QObject::tr("Cannot delete text from a non-text frame.","python error").toLocal8Bit().constData());
+		return nullptr;
+	}
+	item->layout();
+
 	Py_RETURN_NONE;
 }
 

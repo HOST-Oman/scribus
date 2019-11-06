@@ -398,6 +398,7 @@ public: // Start public functions
 	QTransform getGroupTransform() const;
 	void getTransform(QTransform& mat) const;
 	QTransform getTransform() const;
+	QTransform getTransform(double deltaX, double deltaY) const;
 
 	/// invalidates current layout information
 	virtual void invalidateLayout() { invalid = true; }
@@ -1358,7 +1359,6 @@ public:	// Start public variables
 	StoryText itemText; ///< Text of element
 	TextLayout textLayout;
 	bool isBookmark; ///< Flag for PDF Bookmark
-	bool Dirty; ///< Flag for redraw in EditMode
 	bool invalid; ///< Flag indicates that layout has changed (eg. for textlayout)
 	bool HasSel; ///< Flag for text selection
 	bool FrameOnly; ///< avoid artefacts while moving

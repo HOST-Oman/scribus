@@ -284,9 +284,9 @@ void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 	if (m_doc->m_Selection->isMultipleSelection())
 	{
 		PageItem *curItem(nullptr);
-		for(int a=0; a<m_doc->m_Selection->count(); ++a)
+		for(int i = 0; i < m_doc->m_Selection->count(); ++i)
 		{
-			curItem = m_doc->m_Selection->itemAt(a);
+			curItem = m_doc->m_Selection->itemAt(i);
 			
 			if (drawHandles)
 				drawHandles = !curItem->locked();
@@ -296,9 +296,9 @@ void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 		{
 			int docSelectionCount = m_doc->m_Selection->count();
 			PageItem *currItem;
-			for (int a=0; a<docSelectionCount; ++a)
+			for (int i = 0; i < docSelectionCount; ++i)
 			{
-				currItem = m_doc->m_Selection->itemAt(a);
+				currItem = m_doc->m_Selection->itemAt(i);
 				if (!m_doc->Items->contains(currItem))
 					continue;
 				psx->save();
@@ -471,183 +471,115 @@ void CanvasMode::drawSelection(QPainter* psx, bool drawHandles)
 }
 
 
-void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double deltax, double deltay)
+void CanvasMode::drawOutline(QPainter* p, double deltax, double deltay)
 {
 	p->save();
 	p->scale(m_canvas->scale(), m_canvas->scale());
 	p->translate(-m_doc->minCanvasCoordinate.x(), -m_doc->minCanvasCoordinate.y());
-	
 			
 	if (m_doc->m_Selection->count() == 1)
 	{
 		PageItem *currItem = m_doc->m_Selection->itemAt(0);
 				
-		if ((scalex != 1.0) || (scaley != 1.0)) // changing size of page item
-		{
-			p->setBrush(m_brush["outline"]);
-			p->setPen(m_pen["outline"]);
-
-			QTransform itemTrans = currItem->getTransform();
-			QPointF itPos = itemTrans.map(QPointF(0, 0));
-			double gRot = getRotationDFromMatrix(itemTrans);
-			double m_scaleX, m_scaleY;
-			double addTransX = 0.0;
-			getScaleFromMatrix(itemTrans, m_scaleX, m_scaleY);
-			p->translate(itPos);
-			if (itemTrans.m11() < 0)
-			{
-				gRot -= 180.0;
-		//		p->translate(-currItem->visualWidth(), 0);
-		//		addTransX = -currItem->visualWidth() * (scalex * m_scaleX);
-		//		m_scaleX *= -1;
-			}
-			p->translate(deltax, deltay);
-			if (currItem->imageFlippedH())
-			{
-				p->translate(currItem->width(), 0);
-				p->scale(-1.0, 1.0);
-			}
-			if (currItem->imageFlippedV())
-			{
-				p->translate(0, currItem->height());
-				p->scale(1.0, -1.0);
-			}
-			if (gRot != 0)
-			{
-				p->setRenderHint(QPainter::Antialiasing);
-				p->rotate(-gRot);
-			}
-			p->scale(scalex * m_scaleX, scaley * m_scaleY);
-			p->translate(addTransX, 0);
-			p->drawPath(currItem->PoLine.toQPainterPath(false));
-		//	currItem->DrawPolyL(p, currItem->Clip);
-		}
-		else // moving page item
-		{
-//			QRectF br(currItem->getVisualBoundingRect());
+//		QRectF br(currItem->getVisualBoundingRect());
 #ifdef GESTURE_FRAME_PREVIEW
-			QImage *pixItem(0);
-			if (m_pixmapCache.contains(currItem))
-			{
-				if (m_pixmapCache.value(currItem)->isReady())
-					pixItem = m_pixmapCache.value(currItem)->getImage();
-			}
-			else
-			{
-				m_pixmapCache[currItem] = new PageItemPreview(currItem);
-			}
+		QImage *pixItem(0);
+		if (m_pixmapCache.contains(currItem))
+		{
+			if (m_pixmapCache.value(currItem)->isReady())
+				pixItem = m_pixmapCache.value(currItem)->getImage();
+		}
+		else
+		{
+			m_pixmapCache[currItem] = new PageItemPreview(currItem);
+		}
 
-			if (pixItem)
+		if (pixItem)
+		{
+			p->save();
+			p->translate(br.x(),br.y());
+			p->translate(deltax, deltay);
+			p->drawImage(br.toRect(), *pixItem, pixItem->rect());
+			p->restore();
+		}
+#endif // GESTURE_FRAME_PREVIEW
+		{
+			QTransform itemTrans = currItem->getTransform(deltax, deltay);
+			double visualWidth = currItem->visualWidth();
+			double visualHeight = currItem->visualHeight();
+			double visualLineWidth = currItem->visualLineWidth();
+			double matRot = getRotationDFromMatrix(itemTrans);
+
+			if (currItem->isGroup())
 			{
 				p->save();
-				p->translate(br.x(),br.y());
-				p->translate(deltax, deltay);
-				p->drawImage(br.toRect(), *pixItem, pixItem->rect());
-				p->restore();
-			}
-#endif // GESTURE_FRAME_PREVIEW
-			{
-//				QRect vr(m_canvas->exposedRect());
-//				QImage img(vr.width(), vr.height(), QImage::Format_ARGB32);
-//				ScPainter scp(&img,vr. width(), vr.height());
-//				scp.translate(-m_doc->minCanvasCoordinate.x(), -m_doc->minCanvasCoordinate.y());
-////				scp.translate(currItem->xPos(), currItem->yPos());
-////				scp.translate(deltax, deltay);
-////				scp.scale(scalex, scaley);
-////				scp.scale(m_canvas->scale(), m_canvas->scale());
-//				currItem->invalid = false;
-//				currItem->DrawObj(&scp, vr);
-//				p->drawImage(vr, img, img.rect() );
-				
-				if (currItem->isGroup())
+				p->setBrush(m_brush["outline"]);
+				p->setPen(m_pen["outline"]);
+				p->setWorldTransform(itemTrans, true);
+				if (matRot != 0)
+					p->setRenderHint(QPainter::Antialiasing);
+				p->drawRect(QRectF(0.0, 0.0, visualWidth, visualHeight));
+				p->setClipping(true);
+				p->setClipRect(QRectF(0.0, 0.0, visualWidth, visualHeight));
+				PageItem_Group* gItem = currItem->asGroupFrame();
+				int itemCountG = gItem->groupItemList.count();
+				if (itemCountG < m_canvas->moveWithFullOutlinesThreshold)
 				{
-					p->save();
-					p->setBrush(m_brush["outline"]);
-					p->setPen(m_pen["outline"]);
-					p->translate(currItem->xPos(), currItem->yPos());
-					p->translate(deltax, deltay);
-					if (currItem->rotation() != 0)
+					if (gItem->imageFlippedH())
 					{
-						p->setRenderHint(QPainter::Antialiasing);
-						p->rotate(currItem->rotation());
+						p->translate(gItem->width(), 0);
+						p->scale(-1, 1);
 					}
-					p->scale(scalex, scaley);
-					p->drawRect(QRectF(0.0, 0.0, currItem->visualWidth(), currItem->visualHeight()));
-					p->setClipping(true);
-					p->setClipRect(QRectF(0.0, 0.0, currItem->visualWidth(), currItem->visualHeight()));
-					PageItem_Group* gItem = currItem->asGroupFrame();
-					int itemCountG = gItem->groupItemList.count();
-					if (itemCountG < m_canvas->moveWithFullOutlinesThreshold)
+					if (gItem->imageFlippedV())
 					{
-						if (gItem->imageFlippedH())
-						{
-							p->translate(gItem->width(), 0);
-							p->scale(-1, 1);
-						}
-						if (gItem->imageFlippedV())
-						{
-							p->translate(0, gItem->height());
-							p->scale(1, -1);
-						}
-						p->scale(gItem->width() / gItem->groupWidth, gItem->height() / gItem->groupHeight);
-						for (int cg = 0; cg < itemCountG; cg++)
-						{
-							p->save();
-							currItem = gItem->groupItemList.at(cg);
-							p->translate(currItem->gXpos, currItem->gYpos);
-							if (currItem->rotation() != 0)
-							{
-								p->setRenderHint(QPainter::Antialiasing);
-								p->rotate(currItem->rotation());
-							}
-							p->drawPath(currItem->PoLine.toQPainterPath(false));
-						//	currItem->DrawPolyL(p, currItem->Clip);
-							p->restore();
-						}
+						p->translate(0, gItem->height());
+						p->scale(1, -1);
 					}
-					else
+					p->scale(gItem->width() / gItem->groupWidth, gItem->height() / gItem->groupHeight);
+					for (int cg = 0; cg < itemCountG; cg++)
 					{
-						currItem->DrawPolyL(p, currItem->Clip);
+						p->save();
+						currItem = gItem->groupItemList.at(cg);
+						p->translate(currItem->gXpos, currItem->gYpos);
+						if (currItem->rotation() != 0)
+						{
+							p->setRenderHint(QPainter::Antialiasing);
+							p->rotate(currItem->rotation());
+						}
+						p->drawPath(currItem->PoLine.toQPainterPath(false));
+						p->restore();
 					}
-					p->restore();
 				}
 				else
 				{
-					p->save();
-					p->setBrush(m_brush["outline"]);
-					p->setPen(m_pen["outline"]);
-					p->translate(currItem->xPos(), currItem->yPos());
-					p->translate(deltax, deltay);
-					if (currItem->rotation() != 0)
-					{
-						p->setRenderHint(QPainter::Antialiasing);
-						p->rotate(currItem->rotation());
-					}
-					if (currItem->isLine())
-						p->translate(0, -currItem->visualLineWidth() / 2.0);
-					else
-						p->translate(-currItem->visualLineWidth() / 2.0, -currItem->visualLineWidth() / 2.0);
-					p->scale(scalex, scaley);
-					p->drawRect(QRectF(0.0, 0.0, currItem->visualWidth(), currItem->visualHeight()));
-					p->restore();
-
-					p->save();
-					p->setBrush(m_brush["outline"]);
-					p->setPen(m_pen["outline"]);
-					p->translate(currItem->xPos(), currItem->yPos());
-					p->translate(deltax, deltay);
-					if (currItem->rotation() != 0)
-					{
-						p->setRenderHint(QPainter::Antialiasing);
-						p->rotate(currItem->rotation());
-					}
-					p->scale(scalex, scaley);
-					p->drawPath(currItem->PoLine.toQPainterPath(false));
-				//	currItem->DrawPolyL(p, currItem->Clip);
-					p->restore();
+					currItem->DrawPolyL(p, currItem->Clip);
 				}
+				p->restore();
 			}
-		}	
+			else
+			{
+				p->save();
+				p->setBrush(m_brush["outline"]);
+				p->setPen(m_pen["outline"]);
+				p->setWorldTransform(itemTrans, true);
+				if (matRot != 0)
+					p->setRenderHint(QPainter::Antialiasing);
+				if (currItem->isLine())
+					p->drawRect(QRectF(0.0, -visualLineWidth / 2.0, currItem->visualWidth(), currItem->visualHeight()));
+				else
+					p->drawRect(QRectF(-visualLineWidth / 2.0, -visualLineWidth / 2.0, currItem->visualWidth(), currItem->visualHeight()));
+				p->restore();
+
+				p->save();
+				p->setBrush(m_brush["outline"]);
+				p->setPen(m_pen["outline"]);
+				p->setWorldTransform(itemTrans, true);
+				if (matRot != 0)
+					p->setRenderHint(QPainter::Antialiasing);
+				p->drawPath(currItem->PoLine.toQPainterPath(false));
+				p->restore();
+			}
+		}
 	}
 	else if (m_doc->m_Selection->count() > 1)
 	{
@@ -658,100 +590,79 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 		if (docSelectionCount < m_canvas->moveWithBoxesOnlyThreshold)
 		{
 			PageItem *currItem;
-// 			p->translate(x, y);
-			for (int a=0; a<docSelectionCount; ++a)
+			for (int i = 0; i < docSelectionCount; ++i)
 			{
-				currItem = m_doc->m_Selection->itemAt(a);
-				if (!m_doc->Items->contains(currItem))
+				currItem = m_doc->m_Selection->itemAt(i);
+				if (!currItem->Parent && !m_doc->Items->contains(currItem))
 					continue;
+				if (currItem->Parent && !currItem->Parent->groupItemList.contains(currItem))
+					continue;
+
+				QTransform itemTrans = currItem->getTransform(deltax, deltay);
+				double visualWidth = currItem->visualWidth();
+				double visualHeight = currItem->visualHeight();
+				double visualLineWidth = currItem->visualLineWidth();
+				double matRot = getRotationDFromMatrix(itemTrans);
+
 				p->save();
-				if (docSelectionCount < m_canvas->moveWithFullOutlinesThreshold /*&& currItem->rotation() == 0*/)
+				if (docSelectionCount < m_canvas->moveWithFullOutlinesThreshold)
 				{
-					if ((scalex != 1.0) || (scaley != 1.0))
+//					QRectF br(currItem->getVisualBoundingRect());
+#ifdef GESTURE_FRAME_PREVIEW
+					QImage *pixItem(0);
+					if (m_pixmapCache.contains(currItem))
 					{
-						p->setBrush(m_brush["outline"]);
-						p->setPen(m_pen["outline"]);
-						p->translate(deltax, deltay);
-						p->translate(currItem->xPos() /*- x*/, currItem->yPos() /*- y*/);
-						p->scale(scalex, scaley);
-						if (currItem->rotation() != 0)
-						{
-							p->setRenderHint(QPainter::Antialiasing);
-							p->rotate(currItem->rotation());
-						}
-						currItem->DrawPolyL(p, currItem->Clip);
+						if (m_pixmapCache.value(currItem)->isReady())
+							pixItem = m_pixmapCache.value(currItem)->getImage();
 					}
 					else
 					{
-//						QRectF br(currItem->getVisualBoundingRect());
-#ifdef GESTURE_FRAME_PREVIEW
-						QImage *pixItem(0);
-						if (m_pixmapCache.contains(currItem))
-						{
-							if (m_pixmapCache.value(currItem)->isReady())
-								pixItem = m_pixmapCache.value(currItem)->getImage();
-						}
-						else
-						{
-							m_pixmapCache[currItem] = new PageItemPreview(currItem);
-						}
+						m_pixmapCache[currItem] = new PageItemPreview(currItem);
+					}
 			
 
-						if (pixItem)
-						{
-							p->save();
+					if (pixItem)
+					{
+						p->save();
 //							p->translate(br.x() /*- x*/, br.y() /*- y*/);
-							p->drawImage(br.toRect(), *pixItem, pixItem->rect());
-							p->restore();
-						}
+						p->drawImage(br.toRect(), *pixItem, pixItem->rect());
+						p->restore();
+					}
 #endif  // GESTURE_FRAME_PREVIEW
-						{
-							p->save();
-							p->setBrush(m_brush["outline"]);
-							p->setPen(m_pen["outline"]);
-							p->translate(currItem->xPos(), currItem->yPos());
-							p->translate(deltax, deltay);
-							if (currItem->rotation() != 0)
-							{
-								p->setRenderHint(QPainter::Antialiasing);
-								p->rotate(currItem->rotation());
-							}
-							if (currItem->isLine())
-								p->translate(0, -currItem->visualLineWidth() / 2.0);
-							else
-								p->translate(-currItem->visualLineWidth() / 2.0, -currItem->visualLineWidth() / 2.0);
-							p->scale(scalex, scaley);
-							p->drawRect(QRectF(0.0, 0.0, currItem->visualWidth(), currItem->visualHeight()));
-							p->restore();
-							p->save();
-							p->setBrush(m_brush["outline"]);
-							p->setPen(m_pen["outline"]);
-							p->translate(currItem->xPos(), currItem->yPos());
-							p->translate(deltax, deltay);
-							if (currItem->rotation() != 0)
-							{
-								p->setRenderHint(QPainter::Antialiasing);
-								p->rotate(currItem->rotation());
-							}
-							p->scale(scalex, scaley);
-							p->drawPath(currItem->PoLine.toQPainterPath(false));
-							//currItem->DrawPolyL(p, currItem->Clip);
-							p->restore();
-						}
+					{
+						p->save();
+						p->setBrush(m_brush["outline"]);
+						p->setPen(m_pen["outline"]);
+						p->setWorldTransform(itemTrans, true);
+						if (matRot != 0)
+							p->setRenderHint(QPainter::Antialiasing);
+						if (currItem->isLine())
+							p->drawRect(QRectF(0.0, -visualLineWidth / 2.0, currItem->visualWidth(), currItem->visualHeight()));
+						else
+							p->drawRect(QRectF(-visualLineWidth / 2.0, -visualLineWidth / 2.0, currItem->visualWidth(), currItem->visualHeight()));
+						p->restore();
+
+						p->save();
+						p->setBrush(m_brush["outline"]);
+						p->setPen(m_pen["outline"]);
+						p->setWorldTransform(itemTrans, true);
+						if (matRot != 0)
+							p->setRenderHint(QPainter::Antialiasing);
+						p->drawPath(currItem->PoLine.toQPainterPath(false));
+						p->restore();
 					}
 				}
 				else
 				{
 					p->setBrush(m_brush["outline"]);
 					p->setPen(m_pen["outline"]);
-					p->translate(deltax, deltay);
-					p->translate(x, y);
-					if (currItem->rotation() != 0)
-					{
+					p->setWorldTransform(itemTrans, true);
+					if (matRot != 0)
 						p->setRenderHint(QPainter::Antialiasing);
-						p->rotate(currItem->rotation());
-					}
-					p->drawRect(QRectF(0.0, 0.0, currItem->visualWidth(), currItem->visualHeight()));
+					if (currItem->isLine())
+						p->drawRect(QRectF(0.0, -visualLineWidth / 2.0, currItem->visualWidth(), currItem->visualHeight()));
+					else
+						p->drawRect(QRectF(-visualLineWidth / 2.0, -visualLineWidth / 2.0, currItem->visualWidth(), currItem->visualHeight()));
 				}
 				p->restore();
 			}
@@ -762,7 +673,6 @@ void CanvasMode::drawOutline(QPainter* p, double scalex, double scaley, double d
 			p->setPen(m_pen["outline"]);
 			p->translate(deltax, deltay);
 			p->translate(x, y);
-			p->scale(scalex, scaley);
 			p->drawRect(QRectF(0, 0, w, h));
 		}
 	}
