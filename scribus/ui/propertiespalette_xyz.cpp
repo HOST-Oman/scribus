@@ -24,6 +24,7 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem.h"
 #include "pageitem_arc.h"
 #include "pageitem_group.h"
+#include "pageitem_line.h"
 #include "pageitem_spiral.h"
 #include "pageitem_textframe.h"
 #include "propertiespalette_utils.h"
@@ -563,8 +564,8 @@ void PropertiesPalette_XYZ::showXY(double x, double y)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
-	disconnect(xposSpin, SIGNAL(valueChanged(double)), this, SLOT(handleNewX()));
-	disconnect(yposSpin, SIGNAL(valueChanged(double)), this, SLOT(handleNewY()));
+	bool sigBlocked1 = xposSpin->blockSignals(true);
+	bool sigBlocked2 = yposSpin->blockSignals(true);
 	bool useLineMode = false;
 	bool tmp = m_haveItem;
 	double inX, inY, b, h, r, dummy1, dummy2;
@@ -620,35 +621,37 @@ void PropertiesPalette_XYZ::showXY(double x, double y)
 			inY -= m_doc->currentPage()->yOffset();
 		}
 	}
-	xposSpin->setValue(inX*m_unitRatio);
-	yposSpin->setValue(inY*m_unitRatio);
+	xposSpin->setValue(inX * m_unitRatio);
+	yposSpin->setValue(inY * m_unitRatio);
 	if (useLineMode)
 		showWH(m_item->width(), m_item->height());
 	m_haveItem = tmp;
-	connect(xposSpin, SIGNAL(valueChanged(double)), this, SLOT(handleNewX()));
-	connect(yposSpin, SIGNAL(valueChanged(double)), this, SLOT(handleNewY()));
+	xposSpin->blockSignals(sigBlocked1);
+	yposSpin->blockSignals(sigBlocked2);
 }
 
 void PropertiesPalette_XYZ::showWH(double x, double y)
 {
 	if (!m_ScMW || m_ScMW->scriptIsRunning())
 		return;
-	QTransform ma;
-	QPoint dp;
 	bool sigBlocked1 = widthSpin->blockSignals(true);
 	bool sigBlocked2 = heightSpin->blockSignals(true);
 	if ((m_lineMode) && (m_item->asLine()))
 	{
-		ma.translate(static_cast<double>(xposSpin->value()) / m_unitRatio, static_cast<double>(yposSpin->value()) / m_unitRatio);
-		ma.rotate(static_cast<double>(rotationSpin->value())*(-1));
-		dp = QPoint(static_cast<int>(x), static_cast<int>(y)) * ma;
-		widthSpin->setValue(dp.x()*m_unitRatio);
-		heightSpin->setValue(dp.y()*m_unitRatio);
+		QTransform ma;
+		ma.translate(m_item->xPos(), m_item->yPos());
+		ma.rotate(m_item->rotation());
+		QPointF dp = QPointF(x, 0.0) * ma;
+		dp -= QPointF(m_doc->rulerXoffset, m_doc->rulerYoffset);
+		if (m_doc->guidesPrefs().rulerMode)
+			dp -= QPointF(m_doc->currentPage()->xOffset(), m_doc->currentPage()->yOffset());
+		widthSpin->setValue(dp.x() * m_unitRatio);
+		heightSpin->setValue(dp.y() * m_unitRatio);
 	}
 	else
 	{
-		widthSpin->setValue(x*m_unitRatio);
-		heightSpin->setValue(y*m_unitRatio);
+		widthSpin->setValue(x * m_unitRatio);
+		heightSpin->setValue(y * m_unitRatio);
 	}
 	widthSpin->blockSignals(sigBlocked1);
 	heightSpin->blockSignals(sigBlocked2);
@@ -710,18 +713,12 @@ void PropertiesPalette_XYZ::handleNewX()
 		{
 			if ((m_item->asLine()) && (m_lineMode))
 			{
-				w += m_doc->rulerXoffset;
-				h += m_doc->rulerYoffset;
-				if (m_doc->guidesPrefs().rulerMode)
-				{
-					w += m_doc->currentPage()->xOffset();
-					h += m_doc->currentPage()->yOffset();
-				}
-				double r = atan2(h-y,w-x)*(180.0/M_PI);
-				w = sqrt(pow(w-x,2)+pow(h-y,2));
+				QPointF endPoint = m_item->asLine()->endPoint();
+				double r = atan2(endPoint.y() - m_item->yPos(), endPoint.x() - x) * (180.0 / M_PI);
+				double length = sqrt(pow(endPoint.x() - x, 2) + pow(endPoint.y() - m_item->yPos(), 2));
 				m_item->setXYPos(x, m_item->yPos(), true);
 				m_item->setRotation(r, true);
-				m_doc->sizeItem(w, m_item->height(), m_item, true);
+				m_doc->sizeItem(length, m_item->height(), m_item, true);
 			}
 			else
 			{
@@ -789,20 +786,12 @@ void PropertiesPalette_XYZ::handleNewY()
 	{
 		if ((m_item->asLine()) && (m_lineMode))
 		{
-			w += m_doc->rulerXoffset;
-			h += m_doc->rulerYoffset;
-			if (m_doc->guidesPrefs().rulerMode)
-			{
-				w += m_doc->currentPage()->xOffset();
-				h += m_doc->currentPage()->yOffset();
-			}
-			double r = atan2(h-y,w-x)*(180.0/M_PI);
-			w = sqrt(pow(w-x,2)+pow(h-y,2));
-			m_doc->moveItem(0, y - m_item->yPos(), m_item);
+			QPointF endPoint = m_item->asLine()->endPoint();
+			double r = atan2(endPoint.y() - y, endPoint.x() - m_item->xPos()) * (180.0 / M_PI);
+			double length = sqrt(pow(endPoint.x() - m_item->xPos(), 2) + pow(endPoint.y() - y, 2));
 			m_item->setXYPos(m_item->xPos(), y, true);
 			m_item->setRotation(r, true);
-			m_doc->sizeItem(w, m_item->height(), m_item, true);
-			m_doc->rotateItem(r, m_item);
+			m_doc->sizeItem(length, m_item->height(), m_item, true);
 		}
 		else
 		{
@@ -831,7 +820,7 @@ void PropertiesPalette_XYZ::handleNewW()
 	if (!m_haveDoc || !m_haveItem || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 	
-	double x,y,w,h, gx, gy, gh, gw;
+	double x, y, w, h, gx, gy, gh, gw;
 	x = xposSpin->value() / m_unitRatio;
 	y = yposSpin->value() / m_unitRatio;
 	w = widthSpin->value() / m_unitRatio;
@@ -869,9 +858,9 @@ void PropertiesPalette_XYZ::handleNewW()
 		{
 			if (m_lineMode)
 			{
-				double r = atan2(h-y,w-x)*(180.0/M_PI);
+				double r = atan2(h - y, w - x) * (180.0 / M_PI);
 				m_item->setRotation(r, true);
-				w = sqrt(pow(w-x,2)+pow(h-y,2));
+				w = sqrt(pow(w - x, 2) + pow(h - y, 2));
 			}
 			m_doc->sizeItem(w, m_item->height(), m_item, true, true, false);
 		}
@@ -951,9 +940,9 @@ void PropertiesPalette_XYZ::handleNewH()
 		{
 			if (m_lineMode)
 			{
-				double r = atan2(h-y,w-x)*(180.0/M_PI);
+				double r = atan2(h - y, w - x) * (180.0 / M_PI);
 				m_item->setRotation(r, true);
-				w = sqrt(pow(w-x,2)+pow(h-y,2));
+				w = sqrt(pow(w - x, 2) + pow(h - y, 2));
 			}
 			m_doc->sizeItem(w, m_item->height(), m_item, true, true, false);
 		}
