@@ -32,6 +32,9 @@
          <property name="frameShape">
           <enum>QFrame::StyledPanel</enum>
          </property>
+         <property name="horizontalScrollBarPolicy">
+          <enum>Qt::ScrollBarAlwaysOff</enum>
+         </property>
          <property name="widgetResizable">
           <bool>true</bool>
          </property>
@@ -1383,6 +1386,11 @@
    <header>ui/smshadebutton.h</header>
   </customwidget>
   <customwidget>
+   <class>SMSpinBox</class>
+   <extends>QSpinBox</extends>
+   <header>ui/smspinbox.h</header>
+  </customwidget>
+  <customwidget>
    <class>SMRadioButton</class>
    <extends>QRadioButton</extends>
    <header>ui/smradiobutton.h</header>
@@ -1397,11 +1405,6 @@
    <extends>QWidget</extends>
    <header>ui/smalignselect.h</header>
    <container>1</container>
-  </customwidget>
-  <customwidget>
-   <class>SMSpinBox</class>
-   <extends>QSpinBox</extends>
-   <header>ui/smspinbox.h</header>
   </customwidget>
   <customwidget>
    <class>SMTabruler</class>
