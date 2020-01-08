@@ -76,7 +76,6 @@ public:
 	PageLayoutsWidget* layoutsView;
 	QLabel* layoutLabel1;
 	QLabel* layoutLabel2;
-	ScComboBox* bind;
 	ScComboBox* firstPage;
 	QGroupBox* pageSizeGroupBox;
 	MarginWidget* marginGroup;

@@ -64,7 +64,6 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 
 	pageWidthSpinBox->setMaximum(16777215);
 	pageHeightSpinBox->setMaximum(16777215);
-	bind->setCurrentIndex(PrefsManager::instance().appPrefs.docSetupPrefs.binding);
 	languageChange();
 
 	connect(pageSizeComboBox, SIGNAL(activated(const QString &)), this, SLOT(setPageSize()));
@@ -155,7 +154,6 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	pageWidthSpinBox->setValue(pageW * unitRatio);
 	pageHeightSpinBox->setValue(pageH * unitRatio);
 	pageSets=prefsData->pageSets;
-	bind->setCurrentIndex(prefsData->docSetupPrefs.binding);
 	if (prefsData->docSetupPrefs.pagePositioning < 2)
 	{
 		threeFoldRadioButton->hide();
@@ -227,7 +225,6 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 	prefsData->docSetupPrefs.pagePositioning=pageLayoutButtonGroup->checkedId();
 	prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage=layoutFirstPageIsComboBox->currentIndex();
 
-	prefsData->docSetupPrefs.binding = bind->currentIndex();
 	prefsData->docSetupPrefs.margins=marginsWidget->margins();
 	prefsData->docSetupPrefs.bleeds=bleedsWidget->margins();
 	prefsData->docSetupPrefs.saveCompressed=saveCompressedCheckBox->isChecked();
@@ -255,19 +252,11 @@ void Prefs_DocumentSetup::setupPageSets()
 	layoutFirstPageIsComboBox->clear();
 	if (currIndex>0 && currIndex<pageSets.count())
 	{
-		if(bind->currentIndex() == 1 && pageSets[currIndex].Columns > 2)
-		{
-			layoutFirstPageIsComboBox->clear();
-			layoutFirstPageIsComboBox->addItem("Right Page");
-			layoutFirstPageIsComboBox->setEnabled(false);
-		}
-		else
-		{
 		layoutFirstPageIsComboBox->setEnabled(true);
 		for (QStringList::Iterator pNames = pageSets[currIndex].pageNames.begin(); pNames != pageSets[currIndex].pageNames.end(); ++pNames)
 			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(*pNames));
 		layoutFirstPageIsComboBox->setCurrentIndex(i<0?0:i);
-		}
+
 	}
 	else
 	{

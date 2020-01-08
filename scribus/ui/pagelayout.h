@@ -45,15 +45,12 @@ public:
 
 	void updateLayoutSelector(const QList<PageSet>& pSets);
 	void selectFirstP(int nr);
-	void selectPagebind(int x = 0);
 	void selectItem(uint nr);
 	PageListWidget* layoutsView;
 	ScComboBox* layoutsCombo;
 	QLabel* layoutLabel1;
 	ScComboBox* firstPage;
 	QList<PageSet> pageSets;
-	QLabel* layoutLable2;
-	ScComboBox* binding;
 
 public slots:
 	void itemSelected(QListWidgetItem* ic);
@@ -62,7 +59,6 @@ public slots:
 signals:
 	void selectedLayout(int);
 	void selectedFirstPage(int);
-	void selectBinding(int);
 
 private:
 	void itemSelectedPost(int chosen);

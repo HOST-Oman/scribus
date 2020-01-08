@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>657</width>
-    <height>609</height>
+    <height>665</height>
    </rect>
   </property>
   <property name="currentIndex">
@@ -238,12 +238,12 @@
            </property>
            <item>
             <property name="text">
-             <string>Left To Right</string>
+             <string>Left Margin</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>Right To Left</string>
+             <string>Right Margin</string>
             </property>
            </item>
           </widget>
@@ -1907,8 +1907,8 @@ when PDF document is opened:</string>
  <customwidgets>
   <customwidget>
    <class>ScrSpinBox</class>
-   <extends>QDoubleSpinBox</extends>
-   <header>ui/scrspinbox.h</header>
+   <extends>QSpinBox</extends>
+   <header location="global">ui/scrspinbox.h</header>
   </customwidget>
   <customwidget>
    <class>FontEmbeddingCombo</class>

@@ -314,7 +314,6 @@ void PrefsManager::initDefaults()
 		appPrefs.docSetupPrefs.language = "en_GB";
 	appPrefs.docSetupPrefs.pageSize = LocaleManager::instance().pageSizeForLocale(ScQApp->currGUILanguage());
 	appPrefs.docSetupPrefs.pageOrientation = 0;
-	appPrefs.docSetupPrefs.binding = 0;
 	PageSize defaultPageSize(appPrefs.docSetupPrefs.pageSize);
 	appPrefs.docSetupPrefs.pageWidth = defaultPageSize.width();
 	appPrefs.docSetupPrefs.pageHeight = defaultPageSize.height();
@@ -1387,7 +1386,6 @@ bool PrefsManager::WritePref(const QString& ho)
 	deDocumentSetup.setAttribute("Language",appPrefs.docSetupPrefs.language);
 	deDocumentSetup.setAttribute("UnitIndex",appPrefs.docSetupPrefs.docUnitIndex);
 	deDocumentSetup.setAttribute("PageSize",appPrefs.docSetupPrefs.pageSize);
-	deDocumentSetup.setAttribute("PageBinding",appPrefs.docSetupPrefs.binding);
 	deDocumentSetup.setAttribute("PageOrientation",appPrefs.docSetupPrefs.pageOrientation);
 	deDocumentSetup.setAttribute("PageWidth",ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageWidth));
 	deDocumentSetup.setAttribute("PageHeight",ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageHeight));
@@ -2000,7 +1998,6 @@ bool PrefsManager::ReadPref(const QString& ho)
 				appPrefs.docSetupPrefs.language = "en_GB";
 			appPrefs.docSetupPrefs.docUnitIndex = dc.attribute("UnitIndex", "0").toInt();
 			appPrefs.docSetupPrefs.pageSize = dc.attribute("PageSize","A4");
-			appPrefs.docSetupPrefs.binding = dc.attribute("PageBinding", "0").toInt();
 			appPrefs.docSetupPrefs.pageOrientation = dc.attribute("PageOrientation", "0").toInt();
 			appPrefs.docSetupPrefs.pageWidth   = ScCLocale::toDoubleC(dc.attribute("PageWidth"), 595.0);
 			appPrefs.docSetupPrefs.pageHeight  = ScCLocale::toDoubleC(dc.attribute("PageHeight"), 842.0);

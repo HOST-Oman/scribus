@@ -189,11 +189,7 @@ public:
 	const QString& language() const { return m_docPrefsData.docSetupPrefs.language; }
 	void setLanguage(const QString& s) { m_docPrefsData.docSetupPrefs.language=s; }
 	int pageOrientation() const { return m_docPrefsData.docSetupPrefs.pageOrientation; }
-	int pageBinding() const {return m_docPrefsData.docSetupPrefs.binding; }
 	void setPageOrientation(int o) { m_docPrefsData.docSetupPrefs.pageOrientation=o; }
-	void setBinding(int x) {m_docPrefsData.docSetupPrefs.binding = x;
-						   m_docPrefsData.pdfPrefs.Binding = x;
-						   }
 	int pagePositioning() const { return m_docPrefsData.docSetupPrefs.pagePositioning; }
 	void setPagePositioning(int p) { m_docPrefsData.docSetupPrefs.pagePositioning=p; }
 	double pageHeight() const { return m_docPrefsData.docSetupPrefs.pageHeight; }
