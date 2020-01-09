@@ -101,8 +101,7 @@
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\..\msvc2013;..\..\..\scribus;..\..\..\scribus\colormgmt;..\..\..\scribus\fonts;..\..\..\scribus\text;..\..\..\scribus\styles;..\..\..\scribus\simpletreemodel;..\..\..\scribus\ui;$(QT5_DIR)\include\QtANGLE;$(QT5_DIR)\include\QtCore;$(QT5_DIR)\include\QtGui;$(QT5_DIR)\include\QtNetwork;$(QT5_DIR)\include\QtPrintSupport;$(QT5_DIR)\include\QtWidgets;$(QT5_DIR)\include\QtXml;$(QT5_DIR)\include;$(CAIRO_INCLUDE_DIR);$(FREETYPE_INCLUDE_DIR);$(HARFBUZZ_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(LCMS_INCLUDE_DIR);$(LIBJPEG_INCLUDE_DIR);$(LIBTIFF_INCLUDE_DIR);$(OPENSSL_INCLUDE_DIR);$(PODOFO_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_USE_MATH_DEFINES;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;DOCDIR="doc/";ICONDIR="icons/";SAMPLESDIR="samples/";SCRIPTSDIR="scripts/";SHAREDIR="share/";TEMPLATEDIR="templates/";LIBDIR="libs/";PLUGINDIR="plugins";QMLDIR="qml/";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_USE_MATH_DEFINES;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -135,8 +134,7 @@
       <InlineFunctionExpansion>Default</InlineFunctionExpansion>
       <IntrinsicFunctions>false</IntrinsicFunctions>
       <AdditionalIncludeDirectories>..\..\msvc2013;..\..\..\scribus;..\..\..\scribus\colormgmt;..\..\..\scribus\fonts;..\..\..\scribus\text;..\..\..\scribus\styles;..\..\..\scribus\simpletreemodel;..\..\..\scribus\ui;$(QT5_DIR)\include\QtANGLE;$(QT5_DIR)\include\QtCore;$(QT5_DIR)\include\QtGui;$(QT5_DIR)\include\QtNetwork;$(QT5_DIR)\include\QtPrintSupport;$(QT5_DIR)\include\QtWidgets;$(QT5_DIR)\include\QtXml;$(QT5_DIR)\include;$(CAIRO_INCLUDE_DIR);$(FREETYPE_INCLUDE_DIR);$(HARFBUZZ_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(LCMS_INCLUDE_DIR);$(LIBJPEG_INCLUDE_DIR);$(LIBTIFF_INCLUDE_DIR);$(OPENSSL_INCLUDE_DIR);$(PODOFO_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_USE_MATH_DEFINES;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;DOCDIR="doc/";ICONDIR="icons/";SAMPLESDIR="samples/";SCRIPTSDIR="scripts/";SHAREDIR="share/";TEMPLATEDIR="templates/";LIBDIR="libs/";PLUGINDIR="plugins";QMLDIR="qml/";%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <IgnoreStandardIncludePath>false</IgnoreStandardIncludePath>
+      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;_USE_MATH_DEFINES;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>false</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
       <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
@@ -170,7 +168,7 @@
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>..\..\msvc2013;..\..\..\scribus;..\..\..\scribus\colormgmt;..\..\..\scribus\fonts;..\..\..\scribus\text;..\..\..\scribus\styles;..\..\..\scribus\simpletreemodel;..\..\..\scribus\ui;$(QT5_DIR)\include\QtANGLE;$(QT5_DIR)\include\QtCore;$(QT5_DIR)\include\QtGui;$(QT5_DIR)\include\QtNetwork;$(QT5_DIR)\include\QtPrintSupport;$(QT5_DIR)\include\QtWidgets;$(QT5_DIR)\include\QtXml;$(QT5_DIR)\include;$(CAIRO_INCLUDE_DIR);$(FREETYPE_INCLUDE_DIR);$(HARFBUZZ_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(LCMS_INCLUDE_DIR);$(LIBJPEG_INCLUDE_DIR);$(LIBTIFF_INCLUDE_DIR);$(OPENSSL_INCLUDE_DIR);$(PODOFO_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_USE_MATH_DEFINES;_WINDOWS;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;DOCDIR="doc/";ICONDIR="icons/";SAMPLESDIR="samples/";SCRIPTSDIR="scripts/";SHAREDIR="share/";TEMPLATEDIR="templates/";LIBDIR="libs/";PLUGINDIR="plugins";QMLDIR="qml/";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_USE_MATH_DEFINES;_WINDOWS;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
@@ -205,7 +203,7 @@
       <InlineFunctionExpansion>OnlyExplicitInline</InlineFunctionExpansion>
       <OmitFramePointers>true</OmitFramePointers>
       <AdditionalIncludeDirectories>..\..\msvc2013;..\..\..\scribus;..\..\..\scribus\colormgmt;..\..\..\scribus\fonts;..\..\..\scribus\text;..\..\..\scribus\styles;..\..\..\scribus\simpletreemodel;..\..\..\scribus\ui;$(QT5_DIR)\include\QtANGLE;$(QT5_DIR)\include\QtCore;$(QT5_DIR)\include\QtGui;$(QT5_DIR)\include\QtNetwork;$(QT5_DIR)\include\QtPrintSupport;$(QT5_DIR)\include\QtWidgets;$(QT5_DIR)\include\QtXml;$(QT5_DIR)\include;$(CAIRO_INCLUDE_DIR);$(FREETYPE_INCLUDE_DIR);$(HARFBUZZ_INCLUDE_DIR);$(ICU_INCLUDE_DIR);$(LCMS_INCLUDE_DIR);$(LIBJPEG_INCLUDE_DIR);$(LIBTIFF_INCLUDE_DIR);$(OPENSSL_INCLUDE_DIR);$(PODOFO_INCLUDE_DIR);$(ZLIB_INCLUDE_DIR);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_USE_MATH_DEFINES;_WINDOWS;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;DOCDIR="doc/";ICONDIR="icons/";SAMPLESDIR="samples/";SCRIPTSDIR="scripts/";SHAREDIR="share/";TEMPLATEDIR="templates/";LIBDIR="libs/";PLUGINDIR="plugins";QMLDIR="qml/";%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <PreprocessorDefinitions>WIN32;NDEBUG;_USE_MATH_DEFINES;_WINDOWS;QT_DLL;QT_GUI_LIB;QT_CORE_LIB;QT_THREAD_SUPPORT;HAVE_CONFIG_H;AVOID_WIN32_FILEIO;COMPILE_SCRIBUS_MAIN_APP;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
       <BufferSecurityCheck>true</BufferSecurityCheck>
@@ -488,7 +486,7 @@
     <moc Include="..\..\..\scribus\ui\multipleduplicate.h" />
     <moc Include="..\..\..\scribus\ui\multiprogressdialog.h" />
     <moc Include="..\..\..\scribus\navigator.h" />
-    <moc Include="..\..\..\scribus\ui\newfile.h" />
+    <moc Include="..\..\..\scribus\ui\newdocdialog.h" />
     <moc Include="..\..\..\scribus\ui\newmarginwidget.h" />
     <moc Include="..\..\..\scribus\ui\newtemp.h" />
     <moc Include="..\..\..\scribus\ui\nftdialog.h" />
@@ -605,6 +603,8 @@
     <moc Include="..\..\..\scribus\ui\numformatcombo.h" />
     <moc Include="..\..\..\scribus\ui\actionsearchdialog.h" />
     <moc Include="..\..\..\scribus\ui\contentpalette.h" />
+    <moc Include="..\..\..\scribus\ui\contentpalette_page.h" />
+    <moc Include="..\..\..\scribus\ui\contentpalette_default.h" />
     <ClInclude Include="..\..\..\scribus\ui\propertywidgetbase.h" />
     <moc Include="..\..\..\scribus\pslib.h" />
     <moc Include="..\..\..\scribus\ui\query.h" />
@@ -637,7 +637,6 @@
     <ClInclude Include="..\..\..\scribus\sccolor.h" />
     <ClInclude Include="..\..\..\scribus\sccolorengine.h" />
     <ClInclude Include="..\..\..\scribus\sccolorshade.h" />
-    <moc Include="..\..\..\scribus\ui\sccombobox.h" />
     <ClInclude Include="..\..\..\scribus\scconfig.h" />
     <moc Include="..\..\..\scribus\downloadmanager\scdlmgr.h" />
     <moc Include="..\..\..\scribus\downloadmanager\scdlthread.h" />
@@ -981,6 +980,8 @@
     <ClCompile Include="..\..\..\scribus\ui\colorlistmodel.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\colorsandfills.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\contentpalette.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\contentpalette_default.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\contentpalette_page.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\contextmenu.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\copypagetomasterpagedialog.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\cpalette.cpp" />
@@ -1160,7 +1161,7 @@
     <ClCompile Include="..\..\..\scribus\ui\multipleduplicate.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\multiprogressdialog.cpp" />
     <ClCompile Include="..\..\..\scribus\navigator.cpp" />
-    <ClCompile Include="..\..\..\scribus\ui\newfile.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\newdocdialog.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\newmarginwidget.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\newtemp.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\nftdialog.cpp" />
@@ -1314,7 +1315,6 @@
     <ClCompile Include="..\..\..\scribus\sccolorengine.cpp" />
     <ClCompile Include="..\..\..\scribus\sccolorshade.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\sccolorslider.cpp" />
-    <ClCompile Include="..\..\..\scribus\ui\sccombobox.cpp" />
     <ClCompile Include="..\..\..\scribus\downloadmanager\scdlmgr.cpp" />
     <ClCompile Include="..\..\..\scribus\downloadmanager\scdlthread.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\scdockpalette.cpp" />
@@ -1541,6 +1541,8 @@
     <uic Include="..\..\..\scribus\ui\cmykfwbase.ui" />
     <uic Include="..\..\..\scribus\ui\colorpalette.ui" />
     <uic Include="..\..\..\scribus\ui\colorsandfillsbase.ui" />
+    <uic Include="..\..\..\scribus\ui\contentpalette_defaultbase.ui" />
+    <uic Include="..\..\..\scribus\ui\contentpalette_pagebase.ui" />
     <uic Include="..\..\..\scribus\ui\copypagetomasterpage.ui" />
     <uic Include="..\..\..\scribus\ui\createrange.ui" />
     <uic Include="..\..\..\scribus\ui\cxfimportdialogbase.ui" />

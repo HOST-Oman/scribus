@@ -158,7 +158,7 @@ public:
 	void reformPagesView();
 	void showMasterPage(int nr);
 	void hideMasterPage();
-	void showSymbolPage(QString symbolName);
+	void showSymbolPage(const QString& symbolName);
 	void hideSymbolPage();
 	void showInlinePage(int id);
 	void hideInlinePage();
@@ -176,10 +176,11 @@ public:
 	bool PointOnLine(QPoint Start, QPoint Ende, QRect MArea);
 	void TransformPoly(int mode, int rot = 1, double scaling = 1.0);
 	bool slotSetCurs(int x, int y);
-	void HandleCurs(PageItem *currItem, QRect mpo);
-	void Deselect(bool prop = true);
-	void SelectItemNr(uint nr, bool draw = true, bool single = false);
-	void SelectItem(PageItem *pi, bool draw = true, bool single = false);
+	// \brief return a resize cursor if the mouse is on a handle.
+	Qt::CursorShape getResizeCursor(PageItem *currItem, QRect mpo, Qt::CursorShape cursorShape = Qt::ArrowCursor);
+	void deselectItems(bool prop = true);
+	void selectItemByNumber(int nr, bool draw = true, bool single = false);
+	void selectItem(PageItem *pi, bool draw = true, bool single = false);
 	void rememberOldZoomLocation(int mx=0, int my=0);
 	bool groupTransactionStarted() { return m_groupTransactions > 0; }
 	void startGroupTransaction(const QString &actionName = "",
@@ -198,7 +199,7 @@ public:
 	void setCanvasOrigin(double x, double y);
 	void setCanvasCenter(double x, double y);
 	FPoint canvasOrigin() const;
-	QRectF visibleCanvas() const;
+	QRectF visibleCanvasRect() const;
 	void setRedrawMarkerShown(bool shown);
 	
 private:

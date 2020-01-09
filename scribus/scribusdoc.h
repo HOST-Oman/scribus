@@ -1050,7 +1050,7 @@ public:
 	int columnOfPage(int pageIndex) const;
 
 
-	QList<PageItem*>* GroupOfItem(QList<PageItem*>* itemList, PageItem* item);
+	QList<PageItem*>* groupOfItem(QList<PageItem*>* itemList, PageItem* item);
 	PageItem* groupObjectsSelection(Selection* customSelection = nullptr);
 	PageItem* groupObjectsList(QList<PageItem*> &itemList);
 	void groupObjectsToItem(PageItem* groupItem, QList<PageItem*> &itemList);
@@ -1212,6 +1212,9 @@ public:
 	//! \brief Returns a text serializer for this document, used to paste text chunks
 	Serializer *textSerializer();
 
+	//! \brief Retrieve canvas position of text char in specified text chain
+	bool textCanvasPosition(PageItem* item, int textPos, QPointF& canvasPos);
+
 	//! \brief Get rotation mode
 	int rotationMode() const {return m_rotMode;}
 	//! \brief Set rotation mode
@@ -1221,6 +1224,7 @@ public:
 	// unncessary signals when doing updates on multiple items
 	void beginUpdate();
 	void endUpdate();
+
 	int addToInlineFrames(PageItem *item);
 	void removeInlineFrame(int fIndex);
 	void checkItemForFrames(PageItem *it, int fIndex);
@@ -1437,27 +1441,12 @@ signals:
 	void updateContents();
 	void updateContents(const QRect &r);
 	void refreshItem(PageItem *);
-	void canvasAdjusted(double width, double height, double dX, double dY);
 	void firstSelectedItemType(int);
-	void setApplicationMode(int);
-	/**
-	 * @brief A signal for when the outline palette needs to rebuild itself
-	 * Emit when:
-	 * - An item is created or deleted
-	 * - An item changes page
-	 * - An page is created or deleted
-	 * - Some items are grouped or a group is ungrouped
-	 * This also applies to Master Pages
-	 */
-	void signalRebuildOutLinePalette();
-	//! Temporary signal for SizeItem
-	void widthAndHeight(double, double);
 
 	void updateEditItem();
 	void updateAutoSaveClock();
 	void addBookmark(PageItem *);
 	void deleteBookmark(PageItem *);
-	void changeLayers(int);
 	
 public slots:
 	void selectionChanged();

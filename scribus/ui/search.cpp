@@ -6,20 +6,22 @@ for which a new license (GPL+exception) is in place.
 */
 #include "search.h"
 
+#include <QCheckBox>
+#include <QComboBox>
+#include <QGroupBox>
 #include <QHBoxLayout>
 #include <QGridLayout>
 #include <QVBoxLayout>
-#include <QListView>
-#include <QGroupBox>
-#include <QCheckBox>
-#include <QLineEdit>
-#include <QComboBox>
-#include <QPushButton>
 #include <QLabel>
-#include <QPixmap>
+#include <QLineEdit>
+#include <QListView>
 #include <QMessageBox>
+#include <QPixmap>
+#include <QPushButton>
+#include <QScopedValueRollback>
 
 #include "appmodes.h"
+#include "canvas.h"
 #include "colorcombo.h"
 #include "colorlistbox.h"
 #include "commonstrings.h"
@@ -39,41 +41,12 @@ for which a new license (GPL+exception) is in place.
 #include "util.h"
 #include "util_text.h"
 
-SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, bool mode, bool SearchCur )
-	: QDialog( parent ),
-	matchesFound(0)
+SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, bool mode )
+	: QDialog( parent )
 {
 	m_item = ite;
 	m_doc = doc;
-	m_notFound = false;
 	m_itemMode = mode;
-	m_firstMatchPosition = -1;
-	m_SearchCurrent = SearchCur;
-
-	// Mapping between page number and text frames
-	QList<PageItem*> TFItems; //list of text frames
-	PageItem* tempPageItem; //temporary page item
-	for (int i = 0; i < m_doc->DocPages.count(); i++)
-	{
-		for (int j = 0; j < m_doc->Items->count(); j++)
-		{
-			tempPageItem = m_doc->Items->at(j);
-			//check if item is text frame and in the same page, add it to the map
-			if (tempPageItem->isTextFrame() && i == tempPageItem->OwnPage)
-			{
-				tempPageItem->itemText.deselectAll();
-				tempPageItem->HasSel = false;
-				TFItems.append(tempPageItem);
-			}
-		}
-		if (!TFItems.empty())
-			ItemsPageNum.insert(i,TFItems);
-
-		TFItems.clear();
-	}
-	//for chain text start form the first letter in the chain
-	if (m_item->itemText.cursorPosition() == 0)
-		m_item->itemText.setCursorPosition(m_item->firstInFrame());
 
 	setModal(true);
 	setWindowTitle( tr( "Search/Replace" ) );
@@ -289,10 +262,6 @@ SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, b
 	if (mode)
 		Word->setEnabled(false);
 	OptsLayout->addWidget( Word );
-	SearchCurrent = new QCheckBox ( tr ("Current Selected Text Frame") , this);
-		OptsLayout -> addWidget(SearchCurrent);
-		if (mode)
-			SearchCurrent->setEnabled(false);
 	CaseIgnore = new QCheckBox( tr( "&Ignore Case, Diacritics and Kashida" ), this );
 	if (mode)
 		CaseIgnore->setEnabled(false);
@@ -397,27 +366,29 @@ SearchReplace::SearchReplace( QWidget* parent, ScribusDoc *doc, PageItem* ite, b
 
 void SearchReplace::slotSearch()
 {
-//	if (m_itemMode)
-//		m_doc->view()->slotDoCurs(false);
-	slotDoSearch();
+	doSearch();
+
 	if (m_itemMode)
-	{
-//		m_doc->view()->slotDoCurs(true);
 		m_item->update();
-	}
+	if (!m_found)
+		showNotFoundMessage();
 }
 
-void SearchReplace::slotDoSearch()
+void SearchReplace::doSearch()
 {
-	int maxChar = m_item->maxCharsInFrame() - 1;
+	int maxChar = m_item->itemText.length() - 1;
 	DoReplace->setEnabled(false);
 	AllReplace->setEnabled(false);
+	if (m_itemMode)
+	{
+		m_item->itemText.deselectAll();
+		m_item->HasSel = false;
+	}
 
 	QString fCol = "";
 	QString sCol = "";
 	QString sFont = "";
 	QString sText = "";
-	m_notFound = true;
 	int sStyle = 0;
 	int sAlign = 0;
 	int sSize = 0;
@@ -427,6 +398,9 @@ void SearchReplace::slotDoSearch()
 	bool searchForReplace = false;
 	bool rep = false;
 	bool found = true;
+
+	m_found = true;
+
 	if ((RFill->isChecked()) || (RStroke->isChecked()) || (RStyle->isChecked()) || (RFont->isChecked())
 		|| (RStrokeS->isChecked()) || (RFillS->isChecked()) || (RSize->isChecked()) || (RText->isChecked())
 		|| (REffect->isChecked())  || (RAlign->isChecked()))
@@ -459,24 +433,18 @@ void SearchReplace::slotDoSearch()
 		sSize = qRound(SSizeVal->value() * 10);
 	if (sText.length() > 0)
 		found = false;
-
-	uint as = m_item->itemText.cursorPosition();
-	m_replStart = as;
+	
 	int a, textLen(0);
+	int cursorPos = m_item->itemText.cursorPosition();
+	m_replStart = cursorPos;
+
 	if (m_itemMode)
 	{
-		m_item->itemText.deselectAll();
-		m_item->HasSel = false;
-		m_doc->m_Selection->clear();
-		m_item->setSelected(true);
-		maxChar = m_item->maxCharsInFrame() - 1;
-		as = m_item->itemText.cursorPosition();
-		m_replStart = as;
 		Qt::CaseSensitivity cs = Qt::CaseSensitive;
 		if (CaseIgnore->isChecked())
 			cs = Qt::CaseInsensitive;
 
-		for (a = as; a < m_item->maxCharsInFrame(); ++a)
+		for (a = cursorPos; a < m_item->itemText.length(); ++a)
 		{
 			found = true;
 			if (SText->isChecked())
@@ -545,17 +513,6 @@ void SearchReplace::slotDoSearch()
 			{
 				m_item->itemText.select(a, textLen);
 				m_item->HasSel = true;
-				m_doc->DoDrawing = true;
-				m_item->update();
-
-				//move scroll bar to the selected element
-				QTransform itemTrans = m_item->getTransform();
-				double xOffset=0.0, yOffset=0.0;
-				xOffset = m_item->width() / 2.0;
-				yOffset = m_item->height() / 2.0;
-				QPointF point = itemTrans.map(QPointF(xOffset, yOffset));
-				m_doc->view()->setCanvasCenterPos(point.x(), point.y());
-
 				if (rep)
 				{
 					DoReplace->setEnabled(true);
@@ -571,73 +528,55 @@ void SearchReplace::slotDoSearch()
 			}
 			if (SText->isChecked())
 			{
-				for (int xx = m_replStart; xx < a+1; ++xx)
+				for (int xx = m_replStart; xx < a + 1; ++xx)
 					m_item->itemText.select(qMin(xx, maxChar), 1, false);
 				m_item->HasSel = false;
 			}
 		}
-		if ((!found) || (a >= maxChar+1))
+		if (found && !m_replacingAll)
+		{
+			QPointF textCanvasPos;
+			int foundPos = m_item->itemText.cursorPosition();
+			if (m_item->itemText.selectionLength() > 0)
+				foundPos = m_item->itemText.startOfSelection();
+			bool cPosFound = m_doc->textCanvasPosition(m_item, foundPos, textCanvasPos);
+			if (cPosFound)
+			{
+				QRectF updateRect;
+				PageItem* textItem = m_item->frameOfChar(foundPos);
+				if (textItem != m_item)
+				{
+					updateRect = m_item->getVisualBoundingRect();
+					updateRect = updateRect.united(textItem->getVisualBoundingRect());
+					int selLength = m_item->itemText.selectionLength();
+					m_item->itemText.deselectAll();
+					m_item->HasSel = false;
+					m_doc->m_Selection->delaySignalsOn();
+					m_doc->m_Selection->removeItem(m_item);
+					m_doc->m_Selection->addItem(textItem);
+					m_item = textItem;
+					m_item->itemText.deselectAll();
+					if (selLength > 0)
+						m_item->itemText.select(foundPos, selLength);
+					m_item->itemText.setCursorPosition(foundPos + selLength);
+					m_item->HasSel = true;
+					m_doc->m_Selection->delaySignalsOff();
+				}
+				QRectF visibleCanvasRect = m_doc->view()->visibleCanvasRect();
+				if (!visibleCanvasRect.contains(textCanvasPos))
+					m_doc->view()->setCanvasCenterPos(textCanvasPos.x(), textCanvasPos.y());
+				if (!updateRect.isEmpty())
+					m_doc->regionsChanged()->update(updateRect.adjusted(-10.0, -10.0, 10.0, 10.0));
+			}
+		}
+		if ((!found) || (a == m_item->itemText.length()))
 		{
 			m_doc->DoDrawing = true;
 			m_item->update();
-			m_item->setSelected(false);
 			DoReplace->setEnabled(false);
 			AllReplace->setEnabled(false);
-			m_notFound = false;
-
-			if (SearchCurrent->isChecked())
-			{
-				ScMessageBox::information(this, tr("Search/Replace"), tr("Search finished"));
-				m_item->itemText.setCursorPosition(m_item->firstInFrame());
-			}
-			else
-			{
-				//update m_item to the next text frame
-				QList<int> pageKeys = ItemsPageNum.keys();
-				int pageKeysIndex = pageKeys.indexOf(m_item->OwnPage); //index for pages
-
-				for (int i = 0; i < ItemsPageNum.value(pageKeys.at(pageKeysIndex)).count(); i++)
-				{
-					if (m_item == ItemsPageNum.value(pageKeys.at(pageKeysIndex)).at(i))
-					{
-						//go to next item in the same page
-						if (!ItemsPageNum.value(pageKeys.at(pageKeysIndex)).endsWith(m_item))
-						{
-							m_item = ItemsPageNum.value(pageKeys.at(pageKeysIndex)).at(i + 1);
-							m_item->itemText.setCursorPosition(m_item->firstInFrame());
-							slotDoSearch();
-							break;
-						}
-						else // if the text frame was the last item in the page
-						{
-							pageKeysIndex ++;//increase index
-							if (pageKeysIndex >= pageKeys.count()) //if the last page search finished
-							{
-								if (ScMessageBox::question(this, tr( "Search/Replace" ),
-														   tr("You reached the end of the document.\nDo you want to start from beginning?"),
-														   QMessageBox::Ok | QMessageBox::Cancel,
-														   QMessageBox::NoButton,	// GUI default
-														   QMessageBox::Ok)	// batch default
-										== QMessageBox::Ok)
-								{
-									m_item = ItemsPageNum.value(pageKeys.first()).first();
-									m_item->itemText.setCursorPosition(m_item->firstInFrame());
-									slotDoSearch();
-								}
-								break;
-							}
-							else
-							{
-								m_item = ItemsPageNum.value(pageKeys.at(pageKeysIndex)).first();
-								m_item->itemText.setCursorPosition(m_item->firstInFrame());
-								slotDoSearch();
-								break;
-							}
-						}
-					}
-				}
-				SearchCurrent->setEnabled(false);
-			}
+			m_item->itemText.setCursorPosition(0);
+			m_found = false;
 		}
 	}
 	else if (m_doc->scMW()->CurrStED != nullptr)
@@ -761,15 +700,12 @@ void SearchReplace::slotDoSearch()
 				DoReplace->setEnabled(true);
 				AllReplace->setEnabled(true);
 			}
-			matchesFound++;
+			m_matchesFound++;
 			m_firstMatchPosition = storyTextEdit->textCursor().selectionStart();
 		}
 		else
 		{
-			ScMessageBox::information(this, tr("Search/Replace"),
-					tr("Search finished, found %1 matches").arg(matchesFound));
-			matchesFound = 0;
-			m_notFound = false;
+			m_found = false;
 			QTextCursor cursor = storyTextEdit->textCursor();
 			cursor.clearSelection();
 			cursor.movePosition(QTextCursor::Start, QTextCursor::MoveAnchor);
@@ -780,57 +716,22 @@ void SearchReplace::slotDoSearch()
 
 void SearchReplace::slotReplace()
 {
-//	if (m_itemMode)
-//		m_doc->view()->slotDoCurs(false);
-	m_doc->m_Selection->clear();
-	m_doc->m_Selection->addItem(m_item);
-	slotDoReplace();
+	doReplace();
+
 	if (m_itemMode)
-	{
-//		m_doc->view()->slotDoCurs(true);
 		m_item->update();
-	}
+	if (!m_found)
+		showNotFoundMessage();
 }
 
-void SearchReplace::slotDoReplace()
+void SearchReplace::doReplace()
 {
 	if (m_itemMode)
 	{
-		QString repl, sear;
-		int cs, cx;
-		int textLen = m_item->itemText.selectionLength();
 		if (RText->isChecked())
 		{
-			repl = RTextVal->text();
-			sear = STextVal->text();
-			textLen = m_item->itemText.selectionLength();
-			if (textLen == repl.length())
-			{
-				for (cs = 0; cs < textLen; ++cs)
-					m_item->itemText.replaceChar(m_replStart+cs, repl[cs]);
-			}
-			else
-			{
-				if (textLen < repl.length())
-				{
-					for (cs = 0; cs < textLen; ++cs)
-						m_item->itemText.replaceChar(m_replStart+cs, repl[cs]);
-					for (cx = cs; cx < repl.length(); ++cx)
-						m_item->itemText.insertChars(m_replStart+cx, repl.mid(cx,1), true);
-				}
-				else
-				{
-					for (cs = 0; cs < repl.length(); ++cs)
-						m_item->itemText.replaceChar(m_replStart+cs, repl[cs]);
-					m_item->itemText.removeChars(m_replStart+cs, textLen - cs);
-				}
-			}
-		}
-		if (repl.length() > 0)
-		{
-			m_item->itemText.deselectAll();
-			m_item->itemText.select(m_replStart, repl.length());
-			m_item->itemText.setCursorPosition(m_replStart + repl.length());
+			QString repl = RTextVal->text();
+			m_item->itemText.replaceSelection(repl);
 		}
 		if (RStyle->isChecked())
 		{
@@ -858,21 +759,17 @@ void SearchReplace::slotDoReplace()
 			m_doc->itemSelection_SetFont(RFontVal->currentText());
 		if (RSize->isChecked())
 			m_doc->itemSelection_SetFontSize(qRound(RSizeVal->value() * 10.0));
-		if (REffect->isChecked() && (m_item->itemText.selectionLength() > 0))
+		if (REffect->isChecked() && (m_item->itemText.isSelected()))
 		{
 			int s = REffVal->getStyle() & ScStyle_UserStyles;
 			m_doc->currentStyle.charStyle().setFeatures(static_cast<StyleFlag>(s).featureList()); // ???
-			for (int a = 0; a < m_item->itemText.length(); ++a)
+			for (int i = 0; i < m_item->itemText.length(); ++i)
 			{
-				if (m_item->itemText.selected(a))
+				if (m_item->itemText.selected(i))
 				{
-//                    StyleFlag fl = m_item->itemText.charStyle(a).effects();
-//					fl &= static_cast<StyleFlag>(~1919);
-//					fl |= static_cast<StyleFlag>(s);
-//					m_item->itemText.item(a)->setFeatures(fl.featureList());
 					CharStyle newFeatures;
 					newFeatures.setFeatures(static_cast<StyleFlag>(s).featureList());
-					m_item->itemText.applyCharStyle(a, 1, newFeatures);
+					m_item->itemText.applyCharStyle(i, 1, newFeatures);
 				}
 			}
 		}
@@ -931,7 +828,7 @@ void SearchReplace::slotDoReplace()
 	}
 	DoReplace->setEnabled(false);
 	AllReplace->setEnabled(false);
-	slotDoSearch();
+	doSearch();
 }
 
 int SearchReplace::firstMatchCursorPosition()
@@ -939,24 +836,48 @@ int SearchReplace::firstMatchCursorPosition()
 	return m_firstMatchPosition;
 }
 
+void SearchReplace::setSearchedText(const QString& text)
+{
+	if (SText->isChecked())
+		STextVal->setText(text);
+}
+
 void SearchReplace::slotReplaceAll()
 {
+	QScopedValueRollback<bool> replaceAllRollback(m_replacingAll, true);
+
 	if (m_itemMode)
-	{
-//		m_doc->view()->slotDoCurs(false);
 		m_doc->DoDrawing = false;
-	}
+
 	do
 	{
-		slotDoReplace();
-//		slotDoSearch();
+		doReplace();
 	}
-	while (m_notFound);
+	while (m_found);
+
 	if (m_itemMode)
 	{
 		m_doc->DoDrawing = true;
-//		m_doc->view()->slotDoCurs(true);
-		m_item->update();
+		if (m_item->isTextFrame())
+			m_item->asTextFrame()->invalidateLayout(true);
+		m_doc->regionsChanged()->update(QRectF());
+	}
+
+	showNotFoundMessage();
+}
+
+void SearchReplace::showNotFoundMessage()
+{
+	if (m_found)
+		return;
+
+	if (m_itemMode)
+		ScMessageBox::information(this, tr("Search/Replace"), tr("Search finished"));
+	else
+	{
+		ScMessageBox::information(this, tr("Search/Replace"),
+					tr("Search finished, found %1 matches").arg(m_matchesFound));
+		m_matchesFound = 0;
 	}
 }
 
@@ -965,11 +886,6 @@ void SearchReplace::enableTxSearch()
 	bool setter = SText->isChecked();
 	STextVal->setEnabled(setter);
 	Word->setEnabled(setter);
-	if (m_doc->m_Selection->count() == 1 && m_SearchCurrent)
-			SearchCurrent->setEnabled(setter);
-		else
-			SearchCurrent->setEnabled(false);
-
 	CaseIgnore->setEnabled(setter);
 	if (setter)
 		STextVal->setFocus();
@@ -1161,12 +1077,12 @@ void SearchReplace::updateReplaceButtonsState()
 	}
 	replaceEnabled |= RText->isChecked();
 	if (m_itemMode)
-		replaceEnabled &= (m_item->itemText.selectionLength() > 0);
+		replaceEnabled &= (m_item->itemText.isSelected());
 	else if (m_doc->scMW()->CurrStED != nullptr)
 		replaceEnabled &= m_doc->scMW()->CurrStED->Editor->textCursor().hasSelection();
 	else
 		replaceEnabled = false;
-	replaceEnabled &= m_notFound;
+	replaceEnabled &= m_found;
 	DoReplace->setEnabled(replaceEnabled);
 	AllReplace->setEnabled(replaceEnabled);
 }

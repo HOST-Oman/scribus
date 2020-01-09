@@ -206,20 +206,11 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 		case modeNormal:
 			{
 				bool editSearchReplace = false;
-				//enable search if at least one text frame is in the document
-				if (doc->Items->count() != 0)
+				if (currItem != nullptr)
 				{
-					for (int i = 0; i < doc->Items->count(); i++)
-					{
-						if (doc->Items->at(i)->isTextFrame())
-						{
-							if (doc->Items->at(i)->itemText.length() > 0)
-							{
-								editSearchReplace = true;
-								break;
-							}
-						}
-					}
+					editSearchReplace |= currItem->isTextFrame();
+					editSearchReplace |= (currItem->itemText.length() > 0);
+					editSearchReplace |= (doc->m_Selection->count() == 1);
 				}
 				(*a_scrActions)["editSearchReplace"]->setEnabled(editSearchReplace);
 
@@ -238,7 +229,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 				if (!doc->m_Selection->isEmpty())
 				{
 					doc->ElemToLink = doc->m_Selection->itemAt(0);
-					doc->view()->Deselect(true);
+					doc->view()->deselectItems(true);
 					(*a_scrActions)["toolsCopyProperties"]->setEnabled(true);
 				}
 			}
@@ -249,7 +240,7 @@ void AppModeHelper::setApplicationMode(ScribusMainWindow* scmw, ScribusDoc* doc,
 			{
 				setSpecialEditMode(true);
 				if ((doc->m_Selection->count() != 0) && (!PrefsManager::instance().appPrefs.uiPrefs.stickyTools))
-					doc->view()->Deselect(true);
+					doc->view()->deselectItems(true);
 			}
 			break;
 		case modeDrawCalligraphicLine:
@@ -520,23 +511,6 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 			(*a_scrActions)["editCut"]->setEnabled(false);
 			(*a_scrActions)["editCopy"]->setEnabled(false);
 			(*a_scrActions)["editCopyContents"]->setEnabled(false);
-			if (doc->Items->count() != 0)
-			{
-				for (int i = 0; i < doc->Items->count(); i++)
-				{
-					if (doc->Items->at(i)->isTextFrame())
-					{
-						if (doc->Items->at(i)->itemText.length() > 0)
-						{
-							(*a_scrActions)["editSearchReplace"]->setEnabled(true);
-							break;
-						}
-					}
-				}
-			}
-			else
-				(*a_scrActions)["editSearchReplace"]->setEnabled(false);
-
 			(*a_scrActions)["editClearContents"]->setEnabled(false);
 			(*a_scrActions)["editTruncateContents"]->setEnabled(false);
 			(*a_scrActions)["extrasHyphenateText"]->setEnabled(false);

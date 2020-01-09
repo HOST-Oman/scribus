@@ -33,6 +33,7 @@ for which a new license (GPL+exception) is in place.
 #include "importidml.h"
 
 #include "commonstrings.h"
+#include "guidemanagercore.h"
 #include "loadsaveplugin.h"
 #include "pageitem_table.h"
 #include "pagesize.h"
@@ -352,7 +353,7 @@ bool IdmlPlug::import(const QString& fNameIn, const TransactionSettings& trSetti
 		m_Doc->setPageSize("Custom");
 	}
 	if ((!(flags & LoadSavePlugin::lfLoadAsPattern)) && (m_Doc->view() != nullptr))
-		m_Doc->view()->Deselect();
+		m_Doc->view()->deselectItems();
 	Elements.clear();
 	m_Doc->setLoading(true);
 	m_Doc->DoDrawing = false;
@@ -1577,6 +1578,22 @@ void IdmlPlug::parseSpreadXMLNode(const QDomElement& spNode)
 									mp = mSpr + "_" + masterSpreads[mSpr][0];
 							}
 							m_Doc->applyMasterPage(mp, m_Doc->currentPageNumber());
+						}
+					}
+					for (QDomNode pageNode = spe.firstChild(); !pageNode.isNull(); pageNode = pageNode.nextSibling())
+					{
+						QDomElement pageElement = pageNode.toElement();
+						if (pageElement.tagName() == "Guide" && pageElement.hasAttribute("Location") && pageElement.hasAttribute("Orientation"))
+						{
+							bool convOk = false;
+							double location = pageElement.attribute("Location").toDouble(&convOk);
+							if (!convOk)
+								continue;
+							QString orientation = pageElement.attribute("Orientation");
+							if (orientation == "Horizontal")
+								m_Doc->currentPage()->guides.addHorizontal(location, GuideManagerCore::Standard);
+							else if (pageElement.attribute("Orientation") == "Vertical")
+								m_Doc->currentPage()->guides.addVertical(location, GuideManagerCore::Standard);
 						}
 					}
 				}

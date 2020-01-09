@@ -45,6 +45,7 @@ class SCRIBUS_API SCFonts : public QMap<QString,ScFace>
 		void getFonts(const QString& pf, bool showFontInfo=false);
 		ScFace loadScalableFont(const QString &filename);
 		void addScalableFonts(const QString& path, const QString& DocName = "");
+
 		/// Returns a font with that name; creates a replacement font if not found
 		const ScFace& findFont(const QString& fontName, ScribusDoc* doc = nullptr);
 		const ScFace& findFont(const QString& fontFamily, const QString& fontStyle, ScribusDoc* doc = nullptr);
@@ -69,11 +70,9 @@ class SCRIBUS_API SCFonts : public QMap<QString,ScFace>
 		void addUserPath(const QString& pf);
 #ifdef HAVE_FONTCONFIG
 		void addFontconfigFonts();
-#else
-#ifndef Q_OS_MAC
-		void addXFontServerPath();
-		void addXFontPath();
-#endif
+#elif defined(Q_OS_WIN32)
+		void addRegistryFonts();
+		void addType1RegistryFonts();
 #endif
 		QStringList m_fontPaths;
 

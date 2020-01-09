@@ -124,8 +124,6 @@ void CanvasMode_CopyProperties::mousePressEvent(QMouseEvent *m)
 // 	const double mouseY = m->globalY();
 	const FPoint mousePointDoc = m_canvas->globalToCanvas(m->globalPos());
 
-	double Rxp = 0, Ryp = 0;
-	PageItem *currItem;
 	m_canvas->PaintSizeRect(QRect());
 	m_canvas->m_viewMode.m_MouseButtonPressed = true;
 	m_canvas->m_viewMode.operItemMoving = false;
@@ -136,9 +134,9 @@ void CanvasMode_CopyProperties::mousePressEvent(QMouseEvent *m)
 	m_view->registerMousePress(m->globalPos());
 	Mxp = mousePointDoc.x(); //qRound(m->x()/m_canvas->scale() + 0*m_doc->minCanvasCoordinate.x());
 	Myp = mousePointDoc.y(); //qRound(m->y()/m_canvas->scale() + 0*m_doc->minCanvasCoordinate.y());
-	Rxp = m_doc->ApplyGridF(FPoint(Mxp, Myp)).x();
+	double Rxp = m_doc->ApplyGridF(FPoint(Mxp, Myp)).x();
 	Mxp = qRound(Rxp);
-	Ryp = m_doc->ApplyGridF(FPoint(Mxp, Myp)).y();
+	double Ryp = m_doc->ApplyGridF(FPoint(Mxp, Myp)).y();
 	Myp = qRound(Ryp);
 	if (m->button() == Qt::MidButton)
 	{
@@ -150,6 +148,7 @@ void CanvasMode_CopyProperties::mousePressEvent(QMouseEvent *m)
 	if (m->button() != Qt::LeftButton)
 		return;
 	SeleItem(m);
+	PageItem *currItem;
 	if (GetItem(&currItem))
 	{
 		double sx, sy, ex, ey, r, skx, sky, fx, fy, ss, sk, sp;
@@ -302,7 +301,7 @@ bool CanvasMode_CopyProperties::SeleItem(QMouseEvent *m)
 	}
 	else if ( (m->modifiers() & SELECT_MULTIPLE) == Qt::NoModifier || (m_doc->appMode == modeLinkFrames) || (m_doc->appMode == modeUnlinkFrames) )
 	{
-		m_view->Deselect(false);
+		m_view->deselectItems(false);
 	}
 	currItem = m_canvas->itemUnderCursor(m->globalPos(), currItem, (m->modifiers() & SELECT_IN_GROUP));
 	if (currItem)
@@ -354,7 +353,7 @@ bool CanvasMode_CopyProperties::SeleItem(QMouseEvent *m)
 	}
 	m_doc->m_Selection->connectItemToGUI();
 	if ( !(m->modifiers() & SELECT_MULTIPLE) || (m_doc->appMode == modeLinkFrames) || (m_doc->appMode == modeUnlinkFrames))
-		m_view->Deselect(true);
+		m_view->deselectItems(true);
 	return false;
 }
 

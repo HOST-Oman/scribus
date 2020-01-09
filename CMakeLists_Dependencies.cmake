@@ -135,24 +135,30 @@ endif()
 #<< JPEG, TIFF
 
 #<< PYTHON
-#
-#find_package(PythonInterp 2)
-#find_package(PythonLibs 2 REQUIRED)
-#if (PYTHON_LIBRARY)
-#	message("Python Library Found OK")
-#	set(HAVE_PYTHON ON)
-#	set(COMPILE_PYTHON ON)
-#endif()
-#
-find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
-if (Python3_Development_FOUND)
-	message("Python 3.x Library Found OK (Version ${Python3_VERSION})")
-	message("Interpreter: ${Python3_EXECUTABLE}")
-	message("Include directories: ${Python3_INCLUDE_DIRS}")
-	message("Library directories: ${Python3_LIBRARY_DIRS}")
-	message("Runtime library directories: ${Python3_RUNTIME_LIBRARY_DIRS}")
-	set(HAVE_PYTHON ON)
-	set(COMPILE_PYTHON ON)
+if (NOT WANT_PYTHON_2X)
+	message("Python 3.x Selected")
+	find_package (Python3 REQUIRED COMPONENTS Interpreter Development)
+	if (Python3_Development_FOUND)
+		message("Python 3.x Library Found OK (Version ${Python3_VERSION})")
+		message("Interpreter: ${Python3_EXECUTABLE}")
+		message("Include directories: ${Python3_INCLUDE_DIRS}")
+		message("Library directories: ${Python3_LIBRARY_DIRS}")
+		message("Runtime library directories: ${Python3_RUNTIME_LIBRARY_DIRS}")
+		set(HAVE_PYTHON ON)
+		set(COMPILE_PYTHON ON)
+	endif()
+else()
+	message("Python 2.x Requested")
+	find_package (Python2 REQUIRED COMPONENTS Interpreter Development)
+	if (Python2_Development_FOUND)
+		message("Python 2.x Library Found OK (Version ${Python2_VERSION})")
+		message("Interpreter: ${Python2_EXECUTABLE}")
+		message("Include directories: ${Python2_INCLUDE_DIRS}")
+		message("Library directories: ${Python2_LIBRARY_DIRS}")
+		message("Runtime library directories: ${Python2_RUNTIME_LIBRARY_DIRS}")
+		set(HAVE_PYTHON ON)
+		set(COMPILE_PYTHON ON)
+	endif()
 endif()
 #>> PYTHON
 
@@ -160,13 +166,6 @@ endif()
 find_package(Freetype REQUIRED)
 if (FREETYPE_FOUND)
 	message(STATUS "FreeType2 Library Found OK")
-	include(CheckLibraryExists)
-	CHECK_LIBRARY_EXISTS(${FREETYPE_LIBRARY} FT_Get_First_Char "" HAVE_FREETYPE_FIRST)
-	CHECK_LIBRARY_EXISTS(${FREETYPE_LIBRARY} FT_Get_Next_Char "" HAVE_FREETYPE_NEXT)
-	# here we have an alternative
-	# a) Setup CFLAGS with the FREETYPE_INCLUDE_DIR_freetype2 provided by cmake
-	# b) Insert ${FREETYPE_INCLUDE_DIRS} in include sections of CMakeLists that need it
-	# I prefer (b) and at some point & from my opinion it should  be just needed in scribus/fonts/CmakeLists.txt - pm
 else()
 	message(FATAL_ERROR "No Freetype Found")
 endif()
@@ -229,15 +228,11 @@ endif()
 
 #<<FontConfig
 if(NOT WIN32)
-	set(FONTCONFIG_DIR ${CMAKE_MODULE_PATH})
-	find_package(FONTCONFIG)
-	if(FONTCONFIG_FOUND)
+	find_package(Fontconfig REQUIRED)
+	if(Fontconfig_FOUND)
 		message("FontConfig Found OK")
 		set(HAVE_FONTCONFIG ON)
 	endif()
-else()
-	# Windows builds neither use nor require fontconfig
-	set(FONTCONFIG_INCLUDE_DIR)
 endif()
 #>>FontConfig
 

@@ -1345,7 +1345,7 @@
     <ClCompile Include="..\..\..\scribus\navigator.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="..\..\..\scribus\ui\newfile.cpp">
+    <ClCompile Include="..\..\..\scribus\ui\newdocdialog.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\scribus\ui\newmarginwidget.cpp">
@@ -1697,9 +1697,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\scribus\sccolorshade.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="..\..\..\scribus\ui\sccombobox.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="..\..\..\scribus\downloadmanager\scdlmgr.cpp">
@@ -2491,6 +2488,12 @@
     <ClCompile Include="..\..\..\scribus\ui\contentpalette.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="..\..\..\scribus\ui\contentpalette_page.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="..\..\..\scribus\ui\contentpalette_default.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="Scribus.rc">
@@ -2870,6 +2873,12 @@
       <Filter>Form Files</Filter>
     </uic>
     <uic Include="..\..\..\scribus\ui\actionsearchdialog.ui">
+      <Filter>Form Files</Filter>
+    </uic>
+    <uic Include="..\..\..\scribus\ui\contentpalette_pagebase.ui">
+      <Filter>Form Files</Filter>
+    </uic>
+    <uic Include="..\..\..\scribus\ui\contentpalette_defaultbase.ui">
       <Filter>Form Files</Filter>
     </uic>
   </ItemGroup>
@@ -3422,7 +3431,7 @@
     <moc Include="..\..\..\scribus\navigator.h">
       <Filter>Header Files</Filter>
     </moc>
-    <moc Include="..\..\..\scribus\ui\newfile.h">
+    <moc Include="..\..\..\scribus\ui\newdocdialog.h">
       <Filter>Header Files</Filter>
     </moc>
     <moc Include="..\..\..\scribus\ui\newmarginwidget.h">
@@ -4070,9 +4079,6 @@
     <moc Include="..\..\..\scribus\ui\sccolorslider.h">
       <Filter>Header Files</Filter>
     </moc>
-    <moc Include="..\..\..\scribus\ui\sccombobox.h">
-      <Filter>Header Files</Filter>
-    </moc>
     <moc Include="..\..\..\scribus\scmimedata.h">
       <Filter>Header Files</Filter>
     </moc>
@@ -4116,6 +4122,12 @@
       <Filter>Header Files</Filter>
     </moc>
     <moc Include="..\..\..\scribus\ui\contentpalette.h">
+      <Filter>Header Files</Filter>
+    </moc>
+    <moc Include="..\..\..\scribus\ui\contentpalette_page.h">
+      <Filter>Header Files</Filter>
+    </moc>
+    <moc Include="..\..\..\scribus\ui\contentpalette_default.h">
       <Filter>Header Files</Filter>
     </moc>
   </ItemGroup>

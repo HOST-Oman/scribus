@@ -49,6 +49,8 @@ public:
 	QPointF startPoint();
 	QPointF endPoint();
 
+	void setLineClip();
+
 	void getBoundingRect(double *x1, double *y1, double *x2, double *y2) const override;
 	void getOldBoundingRect(double *x1, double *y1, double *x2, double *y2) const override;
 	void getVisualBoundingRect(double *x1, double *y1, double *x2, double *y2) const override;
@@ -58,6 +60,11 @@ public:
 
 	QRectF getEndArrowBoundingRect() const override;
 	QRectF getEndArrowOldBoundingRect() const override;
+
+	double visualXPos() const override;
+	double visualYPos() const override;
+	double visualWidth() const override;
+	double visualHeight() const override;
 	
 protected:
 	void DrawObj_Item(ScPainter *p, QRectF e) override;

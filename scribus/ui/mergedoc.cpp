@@ -11,19 +11,20 @@ for which a new license (GPL+exception) is in place.
 #include "mergedoc.h"
 #include "prefsfile.h"
 #include "prefsmanager.h"
-#include "sccombobox.h"
 #include "scconfig.h"
 #include "scpaths.h"
 #include "ui/customfdialog.h"
 
 #include <QApplication>
 #include <QCheckBox>
+#include <QComboBox>
 #include <QCursor>
 #include <QDir>
 #include <QGridLayout>
 #include <QHBoxLayout>
 #include <QLabel>
 #include <QLineEdit>
+#include <QListWidget>
 #include <QPixmap>
 #include <QPushButton>
 #include <QSpacerItem>
@@ -64,9 +65,10 @@ MergeDoc::MergeDoc(QWidget* parent, bool importMasterPages, int targetDocPageCou
 	importWherePageData = nullptr;
 	if (masterPages)
 	{
-		importPageLabel->setText( tr("&Import Master Page") );
-		masterPageNameData = new ScComboBox(this);
+		importPageLabel->setText( tr("&Import Master Page:") );
+		masterPageNameData = new QListWidget(this);
 		masterPageNameData->setEnabled(false);
+		masterPageNameData->setSelectionMode(QAbstractItemView::ExtendedSelection);
 		importPageLabel->setBuddy( masterPageNameData );
 		fromInfoLayout->addWidget( masterPageNameData, 1, 1, 1, 2);
 	}
@@ -85,7 +87,7 @@ MergeDoc::MergeDoc(QWidget* parent, bool importMasterPages, int targetDocPageCou
 		createPageData = new QCheckBox( this );
 		createPageData->setText( tr("Create Page(s)"));
 		fromInfoLayout->addWidget( createPageData, 2, 0 );
-		importWhereData = new ScComboBox( this );
+		importWhereData = new QComboBox( this );
 		importWhereData->setEnabled(false);
 		importWhereData->addItem( tr("Before Page"));
 		importWhereData->addItem( tr("After Page"));
@@ -226,14 +228,20 @@ const QString MergeDoc::getFromDoc()
 	return QDir::fromNativeSeparators(fromDocData->text());
 }
 
-const int MergeDoc::getMasterPageNameItem()
+const QStringList MergeDoc::getMasterPageNames() const
 {
-	return masterPageNameData->currentIndex();
+	QStringList result;
+	for (const auto item : masterPageNameData->selectedItems())
+		result << item->text();
+	return result;
 }
 
-const QString MergeDoc::getMasterPageNameText()
+QList<int> MergeDoc::getMasterPageIndexes() const
 {
-	return masterPageNameData->currentText();
+	QList<int> result;
+	for (const auto& row: masterPageNameData->selectionModel()->selectedRows())
+		result << row.row();
+	return result;
 }
 
 const int MergeDoc::getImportWhere()

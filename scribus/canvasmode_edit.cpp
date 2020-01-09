@@ -378,11 +378,10 @@ void CanvasMode_Edit::mouseDoubleClickEvent(QMouseEvent *m)
 				}
 				else
 				{
-					int newPos = currItem->itemText.selectWord(oldCp);
-					currItem->itemText.setCursorPosition(newPos);
+					currItem->itemText.selectWord(oldCp);
 				}
 			}
-			currItem->HasSel = (currItem->itemText.selectionLength() > 0);
+			currItem->HasSel = currItem->itemText.isSelected();
 		}
 	}
 	else
@@ -459,9 +458,9 @@ void CanvasMode_Edit::mouseMoveEvent(QMouseEvent *m)
 						currItem->HasSel = true;
 					}
 				}
+				m_ScMW->setCopyCutEnabled(currItem->HasSel);
 				if (currItem->HasSel)
 				{
-					m_ScMW->EnableTxEdit();
 					m_canvas->m_viewMode.operTextSelecting = true;
 					if ((refStartSel != currItem->asTextFrame()->itemText.startOfSelection()) ||
 						(refEndSel   != currItem->asTextFrame()->itemText.endOfSelection()))
@@ -470,8 +469,6 @@ void CanvasMode_Edit::mouseMoveEvent(QMouseEvent *m)
 						m_canvas->update(QRectF(m_canvas->canvasToLocal(br.topLeft()), br.size() * m_canvas->scale()).toRect());
 					}
 				}
-				else
-					m_ScMW->DisableTxEdit();
 			}
 		}
 		if (!m_canvas->m_viewMode.m_MouseButtonPressed)
@@ -585,7 +582,7 @@ void CanvasMode_Edit::mousePressEvent(QMouseEvent *m)
 			if (m_canvas->frameHitTest(QPointF(canvasPoint.x(), canvasPoint.y()), currItem) < 0)
 			{
 				m_doc->m_Selection->delaySignalsOn();
-				m_view->Deselect(true);
+				m_view->deselectItems(true);
 				bool wantNormal = true;
 				if (SeleItem(m))
 				{
@@ -629,7 +626,7 @@ void CanvasMode_Edit::mousePressEvent(QMouseEvent *m)
 			if (!inText)
 			{
 				currItem->invalidateLayout();
-				m_view->Deselect(true);
+				m_view->deselectItems(true);
 				//m_view->slotDoCurs(true);
 				m_view->requestMode(modeNormal);
 				m_view->canvasMode()->mousePressEvent(m);
@@ -642,7 +639,7 @@ void CanvasMode_Edit::mousePressEvent(QMouseEvent *m)
 				//<<CB Add in shift select to text frames
 				if (m->modifiers() & Qt::ShiftModifier)
 				{
-					if (currItem->itemText.selectionLength() > 0)
+					if (currItem->itemText.isSelected())
 					{
 						if (currItem->itemText.cursorPosition() < (currItem->itemText.startOfSelection() + currItem->itemText.endOfSelection()) / 2)
 						{
@@ -710,7 +707,7 @@ void CanvasMode_Edit::mousePressEvent(QMouseEvent *m)
 		}
 		else if (!currItem->asImageFrame() || m_canvas->frameHitTest(QPointF(mousePointDoc.x(),mousePointDoc.y()), currItem) < 0)
 		{
-			m_view->Deselect(true);
+			m_view->deselectItems(true);
 			if (SeleItem(m))
 			{
 				currItem = m_doc->m_Selection->itemAt(0);
@@ -891,7 +888,7 @@ void CanvasMode_Edit::mouseReleaseEvent(QMouseEvent *m)
 				if (((Sele.contains(apr.boundingRect())) || (Sele.contains(apr2))) && m_doc->canSelectItemOnLayer(docItem->m_layerID))
 				{
 					bool redrawSelection=false;
-					m_view->SelectItemNr(a, redrawSelection);
+					m_view->selectItemByNumber(a, redrawSelection);
 				}
 			}
 			m_doc->m_Selection->delaySignalsOff();
@@ -949,12 +946,7 @@ void CanvasMode_Edit::mouseReleaseEvent(QMouseEvent *m)
 		m_doc->nodeEdit.finishTransaction(currItem);
 	}
 	if (GetItem(&currItem) && currItem->asTextFrame())
-	{
-		if (currItem->itemText.selectionLength() > 0)
-			m_ScMW->EnableTxEdit();
-		else
-			m_ScMW->DisableTxEdit();
-	}
+		m_ScMW->setCopyCutEnabled(currItem->itemText.isSelected());
 }
 
 //CB-->Doc/Fix
@@ -1041,7 +1033,7 @@ bool CanvasMode_Edit::SeleItem(QMouseEvent *m)
 	}
 	else if ( (m->modifiers() & SELECT_MULTIPLE) == Qt::NoModifier)
 	{
-		m_view->Deselect(false);
+		m_view->deselectItems(false);
 	}
 	currItem = m_canvas->itemUnderCursor(m->globalPos(), currItem, (m->modifiers() & SELECT_IN_GROUP));
 	if (currItem)
@@ -1088,7 +1080,7 @@ bool CanvasMode_Edit::SeleItem(QMouseEvent *m)
 	}
 	m_doc->m_Selection->connectItemToGUI();
 	if ( !(m->modifiers() & SELECT_MULTIPLE))
-		m_view->Deselect(true);
+		m_view->deselectItems(true);
 	return false;
 }
 

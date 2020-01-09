@@ -174,6 +174,15 @@ QPointF PageItem_Line::endPoint()
 	return QPointF(x, y);
 }
 
+void PageItem_Line::setLineClip()
+{
+	int ph = static_cast<int>(qMax(1.0, this->visualLineWidth() / 2.0));
+	Clip.setPoints(4, -1.0, -ph,
+	                  static_cast<int>(width() + 1.0), -ph,
+	                  static_cast<int>(width() + 1.0), ph,
+	                  -1.0, ph);
+}
+
 void PageItem_Line::getBoundingRect(double *x1, double *y1, double *x2, double *y2) const
 {
 	double minx =  std::numeric_limits<double>::max();
@@ -276,37 +285,7 @@ void PageItem_Line::getVisualBoundingRect(double * x1, double * y1, double * x2,
 	double miny =  std::numeric_limits<double>::max();
 	double maxx = -std::numeric_limits<double>::max();
 	double maxy = -std::numeric_limits<double>::max();
-	double extraSpace = 0.0;
-	if (NamedLStyle.isEmpty())
-	{
-		if ((lineColor() != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0))
-		{
-			extraSpace = m_lineWidth / 2.0;
-			if ((extraSpace == 0) && m_Doc->view()) // Hairline case
-				extraSpace = 0.5 / m_Doc->view()->scale();
-		}
-		if ((!patternStrokeVal.isEmpty()) && (m_Doc->docPatterns.contains(patternStrokeVal)) && (patternStrokePath))
-		{
-			ScPattern *pat = &m_Doc->docPatterns[patternStrokeVal];
-			QTransform mat;
-			mat.rotate(patternStrokeRotation);
-			mat.scale(patternStrokeScaleX / 100.0, patternStrokeScaleY / 100.0);
-			QRectF p1R = QRectF(0, 0, pat->width / 2.0, pat->height / 2.0);
-			QRectF p2R = mat.map(p1R).boundingRect();
-			extraSpace = p2R.height();
-		}
-	}
-	else
-	{
-		multiLine ml = m_Doc->MLineStyles[NamedLStyle];
-		const SingleLine& sl = ml.last();
-		if (sl.Color != CommonStrings::None)
-		{
-			extraSpace = sl.Width / 2.0;
-			if ((extraSpace == 0) && m_Doc->view()) // Hairline case
-				extraSpace = 0.5 / m_Doc->view()->scale();
-		}
-	}
+	double extraSpace = visualLineWidth() / 2.0;
 	if (m_rotation != 0)
 	{
 		FPointArray pb;
@@ -477,4 +456,26 @@ QRectF PageItem_Line::getEndArrowOldBoundingRect() const
 	}
 
 	return arrowRect;
+}
+
+double PageItem_Line::visualXPos() const
+{
+	return m_xPos;
+}
+
+double PageItem_Line::visualYPos() const
+{
+	double extraSpace = visualLineWidth() / 2.0;
+	return m_yPos - extraSpace;
+}
+
+double PageItem_Line::visualWidth() const
+{
+	return m_width;
+}
+
+double PageItem_Line::visualHeight() const
+{
+	double extraSpace = visualLineWidth();
+	return extraSpace;
 }

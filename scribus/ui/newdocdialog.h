@@ -4,8 +4,8 @@ to the COPYING file provided with the program. Following this notice may exist
 a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
-#ifndef NEWDOC_H
-#define NEWDOC_H
+#ifndef NEWDOCDIALOG_H
+#define NEWDOCDIALOG_H
 
 #include <QDialog>
 #include <QDropEvent>
@@ -13,17 +13,20 @@ for which a new license (GPL+exception) is in place.
 #include <QDragLeaveEvent>
 #include <QDragMoveEvent>
 #include <QListWidget>
+
+class QCheckBox;
+class QComboBox;
 class QFormLayout;
 class QGridLayout;
 class QHBoxLayout;
 class QVBoxLayout;
 class QFrame;
-class QListWidgetItem;
 class QGroupBox;
-class QSpinBox;
 class QLabel;
-class QCheckBox;
+class QListWidgetItem;
 class QPushButton;
+class QSpinBox;
+
 #include "scribusapi.h"
 #include "scribusstructs.h"
 
@@ -33,7 +36,6 @@ class QPushButton;
 class PrefsManager;
 class MarginWidget;
 class ScrSpinBox;
-class ScComboBox;
 class QFileDialog;
 
 class SCRIBUS_API PageLayoutsWidget : public QListWidget
@@ -50,7 +52,7 @@ public:
 };
 
 
-class SCRIBUS_API NewDoc : public QDialog
+class SCRIBUS_API NewDocDialog : public QDialog
 {
 	Q_OBJECT
 
@@ -64,8 +66,9 @@ public:
 		OpenRecentTab
 	} ActionSelected;
 
-	NewDoc( QWidget* parent, const QStringList& recentDocs, bool startUp = false, const QString& lang = "");
-	~NewDoc() = default;
+	NewDocDialog( QWidget* parent, const QStringList& recentDocs, bool startUp = false, const QString& lang = "");
+	~NewDocDialog() = default;
+
 	void createNewDocPage();
 	void createNewFromTempPage();
 	void createOpenDocPage();
@@ -75,8 +78,7 @@ public:
 	QFrame* newDocFrame;
 	PageLayoutsWidget* layoutsView;
 	QLabel* layoutLabel1;
-	QLabel* layoutLabel2;
-	ScComboBox* firstPage;
+	QComboBox* firstPage;
 	QGroupBox* pageSizeGroupBox;
 	MarginWidget* marginGroup;
 	QGroupBox* optionsGroupBox;

@@ -68,14 +68,17 @@ PdfPlug::PdfPlug(ScribusDoc* doc, int flags)
 	m_Doc = doc;
 	importerFlags = flags;
 	interactive = (flags & LoadSavePlugin::lfInteractive);
-	progressDialog = nullptr;
-	m_pdfDoc = nullptr;
+
 }
 
 QImage PdfPlug::readThumbnail(const QString& fName)
 {
 	QString pdfFile = QDir::toNativeSeparators(fName);
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 83, 0)
+	globalParams.reset(new GlobalParams());
+#else
 	globalParams = new GlobalParams();
+#endif
 	if (globalParams)
 	{
 #if defined(Q_OS_WIN32) && POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 62, 0)
@@ -90,7 +93,9 @@ QImage PdfPlug::readThumbnail(const QString& fName)
 			if (pdfDoc->getErrorCode() == errEncrypted)
 			{
 				delete pdfDoc;
+#if POPPLER_ENCODED_VERSION < POPPLER_VERSION_ENCODE(0, 83, 0)
 				delete globalParams;
+#endif
 				return QImage();
 			}
 			if (pdfDoc->isOk())
@@ -134,11 +139,15 @@ QImage PdfPlug::readThumbnail(const QString& fName)
 				image.setText("YSize", QString("%1").arg(h));
 				delete dev;
 				delete pdfDoc;
+#if POPPLER_ENCODED_VERSION < POPPLER_VERSION_ENCODE(0, 83, 0)
 				delete globalParams;
+#endif
 				return image;
 			}
 			delete pdfDoc;
+#if POPPLER_ENCODED_VERSION < POPPLER_VERSION_ENCODE(0, 83, 0)
 			delete globalParams;
+#endif
 		}
 	}
 	return QImage();
@@ -213,7 +222,7 @@ bool PdfPlug::import(const QString& fNameIn, const TransactionSettings& trSettin
 		m_Doc->setPageSize("Custom");
 	}
 	if ((!(flags & LoadSavePlugin::lfLoadAsPattern)) && (m_Doc->view() != nullptr))
-		m_Doc->view()->Deselect();
+		m_Doc->view()->deselectItems();
 	Elements.clear();
 	m_Doc->setLoading(true);
 	m_Doc->DoDrawing = false;
@@ -344,7 +353,11 @@ bool PdfPlug::convert(const QString& fn)
 		qApp->processEvents();
 	}
 
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 83, 0)
+	globalParams.reset(new GlobalParams());
+#else
 	globalParams = new GlobalParams();
+#endif
 	GooString *userPW = nullptr;
 	if (globalParams)
 	{
@@ -386,7 +399,9 @@ bool PdfPlug::convert(const QString& fn)
 					if (progressDialog)
 						progressDialog->close();
 					delete pdfDoc;
+#if POPPLER_ENCODED_VERSION < POPPLER_VERSION_ENCODE(0, 83, 0)
 					delete globalParams;
+#endif
 					return false;
 				}
 				if (progressDialog)
@@ -431,7 +446,9 @@ bool PdfPlug::convert(const QString& fn)
 							progressDialog->close();
 						delete optImp;
 						delete pdfDoc;
+#if POPPLER_ENCODED_VERSION < POPPLER_VERSION_ENCODE(0, 83, 0)
 						delete globalParams;
+#endif
 						return false;
 					}
 					pageString = optImp->getPagesString();
@@ -633,7 +650,7 @@ bool PdfPlug::convert(const QString& fn)
 						}
 						m_Doc->setPageSize("Custom");
 					//	m_Doc->pdfOptions().PresentVals.clear();
-						for (int i = 0; i < pageNs.size(); ++i)
+						for (size_t i = 0; i < pageNs.size(); ++i)
 						{
 							int pp = pageNs[i];
 							m_Doc->setActiveLayer(baseLayer);
@@ -844,8 +861,12 @@ bool PdfPlug::convert(const QString& fn)
 		}
 		delete pdfDoc;
 	}
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(0, 83, 0)
+	globalParams.release();
+#else
 	delete globalParams;
 	globalParams = nullptr;
+#endif
 
 //	qDebug() << "converting finished";
 //	qDebug() << "Imported" << Elements.count() << "Elements";

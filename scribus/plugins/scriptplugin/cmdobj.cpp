@@ -675,9 +675,9 @@ PyObject *scribus_setstyle(PyObject* /* self */, PyObject* args)
 		if (selectionLength > 0)
 			selectionStart = item->itemText.startOfSelection();
 		// quick hack to always apply on the right frame - pv
-		currentView->Deselect(true);
+		currentView->deselectItems(true);
 		//CB I dont think we need to draw here. Its faster if we dont.
-		currentView->SelectItem(item, false);
+		currentView->selectItem(item, false);
 		// Restore text selection if necessary
 		if (selectionStart >= 0)
 		{
@@ -758,9 +758,9 @@ PyObject *scribus_setcharstyle(PyObject* /* self */, PyObject* args)
 		if (selectionLength > 0)
 			selectionStart = item->itemText.startOfSelection();
 		// quick hack to always apply on the right frame - pv
-		currentView->Deselect(true);
+		currentView->deselectItems(true);
 		//CB I dont think we need to draw here. Its faster if we dont.
-		currentView->SelectItem(item, false);
+		currentView->selectItem(item, false);
 		// Restore text selection if necessary
 		if (selectionStart >= 0)
 		{
@@ -849,7 +849,7 @@ PyObject *scribus_duplicateobject(PyObject * /* self */, PyObject *args)
 	currentWin->slotEditCopy();
 	currentWin->slotEditPaste();
 
-	Py_RETURN_NONE;
+	return PyUnicode_FromString(currentDoc->m_Selection->itemAt(0)->itemName().toUtf8());
 }
 
 PyObject *scribus_copyobject(PyObject * /* self */, PyObject *args)
@@ -896,5 +896,24 @@ PV */
 void cmdobjdocwarnings()
 {
 	QStringList s;
-	s << scribus_newrect__doc__ <<scribus_newellipse__doc__ << scribus_newimage__doc__ << scribus_newtext__doc__ << scribus_newtable__doc__ << scribus_newline__doc__ <<scribus_polyline__doc__ << scribus_polygon__doc__ << scribus_bezierline__doc__ <<scribus_pathtext__doc__ <<scribus_deleteobj__doc__ <<scribus_textflow__doc__ <<scribus_objectexists__doc__ <<scribus_getstyle__doc__ <<scribus_setstyle__doc__ <<scribus_getstylenames__doc__ <<scribus_getcharstylenames__doc__ <<scribus_duplicateobject__doc__ <<scribus_copyobject__doc__ <<scribus_pasteobject__doc__;
+	s << scribus_bezierline__doc__
+	  << scribus_copyobject__doc__
+	  << scribus_deleteobj__doc__
+	  << scribus_duplicateobject__doc__
+	  << scribus_getcharstylenames__doc__
+	  << scribus_getstyle__doc__
+	  << scribus_getstylenames__doc__
+	  << scribus_newellipse__doc__
+	  << scribus_newimage__doc__
+	  << scribus_newline__doc__
+	  << scribus_newrect__doc__ 
+	  << scribus_newtable__doc__
+	  << scribus_newtext__doc__
+	  << scribus_objectexists__doc__
+	  << scribus_pasteobject__doc__
+	  << scribus_pathtext__doc__
+	  << scribus_polygon__doc__
+	  << scribus_polyline__doc__
+	  << scribus_setstyle__doc__
+	  << scribus_textflow__doc__;
 }

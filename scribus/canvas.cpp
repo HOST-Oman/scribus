@@ -298,12 +298,14 @@ Canvas::FrameHandle Canvas::frameHitTest(QPointF canvasPoint, PageItem* item) co
 	// be huge, into account.
 	// ### might be interesting to investigate if it would be painless to just change 
 	// PageItem::getTransform.
-	double extraS = (item->visualHeight() - item->height()) / - 2.0;
+	double extraS = - item->visualLineWidth() / 2.0;
 //	if (item->lineColor() != CommonStrings::None)
 //		extraS = (item->lineWidth() / -2.0);
 	if (item->isTextFrame() && (m_doc->appMode == modeEdit) && !item->asTextFrame()->availableRegion().contains(item->getTransform().inverted().map(canvasPoint.toPoint())))
 		return OUTSIDE;
-	Canvas::FrameHandle result = frameHitTest(item->getTransform().inverted().map(canvasPoint), QRectF(extraS, extraS, item->visualWidth(), item->visualHeight()));
+	QRectF visualRect = item->isLine() ? QRectF(0, extraS, item->visualWidth(), item->visualHeight()) 
+		                               : QRectF(extraS, extraS, item->visualWidth(), item->visualHeight());
+	Canvas::FrameHandle result = frameHitTest(item->getTransform().inverted().map(canvasPoint), visualRect);
 //	qDebug() << "frameHitTest for item" << item->ItemNr 
 //		<< item->getTransform().inverted().map(canvasPoint) 
 //		<< item->getTransform().inverted() 
@@ -423,10 +425,22 @@ PageItem* Canvas::itemUnderCursor(QPoint globalPos, PageItem* itemAbove, bool al
 					itemPos.translate(-Mp->xOffset() + m_doc->currentPage()->xOffset(), -Mp->yOffset() + m_doc->currentPage()->yOffset());
 				}
 				currItem->getTransform(itemPos);
-				QPainterPath currPath(itemPos.map(QPointF(0,0)));
-				currPath.lineTo(itemPos.map(QPointF(currItem->width(), 0)));
-				currPath.lineTo(itemPos.map(QPointF(currItem->width(), currItem->height())));
-				currPath.lineTo(itemPos.map(QPointF(0, currItem->height())));
+				QPainterPath currPath;
+				if (currItem->isLine())
+				{
+					double visualLineWidth = currItem->visualLineWidth();
+					currPath.moveTo(itemPos.map(QPointF(0.0, -visualLineWidth / 2.0)));
+					currPath.lineTo(itemPos.map(QPointF(currItem->width(), -visualLineWidth / 2.0)));
+					currPath.lineTo(itemPos.map(QPointF(currItem->width(),  visualLineWidth / 2.0)));
+					currPath.lineTo(itemPos.map(QPointF(0.0,  visualLineWidth / 2.0)));
+				}
+				else
+				{
+					currPath.moveTo(itemPos.map(QPointF(0, 0)));
+					currPath.lineTo(itemPos.map(QPointF(currItem->width(), 0)));
+					currPath.lineTo(itemPos.map(QPointF(currItem->width(), currItem->height())));
+					currPath.lineTo(itemPos.map(QPointF(0, currItem->height())));
+				}
 				currPath.closeSubpath();
 				QPainterPath currClip;
 				currClip.addPolygon(itemPos.map(QPolygonF(currItem->Clip)));
@@ -467,10 +481,22 @@ PageItem* Canvas::itemUnderCursor(QPoint globalPos, PageItem* itemAbove, bool al
 		if (m_doc->canSelectItemOnLayer(currItem->m_layerID))
 		{
 			QTransform itemPos = currItem->getTransform();
-			QPainterPath currPath(itemPos.map(QPointF(0,0)));
-			currPath.lineTo(itemPos.map(QPointF(currItem->width(), 0)));
-			currPath.lineTo(itemPos.map(QPointF(currItem->width(), currItem->height())));
-			currPath.lineTo(itemPos.map(QPointF(0, currItem->height())));
+			QPainterPath currPath;
+			if (currItem->isLine())
+			{
+				double visualLineWidth = currItem->visualLineWidth();
+				currPath.moveTo(itemPos.map(QPointF(0.0, -visualLineWidth / 2.0)));
+				currPath.lineTo(itemPos.map(QPointF(currItem->width(), -visualLineWidth / 2.0)));
+				currPath.lineTo(itemPos.map(QPointF(currItem->width(),  visualLineWidth / 2.0)));
+				currPath.lineTo(itemPos.map(QPointF(0.0,  visualLineWidth / 2.0)));
+			}
+			else
+			{
+				currPath.moveTo(itemPos.map(QPointF(0, 0)));
+				currPath.lineTo(itemPos.map(QPointF(currItem->width(), 0)));
+				currPath.lineTo(itemPos.map(QPointF(currItem->width(), currItem->height())));
+				currPath.lineTo(itemPos.map(QPointF(0, currItem->height())));
+			}
 			currPath.closeSubpath();
 			QPainterPath currClip;
 			currClip.addPolygon(itemPos.map(QPolygonF(currItem->Clip)));
@@ -2117,48 +2143,24 @@ void Canvas::DrawPageIndicator(ScPainter *p, const QRectF& clip, bool master)
  */
 void Canvas::drawFrameLinks(ScPainter* painter)
 {
-	painter->save();
-	PageItem *currItem;
-	if ((m_doc->guidesPrefs().linkShown || m_viewMode.drawFramelinksWithContents) && (m_viewMode.linkedFramesToShow.count() != 0))
-		currItem = m_viewMode.linkedFramesToShow.at(0);
-	else
+	PageItem *currItem = nullptr;
+	if ((m_doc->appMode == modeLinkFrames) || (m_doc->appMode == modeUnlinkFrames))
 	{
-		if (m_viewMode.linkedFramesToShow.count() != 0)
-			currItem = m_viewMode.linkedFramesToShow.at(0);
-		else
+		if (m_doc->m_Selection->count() > 0)
 			currItem = m_doc->m_Selection->itemAt(0);
+		else if (m_viewMode.linkedFramesToShow.count() > 0)
+			currItem = m_viewMode.linkedFramesToShow.at(0);
+		if (currItem && (currItem->itemType() != PageItem::TextFrame))
+			currItem = nullptr;
 	}
+
 	//Draw the frame links
-	if ((((m_doc->appMode == modeLinkFrames) || (m_doc->appMode == modeUnlinkFrames))
-		 && (currItem->itemType() == PageItem::TextFrame)) || (m_doc->guidesPrefs().linkShown || m_viewMode.drawFramelinksWithContents))
+	painter->save();
+	if (m_doc->guidesPrefs().linkShown || m_viewMode.drawFramelinksWithContents)
 	{
-		PageItem *nextItem = currItem;
-		if (m_doc->guidesPrefs().linkShown || m_viewMode.drawFramelinksWithContents)
+		for (int i = 0; i < m_viewMode.linkedFramesToShow.count(); ++i)
 		{
-			for (int lks = 0; lks < m_viewMode.linkedFramesToShow.count(); ++lks)
-			{
-				nextItem = m_viewMode.linkedFramesToShow.at(lks);
-				while (nextItem != nullptr)
-				{
-					if (nextItem->nextInChain() != nullptr)
-					{
-						FPoint start, end;
-						calculateFrameLinkPoints(nextItem, nextItem->nextInChain(), start, end);
-						drawLinkFrameLine(painter, start, end);
-					}
-					nextItem = nextItem->nextInChain();
-				}
-			}
-		}
-		else
-		{
-			while (nextItem != nullptr)
-			{
-				if (nextItem->prevInChain() != nullptr)
-					nextItem = nextItem->prevInChain();
-				else
-					break;
-			}
+			PageItem* nextItem = m_viewMode.linkedFramesToShow.at(i);
 			while (nextItem != nullptr)
 			{
 				if (nextItem->nextInChain() != nullptr)
@@ -2169,6 +2171,20 @@ void Canvas::drawFrameLinks(ScPainter* painter)
 				}
 				nextItem = nextItem->nextInChain();
 			}
+		}
+	}
+	else if ((((m_doc->appMode == modeLinkFrames) || (m_doc->appMode == modeUnlinkFrames)) && (currItem != nullptr)))
+	{
+		PageItem *nextItem = currItem->firstInChain();
+		while (nextItem != nullptr)
+		{
+			if (nextItem->nextInChain() != nullptr)
+			{
+				FPoint start, end;
+				calculateFrameLinkPoints(nextItem, nextItem->nextInChain(), start, end);
+				drawLinkFrameLine(painter, start, end);
+			}
+			nextItem = nextItem->nextInChain();
 		}
 	}
 	painter->setLineWidth(1);

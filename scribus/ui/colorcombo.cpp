@@ -5,9 +5,6 @@ a copyright and/or license notice that predates the release of Scribus 1.3.2
 for which a new license (GPL+exception) is in place.
 */
 /*
- *  sccombobox.h
- *  ScribusCVS
- *
  *  Created by Andreas Vox on 01.10.05.
  *  Copyright 2005 under GPL2. All rights reserved.
  *
@@ -29,7 +26,6 @@ ColorCombo::ColorCombo(QWidget* parent) : QComboBox(parent)
 
 ColorCombo::ColorCombo(ColorCombo::PixmapType type, QWidget* parent) : QComboBox(parent)
 {
-
 	setEditable(false);
 	ColorListBox::PixmapType clbType = ColorListBox::smallPixmap;
 	if (type == ColorCombo::widePixmaps)

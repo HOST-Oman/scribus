@@ -203,7 +203,7 @@ for which a new license (GPL+exception) is in place.
 #include "ui/modetoolbar.h"
 #include "ui/movepage.h"
 #include "ui/multipleduplicate.h"
-#include "ui/newfile.h"
+#include "ui/newdocdialog.h"
 #include "ui/newtemp.h"
 #include "ui/nftdialog.h"
 #include "ui/nftwidget.h"
@@ -231,7 +231,6 @@ for which a new license (GPL+exception) is in place.
 #include "ui/recoverdialog.h"
 #include "ui/replacecolors.h"
 #include "ui/resourcemanager.h"
-#include "ui/sccombobox.h"
 #include "ui/scfilewidget.h"
 #include "ui/scmessagebox.h"
 #include "ui/scmwmenumanager.h"
@@ -1202,8 +1201,8 @@ void ScribusMainWindow::addDefaultWindowMenuItems()
 	scrMenuMgr->addMenuItemString("windowsCascade", "Windows");
 	scrMenuMgr->addMenuItemString("windowsTile", "Windows");
 	scrMenuMgr->addMenuItemString("SEPARATOR", "Windows");
-	scrMenuMgr->addMenuItemString("toolsContent", "Windows");
 	scrMenuMgr->addMenuItemString("toolsProperties", "Windows");
+	scrMenuMgr->addMenuItemString("toolsContent", "Windows");
 	scrMenuMgr->addMenuItemString("toolsActionHistory", "Windows");
 	scrMenuMgr->addMenuItemString("toolsAlignDistribute", "Windows");
 	scrMenuMgr->addMenuItemString("SEPARATOR", "Windows");
@@ -1688,11 +1687,11 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 					currItem->Sizing = false;
 					if (doc->SubMode != -1)
 					{
-						view->Deselect(false);
+						view->deselectItems(false);
 						doc->Items->removeOne(currItem);
 					}
 					else
-						view->Deselect(false);
+						view->deselectItems(false);
 					view->cancelGroupTransaction();
 					break;
 				case modeEdit:
@@ -1704,7 +1703,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 				case modeLinkFrames:
 				case modeUnlinkFrames:
 				case modeRotation:
-					view->Deselect(false);
+					view->deselectItems(false);
 				case modeEditWeldPoint:
 				case modeEyeDropper:
 				case modeImportObject:
@@ -1717,7 +1716,7 @@ void ScribusMainWindow::keyPressEvent(QKeyEvent *k)
 				default:
 					if (currItem->Sizing)
 					{
-						view->Deselect(false);
+						view->deselectItems(false);
 						doc->Items->removeOne(currItem);
 					}
 					break;
@@ -1934,7 +1933,7 @@ void ScribusMainWindow::closeEvent(QCloseEvent *ce)
 {
 	//Do not quit if Preferences or new doc window is open
 	PreferencesDialog *prefsDialog = findChild<PreferencesDialog *>(QString::fromLocal8Bit("PreferencesDialog"));
-	NewDoc *newDocWin = findChild<NewDoc *>(QString::fromLocal8Bit("NewDocumentWindow"));
+	NewDocDialog *newDocWin = findChild<NewDocDialog *>(QString::fromLocal8Bit("NewDocumentWindow"));
 	if (prefsDialog!=nullptr || newDocWin!=nullptr)
 	{
 		ce->ignore();
@@ -2108,10 +2107,10 @@ void ScribusMainWindow::startUpDialog()
 {
 	bool docSet = false;
 	PrefsContext* docContext = m_prefsManager.prefsFile->getContext("docdirs", false);
-	NewDoc* dia = new NewDoc(this, m_recentDocsList, true, ScCore->getGuiLanguage());
+	NewDocDialog* dia = new NewDocDialog(this, m_recentDocsList, true, ScCore->getGuiLanguage());
 	if (dia->exec())
 	{
-		if (dia->tabSelected() == NewDoc::NewDocumentTab)
+		if (dia->tabSelected() == NewDocDialog::NewDocumentTab)
 		{
 			int facingPages = dia->choosenLayout();
 			int firstPage = dia->firstPage->currentIndex();
@@ -2147,7 +2146,7 @@ void ScribusMainWindow::startUpDialog()
 			doc->setModified(false);
 			updateActiveWindowCaption(doc->documentFileName());
 		}
-		else if (dia->tabSelected() == NewDoc::NewFromTemplateTab)
+		else if (dia->tabSelected() == NewDocDialog::NewFromTemplateTab)
 		{
 			QString fileName = QDir::cleanPath(dia->selectedFile());
 			if (!fileName.isEmpty() && loadDoc(fileName))
@@ -2160,7 +2159,7 @@ void ScribusMainWindow::startUpDialog()
 				removeRecent(fileName);
 			}
 		}
-		else if (dia->tabSelected() == NewDoc::OpenExistingTab)
+		else if (dia->tabSelected() == NewDocDialog::OpenExistingTab)
 		{
 			QString fileName = dia->selectedFile();
 			if (!fileName.isEmpty())
@@ -2170,7 +2169,7 @@ void ScribusMainWindow::startUpDialog()
 				loadDoc(fileName);
 			}
 		}
-		else // NewDoc::OpenRecentTab
+		else // NewDocDialog::OpenRecentTab
 		{
 			QString fileName = dia->selectedFile();
 			if (!fileName.isEmpty())
@@ -2194,7 +2193,7 @@ bool ScribusMainWindow::slotFileNew()
 		view->requestMode(submodeEndNodeEdit);
 	bool retVal = false;
 	bool docSet = false;
-	NewDoc* dia = new NewDoc(this, m_recentDocsList);
+	NewDocDialog* dia = new NewDocDialog(this, m_recentDocsList);
 	if (dia->exec())
 	{
 		int facingPages = dia->choosenLayout();
@@ -2969,7 +2968,7 @@ void ScribusMainWindow::rebuildRecentFileMenu()
 		strippedName = localName = QDir::toNativeSeparators(m_recentDocsList[i]);
 		strippedName.remove(QDir::separator());
 		strippedName.prepend(QString("%1").arg(i+1, 2, 10, QChar('0')));
-		scrRecentFileActions.insert(strippedName, new ScrAction(ScrAction::RecentFile, QPixmap(), QPixmap(), QString("%1 &%2").arg(i+1).arg(localName.replace("&","&&")), QKeySequence(), this, m_recentDocsList[i]));
+		scrRecentFileActions.insert(strippedName, new ScrAction(ScrAction::RecentFile, QPixmap(), QPixmap(), QString("&%1 %2").arg(i + 1).arg(localName.replace("&","&&")), QKeySequence(), this, m_recentDocsList[i]));
 		connect( scrRecentFileActions[strippedName], SIGNAL(triggeredData(QString)), this, SLOT(loadRecent(QString)) );
 		scrMenuMgr->addMenuItemString(strippedName, "FileOpenRecent");
 	}
@@ -3081,7 +3080,7 @@ void ScribusMainWindow::doPasteRecent(const QString& data)
 		UndoTransaction pasteAction;
 		if (UndoManager::undoEnabled())
 			pasteAction = m_undoManager->beginTransaction(Um::SelectionGroup, Um::IGroup, Um::Create,"",Um::ICreate);
-		view->Deselect(true);
+		view->deselectItems(true);
 		int docItemCount = doc->Items->count();
 		bool savedAlignGrid = doc->SnapGrid;
 		bool savedAlignGuides = doc->SnapGuides;
@@ -3585,7 +3584,7 @@ bool ScribusMainWindow::loadDoc(const QString& fileName)
 		zoomSpinBox->blockSignals(b);
 		view->unitChange();
 		setScriptRunning(false);
-		view->Deselect(true);
+		view->deselectItems(true);
 		m_mainWindowStatusLabel->setText("");
 		mainWindowProgressBar->reset();
 		HaveDoc++;
@@ -4140,13 +4139,16 @@ void ScribusMainWindow::slotFileRevert()
 	if ((doc->hasName) && (doc->isModified()) && (!doc->masterPageMode()) && (!doc->isConverted))
 	{
 		ScribusWin* tw = ActWin;
-		int t = ScMessageBox::warning(this, CommonStrings::trWarning, "<qt>" +
-								 QObject::tr("The changes to your document have not been saved and you have requested to revert them. Do you wish to continue?") + "</qt>",
-								 QMessageBox::Yes | QMessageBox::No,
-								 QMessageBox::No,	// GUI default
-								 QMessageBox::Yes);	// batch default
-		if (t == QMessageBox::No)
-			return;
+		if (!scriptIsRunning())
+		{
+			int t = ScMessageBox::warning(this, CommonStrings::trWarning, "<qt>" +
+									 QObject::tr("The changes to your document have not been saved and you have requested to revert them. Do you wish to continue?") + "</qt>",
+									 QMessageBox::Yes | QMessageBox::No,
+									 QMessageBox::No,	// GUI default
+									 QMessageBox::Yes);	// batch default
+			if (t == QMessageBox::No)
+				return;
+		}
 
 		mdiArea->setActiveSubWindow(tw->getSubWin());
 		ActWin = tw;
@@ -4282,7 +4284,7 @@ bool ScribusMainWindow::slotFileClose()
 bool ScribusMainWindow::DoFileClose()
 {
 	slotEndSpecialEdit();
-	view->Deselect(false);
+	view->deselectItems(false);
 	if (doc == storyEditor->currentDocument())
 		storyEditor->close();
 	actionManager->disconnectNewDocActions();
@@ -4946,7 +4948,7 @@ void ScribusMainWindow::slotEditPaste()
 	{
 		if (ScMimeData::clipboardHasScribusElem() || ScMimeData::clipboardHasScribusFragment() || internalCopy)
 		{
-			view->Deselect(true);
+			view->deselectItems(true);
 			int docItemCount = doc->Items->count();
 			bool savedAlignGrid = doc->SnapGrid;
 			bool savedAlignGuides = doc->SnapGuides;
@@ -5023,7 +5025,7 @@ void ScribusMainWindow::SelectAllOnLayer()
 		return;
 
 	PageItem *currItem;
-	view->Deselect();
+	view->deselectItems();
 	int docItemsCount = doc->Items->count();
 	int docCurrentPage = doc->currentPageNumber();
 	doc->m_Selection->delaySignalsOn();
@@ -5103,12 +5105,12 @@ void ScribusMainWindow::SelectAll(bool docWideSelect)
 			nextItem->HasSel = true;
 			nextItem = nextItem->nextInChain();
 		}
-		EnableTxEdit();
+		setCopyCutEnabled(true);
 	}
 	else
 	{
 		PageItem *currItem;
-		view->Deselect();
+		view->deselectItems();
 		doc->m_Selection->delaySignalsOn();
 		int docItemsCount = doc->Items->count();
 		int docCurrentPage = doc->currentPageNumber();
@@ -5151,12 +5153,12 @@ void ScribusMainWindow::deselectAll()
 		}
 		else
 		{
-			doc->view()->Deselect(true);
+			doc->view()->deselectItems(true);
 			doc->view()->requestMode(modeNormal);
 		}
 	}
 	else if (view != nullptr)
-		view->Deselect(true);
+		view->deselectItems(true);
 }
 
 void ScribusMainWindow::ClipChange()
@@ -5175,16 +5177,10 @@ void ScribusMainWindow::ClipChange()
 	scrActions["editPaste"]->setEnabled(HaveDoc && (hasScribusData || textFrameEditMode || tableEditMode || hasExternalData));
 }
 
-void ScribusMainWindow::EnableTxEdit()
+void ScribusMainWindow::setCopyCutEnabled(bool b)
 {
-	scrActions["editCut"]->setEnabled(true);
-	scrActions["editCopy"]->setEnabled(true);
-}
-
-void ScribusMainWindow::DisableTxEdit()
-{
-	scrActions["editCut"]->setEnabled(false);
-	scrActions["editCopy"]->setEnabled(false);
+	scrActions["editCut"]->setEnabled(b);
+	scrActions["editCopy"]->setEnabled(b);
 }
 
 void ScribusMainWindow::slotHelpAbout()
@@ -5310,7 +5306,7 @@ void ScribusMainWindow::slotNewPageP(int wo, const QString& templ)
 		return;
 	if (doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
-	view->Deselect(true);
+	view->deselectItems(true);
 	int where = 1;
 	if (wo == 0)
 		where = 0;
@@ -5341,7 +5337,7 @@ void ScribusMainWindow::slotNewPageM()
 		return;
 	if (doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
-	view->Deselect(true);
+	view->deselectItems(true);
 	InsPage *dia = new InsPage(this, doc, doc->currentPage()->pageNr(), doc->Pages->count());
 	if (dia->exec())
 	{
@@ -5492,7 +5488,7 @@ void ScribusMainWindow::duplicateToMasterPage()
 {
 	if (!HaveDoc)
 		return;
-	view->Deselect(true);
+	view->deselectItems(true);
 	int pageLocationIndex=-1;
 	int pageLocationCount=0;
 	if (doc->pagePositioning() != singlePage)
@@ -6147,7 +6143,7 @@ void ScribusMainWindow::deletePage2(int pg)
 {
 	if (HaveDoc && doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
-	view->Deselect(true);
+	view->deselectItems(true);
 	if (doc->Pages->count() == 1)
 		return;
 	deletePage(pg+1, pg+1);
@@ -6157,7 +6153,7 @@ void ScribusMainWindow::deletePage()
 {
 	if (HaveDoc && doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
-	view->Deselect(true);
+	view->deselectItems(true);
 	DelPages *dia = new DelPages(this, doc->currentPage()->pageNr()+1, doc->Pages->count());
 	if (dia->exec())
 		deletePage(dia->getFromPage(), dia->getToPage());
@@ -6292,7 +6288,7 @@ void ScribusMainWindow::copyPage()
 	int copyCount=dia->getCopyCount();
 	int wo = dia->getWherePage();
 	doc->copyPage(pageNumberToCopy, wo, whereToInsert, copyCount);
-	view->Deselect(true);
+	view->deselectItems(true);
 	doc->updateEndnotesFrames();
 	updateGUIAfterPagesChanged();
 	slotDocCh();
@@ -6464,7 +6460,7 @@ void ScribusMainWindow::duplicateItem()
 	int oldItemCount = doc->Items->count();
 	doc->m_Selection->delaySignalsOn();
 	doc->itemSelection_MultipleDuplicate(mdData);
-	view->Deselect(true);
+	view->deselectItems(true);
 	for (int i = oldItemCount; i < doc->Items->count(); ++i)
 	{
 		PageItem* item = doc->Items->at(i);
@@ -6567,7 +6563,7 @@ void ScribusMainWindow::selectItemsFromOutlines(PageItem* ite, bool single, int 
 	if (HaveDoc && doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
 	activateWindow();
-	view->Deselect(true);
+	view->deselectItems(true);
 	if (!doc->symbolEditMode() && !doc->inlineEditMode())
 	{
 		int itemPage = ite->OwnPage;
@@ -6581,7 +6577,7 @@ void ScribusMainWindow::selectItemsFromOutlines(PageItem* ite, bool single, int 
 			view->GotoPage(itemPage);
 	}
 	doc->m_Selection->delaySignalsOn();
-	view->SelectItem(ite, true, single);
+	view->selectItem(ite, true, single);
 	doc->m_Selection->delaySignalsOff();
 
 	if (doc->m_Selection->isEmpty())
@@ -6624,7 +6620,7 @@ void ScribusMainWindow::selectPagesFromOutlines(int Page)
 	if (HaveDoc && doc->appMode == modeEditClip)
 		view->requestMode(submodeEndNodeEdit);
 	activateWindow();
-	view->Deselect(true);
+	view->deselectItems(true);
 	if (Page < 0)
 		return;
 	view->GotoPage(Page);
@@ -7519,7 +7515,7 @@ void ScribusMainWindow::editSymbolStart(const QString& temp)
 		doc->autoSaveTimer->stop();
 		doc->setAutoSave(false);
 	}
-	view->Deselect(true);
+	view->deselectItems(true);
 	m_storedPageNum = doc->currentPageNumber();
 	m_storedViewXCoor = view->contentsX();
 	m_storedViewYCoor = view->contentsY();
@@ -7597,7 +7593,7 @@ void ScribusMainWindow::editInlineStart(int id)
 		doc->autoSaveTimer->stop();
 		doc->setAutoSave(false);
 	}
-	view->Deselect(true);
+	view->deselectItems(true);
 	m_storedPageNum = doc->currentPageNumber();
 	m_storedViewXCoor = view->contentsX();
 	m_storedViewYCoor = view->contentsY();
@@ -7660,7 +7656,7 @@ void ScribusMainWindow::editMasterPagesStart(const QString& temp)
 		mpName = doc->currentPage()->masterPageName();
 	else
 		mpName = temp;
-	view->Deselect(true);
+	view->deselectItems(true);
 	if (doc->drawAsPreview)
 	{
 		view->togglePreview(false);
@@ -7967,7 +7963,7 @@ void ScribusMainWindow::restoreAddPage(SimpleState *state, bool isUndo)
 		}
 		if (doc->appMode == modeEditClip)
 			view->requestMode(submodeEndNodeEdit);
-		view->Deselect(true);
+		view->deselectItems(true);
 		deletePage(delFrom, delTo);
 	}
 	else
@@ -7999,12 +7995,12 @@ void ScribusMainWindow::restoreAddPage(SimpleState *state, bool isUndo)
 void ScribusMainWindow::restoreGrouping(SimpleState *state, bool isUndo)
 {
 	int itemCount = state->getInt("itemcount");
-	view->Deselect();
+	view->deselectItems();
 	for (int i = 0; i < itemCount; ++i)
 	{
 		int itemNr = doc->getItemNrfromUniqueID(state->getUInt(QString("item%1").arg(i)));
 		if (doc->Items->at(itemNr)->uniqueNr == state->getUInt(QString("item%1").arg(i)))
-			view->SelectItemNr(itemNr);
+			view->selectItemByNumber(itemNr);
 	}
 	if (isUndo)
 		UnGroupObj();
@@ -8015,12 +8011,12 @@ void ScribusMainWindow::restoreGrouping(SimpleState *state, bool isUndo)
 void ScribusMainWindow::restoreUngrouping(SimpleState *state, bool isUndo)
 {
 	int itemCount = state->getInt("itemcount");
-	view->Deselect();
+	view->deselectItems();
 	for (int i = 0; i < itemCount; ++i)
 	{
 		int itemNr = doc->getItemNrfromUniqueID(state->getUInt(QString("item%1").arg(i)));
 		if (doc->Items->at(itemNr)->uniqueNr == state->getUInt(QString("item%1").arg(i)))
-			view->SelectItemNr(itemNr);
+			view->selectItemByNumber(itemNr);
 	}
 	if (isUndo)
 		GroupObj(false);
@@ -8186,7 +8182,7 @@ void ScribusMainWindow::changeLayer(int )
 		slotSelect();
 	else if (doc->appMode == modeEditClip)
 		NoFrameEdit();
-	view->Deselect(true);
+	view->deselectItems(true);
 	rebuildLayersList();
 	layerPalette->rebuildList();
 	layerPalette->markActiveLayer();
@@ -8226,7 +8222,7 @@ void ScribusMainWindow::slotSetCurrentPage(int Seite)
 
 void ScribusMainWindow::setCurrentPage(int p)
 {
-	doc->view()->Deselect();
+	doc->view()->deselectItems();
 	int p0=p-1; //p is what the user sees.. p0 is our count from 0
 	doc->setCurrentPage(doc->Pages->at(p0));
 	if (scriptIsRunning())
@@ -8460,80 +8456,26 @@ void ScribusMainWindow::EditTabs()
 
 void ScribusMainWindow::SearchText()
 {
-	PageItem *currItem = NULL;
-	bool SearchCur = false;
-	bool flag = false;
+	bool wasModeEdit = (doc->appMode == modeEdit);
 
-	/*
-	 * The currItem is selected based on:
-	 * 1- first text frame selected.
-	 * if not
-	 *	select first text frame in current page.
-	 * if not
-	 *	got to next page and select the first text frame
-	 * if you reach the end of the document
-	 *	start from the first page.
-	 */
-	if (doc->Items->count() == 0)
-		return;
-	else if (doc->m_Selection->count() > 0)
+	PageItem *currItem = doc->m_Selection->itemAt(0);
+	if (!wasModeEdit)
 	{
-		//start searching from the selected text frame
-		for (int i = 0 ; i < doc->m_Selection->count(); i++)
-			if (doc->m_Selection->itemAt(i)->isTextFrame() && doc->m_Selection->itemAt(i)->itemText.length() > 0 )
-			{
-				flag = true;
-				currItem = doc->m_Selection->itemAt(i);
-				if (doc->m_Selection->count() == 1)
-					SearchCur = true;
-				break;
-			}
+		view->requestMode(modeEdit);
+		currItem->itemText.setCursorPosition(0);
 	}
-	// if no text frame selected
-	if (!flag)
+	
+	SearchReplace* dia = new SearchReplace(this, doc, currItem);
+	if (wasModeEdit)
 	{
-		int i = 0;
-		int j = 0;
-		//find current page index
-		for (i = 0; i < doc->Items->count(); i++)
-		{
-			if (doc->Items->at(i)->OwnPage >= doc->currentPageNumber())
-				break;
-		}
-		j = i;
-		//start from current page  till the end of the document
-		for (i = j; i < doc->Items->count(); i++)
-		{
-			if (doc->Items->at(i)->isTextFrame() && doc->Items->at(i)->itemText.length() > 0)
-			{
-				flag= true;
-				currItem = doc->Items->at(i);
-				break;
-			}
-		}
-		//if reached the end of the document start from beggining
-		if (!flag)
-			for (i = 0; i < j; i++)
-			{
-				if (doc->Items->at(i)->isTextFrame() && doc->Items->at(i)->itemText.length() > 0)
-				{
-					currItem = doc->Items->at(i);
-					break;
-				}
-			}
+		QString selText = currItem->itemText.selectedText();
+		if (!selText.isEmpty())
+			dia->setSearchedText(selText);
 	}
-
-	doc->m_Selection->addItem(currItem);
-	//PageItem *currItem = doc->m_Selection->itemAt(0);
-	view->requestMode(modeEdit);
-	currItem->itemText.setCursorPosition(currItem->firstInFrame());
-	SearchReplace* dia = new SearchReplace(this, doc, currItem, true , SearchCur);
-	connect(dia, SIGNAL(NewFont(const QString&)), this, SLOT(SetNewFont(const QString&)));
-	connect(dia, SIGNAL(NewAbs(int)), this, SLOT(setAlignmentValue(int)));
 	dia->exec();
 	dia->disconnect();
 	delete dia;
-	slotSelect();
+	//slotSelect();
 }
 
 /* call gimp and wait upon completion */
@@ -8958,7 +8900,7 @@ void ScribusMainWindow::slotInsertFrame()
 
 	view->requestMode(modeNormal);
 	if (!doc->m_Selection->isEmpty())
-		view->Deselect(false);
+		view->deselectItems(false);
 
 	InsertAFrame dia(this, doc);
 	if (dia.exec())
@@ -9052,7 +8994,7 @@ void ScribusMainWindow::PutToInline(const QString& buffer)
 	inlinePalette->setDoc(doc);
 	if (outlinePalette->isVisible())
 		outlinePalette->BuildTree();
-	view->Deselect(false);
+	view->deselectItems(false);
 }
 
 void ScribusMainWindow::PutToInline()
@@ -9116,7 +9058,7 @@ void ScribusMainWindow::PutToInline()
 	inlinePalette->setDoc(doc);
 	if (outlinePalette->isVisible())
 		outlinePalette->BuildTree();
-	view->Deselect(false);
+	view->deselectItems(false);
 }
 
 void ScribusMainWindow::PutToPatterns()
@@ -9143,7 +9085,7 @@ void ScribusMainWindow::PutToPatterns()
 	doc->SnapGuides = savedAlignGuides;
 	doc->SnapElement = savedAlignElement;
 	doc->m_Selection->clear();
-	view->Deselect(true);
+	view->deselectItems(true);
 	PageItem* currItem;
 	doc->m_Selection->delaySignalsOn();
 	for (int as = ac; as < doc->Items->count(); ++as)

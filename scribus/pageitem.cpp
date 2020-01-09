@@ -50,6 +50,7 @@ for which a new license (GPL+exception) is in place.
 #include "pageitem_arc.h"
 #include "pageitem_group.h"
 #include "pageitem_latexframe.h"
+#include "pageitem_line.h"
 #include "pageitem_noteframe.h"
 #include "pageitem_regularpolygon.h"
 #include "pageitem_spiral.h"
@@ -233,7 +234,7 @@ PageItem::PageItem(const PageItem & other)
 	ChangedMasterItem(other.ChangedMasterItem),
 	OnMasterPage(other.OnMasterPage),
 	isEmbedded(other.isEmbedded),
-	m_roundedCorderRadius(other.m_roundedCorderRadius),
+	m_roundedCornerRadius(other.m_roundedCornerRadius),
 	oldXpos(other.oldXpos),
 	oldYpos(other.oldYpos),
 	oldWidth(other.oldWidth),
@@ -533,15 +534,15 @@ PageItem::PageItem(ScribusDoc *pa, ItemType newType, double x, double y, double 
 	m_imageRotation = 0;
 	BBoxX = 0;
 	BBoxH = 0;
-	m_roundedCorderRadius = 0;
+	m_roundedCornerRadius = 0;
 	switch (m_itemType)
 	{
 		case Polygon:
-			Clip.setPoints(4, static_cast<int>(w/2), 0, static_cast<int>(w), static_cast<int>(h/2),
-								static_cast<int>(w/2), static_cast<int>(h), 0,static_cast<int>(h/2));
+			Clip.setPoints(4, static_cast<int>(w / 2), 0, static_cast<int>(w), static_cast<int>(h / 2),
+								static_cast<int>(w / 2), static_cast<int>(h), 0, static_cast<int>(h / 2));
 			break;
 		default:
-			Clip.setPoints(4, 0,0, static_cast<int>(w),0, static_cast<int>(w), static_cast<int>(h), 0,static_cast<int>(h));
+			Clip.setPoints(4, 0, 0, static_cast<int>(w), 0, static_cast<int>(w), static_cast<int>(h), 0, static_cast<int>(h));
 			break;
 	}
 	PoLine.resize(0);
@@ -1183,6 +1184,30 @@ void PageItem::setImageRotation(const double newRotation)
 	checkChanges();
 }
 
+
+/// tests if a character is displayed by this frame
+bool PageItem::frameDisplays(int textpos) const
+{
+	return 0 <= textpos && textpos < signed(m_maxChars) && textpos < itemText.length();
+}
+
+PageItem* PageItem::frameOfChar(int textPos)
+{
+	PageItem* firstFrame = this->firstInChain();
+	PageItem* nextFrame = firstFrame;
+
+	while (nextFrame)
+	{
+		if (nextFrame->invalid)
+			nextFrame->layout();
+		if (nextFrame->frameDisplays(textPos))
+			return nextFrame;
+		nextFrame = nextFrame->nextInChain();
+	}
+
+	return nullptr;
+}
+
 //return frame where is text end
 PageItem * PageItem::frameTextEnd()
 {
@@ -1282,6 +1307,7 @@ int PageItem::firstInFrame() const
 {
 	return firstChar;
 }
+
 int PageItem::lastInFrame() const
 {
 	return qMin(signed(m_maxChars), itemText.length()) - 1;
@@ -1298,6 +1324,10 @@ bool PageItem::canBeLinkedTo(const PageItem* nxt) const
 		if (ff == this)
 			return false;
 	}
+	// If object is placed on a master page, it can be linked only to objects placed on same master page
+	// Same for objects placed on standard pages : they can only be linked to objects placed on standard pages
+	if (OnMasterPage != nxt->OnMasterPage)
+		return false;
 	return true;
 }
 
@@ -1528,18 +1558,11 @@ void PageItem::unlinkWithText()
 	}
 }
 
-/// tests if a character is displayed by this frame
-bool PageItem::frameDisplays(int textpos) const
-{
-	return 0 <= textpos && textpos < signed(m_maxChars) && textpos < itemText.length();
-}
-
-
 /// returns the style at the current charpos
 const ParagraphStyle& PageItem::currentStyle() const
 {
 	int cursorPosition = itemText.cursorPosition();
-	if (itemText.selectionLength() > 0)
+	if (itemText.isSelected())
 	{
 		int firstSelected = itemText.startOfSelection();
 		int lastSelected  = qMax(itemText.endOfSelection() - 1, 0);
@@ -1555,7 +1578,7 @@ const ParagraphStyle& PageItem::currentStyle() const
 ParagraphStyle& PageItem::changeCurrentStyle()
 {
 	int cursorPosition = itemText.cursorPosition();
-	if (itemText.selectionLength() > 0)
+	if (itemText.isSelected())
 	{
 		int firstSelected = itemText.startOfSelection();
 		int lastSelected  = qMax(itemText.endOfSelection() - 1, 0);
@@ -1571,7 +1594,7 @@ ParagraphStyle& PageItem::changeCurrentStyle()
 const CharStyle& PageItem::currentCharStyle() const
 {
 	int cursorPosition = itemText.cursorPosition();
-	if (itemText.selectionLength() > 0)
+	if (itemText.isSelected())
 	{
 		int firstSelected = itemText.startOfSelection();
 		int lastSelected  = qMax(itemText.endOfSelection() - 1, 0);
@@ -1590,7 +1613,7 @@ void PageItem::currentTextProps(ParagraphStyle& parStyle) const
 	parStyle = curStyle;
 
 	int position = itemText.cursorPosition();
-	if (itemText.selectionLength() > 0)
+	if (itemText.isSelected())
 		position = qMin(qMax(itemText.endOfSelection() - 1, 0), qMax(position, itemText.startOfSelection()));
 
 	// Note: cursor position can be past last characters, don't use frameDisplays() here
@@ -1746,17 +1769,17 @@ void PageItem::setVerticalAlignment(int val)
 
 void PageItem::setCornerRadius(double newRadius)
 {
-	if (m_roundedCorderRadius==newRadius)
+	if (m_roundedCornerRadius == newRadius)
 		return;
 	if (UndoManager::undoEnabled())
 	{
 		SimpleState *state = new SimpleState(Um::RoundCorner,"",Um::IBorder);
 		state->set("CORNER_RADIUS");
-		state->set("OLD_RADIUS", m_roundedCorderRadius);
+		state->set("OLD_RADIUS", m_roundedCornerRadius);
 		state->set("NEW_RADIUS", newRadius);
 		undoManager->action(this,state);
 	}
-	m_roundedCorderRadius=newRadius;
+	m_roundedCornerRadius=newRadius;
 	//emit cornerRadius(RadRect);
 }
 
@@ -4565,7 +4588,7 @@ void PageItem::convertTo(ItemType newType)
 		return; // nothing to do -> return
 	assert(newType != 1);	//DEBUG CR 2005-02-06
 	assert(newType != 3);	//DEBUG CR 2005-02-06
-	QString fromType = "", toType = "";
+	QString fromType;
 	switch (m_itemType)
 	{
 		case ImageFrame:
@@ -4583,9 +4606,9 @@ void PageItem::convertTo(ItemType newType)
 			fromType = Um::Polygon;
 			break;
 		default:
-			fromType = "";
 			break;
 	}
+	QString toType;
 	switch (newType)
 	{
 		case ImageFrame:
@@ -4611,7 +4634,6 @@ void PageItem::convertTo(ItemType newType)
 			setUPixmap(Um::IPolyline);
 			break;
 		default:
-			toType = "";
 			setUPixmap(nullptr);
 			break;
 	}
@@ -6725,9 +6747,9 @@ void PageItem::restoreInsertFrameParagraph(SimpleState *ss, bool isUndo)
 void PageItem::restoreCornerRadius(SimpleState *state, bool isUndo)
 {
 	if (isUndo)
-		m_roundedCorderRadius=state->getDouble("OLD_RADIUS");
+		m_roundedCornerRadius = state->getDouble("OLD_RADIUS");
 	else
-		m_roundedCorderRadius=state->getDouble("NEW_RADIUS");
+		m_roundedCornerRadius = state->getDouble("NEW_RADIUS");
 	Selection tmpSelection = *(doc()->m_Selection);
 	doc()->m_Selection->clear();
 	doc()->m_Selection->addItem(this);
@@ -6995,8 +7017,8 @@ void PageItem::restoreType(SimpleState *state, bool isUndo)
 	if (!isUndo)
 		type = state->getInt("NEW_TYPE");
 	ScribusView* view = m_Doc->view();
-	view->Deselect(false);
-	view->SelectItem(item, false);
+	view->deselectItems(false);
+	view->selectItem(item, false);
 	switch (type)
 	{
 		case ImageFrame: view->ToPicFrame(); break;
@@ -7340,7 +7362,7 @@ void PageItem::restoreUniteItem(SimpleState *state, bool isUndo)
 	if (!is)
 		qFatal("PageItem::restoreUniteItem: dynamic cast failed");
 
-	m_Doc->view()->Deselect(true);
+	m_Doc->view()->deselectItems(true);
 	if (isUndo)
 	{
 		int pts = 0;
@@ -7366,7 +7388,7 @@ void PageItem::restoreUniteItem(SimpleState *state, bool isUndo)
 	{
 		select();
 		for (int i = 0; i < is->getItem().first.size(); ++i)
-			doc()->view()->SelectItem(is->getItem().first.at(i));
+			doc()->view()->selectItem(is->getItem().first.at(i));
 		doc()->itemSelection_UniteItems();
 		select();
 	}
@@ -7383,7 +7405,7 @@ void PageItem::restoreSplitItem(SimpleState *state, bool isUndo)
 	if (isUndo)
 	{
 		for (int i = 0; i < itemsList.size(); ++i)
-			doc()->view()->SelectItem(doc()->Items->at(itemsList.at(i)));
+			doc()->view()->selectItem(doc()->Items->at(itemsList.at(i)));
 		doc()->itemSelection_UniteItems();
 		select();
 	}
@@ -7432,7 +7454,7 @@ void PageItem::restoreLayer(SimpleState *state, bool isUndo)
 {
 	ScribusView* view = m_Doc->view();
 	setLayer(isUndo ? state->getInt("OLD_LAYER") : state->getInt("NEW_LAYER"));
-	view->Deselect(true);
+	view->deselectItems(true);
 	m_Doc->regionsChanged()->update(QRectF());
 }
 
@@ -7530,7 +7552,7 @@ void PageItem::restoreImageEffects(UndoState *state, bool isUndo)
 
 void PageItem::select()
 {
-	m_Doc->view()->Deselect(false);
+	m_Doc->view()->deselectItems(false);
 	//CB #2969 add this true parm to addItem so we don't connectToGUI, the rest of view->SelectItem isn't needed anyway
 	m_Doc->m_Selection->addItem(this, true);
 }
@@ -7630,7 +7652,7 @@ void PageItem::setTagged(bool tag)
 
 void PageItem::replaceNamedResources(ResourceCollection& newNames)
 {
-	QMap<QString,QString>::ConstIterator it;
+	QMap<QString, QString>::ConstIterator it;
 	
 	it = newNames.colors().find(softShadowColor());
 	if (it != newNames.colors().end())
@@ -8655,10 +8677,10 @@ void PageItem::SetOvalFrame()
 
 void PageItem::SetFrameRound()
 {
-	setCornerRadius(qMin(m_roundedCorderRadius, qMin(m_width, m_height)/2));
+	setCornerRadius(qMin(m_roundedCornerRadius, qMin(m_width, m_height)/2));
 	PoLine.resize(0);
-	double rr = fabs(m_roundedCorderRadius);
-	if (m_roundedCorderRadius > 0.0)
+	double rr = fabs(m_roundedCornerRadius);
+	if (m_roundedCornerRadius > 0.0)
 	{
 		QPainterPath path;
 		path.addRoundedRect(0, 0, m_width, m_height, rr, rr);
@@ -8933,42 +8955,7 @@ void PageItem::getVisualBoundingRect(double * x1, double * y1, double * x2, doub
 	double miny =  std::numeric_limits<double>::max();
 	double maxx = -std::numeric_limits<double>::max();
 	double maxy = -std::numeric_limits<double>::max();
-	double extraSpace = 0.0;
-	if (NamedLStyle.isEmpty())
-	{
-		if ((lineColor() != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0))
-		{
-			if (isLine() && (PLineEnd == Qt::FlatCap))
-				extraSpace = 0.0;
-			else
-			{
-				extraSpace = m_lineWidth / 2.0;
-				if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-					extraSpace = 0.5 / m_Doc->view()->scale();
-			}
-		}
-		if ((!patternStrokeVal.isEmpty()) && (m_Doc->docPatterns.contains(patternStrokeVal)) && (patternStrokePath))
-		{
-			ScPattern *pat = &m_Doc->docPatterns[patternStrokeVal];
-			QTransform mat;
-			mat.rotate(patternStrokeRotation);
-			mat.scale(patternStrokeScaleX / 100.0, patternStrokeScaleY / 100.0);
-			QRectF p1R = QRectF(0, 0, pat->width / 2.0, pat->height / 2.0);
-			QRectF p2R = mat.map(p1R).boundingRect();
-			extraSpace = p2R.height();
-		}
-	}
-	else
-	{
-		multiLine ml = m_Doc->MLineStyles[NamedLStyle];
-		const SingleLine& sl = ml.last();
-		if (sl.Color != CommonStrings::None)
-		{
-			extraSpace = sl.Width / 2.0;
-			if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-				extraSpace = 0.5 / m_Doc->view()->scale();
-		}
-	}
+	double extraSpace = visualLineWidth() / 2.0;
 	if (m_rotation != 0)
 	{
 		FPointArray pb;
@@ -9000,160 +8987,26 @@ void PageItem::getVisualBoundingRect(double * x1, double * y1, double * x2, doub
 
 double PageItem::visualXPos() const
 {
-	double extraSpace = 0.0;
-	if (!isLine())
-	{
-		if (NamedLStyle.isEmpty())
-		{
-			if ((lineColor() != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0))
-			{
-				extraSpace = m_lineWidth / 2.0;
-				if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-					extraSpace = 0.5 / m_Doc->view()->scale();
-			}
-			if ((!patternStrokeVal.isEmpty()) && (m_Doc->docPatterns.contains(patternStrokeVal)) && (patternStrokePath))
-			{
-				ScPattern *pat = &m_Doc->docPatterns[patternStrokeVal];
-				QTransform mat;
-				mat.rotate(patternStrokeRotation);
-				mat.scale(patternStrokeScaleX / 100.0, patternStrokeScaleY / 100.0);
-				QRectF p1R = QRectF(0, 0, pat->width / 2.0, pat->height / 2.0);
-				QRectF p2R = mat.map(p1R).boundingRect();
-				extraSpace = p2R.height();
-			}
-		}
-		else
-		{
-			multiLine ml = m_Doc->MLineStyles[NamedLStyle];
-			const SingleLine& sl = ml.last();
-			if (sl.Color != CommonStrings::None)
-			{
-				extraSpace = sl.Width / 2.0;
-				if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-					extraSpace = 0.5 / m_Doc->view()->scale();
-			}
-		}
-	}
-	if (isPathText())
-		return qMin(m_xPos + QRectF(Clip.boundingRect()).x(), m_xPos - extraSpace);
+	double extraSpace = visualLineWidth() / 2.0;
 	return m_xPos - extraSpace;
 }
 
 double PageItem::visualYPos() const
 {
-	double extraSpace = 0.0;
-	if (NamedLStyle.isEmpty())
-	{
-		if ((lineColor() != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0))
-		{
-			extraSpace = m_lineWidth / 2.0;
-			if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-				extraSpace = 0.5 / m_Doc->view()->scale();
-		}
-		if ((!patternStrokeVal.isEmpty()) && (m_Doc->docPatterns.contains(patternStrokeVal)) && (patternStrokePath))
-		{
-			ScPattern *pat = &m_Doc->docPatterns[patternStrokeVal];
-			QTransform mat;
-			mat.rotate(patternStrokeRotation);
-			mat.scale(patternStrokeScaleX / 100.0, patternStrokeScaleY / 100.0);
-			QRectF p1R = QRectF(0, 0, pat->width / 2.0, pat->height / 2.0);
-			QRectF p2R = mat.map(p1R).boundingRect();
-			extraSpace = p2R.height();
-		}
-	}
-	else
-	{
-		multiLine ml = m_Doc->MLineStyles[NamedLStyle];
-		const SingleLine& sl = ml.last();
-		if (sl.Color != CommonStrings::None)
-		{
-			extraSpace = sl.Width / 2.0;
-			if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-				extraSpace = 0.5 / m_Doc->view()->scale();
-		}
-	}
-	if (isPathText())
-		return qMin(m_yPos + QRectF(Clip.boundingRect()).y(), m_yPos - extraSpace);
+	double extraSpace = visualLineWidth() / 2.0;
 	return m_yPos - extraSpace;
 }
 
 double PageItem::visualWidth() const
 {
-	double extraSpace = 0.0;
-	if (!isLine())
-	{
-		if (NamedLStyle.isEmpty())
-		{
-			if ((lineColor() != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0))
-			{
-				extraSpace = m_lineWidth;
-				if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-					extraSpace = 1.0 / m_Doc->view()->scale();
-			}
-			if ((!patternStrokeVal.isEmpty()) && (m_Doc->docPatterns.contains(patternStrokeVal)) && (patternStrokePath))
-			{
-				ScPattern *pat = &m_Doc->docPatterns[patternStrokeVal];
-				QTransform mat;
-				mat.rotate(patternStrokeRotation);
-				mat.scale(patternStrokeScaleX / 100.0, patternStrokeScaleY / 100.0);
-				QRectF p1R = QRectF(0, 0, pat->width, pat->height);
-				QRectF p2R = mat.map(p1R).boundingRect();
-				extraSpace = p2R.height();
-			}
-		}
-		else
-		{
-			multiLine ml = m_Doc->MLineStyles[NamedLStyle];
-			const SingleLine& sl = ml.last();
-			if (sl.Color != CommonStrings::None)
-			{
-				extraSpace = sl.Width;
-				if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-					extraSpace = 1.0 / m_Doc->view()->scale();
-			}
-		}
-	}
-	if (isPathText())
-		return qMax(QRectF(Clip.boundingRect()).width(), m_width + extraSpace);
+	double extraSpace = visualLineWidth();
 	return m_width + extraSpace;
 }
 
 double PageItem::visualHeight() const
 {
-	double extraSpace = 0.0;
-	if (NamedLStyle.isEmpty())
-	{
-		if ((lineColor() != CommonStrings::None) || (!patternStrokeVal.isEmpty()) || (GrTypeStroke > 0))
-		{
-			extraSpace = m_lineWidth;
-			if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-				extraSpace = 1.0 / m_Doc->view()->scale();
-		}
-		if ((!patternStrokeVal.isEmpty()) && (m_Doc->docPatterns.contains(patternStrokeVal)) && (patternStrokePath))
-		{
-			ScPattern *pat = &m_Doc->docPatterns[patternStrokeVal];
-			QTransform mat;
-			mat.rotate(patternStrokeRotation);
-			mat.scale(patternStrokeScaleX / 100.0, patternStrokeScaleY / 100.0);
-			QRectF p1R = QRectF(0, 0, pat->width, pat->height);
-			QRectF p2R = mat.map(p1R).boundingRect();
-			extraSpace = p2R.height();
-		}
-	}
-	else
-	{
-		multiLine ml = m_Doc->MLineStyles[NamedLStyle];
-		struct SingleLine& sl = ml[ml.size()-1];
-		if (sl.Color != CommonStrings::None)
-		{
-			extraSpace = sl.Width;
-			if ((extraSpace == 0.0) && m_Doc->view()) // Hairline case
-				extraSpace = 1.0 / m_Doc->view()->scale();
-		}
-	}
-	if (isPathText())
-		return qMax(QRectF(Clip.boundingRect()).height(), m_height + extraSpace);
-	return isLine() ? extraSpace : m_height + extraSpace;
+	double extraSpace = visualLineWidth();
+	return m_height + extraSpace;
 }
 
 double PageItem::visualLineWidth() const
@@ -10180,40 +10033,40 @@ void PageItem::setPolyClip(int up, int down)
 	Segments.clear();
 	QPainterPath pa = PoLine.toQPainterPath(false);
 	QList<QPolygonF> polist = pa.toSubpathPolygons();
-	for (int a = 0; a < polist.count(); a++)
+	for (int i = 0; i < polist.count(); i++)
 	{
-		QPolygon cli = polist[a].toPolygon();
+		QPolygon cli = polist[i].toPolygon();
 		cl += cli;
 		Segments.append(cl.size());
 	}
 	if (cl.size() > 1)
 	{
 		Clip.resize(0);
-		for (int a = 0; a < cl.size()-1; ++a)
+		for (int i = 0; i < cl.size() - 1; ++i)
 		{
-			rot = xy2Deg(cl.point(a+1).x()-cl.point(a).x(),cl.point(a+1).y()-cl.point(a).y());
+			rot = xy2Deg(cl.point(i + 1).x() - cl.point(i).x(), cl.point(i + 1).y() - cl.point(i).y());
 			QTransform ma;
 			ma.rotate(rot);
 			np = QPoint(0, -upval) * ma;
 			np2 = QPoint(0, -downval) * ma;
-			cl1.resize(cl1.size()+1);
-			cl1.setPoint(cl1.size()-1, np+cl.point(a));
-			cl1.resize(cl1.size()+1);
-			cl1.setPoint(cl1.size()-1, np+cl.point(a+1));
-			cl2.resize(cl2.size()+1);
-			cl2.setPoint(cl2.size()-1, np2+cl.point(a));
-			cl2.resize(cl2.size()+1);
-			cl2.setPoint(cl2.size()-1, np2+cl.point(a+1));
+			cl1.resize(cl1.size() + 1);
+			cl1.setPoint(cl1.size() - 1, np+cl.point(i));
+			cl1.resize(cl1.size() + 1);
+			cl1.setPoint(cl1.size() - 1, np + cl.point(i + 1));
+			cl2.resize(cl2.size() + 1);
+			cl2.setPoint(cl2.size() - 1, np2 + cl.point(i));
+			cl2.resize(cl2.size() + 1);
+			cl2.setPoint(cl2.size() - 1, np2 + cl.point(i + 1));
 		}
-		cl1.resize(cl1.size()+1);
-		cl1.setPoint(cl1.size()-1, np+cl.point(cl.size()-1));
+		cl1.resize(cl1.size() + 1);
+		cl1.setPoint(cl1.size() - 1, np + cl.point(cl.size() - 1));
 		cl2.resize(cl2.size()+1);
-		cl2.setPoint(cl2.size()-1, np2+cl.point(cl.size()-1));
+		cl2.setPoint(cl2.size() - 1, np2 + cl.point(cl.size() - 1));
 		Clip.putPoints(Clip.size(), cl1.size(), cl1);
-		for (int a2 = cl2.size()-1; a2 > -1; a2--)
+		for (int i2 = cl2.size() - 1; i2 > -1; i2--)
 		{
-			Clip.resize(Clip.size()+1);
-			Clip.setPoint(Clip.size()-1, cl2.point(a2));
+			Clip.resize(Clip.size() + 1);
+			Clip.setPoint(Clip.size() - 1, cl2.point(i2));
 		}
 	}
 }
@@ -10222,7 +10075,7 @@ void PageItem::updatePolyClip()
 {
 	int asce = 1;
 	int desc = 1;
-	int itemTextCount=itemText.length();
+	int itemTextCount = itemText.length();
 	for (int i = 0; i < itemTextCount; ++i)
 	{
 		const CharStyle& hl (itemText.charStyle(i));
@@ -10231,7 +10084,7 @@ void PageItem::updatePolyClip()
 		asce = qMax(asce, asc);
 		desc = qMax(desc, des);
 	}
-	setPolyClip(static_cast<int>(asce-BaseOffs), static_cast<int>(desc-BaseOffs));
+	setPolyClip(static_cast<int>(asce - BaseOffs), static_cast<int>(desc - BaseOffs));
 }
 
 void PageItem::handleModeEditKey(QKeyEvent * /* k */, bool & /* keyRepeat */)
@@ -10419,9 +10272,11 @@ void PageItem::updateClip(bool updateWelded)
 	switch (itemType())
 	{
 	case PageItem::Line:
-		Clip.setPoints(4, -ph,-ph, static_cast<int>(width()+ph),-ph,
-		                  static_cast<int>(width()+ph),static_cast<int>(height()+ph),
-		                  -ph,static_cast<int>(height()+ph));
+		{
+			PageItem_Line* lineItem = asLine();
+			if (lineItem)
+				lineItem->setLineClip();
+		}
 		break;
 	default:
 		if (((!ClipEdited) || (FrameType < 3)) && !(asPathText()))

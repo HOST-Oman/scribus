@@ -78,10 +78,7 @@ CanvasMode::CanvasMode (ScribusView* view) :
 	m_view(view),
 	m_canvas(view->m_canvas),
 	m_doc(view->Doc),
-	m_panGesture(nullptr),
-	undoManager(UndoManager::instance()),
-	xSnap(0.0),
-	ySnap(0.0)
+	undoManager(UndoManager::instance())
 {
 	m_pen["outline"]	= QPen(Qt::gray, 1.0 , Qt::SolidLine, Qt::FlatCap, Qt::MiterJoin);
 	m_pen["outline"].setCosmetic(true);
@@ -99,10 +96,6 @@ CanvasMode::CanvasMode (ScribusView* view) :
 	m_brush["selection-group"] = QColor(255,0,0,10);
 	m_brush["selection-group-inside"] = Qt::NoBrush;
 	m_brush["handle"]	= PrefsManager::instance().appPrefs.displayPrefs.frameColor;
-
-	m_keyRepeat = false;
-	m_arrowKeyDown = false;
-	//m_mousePointDoc = FPoint(0,0);
 }
 
 CanvasMode::~CanvasMode()
@@ -761,81 +754,7 @@ QCursor CanvasMode::modeCursor()
 
 void CanvasMode::setModeCursor()
 {
-	IconManager& im=IconManager::instance();
-	//NOTE: Merge with similar code in ScribusMainWindow::setAppMode()
-	switch (m_doc->appMode)
-	{
-		case modeDrawShapes:
-		case modeDrawArc:
-		case modeDrawSpiral:
-			m_view->setCursor(im.loadCursor("drawframe.png"));
-			break;
-		case modeDrawImage:
-			m_view->setCursor(im.loadCursor("drawimageframe.png"));
-			break;
-		case modeDrawLatex:
-			m_view->setCursor(im.loadCursor("drawlatexframe.png"));
-			break;
-		case modeDrawText:
-			m_view->setCursor(im.loadCursor("drawtextframe.png"));
-			break;
-		case modeDrawTable2:
-			m_view->setCursor(im.loadCursor("drawtable.png"));
-			break;
-		case modeDrawRegularPolygon:
-			m_view->setCursor(im.loadCursor("drawpolyline.png"));
-			break;
-		case modeDrawLine:
-		case modeDrawBezierLine:
-			m_view->setCursor(QCursor(Qt::CrossCursor));
-			break;
-		case modeDrawFreehandLine:
-			m_view->setCursor(im.loadCursor("DrawFreeLine.png", 0, 31));
-			break;
-		case modeDrawCalligraphicLine:
-			m_view->setCursor(im.loadCursor("drawcalligraphy.png", 4, 4));
-			break;
-		case modeImportObject:
-			m_view->setCursor(im.loadCursor("dragpix.png"));
-			break;
-		case modeMagnifier:
-			if (m_view->Magnify)
-				m_view->setCursor(im.loadCursor("lupez.png"));
-			else
-				m_view->setCursor(im.loadCursor("lupezm.png"));
-			break;
-		case modePanning:
-			m_view->setCursor(im.loadCursor("handc.png"));
-			break;
-		case modeEyeDropper:
-			m_view->setCursor(im.loadCursor("colorpickercursor.png", 0, 31));
-			break;
-		case modeLinkFrames:
-			m_view->setCursor(im.loadCursor("LinkTextFrame.png", 0, 31));
-			break;
-		case modeMeasurementTool:
-		case modeEditGradientVectors:
-		case modeEditMeshGradient:
-		case modeEditMeshPatch:
-		case modeEditWeldPoint:
-		case modeInsertPDFButton:
-		case modeInsertPDFRadioButton:
-		case modeInsertPDFTextfield:
-		case modeInsertPDFCheckbox:
-		case modeInsertPDFCombobox:
-		case modeInsertPDFListbox:
-		case modeInsertPDFTextAnnotation:
-		case modeInsertPDFLinkAnnotation:
-		case modeInsertPDF3DAnnotation:
-		case modeEditArc:
-		case modeEditPolygon:
-		case modeEditSpiral:
-			m_view->setCursor(QCursor(Qt::CrossCursor));
-			break;
-		default:
-			m_view->setCursor(QCursor(Qt::ArrowCursor));
-			break;
-	}
+	m_view->setCursor(modeCursor());
 }
 
 #ifdef GESTURE_FRAME_PREVIEW
@@ -994,11 +913,11 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 			currItem->Sizing = false;
 			if (m_doc->SubMode != -1)
 			{
-				m_view->Deselect(false);
+				m_view->deselectItems(false);
 				m_doc->Items->removeOne(currItem);
 			}
 			else
-				m_view->Deselect(false);
+				m_view->deselectItems(false);
 			m_view->cancelGroupTransaction();
 		}
 		m_doc->DragP = false;
@@ -1252,8 +1171,10 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
+								m_doc->nodeEdit.beginTransaction(currItem);
 								if ((currItem->imageFlippedH() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
+								undoManager->setUndoEnabled(false); // Record only core points action
 								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
@@ -1267,6 +1188,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 									m_doc->nodeEdit.moveClipPoint(currItem, np);
 									poly.append(np.toQPointF());
 								}
+								undoManager->setUndoEnabled(true); // Record only core points action
 								QTransform m = currItem->getTransform();
 								poly = m.map(poly);
 								QRectF oldR = poly.boundingRect().adjusted(-5, -5, 10, 10);
@@ -1343,8 +1265,10 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
+								m_doc->nodeEdit.beginTransaction(currItem);
 								if ((currItem->imageFlippedH() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
+								undoManager->setUndoEnabled(false); // Record only core points action
 								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
@@ -1358,6 +1282,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 									m_doc->nodeEdit.moveClipPoint(currItem, np);
 									poly.append(np.toQPointF());
 								}
+								undoManager->setUndoEnabled(true); // Record only core points action
 								QTransform m = currItem->getTransform();
 								poly = m.map(poly);
 								QRectF oldR = poly.boundingRect().adjusted(-5, -5, 10, 10);
@@ -1434,8 +1359,10 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
+								m_doc->nodeEdit.beginTransaction(currItem);
 								if ((currItem->imageFlippedV() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
+								undoManager->setUndoEnabled(false); // Record only core points action
 								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
@@ -1449,6 +1376,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 									m_doc->nodeEdit.moveClipPoint(currItem, np);
 									poly.append(np.toQPointF());
 								}
+								undoManager->setUndoEnabled(true); // Record only core points action
 								QTransform m = currItem->getTransform();
 								poly = m.map(poly);
 								QRectF oldR = poly.boundingRect().adjusted(-5, -5, 10, 10);
@@ -1525,8 +1453,10 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 							if ((nodeSelection.count() != 0) && (m_doc->nodeEdit.edPoints()))
 							{
 								QPolygonF poly;
+								m_doc->nodeEdit.beginTransaction(currItem);
 								if ((currItem->imageFlippedV() && (!m_doc->nodeEdit.isContourLine())) && (currItem->isSymbol() || currItem->isGroup()))
 									moveBy *= -1;
+								undoManager->setUndoEnabled(false); // Record only core points action
 								for (int itm = 0; itm < nodeSelection.count(); ++itm)
 								{
 									FPoint np;
@@ -1540,6 +1470,7 @@ void CanvasMode::commonkeyPressEvent_NormalNodeEdit(QKeyEvent *e)
 									m_doc->nodeEdit.moveClipPoint(currItem, np);
 									poly.append(np.toQPointF());
 								}
+								undoManager->setUndoEnabled(true); // Record only core points action
 								QTransform m = currItem->getTransform();
 								poly = m.map(poly);
 								QRectF oldR = poly.boundingRect().adjusted(-5, -5, 10, 10);
@@ -1638,7 +1569,7 @@ void CanvasMode::commonkeyReleaseEvent(QKeyEvent *e)
 			m_arrowKeyDown = false;
 			if ((!m_view->m_ScMW->zoomSpinBox->hasFocus()) && (!m_view->m_ScMW->pageSelector->hasFocus()))
 			{
-				int docSelectionCount=m_doc->m_Selection->count();
+				int docSelectionCount = m_doc->m_Selection->count();
 				if ((docSelectionCount != 0) && (m_doc->appMode == modeEditClip) && (m_doc->nodeEdit.hasNodeSelected()))
 				{
 					PageItem *currItem = m_doc->m_Selection->itemAt(0);
@@ -1647,6 +1578,7 @@ void CanvasMode::commonkeyReleaseEvent(QKeyEvent *e)
 					m_doc->adjustItemSize(currItem, true);
 					if (!m_doc->nodeEdit.isContourLine())
 						currItem->ContourLine.translate(xposOrig - currItem->xPos(),yposOrig - currItem->yPos());
+					m_doc->nodeEdit.finishTransaction(currItem);
 					currItem->update();
 					m_doc->regionsChanged()->update(currItem->getVisualBoundingRect());
 				}

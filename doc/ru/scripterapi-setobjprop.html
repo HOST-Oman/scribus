@@ -8,15 +8,14 @@
 
 <dl>
 
-<dt><a name="-linkTextFrames"><strong>linkTextFrames</strong></a>(...)</dt>
-<dd><code>linkTextFrames("fromname", "toname")</code>
-<p>Link two text frames. The frame named "fromname" is linked to the frame named "toname". The target frame must be an empty text frame and must not link to or be linked from any other frames already.</p>
-<p>May throw <a href="#ScribusException">ScribusException</a> if linking rules are violated.</p></dd>
-
 <dt><a name="-loadImage"><strong>loadImage</strong></a>(...)</dt>
 <dd><code>loadImage("filename" [, "name"])</code>
 <p>Loads the picture "picture" into the image frame "name". If "name" is not given the currently selected item is used.</p>
 <p>May raise <a href="scripterapi.html#WrongFrameTypeError">WrongFrameTypeError</a> if the target frame is not an image frame</p></dd></dt>
+
+<dt><a name="-outlineText"><strong>outlineText</strong></a>(...)</dt>
+<dd><code>outlineText(["name"])</code>
+<p>Convert the text frame "name" to outlines. If "name" is not given the currently selected item is used.</p></dd>
 
 <dt><a name="-scaleImage"><strong>scaleImage</strong></a>(...)</dt>
 <dd><code>scaleImage(x, y [, "name"])</code>
@@ -67,6 +66,11 @@
 <p>Sets the position of the picture in the image frame "name". If "name" is not given the currently selected item is used. The specified offset values are equal to the values shown on properties palette when point unit is used.</p>
 <p>May raise <a href="scripterapi.html#WrongFrameTypeError">WrongFrameTypeError</a> if the target frame is not an image frame</p></dd>
 
+<dt><a name="-setItemName"><strong>setItemName</strong></a>(...)</dt>
+<dd><code>setItemName(newName, [, "name"])</code>
+<p>Sets the name of the object "name" to "newName" and returns the name applied. If "name" is not given the currently selected item is used.</p>
+<p>May raise <a href="scripterapi.html#NotFoundError">NotFoundError</a> if the object doesn't exist.</p></dd>
+
 <dt><a name="-setLineBlendmode"><strong>setLineBlendmode</strong>(...)</a></dt>
 <dd><code>setLineBlendmode(blendmode, ["name"])</code>
 <p>Sets the line blendmode of the object "name" to blendmode is the name of one of the defined colors. If "name" is not given the currently selected item is used.</p></dd>
@@ -116,12 +120,7 @@
 
 <dt><a name="-traceText"><strong>traceText</strong></a>(...)</dt>
 <dd><code>traceText(["name"])</code>
-<p>Convert the text frame "name" to outlines. If "name" is not given the currently selected item is used.</p></dd>
-	
-<dt><a name="-unlinkTextFrames"><strong>unlinkTextFrames</strong></a>(...)</dt>
-<dd><code>unlinkTextFrames("name")</code>
-<p>Remove the specified (named) object from the text frame flow/linkage. If the frame was in the middle of a chain, the previous and next frames will be connected, eg 'a-&gt;b-&gt;c' becomes 'a-&gt;c' when you <a href="#-unlinkTextFrames">unlinkTextFrames</a>(b)'</p>
-<p>May throw <a href="#ScribusException">ScribusException</a> if linking rules are violated.</p></dd>
+<p>Deprecated, use outlineText() instead.</p></dd>
 
 </dl>
 </body>

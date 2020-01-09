@@ -39,7 +39,6 @@ class PropertiesPalette_Shadow;
 class PropertiesPalette_Shape;
 class PropertiesPalette_Table;
 class PropertiesPalette_XYZ;
-class ScComboBox;
 class ScribusDoc;
 class ScribusMainWindow;
 class Selection;
@@ -69,11 +68,9 @@ public:
                          // and if in ScribusView a groupTransaction has been started it must be also
                          // commmited
 
-	PropertiesPalette_Group* groupPal {nullptr};
 	PropertiesPalette_Line* linePal {nullptr};
 	PropertiesPalette_Shadow* shadowPal {nullptr};
 	PropertiesPalette_Shape* shapePal {nullptr};
-	PropertiesPalette_Table* tablePal {nullptr};
 	PropertiesPalette_XYZ* xyzPal {nullptr};
 	ColorPalette *colorPalette {nullptr};
 	TransparencyPalette *transparencyPalette {nullptr};

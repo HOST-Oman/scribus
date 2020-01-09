@@ -419,6 +419,9 @@ HEADERS += scribus/actionmanager.h \
            scribus/ui/colorlistbox.h \
            scribus/ui/colorlistmodel.h \
            scribus/ui/colorsandfills.h \
+           scribus/ui/contentpalette.h \
+           scribus/ui/contentpalette_default.h \
+           scribus/ui/contentpalette_page.h \
            scribus/ui/contextmenu.h \
            scribus/ui/copypagetomasterpagedialog.h \
            scribus/ui/cpalette.h \
@@ -484,7 +487,7 @@ HEADERS += scribus/actionmanager.h \
            scribus/ui/movepage.h \
            scribus/ui/multipleduplicate.h \
            scribus/ui/multiprogressdialog.h \
-           scribus/ui/newfile.h \
+           scribus/ui/newdocdialog.h \
            scribus/ui/newmarginwidget.h \
            scribus/ui/newtemp.h \
            scribus/ui/nftdialog.h \
@@ -579,7 +582,6 @@ HEADERS += scribus/actionmanager.h \
            scribus/ui/resourcemanagerlicense.h \
            scribus/ui/rulermover.h \
            scribus/ui/sccolorslider.h \
-           scribus/ui/sccombobox.h \
            scribus/ui/scdockpalette.h \
            scribus/ui/scescapecatcher.h \
            scribus/ui/scfilewidget.h \
@@ -1030,6 +1032,8 @@ FORMS += scribus/ui/aboutplugins.ui \
          scribus/ui/cmykfwbase.ui \
          scribus/ui/colorpalette.ui \
          scribus/ui/colorsandfillsbase.ui \
+         scribus/ui/contentpalette_defaultbase.ui \
+         scribus/ui/contentpalette_pagebase.ui \
          scribus/ui/copypagetomasterpage.ui \
          scribus/ui/createrange.ui \
          scribus/ui/cxfimportdialogbase.ui \
@@ -1542,6 +1546,9 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/ui/colorlistbox.cpp \
            scribus/ui/colorlistmodel.cpp \
            scribus/ui/colorsandfills.cpp \
+           scribus/ui/contentpalette.cpp \
+           scribus/ui/contentpalette_default.cpp \
+           scribus/ui/contentpalette_page.cpp \
            scribus/ui/contextmenu.cpp \
            scribus/ui/copypagetomasterpagedialog.cpp \
            scribus/ui/cpalette.cpp \
@@ -1606,7 +1613,7 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/ui/movepage.cpp \
            scribus/ui/multipleduplicate.cpp \
            scribus/ui/multiprogressdialog.cpp \
-           scribus/ui/newfile.cpp \
+           scribus/ui/newdocdialog.cpp \
            scribus/ui/newmarginwidget.cpp \
            scribus/ui/newtemp.cpp \
            scribus/ui/nftdialog.cpp \
@@ -1700,7 +1707,6 @@ SOURCES += scribus/actionmanager.cpp \
            scribus/ui/resourcemanagerlicense.cpp \
            scribus/ui/rulermover.cpp \
            scribus/ui/sccolorslider.cpp \
-           scribus/ui/sccombobox.cpp \
            scribus/ui/scdockpalette.cpp \
            scribus/ui/scescapecatcher.cpp \
            scribus/ui/scfilewidget.cpp \
