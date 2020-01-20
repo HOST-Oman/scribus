@@ -2477,7 +2477,7 @@ void PageItem_TextFrame::layout()
 					regionMinY = qMax(0.0, current.lineData.y - current.lineData.ascent);
 					regionMaxY = current.lineData.y + current.lineData.descent;
 					EndX = current.endOfLine(m_availableRegion, style.rightMargin(), regionMinY, regionMaxY);
-					current.finishLine(EndX);
+					current.finishLine(EndX - current.rightIndent);
 					//addLine = true;
 					assert(current.addLine);
 					//current.startOfCol = false;
