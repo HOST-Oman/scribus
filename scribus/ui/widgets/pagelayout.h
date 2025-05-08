@@ -35,6 +35,8 @@ public:
 	void updateSchemeSelector(QList<PageSet> pageSets, int pagePositioning);
 	void setFirstPage(int nr);
 	int firstPage() const { return m_firstPage; };
+    void setBinding(int nr);
+    int binding() const { return m_binding; };
 	void setScheme(int nr);
 	int scheme() const { return m_scheme; };
 
@@ -47,10 +49,12 @@ public slots:
 signals:
 	void schemeChanged(int);
 	void firstPageChanged(int);
+    void bindingChanged(int);
 
 private:
 	int m_scheme {0};
 	int m_firstPage {0};
+    int m_binding {0};
 	bool m_hideLabels {false};
 	int docPagePositioning {0};
 	QList<PageSet> m_pageSets;
@@ -59,17 +63,23 @@ private:
 	FormWidget* labelPages { nullptr };
 	QToolButton* buttonScheme { nullptr };
 	QToolButton* buttonFirstPage { nullptr };
+    QToolButton* buttonBinding { nullptr };
 	QMenu* menuScheme { nullptr };
 	QMenu* menuFirstPage { nullptr };
+    QMenu* menuBinding { nullptr };
 	QHBoxLayout* layoutGroupLayout { nullptr };
+
 
 	void reloadScheme();
 	void reloadFirstPage(int scheme);
+    void reloadBinding(int scheme);
+
 
 protected slots:
 	void languageChange();
 	void changeScheme(QAction* action);
 	void changeFirstPage(QAction* action);
+    void changeBinding(QAction* action);
 
 };
 

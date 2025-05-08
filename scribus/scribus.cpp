@@ -2008,7 +2008,8 @@ void ScribusMainWindow::startUpDialog()
 		if (dia->tabSelected() == NewDocDialog::NewDocumentTab)
 		{
 			int facingPages = dia->choosenLayout();
-			int firstPage = dia->layoutFirstPage();
+            int firstPage = dia->layoutFirstPage();
+            //int bind = dia->bind->currentIndex();
 			docSet = dia->startDocSetup->isChecked();
 			double topMargin = dia->marginGroup->margins().top();
 			double bottomMargin = dia->marginGroup->margins().bottom();
@@ -2026,6 +2027,7 @@ void ScribusMainWindow::startUpDialog()
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
 			HaveNewDoc();
+           // doc->setBinding(bind);
 			doc->reformPages(true);
 			// Don's disturb user with "save?" dialog just after new doc
 			// doc changing should be rewritten maybe... maybe later...
@@ -2085,7 +2087,8 @@ bool ScribusMainWindow::slotFileNew()
 
 	int facingPages = dia->choosenLayout();
 	int firstPage = dia->layoutFirstPage();
-	bool docSet = dia->startDocSetup->isChecked();
+    //int bind = dia->bind->currentIndex();
+    bool docSet = dia->startDocSetup->isChecked();
 	double topMargin = dia->marginGroup->margins().top();
 	double bottomMargin = dia->marginGroup->margins().bottom();
 	double leftMargin = dia->marginGroup->margins().left();
@@ -2111,8 +2114,8 @@ bool ScribusMainWindow::slotFileNew()
 		// doc changing should be rewritten maybe... maybe later...
 		doc->setModified(false);
 		updateActiveWindowCaption(doc->documentFileName());
-	}
-
+    }
+    // doc->setBinding(bind);
 	if (docSet)
 		slotDocSetup();
 	return retVal;
@@ -2361,6 +2364,7 @@ void ScribusMainWindow::extrasMenuAboutToShow()
 			}
 			allItems.clear();
 		}
+        //doc->setBinding(bind);
 	}
 	scrActions["extrasManageImages"]->setEnabled(enablePicManager);
 }

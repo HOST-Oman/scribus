@@ -238,9 +238,11 @@ const QString& CommonStrings::translatePageSetString(const QString &untrString)
 	return untrString;
 }
 
-const QString& CommonStrings::translatePageSetLocString(const QString &untrString)
+const QString& CommonStrings::translatePageSetLocString(const QString &untrString, int binding)
 {
-	if (untrString == pageLocLeft)
+    if (binding==0)
+    {
+    if (untrString == pageLocLeft)
 		return trPageLocLeft;
 	if (untrString == pageLocMiddle)
 		return trPageLocMiddle;
@@ -250,6 +252,20 @@ const QString& CommonStrings::translatePageSetLocString(const QString &untrStrin
 		return trPageLocMiddleRight;
 	if (untrString == pageLocRight)
 		return trPageLocRight;
+    }
+    else
+    {
+        if (untrString==pageLocLeft)
+            return trPageLocRight;
+        if (untrString==pageLocMiddle)
+            return trPageLocMiddle;
+        if (untrString==pageLocMiddleLeft)
+            return trPageLocMiddleRight;
+        if (untrString==pageLocMiddleRight)
+            return trPageLocMiddleLeft;
+        if (untrString==pageLocRight)
+            return trPageLocLeft;
+    }
 	return untrString;
 }
 
