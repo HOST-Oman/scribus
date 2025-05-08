@@ -75,6 +75,7 @@ struct PageSet
 {
 	QString Name;
 	int FirstPage;
+    int Binding;
 	int Rows;
 	int Columns;
 	QStringList pageNames;

@@ -24,6 +24,7 @@ PageLayouts::PageLayouts(QWidget* parent)  : QWidget( parent )
 	struct PageSet pageS;
 	pageS.Name = CommonStrings::trPageSet2;
 	pageS.FirstPage = 0;
+    pageS.Binding = 0;
 	pageS.Rows = 1;
 	pageS.Columns = 1;
 	pageS.pageNames.clear();
@@ -55,6 +56,12 @@ PageLayouts::PageLayouts(QWidget* parent)  : QWidget( parent )
 	buttonFirstPage->setPopupMode(QToolButton::InstantPopup);
 	buttonFirstPage->setMenu(menuFirstPage);
 
+    menuBinding = new QMenu();
+
+    buttonBinding = new QToolButton(this);
+    buttonBinding->setPopupMode(QToolButton::InstantPopup);
+    buttonBinding->setMenu(menuBinding);
+
 	labelPages = new FormWidget();
 	labelPages->setFont(layFont);
 	labelPages->addWidget( buttonFirstPage );
@@ -66,6 +73,7 @@ PageLayouts::PageLayouts(QWidget* parent)  : QWidget( parent )
 	connect(ScQApp, SIGNAL(labelVisibilityChanged(bool)), this, SLOT(toggleLabelVisibility(bool)));
 	connect(menuScheme, &QMenu::triggered, this, &PageLayouts::changeScheme);
 	connect(menuFirstPage, &QMenu::triggered, this, &PageLayouts::changeFirstPage);
+    connect(menuBinding, &QMenu::triggered, this, &PageLayouts::changeBinding);
 }
 
 void PageLayouts::updateSchemeSelector(QList<PageSet> pageSets, int pagePositioning)
@@ -86,6 +94,15 @@ void PageLayouts::setFirstPage(int nr)
 	buttonFirstPage->setIcon(menuFirstPage->actions().at(m_firstPage)->icon());
 }
 
+void PageLayouts::setBinding(int nr)
+{
+    if (menuBinding->actions().isEmpty())
+        return;
+
+    m_binding = qBound(0, nr, static_cast<int>(menuBinding->actions().count()));
+    buttonBinding->setIcon(menuBinding->actions().at(m_binding)->icon());
+}
+
 void PageLayouts::setScheme(int nr)
 {
 	if (menuScheme->actions().isEmpty())
@@ -95,6 +112,7 @@ void PageLayouts::setScheme(int nr)
 	buttonScheme->setIcon(menuScheme->actions().at(m_scheme)->icon());
 
 	reloadFirstPage(m_scheme);
+    reloadBinding(m_scheme);
 
 }
 
@@ -160,6 +178,40 @@ void PageLayouts::reloadFirstPage(int scheme)
 	connect(menuFirstPage, &QMenu::triggered, this, &PageLayouts::changeFirstPage);
 }
 
+void PageLayouts::reloadBinding(int scheme)
+{
+    disconnect(menuBinding, &QMenu::triggered, this, &PageLayouts::changeBinding);
+
+    menuBinding->clear();
+
+    // We have to add the other cases if want to support them again
+    // CommonStrings::pageLocLeft
+    // CommonStrings::pageLocMiddle
+    // CommonStrings::pageLocMiddleLeft
+    // CommonStrings::pageLocMiddleRight
+    // CommonStrings::pageLocRight
+
+    // for (int pg = 0; pg < m_pageSets[scheme].pageNames.count(); ++pg)
+    // {
+    //     QString psname = m_pageSets[scheme].pageNames[pg];
+
+    //     if (psname == CommonStrings::pageLocLeft)
+    //         menuFirstPage->addAction(IconManager::instance().loadIcon("page-first-left"), psname)->setData(QVariant(pg));
+    //     else if (psname == CommonStrings::pageLocRight)
+    //         menuFirstPage->addAction(IconManager::instance().loadIcon("page-first-right"), psname)->setData(QVariant(pg));
+    //     else
+    //         menuFirstPage->addAction(IconManager::instance().loadIcon("page-first-left"), psname)->setData(QVariant(pg));
+    // }
+
+    // QString psname = m_pageSets[scheme].pageNames[pg];
+
+    // if (scheme == 1)
+    //     menuBinding->addAction(IconManager::instance().loadIcon("page-first-right"), psname)->setData(QVariant(pg));
+    // else
+    //     menuBinding->addAction(IconManager::instance().loadIcon("page-first-left"), psname)->setData(QVariant(pg));
+
+    connect(menuBinding, &QMenu::triggered, this, &PageLayouts::changeBinding);
+}
 void PageLayouts::toggleLabelVisibility(bool visibility)
 {
 	// hide labels always if flag is false
@@ -181,6 +233,8 @@ void PageLayouts::languageChange()
 
 	buttonScheme->setToolTip( tr( "Number of pages to show side-by-side on the canvas. Often used for allowing items to be placed across page spreads." ) );
 	buttonFirstPage->setToolTip( tr( "Location on the canvas where the first page of the document is placed" ) );
+    buttonBinding->setToolTip( tr( "Set Binding direction" ) );
+
 }
 
 void PageLayouts::changeScheme(QAction *action)
@@ -197,4 +251,11 @@ void PageLayouts::changeFirstPage(QAction *action)
 	buttonFirstPage->setIcon(action->icon());
 	m_firstPage = action->data().toInt();
 	emit firstPageChanged(m_firstPage);
+}
+
+void PageLayouts::changeBinding(QAction *action)
+{
+    buttonBinding->setIcon(action->icon());
+    m_binding = action->data().toInt();
+    emit bindingChanged(m_binding);
 }

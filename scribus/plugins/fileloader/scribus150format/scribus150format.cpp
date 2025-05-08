@@ -2419,6 +2419,7 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttri
 {
 	m_Doc->setPageSize(attrs.valueAsString("PAGESIZE"));
 	m_Doc->setPageOrientation(attrs.valueAsInt("ORIENTATION", 0));
+	m_Doc->setBinding(attrs.valueAsInt("PAGEBINDING", 0));
 	m_Doc->FirstPnum  = attrs.valueAsInt("FIRSTNUM", 1);
 	m_Doc->setPagePositioning(attrs.valueAsInt("BOOK", 0));
 
@@ -6597,6 +6598,7 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 				ss->set("LEFT_OLD", newPage->LeftPg);
 				ss->set("NAME_OLD", newPage->pageName());
 				ss->set("ORIENTATION_OLD", newPage->orientation());
+                ss->set("BINDING_OLD", newPage);
 				ss->set("SIZE_OLD", newPage->size());
 				ss->set("WIDTH_OLD", newPage->width());
 				ss->set("HEIGHT_OLD", newPage->height());
