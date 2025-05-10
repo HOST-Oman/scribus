@@ -6070,8 +6070,8 @@ void ScribusDoc::reformPages(bool moveObjects)
     double lastYPos = Pages->at(0)->initialHeight();
     currentXPos += (Pages->at(0)->initialWidth() + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
         // currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
-    bool RTLbinding = true;
-    if (RTLbinding)
+	int rtlBinding = pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Binding;
+    if (rtlBinding == 1)
         {
             currentXPos=m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
             currentYPos=m_docPrefsData.displayPrefs.scratch.top();
@@ -6091,6 +6091,8 @@ void ScribusDoc::reformPages(bool moveObjects)
 		oldPg.newPg = i;
 		pageTable.insert(page->pageNr(), oldPg);
 		page->setPageNr(i);
+
+		//TO Do support rtlBinding in master pages
 		if (masterPageMode())
 		{
 			page->setXOffset(m_docPrefsData.displayPrefs.scratch.left());
@@ -6119,7 +6121,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 			page->setYOffset(currentYPos);
 			if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
 			{
-                if (RTLbinding)
+                if (rtlBinding == 1)
 				{
 					currentXPos -= page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
 				}
@@ -6130,7 +6132,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 				lastYPos = qMax(lastYPos, page->height());
 				if (counter == 0)
 				{
-                    if (RTLbinding)
+                    if (rtlBinding == 1)
 					{
 						page->Margins.setLeft(page->initialMargins.left());
 						page->Margins.setRight(page->initialMargins.right());
@@ -6143,7 +6145,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 				}
 				else
 				{
-                    if (RTLbinding)
+                    if (rtlBinding == 1)
 					{
 						page->Margins.setLeft(page->initialMargins.right());
 						page->Margins.setRight(page->initialMargins.right());
@@ -6157,7 +6159,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 			}
 			else
 			{
-                if (RTLbinding)
+                if (rtlBinding == 1)
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
 				else
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left();
@@ -6166,7 +6168,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 				else
 					currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
 				lastYPos = 0;
-                if (RTLbinding)
+                if (rtlBinding == 1)
 				{
 					page->Margins.setRight(page->initialMargins.left());
 					page->Margins.setLeft(page->initialMargins.right());
@@ -6191,7 +6193,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 		maxXPos = qMax(maxXPos, page->xOffset()+page->width()+m_docPrefsData.displayPrefs.scratch.right());
 		maxYPos = qMax(maxYPos, page->yOffset()+page->height()+m_docPrefsData.displayPrefs.scratch.bottom());
 	}
-    if (RTLbinding)
+    if (rtlBinding == 1)
         setLoading(false);
 	if (!isLoading())
 	{
