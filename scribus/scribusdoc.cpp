@@ -6069,16 +6069,14 @@ void ScribusDoc::reformPages(bool moveObjects)
     double currentYPos = m_docPrefsData.displayPrefs.scratch.top();
     double lastYPos = Pages->at(0)->initialHeight();
     currentXPos += (Pages->at(0)->initialWidth() + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
-        // currentXPos += (m_docPrefsData.docSetupPrefs.pageWidth + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
 	int rtlBinding = pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Binding;
     if (rtlBinding == 1)
-        {
-            currentXPos=m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
-            currentYPos=m_docPrefsData.displayPrefs.scratch.top();
-            lastYPos=Pages->at(0)->initialHeight();
-            //	currentXPos += (pageWidth+pageSets[currentPageLayout].GapHorizontal) * counter;
-            currentXPos -= (m_docPrefsData.docSetupPrefs.pageWidth+m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
-        }
+    {
+	    counter = !counter;
+	    currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
+	    currentXPos -= (m_docPrefsData.docSetupPrefs.pageWidth + m_docPrefsData.displayPrefs.pageGapHorizontal) *
+		    counter;
+    }
 
 
 	ScPage* page;
@@ -6163,6 +6161,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
 				else
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left();
+
 				if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
 					currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
 				else
