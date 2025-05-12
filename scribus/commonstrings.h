@@ -64,13 +64,25 @@ public:
 	 * @param untrString "untranslated" string
 	 * @return translated string
 	 */
-	static const QString& translatePageSetLocString(const QString &untrString, int biding = 0);
+    static const QString& translatePageSetLocString(const QString &untrString);
+    /**
+     * \brief Return the translated Document Binding direction string if given the "untranslated" one
+     * @param untrString "untranslated" string
+     * @return translated string
+     */
+    static const QString& translateDocBindingLocString(const QString &untrString);
 	/**
 	 * \brief Return the untranslated Page Set string if given the translated one
 	 * @param trString translated string
 	 * @return "untranslated" string
 	 */
 	static const QString& untranslatePageSetString(const QString &trString);
+    /**
+     * \brief Return the untranslated Document Binding direction string if given the translated one
+     * @param trString translated string
+     * @return "untranslated" string
+     */
+    static const QString& untranslateDocBindingString(const QString &trString);
 	/**
 	 * \brief Return the untranslated Page Set Location string if given the translated one
 	 * @param trString translated string
@@ -164,6 +176,12 @@ public:
 	static QString trPageLocMiddleLeft;
 	static QString trPageLocMiddleRight;
 	static QString trPageLocRight;
+
+    // Document Binding Direction
+    static QString docLoc_RTL_Binding;
+    static QString trDocLoc_RTL_Binding;
+    static QString docLoc_LTR_Binding;
+    static QString trDocLoc_LTR_Binding;
 
 	//Master Page Default Names
 	static QString masterPageNormal;

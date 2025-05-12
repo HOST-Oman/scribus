@@ -99,6 +99,10 @@ QString CommonStrings::trPageLocMiddle;
 QString CommonStrings::trPageLocMiddleLeft;
 QString CommonStrings::trPageLocMiddleRight;
 QString CommonStrings::trPageLocRight;
+QString CommonStrings::docLoc_RTL_Binding;
+QString CommonStrings::docLoc_LTR_Binding;
+QString CommonStrings::trDocLoc_RTL_Binding;
+QString CommonStrings::trDocLoc_LTR_Binding;
 
 QString CommonStrings:: masterPageNormal;
 QString CommonStrings:: trMasterPageNormal;
@@ -238,10 +242,8 @@ const QString& CommonStrings::translatePageSetString(const QString &untrString)
 	return untrString;
 }
 
-const QString& CommonStrings::translatePageSetLocString(const QString &untrString, int binding)
+const QString& CommonStrings::translatePageSetLocString(const QString &untrString)
 {
-    if (binding==0)
-    {
     if (untrString == pageLocLeft)
 		return trPageLocLeft;
 	if (untrString == pageLocMiddle)
@@ -252,21 +254,25 @@ const QString& CommonStrings::translatePageSetLocString(const QString &untrStrin
 		return trPageLocMiddleRight;
 	if (untrString == pageLocRight)
 		return trPageLocRight;
-    }
-    else
-    {
-        if (untrString==pageLocLeft)
-            return trPageLocRight;
-        if (untrString==pageLocMiddle)
-            return trPageLocMiddle;
-        if (untrString==pageLocMiddleLeft)
-            return trPageLocMiddleRight;
-        if (untrString==pageLocMiddleRight)
-            return trPageLocMiddleLeft;
-        if (untrString==pageLocRight)
-            return trPageLocLeft;
-    }
-	return untrString;
+    return untrString;
+}
+
+const QString& CommonStrings::translateDocBindingLocString(const QString &untrString)
+{
+    if (untrString == docLoc_RTL_Binding)
+        return trDocLoc_RTL_Binding;
+    if (untrString == docLoc_LTR_Binding)
+        return trDocLoc_LTR_Binding;
+    return untrString;
+}
+
+const QString& CommonStrings::untranslateDocBindingString(const QString &trString)
+{
+    if (trString == trDocLoc_RTL_Binding)
+        return docLoc_RTL_Binding;
+    if (trString == trDocLoc_LTR_Binding)
+        return docLoc_LTR_Binding;
+    return trString;
 }
 
 const QString& CommonStrings::untranslatePageSetString(const QString &trString)
@@ -388,6 +394,11 @@ void CommonStrings::languageChange()
 	CommonStrings::trPageLocMiddleLeft  = tr( "Middle Left", "Middle Left page location" );
 	CommonStrings::trPageLocMiddleRight = tr( "Middle Right", "Middle Right page location" );
 	CommonStrings::trPageLocRight       = tr( "Right Page", "Right page location" );
+
+    CommonStrings::docLoc_RTL_Binding   = "Right to Left";
+    CommonStrings::docLoc_LTR_Binding   = "Left to Right";
+    CommonStrings::trDocLoc_RTL_Binding = tr("Right to Left", "Right to Left Document binding direction");
+    CommonStrings::trDocLoc_LTR_Binding = tr("Left to Right", "Left to Right Document Binding direction");
 
 	CommonStrings::masterPageNormal         = "Normal";
 	CommonStrings::trMasterPageNormal       = tr( "Normal", "Default single master page" );
