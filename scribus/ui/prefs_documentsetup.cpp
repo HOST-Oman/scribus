@@ -272,8 +272,8 @@ void Prefs_DocumentSetup::setupPageSets()
 			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(pageName));
         }
         //ToDo find the right place to add item or
-        layoutBindingIsComboBox->addItem("LTR");
-        layoutBindingIsComboBox->addItem("RTL");
+		layoutBindingIsComboBox->addItem(CommonStrings::translateDocBindingLocString(CommonStrings::docLoc_LTR_Binding));
+		layoutBindingIsComboBox->addItem(CommonStrings::translateDocBindingLocString(CommonStrings::docLoc_RTL_Binding));
 
 		int firstPageIndex = i < 0 ? pageSet.FirstPage : i;
         int bindingIndex = i < 0 ? pageSet.Binding : i;
