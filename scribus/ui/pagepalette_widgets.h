@@ -148,6 +148,7 @@ public:
 	int pageHeight();
 
 	void setSelectedPage(int pageID);
+	void set_rtl_binding(int rtl_binding);
 	int selectedPage() { return m_selectedPage; };
 
 	void deleteSelectedPage();
@@ -190,6 +191,7 @@ private:
 	int m_cellsInGroup {1}; // 1 for single page
 	int m_pageOffset {0};
 	QMenu *m_contextMenu {nullptr};
+	bool m_rtlBinding = false;
 
 	int columns();
 	int rows();
