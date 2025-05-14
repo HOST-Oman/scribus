@@ -385,6 +385,7 @@ void PagePalette_Pages::rebuildPages()
 	pageViewWidget->pageGrid()->setDocumentPageSize(QSize(currView->m_doc->pageWidth(), currView->m_doc->pageHeight()));
 	pageViewWidget->pageGrid()->setPageInGroup(cols);
 	pageViewWidget->pageGrid()->setPageOffset(counter);
+	pageViewWidget->pageGrid()->set_rtl_binding(currView->m_doc->pageSets()[currView->m_doc->pagePositioning()].Binding);
 
 	m_pagePreviewUpdatePending = false;
 
