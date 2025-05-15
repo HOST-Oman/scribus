@@ -856,18 +856,15 @@ void PageGrid::paintEvent(QPaintEvent *event)
 				PageCell * cell = getPageItem(id);
 				if (m_rtlBinding)
 				{
+					x = columnsWidth - x;
 					if (firstPage)
 					{
 						x = m_groupSpace;
 						firstPage = false;
 						lastPage = false;
 					}
-					else if (lastPage)
-					{
-						x = columnsWidth - x;
-					}
-					else
-						x = columnsWidth - x;
+					if (lastPage)
+						groupStart = x;
 				}
 				if (id == m_selectedPage)
 					selectedPageRect = QRect(x, y, cell->pageWidthByHeight(pageHeight()), pageHeight() );
