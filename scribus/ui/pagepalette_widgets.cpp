@@ -449,7 +449,10 @@ int PageGrid::columnAt(QPoint pos)
 
 	int m_columns = columns();
 
-	return (m_col < m_columns) ? m_col : m_columns -1;
+	int correctedCol = (m_col < m_columns) ? m_col : m_columns -1;
+	if (m_rtlBinding)
+		return  !correctedCol;
+	return correctedCol;
 }
 
 int PageGrid::rowAt(QPoint pos)
