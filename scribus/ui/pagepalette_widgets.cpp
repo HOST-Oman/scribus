@@ -812,7 +812,7 @@ void PageGrid::paintEvent(QPaintEvent *event)
 	int x = m_groupSpace;
 	int y = m_rowSpace;
 	int offset = 0;
-	int columnsWidth = qCeil(dummyPageSize().width() * m_cellsInGroup + offset);
+	int columnsWidth = qCeil(dummyPageSize().width() * m_cellsInGroup);
 	bool firstPage = false;
 	bool lastPage = false;
 	int groupStart = 0;
@@ -856,7 +856,8 @@ void PageGrid::paintEvent(QPaintEvent *event)
 				PageCell * cell = getPageItem(id);
 				if (m_rtlBinding)
 				{
-					x = columnsWidth - x;
+					offset = ((c + 1) % m_cellsInGroup) == 0 ? 0 : m_cellGap;
+					x = columnsWidth - offset - m_cellGap - x;
 					if (firstPage)
 					{
 						x = m_groupSpace;
