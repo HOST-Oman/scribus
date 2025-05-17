@@ -215,7 +215,7 @@ public:
 
 	int pageOrientation() const { return m_docPrefsData.docSetupPrefs.pageOrientation; }
 	void setPageOrientation(int o) { m_docPrefsData.docSetupPrefs.pageOrientation = o; }
-    int pageBiding() const {return m_docPrefsData.docSetupPrefs.binding; }
+    int pageBinding() const {return m_docPrefsData.docSetupPrefs.binding; }
     void setBinding(int x) {m_docPrefsData.docSetupPrefs.binding = x; }
 	int pagePositioning() const { return m_docPrefsData.docSetupPrefs.pagePositioning; }
 	void setPagePositioning(int p) { m_docPrefsData.docSetupPrefs.pagePositioning = p; }
