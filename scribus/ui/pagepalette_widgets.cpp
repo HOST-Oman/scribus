@@ -861,7 +861,7 @@ void PageGrid::paintEvent(QPaintEvent *event)
 				PageCell * cell = getPageItem(id);
 				if (m_rtlBinding)
 				{
-					x = qFloor(rowWidth(r) - dummyPageSize().width() - 1 - m_cellGap - x);;
+					x = (rowWidth(r) - dummyPageSize().width() - 1 - m_cellGap - x);;
 					if (firstPage)
 					{
 						x = m_groupSpace;
