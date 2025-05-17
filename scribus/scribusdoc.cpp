@@ -6090,7 +6090,6 @@ void ScribusDoc::reformPages(bool moveObjects)
 		pageTable.insert(page->pageNr(), oldPg);
 		page->setPageNr(i);
 
-		//TO Do support rtlBinding in master pages
 		if (masterPageMode())
 		{
 			page->setXOffset(m_docPrefsData.displayPrefs.scratch.left());
