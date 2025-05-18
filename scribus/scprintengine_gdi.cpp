@@ -81,10 +81,6 @@ void ScPrintEngine_GDI::resetData(void)
 
 bool ScPrintEngine_GDI::print(PrintOptions& options)
 {
-	bool toFile;
-	bool success;
-	HDC printerDC;
-	QString diaSelection, docDir, prefsDocDir;
 	QString printerName = options.printer;
 	QByteArray devMode  = options.devMode;
 	QString fileName;
@@ -93,49 +89,47 @@ bool ScPrintEngine_GDI::print(PrintOptions& options)
 		return false;
 	resetData();
 
-	toFile = printerUseFilePort(options.printer);
+	bool toFile = printerUseFilePort(options.printer);
 	if (toFile)
 	{
 		QString docName = m_doc.documentFileName();
-		diaSelection = docName.right(docName.length() - docName.lastIndexOf("/") - 1);
+		QString diaSelection = docName.right(docName.length() - docName.lastIndexOf("/") - 1);
 		diaSelection = diaSelection.left(diaSelection.indexOf("."));
 		diaSelection += ".prn";
+
+		QString docDir;
 		PrefsContext* dirs = PrefsManager::instance().prefsFile->getContext("dirs");
 		QString prefsDocDir = PrefsManager::instance().documentDir();
 		if (!prefsDocDir.isEmpty())
 			docDir = dirs->get("winprn", prefsDocDir);
 		else
 			docDir = ".";
+
 		CustomFDialog dia(m_doc.scMW()->view, docDir, QObject::tr("Save As"), "Spool Files (*.prn *.ps);;All Files (*)", fdNone);
 		dia.setSelection(diaSelection);
-		if (dia.exec() == QDialog::Accepted)
-		{
-			QString selectedFile = dia.selectedFile();
-			if (overwrite(m_doc.scMW()->view, selectedFile))
-			{
-				dirs->set("winprn", selectedFile.left(selectedFile.lastIndexOf("/")));
-				fileName = QDir::toNativeSeparators(selectedFile);
-			}
-		}
-		else
+		if (dia.exec() != QDialog::Accepted)
 			return true;
+		QString selectedFile = dia.selectedFile();
+		if (overwrite(m_doc.scMW()->view, selectedFile))
+		{
+			dirs->set("winprn", selectedFile.left(selectedFile.lastIndexOf("/")));
+			fileName = QDir::toNativeSeparators(selectedFile);
+		}
 	}
 
 	// Set user options in the DEVmode structure
 	setDeviceParams(options, (DEVMODEW*) devMode.data());
 		
 	// Create the device context
-	printerDC = CreateDCW(nullptr, (LPCWSTR) printerName.utf16(), nullptr, (DEVMODEW*) devMode.data());
-	if (printerDC)
-	{
-		success = printPages(options, printerDC, (DEVMODEW*) devMode.data(), fileName);
-		DeleteDC(printerDC);
-	}
-	else
+	HDC printerDC = CreateDCW(nullptr, (LPCWSTR) printerName.utf16(), nullptr, (DEVMODEW*) devMode.data());
+	if (!printerDC)
 	{
 		qWarning("doPrintPages : the device context could not be created");
-		success = false;
+		return false;
 	}
+
+	bool success = printPages(options, printerDC, (DEVMODEW*) devMode.data(), fileName);
+	DeleteDC(printerDC);
 
 	return success;
 }
@@ -143,10 +137,6 @@ bool ScPrintEngine_GDI::print(PrintOptions& options)
 bool ScPrintEngine_GDI::gdiPrintPreview(ScPage* page, QImage* image, const PrintOptions& options, double scale)
 {
 	bool success = true;
-	HCOLORSPACE hColorSpace  = nullptr;
-	int imagew, imageh;
-	double scalex = 1, scaley = 1;
-	bool rotate = false;
 
 	if (!page || !image)
 		return false;
@@ -159,15 +149,15 @@ bool ScPrintEngine_GDI::gdiPrintPreview(ScPage* page, QImage* image, const Print
 	int cliph = qRound(page->height());
 
 	// Setup image
-	imagew = clipw * scale;
-	imageh = cliph * scale;
+	int imagew = clipw * scale;
+	int imageh = cliph * scale;
 	*image = QImage(imagew, imageh, QImage::Format_ARGB32_Premultiplied);
 	if (image->width() <= 0 || image->height() <= 0)
 		return false;
 
 	// Calculate scaling factors and offsets
-	scalex = options.mirrorH ? -1.0 : 1.0;
-	scaley = options.mirrorV ? -1.0 : 1.0; 
+	double scalex = options.mirrorH ? -1.0 : 1.0;
+	double scaley = options.mirrorV ? -1.0 : 1.0;
 	double dx = - clipx * scalex;
 	double dy = - clipy * scaley;
 	if (options.mirrorH) dx += clipw;
@@ -268,7 +258,7 @@ bool ScPrintEngine_GDI::printPages(const PrintOptions& options, HDC printerDC, D
 			progress->setOverallProgress(index);
 		docPage = m_doc.Pages->at(options.pageNumbers[index] - 1);
 		success = (this->*printPageFunc)(docPage, options, printerDC, context);
-		ScQApp->processEvents();
+		ScribusQApp::processEvents();
 		if (!success || m_abort)
 			break;
 		if (usingGui)
@@ -294,7 +284,6 @@ bool ScPrintEngine_GDI::printPage_GDI(ScPage* page, const PrintOptions& options,
 	QString inputProfile;
 	QString printerProfile;
 	HCOLORSPACE hColorSpace = nullptr;
-	bool rotate = false;
 
 	StartPage(printerDC);
 
