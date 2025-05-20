@@ -24,8 +24,6 @@ for which a new license (GPL+exception) is in place.
 #include "iconmanager.h"
 #include "pagepalette_widgets.h"
 
-#include <podofo/base/PdfDefines.h>
-
 #include "prefsfile.h"
 #include "prefsmanager.h"
 #include "scribusapp.h"
