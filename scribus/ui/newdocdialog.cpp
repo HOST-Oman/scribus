@@ -69,6 +69,8 @@ NewDocDialog::NewDocDialog(QWidget* parent, const QStringList& recentDocs, bool 
 	buttonSinglePage->setIcon(iconManager.loadIcon("page-simple"));
 	buttonDoublePageLeft->setIcon(iconManager.loadIcon("page-first-left"));
 	buttonDoublePageRight->setIcon(iconManager.loadIcon("page-first-right"));
+    buttonLTRBinding->setIcon(iconManager.loadIcon("text-direction-ltr"));
+    buttonRTLBinding->setIcon(iconManager.loadIcon("text-direction-rtl"));
 	labelColumns->setPixmap(iconManager.loadPixmap("paragraph-columns"));
 
 	createNewDocPage();
@@ -98,6 +100,8 @@ NewDocDialog::NewDocDialog(QWidget* parent, const QStringList& recentDocs, bool 
 	buttonSinglePage->setToolTip(tr("Single page document"));
 	buttonDoublePageLeft->setToolTip(tr("Double page document, with the first page on the left side"));
 	buttonDoublePageRight->setToolTip(tr("Double page document, with the first page on the right side"));
+    buttonLTRBinding->setToolTip(tr("LTR binding direction"));
+    buttonRTLBinding->setToolTip(tr("RTL Binding direction"));
 	widthSpinBox->setToolTip( tr( "Width of the document's pages, editable if you have chosen a custom page size" ) );
 	heightSpinBox->setToolTip( tr( "Height of the document's pages, editable if you have chosen a custom page size" ) );
 	pageCountSpinBox->setToolTip( tr( "Initial number of pages of the document" ) );
@@ -152,6 +156,8 @@ void NewDocDialog::createNewDocPage()
 	pageLayoutButtons->addButton(buttonSinglePage, 0);
 	pageLayoutButtons->addButton(buttonDoublePageLeft, 1);
 	pageLayoutButtons->addButton(buttonDoublePageRight, 2);
+    pageLayoutButtons->addButton(buttonLTRBinding, 3);
+    pageLayoutButtons->addButton(buttonRTLBinding, 4);
 	if (pagePositioning == singlePage)
 	{
 		pageLayoutButtons->button(0)->setChecked(true);
@@ -159,6 +165,7 @@ void NewDocDialog::createNewDocPage()
 	else if (prefsManager.appPrefs.pageSets[pagePositioning].FirstPage == 0)
 	{
 		pageLayoutButtons->button(1)->setChecked(true);
+        pageLayoutButtons->button(3)->setChecked(true);
 	}
 	else
 	{
