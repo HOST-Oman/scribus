@@ -408,7 +408,7 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 			if (!mlName.isEmpty() && !m_Doc->docLineStyles.contains(mlName))
 				m_Doc->docLineStyles.insert(mlName, ml);
 		}
-		else if ((tagName == QLatin1String("ITEM")) || (tagName == QLatin1String("PAGEOBJECT")) || (tagName == QLatin1String("FRAMEOBJECT")))
+		else if ((tagName == QLatin1String("ITEM") || tagName == QLatin1String("Item")) || (tagName == QLatin1String("PAGEOBJECT")) || (tagName == QLatin1String("FRAMEOBJECT")) || (tagName == QLatin1String("PageObject")) || (tagName == QLatin1String("FrameObject")))
 		{
 			ItemInfo itemInfo;
 			success = readObject(m_Doc, reader, readObjectParams, itemInfo);
@@ -427,14 +427,14 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 			else
 			{
 			// first of linked chain?
-				if (tagName == QLatin1String("ITEM"))
+				if (tagName == QLatin1String("ITEM") || tagName == QLatin1String("Item"))
 				{
 					if (itemInfo.nextItem != -1)
 						itemNext[itemInfo.ownNr] = itemInfo.nextItem;
 				}
 				if (itemInfo.item->isTableItem)
 				{
-					if (tagName == QLatin1String("ITEM"))
+					if (tagName == QLatin1String("ITEM") || tagName == QLatin1String("Item"))
 					{
 						TableItems.append(itemInfo.item);
 						TableID.insert(itemInfo.ownLink, itemInfo.item);
@@ -442,7 +442,7 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 				}
 				if (itemInfo.isWeldFlag)
 				{
-					if (tagName == QLatin1String("ITEM"))
+					if (tagName == QLatin1String("ITEM") || tagName == QLatin1String("Item"))
 					{
 						WeldItems.append(itemInfo.item);
 						WeldID.insert(itemInfo.ownWeld, itemInfo.item);
@@ -450,7 +450,7 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 				}
 			}
 
-			if ((tagName == QLatin1String("PAGEOBJECT")) && (groupStackPI.count() > 0))
+			if ((tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject")) && (groupStackPI.count() > 0))
 			{
 				groupStackPI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackPI2.top())
@@ -461,7 +461,7 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("FRAMEOBJECT")) && (groupStackFI.count() > 0))
+			else if ((tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject")) && (groupStackFI.count() > 0))
 			{
 				groupStackFI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackFI2.top())
@@ -472,7 +472,7 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("MASTEROBJECT")) && (groupStackMI.count() > 0))
+			else if ((tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject")) && (groupStackMI.count() > 0))
 			{
 				groupStackMI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackMI2.top())
@@ -488,12 +488,12 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 			{
 				QList<PageItem*> groupItems;
 				groupItems.append(itemInfo.item);
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				{
 					groupStackPI.push(groupItems);
 					groupStackPI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
 				}
-				else if (tagName == QLatin1String("FRAMEOBJECT"))
+				else if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 				{
 					groupStackFI.push(groupItems);
 					groupStackFI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
@@ -1091,7 +1091,7 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 
 		if (firstElement)
 		{
-			if (tagName != QLatin1String("SCRIBUSCOLORS"))
+			if (tagName != QLatin1String("SCRIBUSCOLORS") && tagName != QLatin1String("ScribusColors"))
 			{
 				success = false;
 				break;
@@ -1099,7 +1099,10 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 			firstElement = false;
 		}
 		// 10/25/2004 pv - None is "reserved" color. cannot be defined in any file...
+		//Remove uppercase in 1.8
 		if (tagName == QLatin1String("COLOR") && attrs.valueAsString("NAME") != CommonStrings::None)
+			readColor(m_Doc->PageColors, attrs);
+		if (tagName == QLatin1String("Color") && attrs.valueAsString("Name") != CommonStrings::None)
 			readColor(m_Doc->PageColors, attrs);
 		if (tagName == QLatin1String("Gradient"))
 		{
@@ -1130,7 +1133,8 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 				m_Doc->docLineStyles.insert(mlName, ml);
 			}
 		}
-		if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("FRAMEOBJECT"))
+		if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("FRAMEOBJECT") ||
+				tagName == QLatin1String("PageObject") || tagName == QLatin1String("MasterObject") || tagName == QLatin1String("FrameObject"))
 		{
 			ItemInfo itemInfo;
 			success = readObject(m_Doc, reader, readObjectParams, itemInfo);
@@ -1148,24 +1152,24 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 			else
 			{
 				// first of linked chain?
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				{
 					if (itemInfo.nextItem != -1)
 						itemNext[itemInfo.ownNr] = itemInfo.nextItem;
 				}
-				else if (tagName == QLatin1String("MASTEROBJECT"))
+				else if (tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject"))
 				{
 					if (itemInfo.nextItem != -1)
 						itemNextM[itemInfo.ownNr] = itemInfo.nextItem;
 				}
 				if (itemInfo.item->isTableItem)
 				{
-					if (tagName == QLatin1String("PAGEOBJECT"))
+					if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 					{
 						TableItems.append(itemInfo.item);
 						TableID.insert(itemInfo.ownLink, itemInfo.item);
 					}
-					else if (tagName == QLatin1String("FRAMEOBJECT"))
+					else if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 					{
 						TableItemsF.append(itemInfo.item);
 						TableIDF.insert(itemInfo.ownLink, itemInfo.item);
@@ -1183,7 +1187,7 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 				}
 			}
 
-			if ((tagName == QLatin1String("PAGEOBJECT")) && (groupStackPI.count() > 0))
+			if ((tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject")) && (groupStackPI.count() > 0))
 			{
 				groupStackPI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackPI2.top())
@@ -1194,7 +1198,7 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("FRAMEOBJECT")) && (groupStackFI.count() > 0))
+			else if ((tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject")) && (groupStackFI.count() > 0))
 			{
 				groupStackFI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackFI2.top())
@@ -1205,7 +1209,7 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("MASTEROBJECT")) && (groupStackMI.count() > 0))
+			else if ((tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject")) && (groupStackMI.count() > 0))
 			{
 				groupStackMI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackMI2.top())
@@ -1221,12 +1225,12 @@ bool Scribus171Format::loadPalette(const QString & fileName)
 			{
 				QList<PageItem*> groupItems;
 				groupItems.append(itemInfo.item);
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				{
 					groupStackPI.push(groupItems);
 					groupStackPI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
 				}
-				else if (tagName == QLatin1String("FRAMEOBJECT"))
+				else if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 				{
 					groupStackFI.push(groupItems);
 					groupStackFI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
@@ -1678,11 +1682,11 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 			firstElement = false;
 			continue;
 		}
-
-		if (tagName == QLatin1String("DOCUMENT"))
+		//Remove uppercase in 1.8
+		if (tagName == QLatin1String("DOCUMENT") || tagName == QLatin1String("Document"))
 		{
 			readDocAttributes(m_Doc, attrs);
-			layerToSetActive = attrs.valueAsInt("ALAYER", 0);
+			layerToSetActive = attrs.valueAsInt("ActiveLayer", 0);
 			if (m_Doc->pagePositioning() == 0)
 				firstPage = 0;
 			else
@@ -1711,6 +1715,8 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 		}
 		// 10/25/2004 pv - None is "reserved" color. cannot be defined in any file...
 		else if (tagName == QLatin1String("COLOR") && attrs.valueAsString("NAME") != CommonStrings::None)
+			readColor(m_Doc->PageColors, attrs);
+		else if (tagName == QLatin1String("Color") && attrs.valueAsString("Name") != CommonStrings::None)
 			readColor(m_Doc->PageColors, attrs);
 		else if (tagName == QLatin1String("Gradient"))
 		{
@@ -1838,13 +1844,21 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 			success = readHyphen(m_Doc, reader);
 			if (!success) break;
 		}
+		//Remove uppercase in 1.8 format
 		else if (tagName == QLatin1String("PAGE") || tagName == QLatin1String("MASTERPAGE"))
 		{
 			success = readPage(m_Doc, reader);
 			if (!success)
 				break;
 		}
-		else if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("FRAMEOBJECT"))
+		else if (tagName == QLatin1String("Page") || tagName == QLatin1String("MasterPage"))
+		{
+			success = readPage(m_Doc, reader);
+			if (!success)
+				break;
+		}
+		else if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("FRAMEOBJECT") ||
+				 tagName == QLatin1String("PageObject") || tagName == QLatin1String("MasterObject") || tagName == QLatin1String("FrameObject"))
 		{
 			ItemInfo itemInfo;
 			success = readObject(m_Doc, reader, readObjectParams, itemInfo);
@@ -1863,24 +1877,24 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 			}
 			else
 			{
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				{
 					if (itemInfo.nextItem != -1)
 						itemNext[itemInfo.ownNr] = itemInfo.nextItem;
 				}
-				else if (tagName == QLatin1String("MASTEROBJECT"))
+				else if (tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject"))
 				{
 					if (itemInfo.nextItem != -1)
 						itemNextM[itemInfo.ownNr] = itemInfo.nextItem;
 				}
 				if (itemInfo.item->isTableItem)
 				{
-					if (tagName == QLatin1String("PAGEOBJECT"))
+					if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 					{
 						TableItems.append(itemInfo.item);
 						TableID.insert(itemInfo.ownLink, itemInfo.item);
 					}
-					else if (tagName == QLatin1String("FRAMEOBJECT"))
+					else if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 					{
 						TableItemsF.append(itemInfo.item);
 						TableIDF.insert(itemInfo.ownLink, itemInfo.item);
@@ -1899,7 +1913,7 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 				}
 			}
 
-			if ((tagName == QLatin1String("PAGEOBJECT")) && (groupStackPI.count() > 0))
+			if ((tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject")) && (groupStackPI.count() > 0))
 			{
 				groupStackPI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackPI2.top())
@@ -1910,7 +1924,7 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("FRAMEOBJECT")) && (groupStackFI.count() > 0))
+			else if ((tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject")) && (groupStackFI.count() > 0))
 			{
 				groupStackFI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackFI2.top())
@@ -1921,7 +1935,7 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("MASTEROBJECT")) && (groupStackMI.count() > 0))
+			else if ((tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject")) && (groupStackMI.count() > 0))
 			{
 				groupStackMI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackMI2.top())
@@ -1937,12 +1951,12 @@ bool Scribus171Format::loadFile(const QString & fileName, const FileFormat & /* 
 			{
 				QList<PageItem*> groupItems;
 				groupItems.append(itemInfo.item);
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				{
 					groupStackPI.push(groupItems);
 					groupStackPI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
 				}
-				else if (tagName == QLatin1String("FRAMEOBJECT"))
+				else if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 				{
 					groupStackFI.push(groupItems);
 					groupStackFI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
@@ -2438,79 +2452,138 @@ namespace {
 
 void Scribus171Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttributes& attrs) const
 {
-	m_Doc->setPageSize(attrs.valueAsString("PAGESIZE"));
-	m_Doc->setPageOrientation(attrs.valueAsInt("ORIENTATION", 0));
-	m_Doc->FirstPnum = attrs.valueAsInt("FIRSTNUM", 1);
-	m_Doc->setPagePositioning(attrs.valueAsInt("BOOK", 0));
-
-	m_Doc->setUsesAutomaticTextFrames( attrs.valueAsInt("AUTOTEXT") );
-	m_Doc->PageSp = attrs.valueAsInt("AUTOSPALTEN");
-	m_Doc->PageSpa = attrs.valueAsDouble("ABSTSPALTEN");
-	m_Doc->setUnitIndex( attrs.valueAsInt("UNITS", 0) );
-
-	static const QString LANGUAGE("LANGUAGE");
-	if (attrs.hasAttribute(LANGUAGE))
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("PAGESIZE"))
 	{
-		QString l(attrs.valueAsString(LANGUAGE));
-		if (LanguageManager::instance()->langTableIndex(l) != -1)
-			m_Doc->setLanguage(l); //new style storage
-		else
-		{ //old style storage
-			QString lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
-			if (lnew.isEmpty())
-				lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
-			m_Doc->setLanguage(lnew);
+		m_Doc->setPageSize(attrs.valueAsString("PAGESIZE"));
+		m_Doc->setPageOrientation(attrs.valueAsInt("ORIENTATION", 0));
+		m_Doc->FirstPnum = attrs.valueAsInt("FIRSTNUM", 1);
+		m_Doc->setPagePositioning(attrs.valueAsInt("BOOK", 0));
+
+		m_Doc->setUsesAutomaticTextFrames( attrs.valueAsInt("AUTOTEXT") );
+		m_Doc->PageSp = attrs.valueAsInt("AUTOSPALTEN");
+		m_Doc->PageSpa = attrs.valueAsDouble("ABSTSPALTEN");
+		m_Doc->setUnitIndex( attrs.valueAsInt("UNITS", 0) );
+
+		static const QString LANGUAGE("LANGUAGE");
+		if (attrs.hasAttribute(LANGUAGE))
+		{
+			QString l(attrs.valueAsString(LANGUAGE));
+			if (LanguageManager::instance()->langTableIndex(l) != -1)
+				m_Doc->setLanguage(l); //new style storage
+			else
+			{ //old style storage
+				QString lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
+				if (lnew.isEmpty())
+					lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
+				m_Doc->setLanguage(lnew);
+			}
 		}
-	}
 
-	if (attrs.hasAttribute("PAGEWIDTH"))
 		m_Doc->setPageWidth(attrs.valueAsDouble("PAGEWIDTH"));
-	else
-		m_Doc->setPageWidth(attrs.valueAsDouble("PAGEWITH"));
-	m_Doc->setPageHeight(attrs.valueAsDouble("PAGEHEIGHT"));
-	m_Doc->margins()->setLeft(qMax(0.0, attrs.valueAsDouble("BORDERLEFT")));
-	m_Doc->margins()->setRight(qMax(0.0, attrs.valueAsDouble("BORDERRIGHT")));
-	m_Doc->margins()->setTop(qMax(0.0, attrs.valueAsDouble("BORDERTOP")));
-	m_Doc->margins()->setBottom(qMax(0.0, attrs.valueAsDouble("BORDERBOTTOM")));
-	m_Doc->setMarginPreset(attrs.valueAsInt("PRESET", 0));
-	m_Doc->bleeds()->setTop(attrs.valueAsDouble("BleedTop", 0.0));
-	m_Doc->bleeds()->setLeft(attrs.valueAsDouble("BleedLeft", 0.0));
-	m_Doc->bleeds()->setRight(attrs.valueAsDouble("BleedRight", 0.0));
-	m_Doc->bleeds()->setBottom(attrs.valueAsDouble("BleedBottom", 0.0));
-	m_Doc->setHyphAutomatic(attrs.valueAsBool("AUTOMATIC", true));
-	m_Doc->setHyphAutoCheck(attrs.valueAsBool("AUTOCHECK", false));
-	m_Doc->GuideLock = attrs.valueAsBool("GUIDELOCK", false);
+		m_Doc->setPageHeight(attrs.valueAsDouble("PAGEHEIGHT"));
+		m_Doc->margins()->setLeft(qMax(0.0, attrs.valueAsDouble("BORDERLEFT")));
+		m_Doc->margins()->setRight(qMax(0.0, attrs.valueAsDouble("BORDERRIGHT")));
+		m_Doc->margins()->setTop(qMax(0.0, attrs.valueAsDouble("BORDERTOP")));
+		m_Doc->margins()->setBottom(qMax(0.0, attrs.valueAsDouble("BORDERBOTTOM")));
+		m_Doc->setMarginPreset(attrs.valueAsInt("PRESET", 0));
+		m_Doc->bleeds()->setTop(attrs.valueAsDouble("BleedTop", 0.0));
+		m_Doc->bleeds()->setLeft(attrs.valueAsDouble("BleedLeft", 0.0));
+		m_Doc->bleeds()->setRight(attrs.valueAsDouble("BleedRight", 0.0));
+		m_Doc->bleeds()->setBottom(attrs.valueAsDouble("BleedBottom", 0.0));
+		m_Doc->setHyphAutomatic(attrs.valueAsBool("AUTOMATIC", true));
+		m_Doc->setHyphAutoCheck(attrs.valueAsBool("AUTOCHECK", false));
+		m_Doc->GuideLock = attrs.valueAsBool("GUIDELOCK", false);
 
-	m_Doc->rulerXoffset = attrs.valueAsDouble("rulerXoffset", 0.0);
-	m_Doc->rulerYoffset = attrs.valueAsDouble("rulerYoffset", 0.0);
-	m_Doc->SnapGuides = attrs.valueAsBool("SnapToGuides", false);
-	m_Doc->SnapElement = attrs.valueAsBool("SnapToElement", false);
-	m_Doc->SnapGrid = attrs.valueAsBool("SnapToGrid", false);
+		m_Doc->rulerXoffset = attrs.valueAsDouble("rulerXoffset", 0.0);
+		m_Doc->rulerYoffset = attrs.valueAsDouble("rulerYoffset", 0.0);
+		m_Doc->SnapGuides = attrs.valueAsBool("SnapToGuides", false);
+		m_Doc->SnapElement = attrs.valueAsBool("SnapToElement", false);
+		m_Doc->SnapGrid = attrs.valueAsBool("SnapToGrid", false);
 
-	m_Doc->setAutoSave(attrs.valueAsBool("AutoSave", false));
-	m_Doc->setAutoSaveTime(attrs.valueAsInt("AutoSaveTime", 600000));
-	m_Doc->setAutoSaveKeep(attrs.valueAsBool("AutoSaveKeep", false));
-	m_Doc->setAutoSaveCount(attrs.valueAsInt("AutoSaveCount", 1));
-	m_Doc->setAutoSaveInDocDir(attrs.valueAsBool("AUtoSaveInDocDir", true));
-	m_Doc->setAutoSaveDir(attrs.valueAsString("AutoSaveDir", ""));
-	double leftScratch;
-	// FIXME A typo in early 1.3cvs (MAR 05) means we must support loading of
-	// FIXME 'ScatchLeft' for a while too. This can be removed in a few months.
-	if (attrs.hasAttribute("ScatchLeft"))
-		leftScratch = attrs.valueAsDouble("ScatchLeft", 100.0);
-	else
-		leftScratch = attrs.valueAsDouble("ScratchLeft", 100.0);
-	m_Doc->scratch()->set(attrs.valueAsDouble("ScratchTop", 20.0), leftScratch,
-						  attrs.valueAsDouble("ScratchBottom", 20.0),attrs.valueAsDouble("ScratchRight", 100.0));
-	m_Doc->setPageGapHorizontal(attrs.valueAsDouble("GapHorizontal", -1.0));
-	m_Doc->setPageGapVertical(attrs.valueAsDouble("GapVertical", -1.0));
+		m_Doc->setAutoSave(attrs.valueAsBool("AutoSave", false));
+		m_Doc->setAutoSaveTime(attrs.valueAsInt("AutoSaveTime", 600000));
+		m_Doc->setAutoSaveKeep(attrs.valueAsBool("AutoSaveKeep", false));
+		m_Doc->setAutoSaveCount(attrs.valueAsInt("AutoSaveCount", 1));
+		m_Doc->setAutoSaveInDocDir(attrs.valueAsBool("AUtoSaveInDocDir", true));
+		m_Doc->setAutoSaveDir(attrs.valueAsString("AutoSaveDir", ""));
+		double leftScratch = attrs.valueAsDouble("ScratchLeft", 100.0);
+		m_Doc->scratch()->set(attrs.valueAsDouble("ScratchTop", 20.0), leftScratch,
+							  attrs.valueAsDouble("ScratchBottom", 20.0),attrs.valueAsDouble("ScratchRight", 100.0));
+		m_Doc->setPageGapHorizontal(attrs.valueAsDouble("GapHorizontal", -1.0));
+		m_Doc->setPageGapVertical(attrs.valueAsDouble("GapVertical", -1.0));
 
-	if (attrs.hasAttribute("PAGEC"))
-		m_Doc->setPaperColor(QColor(attrs.valueAsString("PAGEC")));
+		if (attrs.hasAttribute("PAGEC"))
+			m_Doc->setPaperColor(QColor(attrs.valueAsString("PAGEC")));
 		//->Prefs m_Doc->papColor = QColor(attrs.valueAsString("PAGEC"));
 
-	m_Doc->setMarginColored(attrs.valueAsBool("RANDF", false));
+		m_Doc->setMarginColored(attrs.valueAsBool("RANDF", false));
+	}
+	else
+	{
+		m_Doc->setPageSize(attrs.valueAsString("PageSize"));
+		m_Doc->setPageOrientation(attrs.valueAsInt("PageOrientation", 0));
+		m_Doc->FirstPnum = attrs.valueAsInt("FirstPageNumber", 1);
+		m_Doc->setPagePositioning(attrs.valueAsInt("PagePositioning", 0));
 
+		m_Doc->setUsesAutomaticTextFrames( attrs.valueAsInt("AutomaticTextFrames") );
+		m_Doc->PageSp = attrs.valueAsInt("AutomaticTextFrameColumnCount");
+		m_Doc->PageSpa = attrs.valueAsDouble("AutomaticTextFrameColumnGap");
+		m_Doc->setUnitIndex( attrs.valueAsInt("UnitIndex", 0) );
+
+		static const QString LANGUAGE("Language");
+		if (attrs.hasAttribute(LANGUAGE))
+		{
+			QString l(attrs.valueAsString(LANGUAGE));
+			if (LanguageManager::instance()->langTableIndex(l) != -1)
+				m_Doc->setLanguage(l); //new style storage
+			else
+			{ //old style storage
+				QString lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
+				if (lnew.isEmpty())
+					lnew = LanguageManager::instance()->getAbbrevFromLang(l, false);
+				m_Doc->setLanguage(lnew);
+			}
+		}
+
+		m_Doc->setPageWidth(attrs.valueAsDouble("PageWidth"));
+		m_Doc->setPageHeight(attrs.valueAsDouble("PageHeight"));
+		m_Doc->margins()->setLeft(qMax(0.0, attrs.valueAsDouble("BorderLeft")));
+		m_Doc->margins()->setRight(qMax(0.0, attrs.valueAsDouble("BorderRight")));
+		m_Doc->margins()->setTop(qMax(0.0, attrs.valueAsDouble("BorderTop")));
+		m_Doc->margins()->setBottom(qMax(0.0, attrs.valueAsDouble("BorderBottom")));
+		m_Doc->setMarginPreset(attrs.valueAsInt("MarginPreset", 0));
+		m_Doc->bleeds()->setTop(attrs.valueAsDouble("BleedTop", 0.0));
+		m_Doc->bleeds()->setLeft(attrs.valueAsDouble("BleedLeft", 0.0));
+		m_Doc->bleeds()->setRight(attrs.valueAsDouble("BleedRight", 0.0));
+		m_Doc->bleeds()->setBottom(attrs.valueAsDouble("BleedBottom", 0.0));
+		m_Doc->setHyphAutomatic(attrs.valueAsBool("AutomaticHyphenation", true));
+		m_Doc->setHyphAutoCheck(attrs.valueAsBool("AutomaticHyphenationCheck", false));
+		m_Doc->GuideLock = attrs.valueAsBool("GuideLock", false);
+
+		m_Doc->rulerXoffset = attrs.valueAsDouble("RulerXOffset", 0.0);
+		m_Doc->rulerYoffset = attrs.valueAsDouble("RulerYOffset", 0.0);
+		m_Doc->SnapGuides = attrs.valueAsBool("SnapToGuides", false);
+		m_Doc->SnapElement = attrs.valueAsBool("SnapToElement", false);
+		m_Doc->SnapGrid = attrs.valueAsBool("SnapToGrid", false);
+
+		m_Doc->setAutoSave(attrs.valueAsBool("AutoSave", false));
+		m_Doc->setAutoSaveTime(attrs.valueAsInt("AutoSaveTime", 600000));
+		m_Doc->setAutoSaveKeep(attrs.valueAsBool("AutoSaveKeep", false));
+		m_Doc->setAutoSaveCount(attrs.valueAsInt("AutoSaveCount", 1));
+		m_Doc->setAutoSaveInDocDir(attrs.valueAsBool("AutoSaveInDocumentDirectory", true));
+		m_Doc->setAutoSaveDir(attrs.valueAsString("AutoSaveDirectory", ""));
+		double leftScratch = attrs.valueAsDouble("ScratchLeft", 100.0);
+		m_Doc->scratch()->set(attrs.valueAsDouble("ScratchTop", 20.0), leftScratch,
+							  attrs.valueAsDouble("ScratchBottom", 20.0),attrs.valueAsDouble("ScratchRight", 100.0));
+		m_Doc->setPageGapHorizontal(attrs.valueAsDouble("GapHorizontal", -1.0));
+		m_Doc->setPageGapVertical(attrs.valueAsDouble("GapVertical", -1.0));
+
+		if (attrs.hasAttribute("PageColor"))
+			m_Doc->setPaperColor(QColor(attrs.valueAsString("PageColor")));
+
+		m_Doc->setMarginColored(attrs.valueAsBool("ShowMarginsFilled", false));
+	}
 	readCMSSettings(doc, attrs);
 	readDocumentInfo(doc, attrs);
 	readGuideSettings(doc, attrs);
@@ -2520,205 +2593,401 @@ void Scribus171Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttri
 
 void Scribus171Format::readCMSSettings(ScribusDoc* doc, const ScXmlStreamAttributes& attrs) const
 {
-	doc->cmsSettings().SoftProofOn = attrs.valueAsBool("DPSo", false);
-	doc->cmsSettings().SoftProofFullOn = attrs.valueAsBool("DPSFo", false);
-	doc->cmsSettings().CMSinUse = attrs.valueAsBool("DPuse", false);
-	doc->cmsSettings().GamutCheck = attrs.valueAsBool("DPgam", false);
-	doc->cmsSettings().BlackPoint = attrs.valueAsBool("DPbla", true);
-	doc->cmsSettings().DefaultMonitorProfile = PrefsManager::instance().appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
-	doc->cmsSettings().DefaultPrinterProfile = attrs.valueAsString("DPPr","");
-	doc->cmsSettings().DefaultImageRGBProfile = attrs.valueAsString("DPIn","");
-	doc->cmsSettings().DefaultImageCMYKProfile = attrs.valueAsString("DPInCMYK","");
-	doc->cmsSettings().DefaultSolidColorRGBProfile = attrs.valueAsString("DPIn2","");
-	if (attrs.hasAttribute("DPIn3"))
-		doc->cmsSettings().DefaultSolidColorCMYKProfile = attrs.valueAsString("DPIn3","");
+	//Remove old version in 1.8
+	if (attrs.hasAttribute("DPSo"))
+	{
+		doc->cmsSettings().SoftProofOn = attrs.valueAsBool("DPSo", false);
+		doc->cmsSettings().SoftProofFullOn = attrs.valueAsBool("DPSFo", false);
+		doc->cmsSettings().CMSinUse = attrs.valueAsBool("DPuse", false);
+		doc->cmsSettings().GamutCheck = attrs.valueAsBool("DPgam", false);
+		doc->cmsSettings().BlackPoint = attrs.valueAsBool("DPbla", true);
+		doc->cmsSettings().DefaultMonitorProfile = PrefsManager::instance().appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
+		doc->cmsSettings().DefaultPrinterProfile = attrs.valueAsString("DPPr","");
+		doc->cmsSettings().DefaultImageRGBProfile = attrs.valueAsString("DPIn","");
+		doc->cmsSettings().DefaultImageCMYKProfile = attrs.valueAsString("DPInCMYK","");
+		doc->cmsSettings().DefaultSolidColorRGBProfile = attrs.valueAsString("DPIn2","");
+		if (attrs.hasAttribute("DPIn3"))
+			doc->cmsSettings().DefaultSolidColorCMYKProfile = attrs.valueAsString("DPIn3","");
+		else
+			doc->cmsSettings().DefaultSolidColorCMYKProfile = attrs.valueAsString("DPPr","");
+		doc->cmsSettings().DefaultIntentColors = (eRenderIntent) attrs.valueAsInt("DISc", 1);
+		doc->cmsSettings().DefaultIntentImages = (eRenderIntent) attrs.valueAsInt("DIIm", 0);
+	}
 	else
-		doc->cmsSettings().DefaultSolidColorCMYKProfile = attrs.valueAsString("DPPr","");
-	doc->cmsSettings().DefaultIntentColors = (eRenderIntent) attrs.valueAsInt("DISc", 1);
-	doc->cmsSettings().DefaultIntentImages = (eRenderIntent) attrs.valueAsInt("DIIm", 0);
+	{
+		doc->cmsSettings().SoftProofOn = attrs.valueAsBool("SoftProofOn", false);
+		doc->cmsSettings().SoftProofFullOn = attrs.valueAsBool("SoftProofFullOn", false);
+		doc->cmsSettings().CMSinUse = attrs.valueAsBool("ColorManagementActive", false);
+		doc->cmsSettings().GamutCheck = attrs.valueAsBool("GamutCheck", false);
+		doc->cmsSettings().BlackPoint = attrs.valueAsBool("BlackPoint", true);
+		doc->cmsSettings().DefaultMonitorProfile = PrefsManager::instance().appPrefs.colorPrefs.DCMSset.DefaultMonitorProfile;
+		doc->cmsSettings().DefaultPrinterProfile = attrs.valueAsString("DefaultPrinterProfile","");
+		doc->cmsSettings().DefaultImageRGBProfile = attrs.valueAsString("DefaultImageRGBProfile","");
+		doc->cmsSettings().DefaultImageCMYKProfile = attrs.valueAsString("DefaultImageCMYKProfile","");
+		doc->cmsSettings().DefaultSolidColorRGBProfile = attrs.valueAsString("DefaultSolidColorRGBProfile","");
+		doc->cmsSettings().DefaultSolidColorCMYKProfile = attrs.valueAsString("DefaultSolidColorCMYKProfile","");
+		doc->cmsSettings().DefaultIntentColors = (eRenderIntent) attrs.valueAsInt("DefaultIntentColors", 1);
+		doc->cmsSettings().DefaultIntentImages = (eRenderIntent) attrs.valueAsInt("DefaultIntentImages", 0);
+	}
 }
 
 void Scribus171Format::readDocumentInfo(ScribusDoc* doc, const ScXmlStreamAttributes& attrs) const
 {
 	DocumentInformation di;
-	di.setAuthor(attrs.valueAsString("AUTHOR"));
-	di.setComments(attrs.valueAsString("COMMENTS"));
-	di.setKeywords(attrs.valueAsString("KEYWORDS",""));
-	di.setTitle(attrs.valueAsString("TITLE"));
-	di.setSubject(attrs.valueAsString("SUBJECT"));
-	di.setPublisher(attrs.valueAsString("PUBLISHER", ""));
-	di.setDate(attrs.valueAsString("DOCDATE", ""));
-	di.setType(attrs.valueAsString("DOCTYPE", ""));
-	di.setFormat(attrs.valueAsString("DOCFORMAT", ""));
-	di.setIdent(attrs.valueAsString("DOCIDENT", ""));
-	di.setSource(attrs.valueAsString("DOCSOURCE", ""));
-	di.setLangInfo(attrs.valueAsString("DOCLANGINFO", ""));
-	di.setRelation(attrs.valueAsString("DOCRELATION", ""));
-	di.setCover(attrs.valueAsString("DOCCOVER", ""));
-	di.setRights(attrs.valueAsString("DOCRIGHTS", ""));
-	di.setContrib(attrs.valueAsString("DOCCONTRIB", ""));
+	//Remove old version in 1.8
+	if (attrs.hasAttribute("AUTHOR"))
+	{
+		di.setAuthor(attrs.valueAsString("AUTHOR"));
+		di.setComments(attrs.valueAsString("COMMENTS"));
+		di.setKeywords(attrs.valueAsString("KEYWORDS",""));
+		di.setTitle(attrs.valueAsString("TITLE"));
+		di.setSubject(attrs.valueAsString("SUBJECT"));
+		di.setPublisher(attrs.valueAsString("PUBLISHER", ""));
+		di.setDate(attrs.valueAsString("DOCDATE", ""));
+		di.setType(attrs.valueAsString("DOCTYPE", ""));
+		di.setFormat(attrs.valueAsString("DOCFORMAT", ""));
+		di.setIdent(attrs.valueAsString("DOCIDENT", ""));
+		di.setSource(attrs.valueAsString("DOCSOURCE", ""));
+		di.setLangInfo(attrs.valueAsString("DOCLANGINFO", ""));
+		di.setRelation(attrs.valueAsString("DOCRELATION", ""));
+		di.setCover(attrs.valueAsString("DOCCOVER", ""));
+		di.setRights(attrs.valueAsString("DOCRIGHTS", ""));
+		di.setContrib(attrs.valueAsString("DOCCONTRIB", ""));
+	}
+	else
+	{
+		di.setAuthor(attrs.valueAsString("DocumentInfoAuthor"));
+		di.setComments(attrs.valueAsString("DocumentInfoComments"));
+		di.setKeywords(attrs.valueAsString("DocumentInfoKeywords",""));
+		di.setTitle(attrs.valueAsString("DocumentInfoTitle"));
+		di.setSubject(attrs.valueAsString("DocumentInfoSubject"));
+		di.setPublisher(attrs.valueAsString("DocumentInfoPublisher", ""));
+		di.setDate(attrs.valueAsString("DocumentInfoDate", ""));
+		di.setType(attrs.valueAsString("DocumentInfoType", ""));
+		di.setFormat(attrs.valueAsString("DocumentInfoFormat", ""));
+		di.setIdent(attrs.valueAsString("DocumentInfoIdentifier", ""));
+		di.setSource(attrs.valueAsString("DocumentInfoSource", ""));
+		di.setLangInfo(attrs.valueAsString("DocumentInfoLanguage", ""));
+		di.setRelation(attrs.valueAsString("DocumentInfoRelation", ""));
+		di.setCover(attrs.valueAsString("DocumentInfoCoverage", ""));
+		di.setRights(attrs.valueAsString("DocumentInfoRights", ""));
+		di.setContrib(attrs.valueAsString("DocumentInfoContributors", ""));
+	}
 	doc->setDocumentInfo(di);
 }
 
 void Scribus171Format::readGuideSettings(ScribusDoc* doc, const ScXmlStreamAttributes& attrs) const
 {
 	PrefsManager& prefsManager = PrefsManager::instance();
-	doc->guidesPrefs().minorGridSpacing = attrs.valueAsDouble("MINGRID", prefsManager.appPrefs.guidesPrefs.minorGridSpacing);
-	doc->guidesPrefs().majorGridSpacing = attrs.valueAsDouble("MAJGRID", prefsManager.appPrefs.guidesPrefs.majorGridSpacing);
-	doc->guidesPrefs().gridShown = attrs.valueAsBool("SHOWGRID", false);
-	doc->guidesPrefs().guidesShown = attrs.valueAsBool("SHOWGUIDES", true);
-	doc->guidesPrefs().colBordersShown = attrs.valueAsBool("showcolborders", false);
-	doc->guidesPrefs().framesShown = attrs.valueAsBool("SHOWFRAME", true);
-	doc->guidesPrefs().layerMarkersShown = attrs.valueAsBool("SHOWLAYERM", false);
-	doc->guidesPrefs().marginsShown = attrs.valueAsBool("SHOWMARGIN", true);
-	doc->guidesPrefs().baselineGridShown = attrs.valueAsBool("SHOWBASE", false);
-	doc->guidesPrefs().showPic = attrs.valueAsBool("SHOWPICT", true);
-	doc->guidesPrefs().linkShown = attrs.valueAsBool("SHOWLINK", false);
-	doc->guidesPrefs().showControls = attrs.valueAsBool("SHOWControl", false);
-	doc->guidesPrefs().rulerMode = attrs.valueAsBool("rulerMode", true);
-	doc->guidesPrefs().rulersShown = attrs.valueAsBool("showrulers", true);
-	doc->guidesPrefs().showBleed = attrs.valueAsBool("showBleed", true);
-	m_Doc->drawAsPreview		 = false /*attrs.valueAsBool("previewMode", false)*/;
-	if (attrs.hasAttribute("MARGC"))
-		doc->guidesPrefs().marginColor = QColor(attrs.valueAsString("MARGC"));
-	if (attrs.hasAttribute("MINORC"))
-		doc->guidesPrefs().minorGridColor = QColor(attrs.valueAsString("MINORC"));
-	if (attrs.hasAttribute("MAJORC"))
-		doc->guidesPrefs().majorGridColor = QColor(attrs.valueAsString("MAJORC"));
-	if (attrs.hasAttribute("GuideC")) //legacy < 1.7.x
-		doc->guidesPrefs().guideColor = QColor(attrs.valueAsString("GuideC"));
-	if (attrs.hasAttribute("GuidesColor"))
-		doc->guidesPrefs().guideColor = QColor(attrs.valueAsString("GuidesColor"));
-	if (attrs.hasAttribute("BaseC")) //legacy < 1.7.x
-		doc->guidesPrefs().baselineGridColor = QColor(attrs.valueAsString("BaseC"));
-	if (attrs.hasAttribute("BaselineGridColor"))
-		doc->guidesPrefs().baselineGridColor = QColor(attrs.valueAsString("BaselineGridColor"));
-	if (attrs.hasAttribute("BACKG"))
+	if (attrs.hasAttribute("MINGRID"))
 	{
-		doc->guidesPrefs().renderStackOrder.clear();
-		if (attrs.valueAsBool("BACKG", true))
-			doc->guidesPrefs().renderStackOrder << 0 << 1 << 2 << 3 << 4;
-		else
-			doc->guidesPrefs().renderStackOrder << 4 << 0 << 1 << 2 << 3;
-	}
-	if (attrs.hasAttribute("renderStack"))
-	{
-		doc->guidesPrefs().renderStackOrder.clear();
-		QString renderStack = attrs.valueAsString("renderStack", "0 1 2 3 4");
-		ScTextStream fp(&renderStack, QIODevice::ReadOnly);
-		QString val;
-		while (!fp.atEnd())
+		doc->guidesPrefs().minorGridSpacing = attrs.valueAsDouble("MINGRID", prefsManager.appPrefs.guidesPrefs.minorGridSpacing);
+		doc->guidesPrefs().majorGridSpacing = attrs.valueAsDouble("MAJGRID", prefsManager.appPrefs.guidesPrefs.majorGridSpacing);
+		doc->guidesPrefs().gridShown = attrs.valueAsBool("SHOWGRID", false);
+		doc->guidesPrefs().guidesShown = attrs.valueAsBool("SHOWGUIDES", true);
+		doc->guidesPrefs().colBordersShown = attrs.valueAsBool("showcolborders", false);
+		doc->guidesPrefs().framesShown = attrs.valueAsBool("SHOWFRAME", true);
+		doc->guidesPrefs().layerMarkersShown = attrs.valueAsBool("SHOWLAYERM", false);
+		doc->guidesPrefs().marginsShown = attrs.valueAsBool("SHOWMARGIN", true);
+		doc->guidesPrefs().baselineGridShown = attrs.valueAsBool("SHOWBASE", false);
+		doc->guidesPrefs().showPic = attrs.valueAsBool("SHOWPICT", true);
+		doc->guidesPrefs().linkShown = attrs.valueAsBool("SHOWLINK", false);
+		doc->guidesPrefs().showControls = attrs.valueAsBool("SHOWControl", false);
+		doc->guidesPrefs().rulerMode = attrs.valueAsBool("rulerMode", true);
+		doc->guidesPrefs().rulersShown = attrs.valueAsBool("showrulers", true);
+		doc->guidesPrefs().showBleed = attrs.valueAsBool("showBleed", true);
+		m_Doc->drawAsPreview		 = false /*attrs.valueAsBool("previewMode", false)*/;
+		if (attrs.hasAttribute("MARGC"))
+			doc->guidesPrefs().marginColor = QColor(attrs.valueAsString("MARGC"));
+		if (attrs.hasAttribute("MINORC"))
+			doc->guidesPrefs().minorGridColor = QColor(attrs.valueAsString("MINORC"));
+		if (attrs.hasAttribute("MAJORC"))
+			doc->guidesPrefs().majorGridColor = QColor(attrs.valueAsString("MAJORC"));
+		if (attrs.hasAttribute("GuideC")) //legacy < 1.7.x
+			doc->guidesPrefs().guideColor = QColor(attrs.valueAsString("GuideC"));
+		if (attrs.hasAttribute("GuidesColor"))
+			doc->guidesPrefs().guideColor = QColor(attrs.valueAsString("GuidesColor"));
+		if (attrs.hasAttribute("BaseC")) //legacy < 1.7.x
+			doc->guidesPrefs().baselineGridColor = QColor(attrs.valueAsString("BaseC"));
+		if (attrs.hasAttribute("BaselineGridColor"))
+			doc->guidesPrefs().baselineGridColor = QColor(attrs.valueAsString("BaselineGridColor"));
+		if (attrs.hasAttribute("BACKG"))
 		{
-			fp >> val;
-			doc->guidesPrefs().renderStackOrder << val.toInt();
+			doc->guidesPrefs().renderStackOrder.clear();
+			if (attrs.valueAsBool("BACKG", true))
+				doc->guidesPrefs().renderStackOrder << 0 << 1 << 2 << 3 << 4;
+			else
+				doc->guidesPrefs().renderStackOrder << 4 << 0 << 1 << 2 << 3;
 		}
+		if (attrs.hasAttribute("renderStack"))
+		{
+			doc->guidesPrefs().renderStackOrder.clear();
+			QString renderStack = attrs.valueAsString("renderStack", "0 1 2 3 4");
+			ScTextStream fp(&renderStack, QIODevice::ReadOnly);
+			QString val;
+			while (!fp.atEnd())
+			{
+				fp >> val;
+				doc->guidesPrefs().renderStackOrder << val.toInt();
+			}
+		}
+		doc->guidesPrefs().gridType = attrs.valueAsInt("GridType", 0);
+		doc->guidesPrefs().guideRad = attrs.valueAsDouble("GuideRad", 10.0);
+		doc->guidesPrefs().grabRadius = attrs.valueAsInt("GRAB", 4);
 	}
-	doc->guidesPrefs().gridType = attrs.valueAsInt("GridType", 0);
-	doc->guidesPrefs().guideRad = attrs.valueAsDouble("GuideRad", 10.0);
-	doc->guidesPrefs().grabRadius = attrs.valueAsInt("GRAB", 4);
+	else
+	{
+		doc->guidesPrefs().minorGridSpacing = attrs.valueAsDouble("MinorGridSpacing", prefsManager.appPrefs.guidesPrefs.minorGridSpacing);
+		doc->guidesPrefs().majorGridSpacing = attrs.valueAsDouble("MajorGridSpacing", prefsManager.appPrefs.guidesPrefs.majorGridSpacing);
+		doc->guidesPrefs().gridShown = attrs.valueAsBool("ShowGrid", false);
+		doc->guidesPrefs().guidesShown = attrs.valueAsBool("ShowGuides", true);
+		doc->guidesPrefs().colBordersShown = attrs.valueAsBool("ShowColumnBorders", false);
+		doc->guidesPrefs().framesShown = attrs.valueAsBool("ShowFrames", true);
+		doc->guidesPrefs().layerMarkersShown = attrs.valueAsBool("ShowLayerMarkers", false);
+		doc->guidesPrefs().marginsShown = attrs.valueAsBool("ShowMargins", true);
+		doc->guidesPrefs().baselineGridShown = attrs.valueAsBool("ShowBaselineGrid", false);
+		doc->guidesPrefs().showPic = attrs.valueAsBool("ShowImages", true);
+		doc->guidesPrefs().linkShown = attrs.valueAsBool("ShowLinks", false);
+		doc->guidesPrefs().showControls = attrs.valueAsBool("ShowControls", false);
+		doc->guidesPrefs().rulerMode = attrs.valueAsBool("RulerMode", true);
+		doc->guidesPrefs().rulersShown = attrs.valueAsBool("ShowRulers", true);
+		doc->guidesPrefs().showBleed = attrs.valueAsBool("ShowBleed", true);
+		m_Doc->drawAsPreview		 = false /*attrs.valueAsBool("previewMode", false)*/;
+		if (attrs.hasAttribute("MarginColor"))
+			doc->guidesPrefs().marginColor = QColor(attrs.valueAsString("MarginColor"));
+		if (attrs.hasAttribute("MinorGridColor"))
+			doc->guidesPrefs().minorGridColor = QColor(attrs.valueAsString("MinorGridColor"));
+		if (attrs.hasAttribute("MajorGridColor"))
+			doc->guidesPrefs().majorGridColor = QColor(attrs.valueAsString("MajorGridColor"));
+		if (attrs.hasAttribute("GuidesColor"))
+			doc->guidesPrefs().guideColor = QColor(attrs.valueAsString("GuidesColor"));
+		if (attrs.hasAttribute("BaselineGridColor"))
+			doc->guidesPrefs().baselineGridColor = QColor(attrs.valueAsString("BaselineGridColor"));
+		if (attrs.hasAttribute("BACKG"))
+		{
+			doc->guidesPrefs().renderStackOrder.clear();
+			if (attrs.valueAsBool("BACKG", true))
+				doc->guidesPrefs().renderStackOrder << 0 << 1 << 2 << 3 << 4;
+			else
+				doc->guidesPrefs().renderStackOrder << 4 << 0 << 1 << 2 << 3;
+		}
+		if (attrs.hasAttribute("RenderStack"))
+		{
+			doc->guidesPrefs().renderStackOrder.clear();
+			QString renderStack = attrs.valueAsString("renderStack", "0 1 2 3 4");
+			ScTextStream fp(&renderStack, QIODevice::ReadOnly);
+			QString val;
+			while (!fp.atEnd())
+			{
+				fp >> val;
+				doc->guidesPrefs().renderStackOrder << val.toInt();
+			}
+		}
+		doc->guidesPrefs().gridType = attrs.valueAsInt("GridType", 0);
+		doc->guidesPrefs().guideRad = attrs.valueAsDouble("GuideRadius", 10.0);
+		doc->guidesPrefs().grabRadius = attrs.valueAsInt("GrabRadius", 4);
+	}
 }
 
 void Scribus171Format::readToolSettings(ScribusDoc* doc, const ScXmlStreamAttributes& attrs) const
 {
 	const ItemToolPrefs& defToolPrefs = PrefsManager::instance().appPrefs.itemToolPrefs;
 
-	QString textFont = attrs.valueAsString("DFONT");
-	m_AvailableFonts->findFont(textFont, doc);
+	if (attrs.hasAttribute("DFONT"))
+	{
+		QString textFont = attrs.valueAsString("DFONT");
+		m_AvailableFonts->findFont(textFont, doc);
 
-	doc->itemToolPrefs().textFont = textFont;
-	doc->itemToolPrefs().textSize = qRound(attrs.valueAsDouble("DSIZE", 12.0) * 10);
-	doc->itemToolPrefs().textColumns = attrs.valueAsInt("DCOL", 1);
-	doc->itemToolPrefs().textColumnGap = attrs.valueAsDouble("DGAP", 0.0);
+		doc->itemToolPrefs().textFont = textFont;
+		doc->itemToolPrefs().textSize = qRound(attrs.valueAsDouble("DSIZE", 12.0) * 10);
+		doc->itemToolPrefs().textColumns = attrs.valueAsInt("DCOL", 1);
+		doc->itemToolPrefs().textColumnGap = attrs.valueAsDouble("DGAP", 0.0);
 
-	const MarginStruct& defDistances = defToolPrefs.textDistances;
-	doc->itemToolPrefs().textDistances.setLeft(attrs.valueAsDouble("TextDistLeft", defDistances.left()));
-	doc->itemToolPrefs().textDistances.setRight(attrs.valueAsDouble("TextDistRight", defDistances.right()));
-	doc->itemToolPrefs().textDistances.setBottom(attrs.valueAsDouble("TextDistBottom", defDistances.bottom()));
-	doc->itemToolPrefs().textDistances.setTop(attrs.valueAsDouble("TextDistTop", defDistances.top()));
+		const MarginStruct& defDistances = defToolPrefs.textDistances;
+		doc->itemToolPrefs().textDistances.setLeft(attrs.valueAsDouble("TextDistLeft", defDistances.left()));
+		doc->itemToolPrefs().textDistances.setRight(attrs.valueAsDouble("TextDistRight", defDistances.right()));
+		doc->itemToolPrefs().textDistances.setBottom(attrs.valueAsDouble("TextDistBottom", defDistances.bottom()));
+		doc->itemToolPrefs().textDistances.setTop(attrs.valueAsDouble("TextDistTop", defDistances.top()));
 
-	doc->itemToolPrefs().polyCorners = attrs.valueAsInt("POLYC", 4);
-	doc->itemToolPrefs().polyFactor = attrs.valueAsDouble("POLYF", 0.5);
-	doc->itemToolPrefs().polyRotation = attrs.valueAsDouble("POLYR", 0.0);
-	doc->itemToolPrefs().polyInnerRot = attrs.valueAsDouble("POLYIR", 0.0);
-	doc->itemToolPrefs().polyCurvature = attrs.valueAsDouble("POLYCUR", 0.0);
-	doc->itemToolPrefs().polyOuterCurvature = attrs.valueAsDouble("POLYOCUR", 0.0);
-	doc->itemToolPrefs().polyUseFactor = attrs.valueAsBool("POLYS", false);
+		doc->itemToolPrefs().polyCorners = attrs.valueAsInt("POLYC", 4);
+		doc->itemToolPrefs().polyFactor = attrs.valueAsDouble("POLYF", 0.5);
+		doc->itemToolPrefs().polyRotation = attrs.valueAsDouble("POLYR", 0.0);
+		doc->itemToolPrefs().polyInnerRot = attrs.valueAsDouble("POLYIR", 0.0);
+		doc->itemToolPrefs().polyCurvature = attrs.valueAsDouble("POLYCUR", 0.0);
+		doc->itemToolPrefs().polyOuterCurvature = attrs.valueAsDouble("POLYOCUR", 0.0);
+		doc->itemToolPrefs().polyUseFactor = attrs.valueAsBool("POLYS", false);
 
-	doc->itemToolPrefs().arcStartAngle = attrs.valueAsDouble("arcStartAngle", 30.0);
-	doc->itemToolPrefs().arcSweepAngle = attrs.valueAsDouble("arcSweepAngle", 300.0);
-	doc->itemToolPrefs().spiralStartAngle = attrs.valueAsDouble("spiralStartAngle", 0.0);
-	doc->itemToolPrefs().spiralEndAngle = attrs.valueAsDouble("spiralEndAngle", 1080.0);
-	doc->itemToolPrefs().spiralFactor = attrs.valueAsDouble("spiralFactor", 1.2);
+		doc->itemToolPrefs().arcStartAngle = attrs.valueAsDouble("arcStartAngle", 30.0);
+		doc->itemToolPrefs().arcSweepAngle = attrs.valueAsDouble("arcSweepAngle", 300.0);
+		doc->itemToolPrefs().spiralStartAngle = attrs.valueAsDouble("spiralStartAngle", 0.0);
+		doc->itemToolPrefs().spiralEndAngle = attrs.valueAsDouble("spiralEndAngle", 1080.0);
+		doc->itemToolPrefs().spiralFactor = attrs.valueAsDouble("spiralFactor", 1.2);
 
-	doc->itemToolPrefs().lineStartArrow = attrs.valueAsInt("StartArrow", 0);
-	doc->itemToolPrefs().lineEndArrow = attrs.valueAsInt("EndArrow", 0);
-	doc->itemToolPrefs().imageScaleX = attrs.valueAsDouble("PICTSCX", 1.0);
-	doc->itemToolPrefs().imageScaleY = attrs.valueAsDouble("PICTSCY", 1.0);
-	doc->itemToolPrefs().imageScaleType = attrs.valueAsBool("PSCALE", true);
-	doc->itemToolPrefs().imageAspectRatio = attrs.valueAsBool("PASPECT", false);
-	doc->itemToolPrefs().imageLowResType = attrs.valueAsInt("HalfRes", 1);
-	doc->itemToolPrefs().imageUseEmbeddedPath = attrs.valueAsBool("EmbeddedPath", false);
-	if (attrs.hasAttribute("PEN"))
-		doc->itemToolPrefs().shapeLineColor = attrs.valueAsString("PEN");
-	if (attrs.hasAttribute("BRUSH"))
-		doc->itemToolPrefs().shapeFillColor = attrs.valueAsString("BRUSH");
-	if (attrs.hasAttribute("PENLINE"))
-		doc->itemToolPrefs().lineColor = attrs.valueAsString("PENLINE");
-	if (attrs.hasAttribute("PENTEXT"))
-		doc->itemToolPrefs().textColor = attrs.valueAsString("PENTEXT");
-	if (attrs.hasAttribute("StrokeText"))
-		doc->itemToolPrefs().textStrokeColor = attrs.valueAsString("StrokeText");
-	doc->itemToolPrefs().textFillColor = attrs.valueAsString("TextBackGround", CommonStrings::None);
-	doc->itemToolPrefs().textLineColor = attrs.valueAsString("TextLineColor", CommonStrings::None);
-	doc->itemToolPrefs().textFillColorShade = attrs.valueAsInt("TextBackGroundShade", 100);
-	doc->itemToolPrefs().textLineColorShade = attrs.valueAsInt("TextLineShade", 100);
-	doc->itemToolPrefs().textShade = attrs.valueAsInt("TextPenShade", 100);
-	doc->itemToolPrefs().textStrokeShade = attrs.valueAsInt("TextStrokeShade", 100);
-	doc->itemToolPrefs().shapeLineStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("STIL"));
-	doc->itemToolPrefs().lineStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("STILLINE"));
-	doc->itemToolPrefs().shapeLineWidth = attrs.valueAsDouble("WIDTH", 0.0);
-	doc->itemToolPrefs().lineWidth = attrs.valueAsDouble("WIDTHLINE", 1.0);
-	doc->itemToolPrefs().shapeLineColorShade = attrs.valueAsInt("PENSHADE", 100);
-	doc->itemToolPrefs().lineColorShade = attrs.valueAsInt("LINESHADE", 100);
-	doc->itemToolPrefs().shapeFillColorShade = attrs.valueAsInt("BRUSHSHADE", 100);
-	doc->itemToolPrefs().calligraphicPenFillColor = attrs.valueAsString("calligraphicPenFillColor", "Black");
-	doc->itemToolPrefs().calligraphicPenLineColor = attrs.valueAsString("calligraphicPenLineColor", "Black");
-	doc->itemToolPrefs().calligraphicPenFillColorShade = attrs.valueAsInt("calligraphicPenFillColorShade", 100);
-	doc->itemToolPrefs().calligraphicPenLineColorShade = attrs.valueAsInt("calligraphicPenLineColorShade", 100);
-	doc->itemToolPrefs().calligraphicPenLineWidth = attrs.valueAsDouble("calligraphicPenLineWidth", 1.0);
-	doc->itemToolPrefs().calligraphicPenAngle = attrs.valueAsDouble("calligraphicPenAngle", 0.0);
-	doc->itemToolPrefs().calligraphicPenWidth = attrs.valueAsDouble("calligraphicPenWidth", 10.0);
-	doc->itemToolPrefs().calligraphicPenStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("calligraphicPenStyle"));
-	doc->opToolPrefs().dispX = attrs.valueAsDouble("dispX", 10.0);
-	doc->opToolPrefs().dispY = attrs.valueAsDouble("dispY", 10.0);
-	doc->opToolPrefs().constrain = attrs.valueAsDouble("constrain", 15.0);
-	doc->itemToolPrefs().textTabFillChar = attrs.valueAsString("TabFill","");
-	doc->itemToolPrefs().textTabWidth = attrs.valueAsDouble("TabWidth", 36.0);
-	doc->itemToolPrefs().firstLineOffset = (FirstLineOffsetPolicy) attrs.valueAsInt("FirstLineOffset", (int) FLOPRealGlyphHeight); // Default to FLOPRealGlyphHeight for legacy docs
-	doc->itemToolPrefs().firstLineOffset = qMax(FLOPRealGlyphHeight, qMin(doc->itemToolPrefs().firstLineOffset, FLOPBaselineGrid));
-	if (attrs.hasAttribute("CPICT"))
-		doc->itemToolPrefs().imageFillColor = attrs.valueAsString("CPICT");
-	doc->itemToolPrefs().imageFillColorShade = attrs.valueAsInt("PICTSHADE", 100);
-	if (attrs.hasAttribute("CSPICT"))
-		doc->itemToolPrefs().imageStrokeColor = attrs.valueAsString("CSPICT");
-	doc->itemToolPrefs().imageStrokeColorShade = attrs.valueAsInt("PICTSSHADE", 100);
+		doc->itemToolPrefs().lineStartArrow = attrs.valueAsInt("StartArrow", 0);
+		doc->itemToolPrefs().lineEndArrow = attrs.valueAsInt("EndArrow", 0);
+		doc->itemToolPrefs().imageScaleX = attrs.valueAsDouble("PICTSCX", 1.0);
+		doc->itemToolPrefs().imageScaleY = attrs.valueAsDouble("PICTSCY", 1.0);
+		doc->itemToolPrefs().imageScaleType = attrs.valueAsBool("PSCALE", true);
+		doc->itemToolPrefs().imageAspectRatio = attrs.valueAsBool("PASPECT", false);
+		doc->itemToolPrefs().imageLowResType = attrs.valueAsInt("HalfRes", 1);
+		doc->itemToolPrefs().imageUseEmbeddedPath = attrs.valueAsBool("EmbeddedPath", false);
+		if (attrs.hasAttribute("PEN"))
+			doc->itemToolPrefs().shapeLineColor = attrs.valueAsString("PEN");
+		if (attrs.hasAttribute("BRUSH"))
+			doc->itemToolPrefs().shapeFillColor = attrs.valueAsString("BRUSH");
+		if (attrs.hasAttribute("PENLINE"))
+			doc->itemToolPrefs().lineColor = attrs.valueAsString("PENLINE");
+		if (attrs.hasAttribute("PENTEXT"))
+			doc->itemToolPrefs().textColor = attrs.valueAsString("PENTEXT");
+		if (attrs.hasAttribute("StrokeText"))
+			doc->itemToolPrefs().textStrokeColor = attrs.valueAsString("StrokeText");
+		doc->itemToolPrefs().textFillColor = attrs.valueAsString("TextBackGround", CommonStrings::None);
+		doc->itemToolPrefs().textLineColor = attrs.valueAsString("TextLineColor", CommonStrings::None);
+		doc->itemToolPrefs().textFillColorShade = attrs.valueAsInt("TextBackGroundShade", 100);
+		doc->itemToolPrefs().textLineColorShade = attrs.valueAsInt("TextLineShade", 100);
+		doc->itemToolPrefs().textShade = attrs.valueAsInt("TextPenShade", 100);
+		doc->itemToolPrefs().textStrokeShade = attrs.valueAsInt("TextStrokeShade", 100);
+		doc->itemToolPrefs().shapeLineStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("STIL"));
+		doc->itemToolPrefs().lineStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("STILLINE"));
+		doc->itemToolPrefs().shapeLineWidth = attrs.valueAsDouble("WIDTH", 0.0);
+		doc->itemToolPrefs().lineWidth = attrs.valueAsDouble("WIDTHLINE", 1.0);
+		doc->itemToolPrefs().shapeLineColorShade = attrs.valueAsInt("PENSHADE", 100);
+		doc->itemToolPrefs().lineColorShade = attrs.valueAsInt("LINESHADE", 100);
+		doc->itemToolPrefs().shapeFillColorShade = attrs.valueAsInt("BRUSHSHADE", 100);
+		doc->itemToolPrefs().calligraphicPenFillColor = attrs.valueAsString("calligraphicPenFillColor", "Black");
+		doc->itemToolPrefs().calligraphicPenLineColor = attrs.valueAsString("calligraphicPenLineColor", "Black");
+		doc->itemToolPrefs().calligraphicPenFillColorShade = attrs.valueAsInt("calligraphicPenFillColorShade", 100);
+		doc->itemToolPrefs().calligraphicPenLineColorShade = attrs.valueAsInt("calligraphicPenLineColorShade", 100);
+		doc->itemToolPrefs().calligraphicPenLineWidth = attrs.valueAsDouble("calligraphicPenLineWidth", 1.0);
+		doc->itemToolPrefs().calligraphicPenAngle = attrs.valueAsDouble("calligraphicPenAngle", 0.0);
+		doc->itemToolPrefs().calligraphicPenWidth = attrs.valueAsDouble("calligraphicPenWidth", 10.0);
+		doc->itemToolPrefs().calligraphicPenStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("calligraphicPenStyle"));
+		doc->opToolPrefs().dispX = attrs.valueAsDouble("dispX", 10.0);
+		doc->opToolPrefs().dispY = attrs.valueAsDouble("dispY", 10.0);
+		doc->opToolPrefs().constrain = attrs.valueAsDouble("constrain", 15.0);
+		doc->itemToolPrefs().textTabFillChar = attrs.valueAsString("TabFill","");
+		doc->itemToolPrefs().textTabWidth = attrs.valueAsDouble("TabWidth", 36.0);
+		doc->itemToolPrefs().firstLineOffset = (FirstLineOffsetPolicy) attrs.valueAsInt("FirstLineOffset", (int) FLOPRealGlyphHeight); // Default to FLOPRealGlyphHeight for legacy docs
+		doc->itemToolPrefs().firstLineOffset = qMax(FLOPRealGlyphHeight, qMin(doc->itemToolPrefs().firstLineOffset, FLOPBaselineGrid));
+		if (attrs.hasAttribute("CPICT"))
+			doc->itemToolPrefs().imageFillColor = attrs.valueAsString("CPICT");
+		doc->itemToolPrefs().imageFillColorShade = attrs.valueAsInt("PICTSHADE", 100);
+		if (attrs.hasAttribute("CSPICT"))
+			doc->itemToolPrefs().imageStrokeColor = attrs.valueAsString("CSPICT");
+		doc->itemToolPrefs().imageStrokeColorShade = attrs.valueAsInt("PICTSSHADE", 100);
+	}
+	else
+	{
+		QString textFont = attrs.valueAsString("FontFace");
+		m_AvailableFonts->findFont(textFont, doc);
+
+		doc->itemToolPrefs().textFont = textFont;
+		doc->itemToolPrefs().textSize = qRound(attrs.valueAsDouble("FontSize", 12.0) * 10);
+		doc->itemToolPrefs().textColumns = attrs.valueAsInt("TextColumnCount", 1);
+		doc->itemToolPrefs().textColumnGap = attrs.valueAsDouble("TextColumnGap", 0.0);
+
+		const MarginStruct& defDistances = defToolPrefs.textDistances;
+		doc->itemToolPrefs().textDistances.setLeft(attrs.valueAsDouble("TextDistanceLeft", defDistances.left()));
+		doc->itemToolPrefs().textDistances.setRight(attrs.valueAsDouble("TextDistanceRight", defDistances.right()));
+		doc->itemToolPrefs().textDistances.setBottom(attrs.valueAsDouble("TextDistanceBottom", defDistances.bottom()));
+		doc->itemToolPrefs().textDistances.setTop(attrs.valueAsDouble("TextDistanceTop", defDistances.top()));
+
+		doc->itemToolPrefs().polyCorners = attrs.valueAsInt("PolygonCorners", 4);
+		doc->itemToolPrefs().polyFactor = attrs.valueAsDouble("PolygonFactor", 0.5);
+		doc->itemToolPrefs().polyRotation = attrs.valueAsDouble("PolygonRotation", 0.0);
+		doc->itemToolPrefs().polyInnerRot = attrs.valueAsDouble("PolygonInnerRotation", 0.0);
+		doc->itemToolPrefs().polyCurvature = attrs.valueAsDouble("PolygonCurvature", 0.0);
+		doc->itemToolPrefs().polyOuterCurvature = attrs.valueAsDouble("PolygonOuterCurvature", 0.0);
+		doc->itemToolPrefs().polyUseFactor = attrs.valueAsBool("PolygonUseFactor", false);
+
+		doc->itemToolPrefs().arcStartAngle = attrs.valueAsDouble("ArcStartAngle", 30.0);
+		doc->itemToolPrefs().arcSweepAngle = attrs.valueAsDouble("ArcSweepAngle", 300.0);
+		doc->itemToolPrefs().spiralStartAngle = attrs.valueAsDouble("SpiralStartAngle", 0.0);
+		doc->itemToolPrefs().spiralEndAngle = attrs.valueAsDouble("SpiralEndAngle", 1080.0);
+		doc->itemToolPrefs().spiralFactor = attrs.valueAsDouble("SpiralFactor", 1.2);
+
+		doc->itemToolPrefs().lineStartArrow = attrs.valueAsInt("LineStartArrow", 0);
+		doc->itemToolPrefs().lineEndArrow = attrs.valueAsInt("LineEndArrow", 0);
+		doc->itemToolPrefs().imageScaleX = attrs.valueAsDouble("ImageScaleX", 1.0);
+		doc->itemToolPrefs().imageScaleY = attrs.valueAsDouble("ImageScaleY", 1.0);
+		doc->itemToolPrefs().imageScaleType = attrs.valueAsBool("ImageScaleType", true);
+		doc->itemToolPrefs().imageAspectRatio = attrs.valueAsBool("ImageAspectRatio", false);
+		doc->itemToolPrefs().imageLowResType = attrs.valueAsInt("ImageLowResType", 1);
+		doc->itemToolPrefs().imageUseEmbeddedPath = attrs.valueAsBool("ImageUseEmbeddedPath", false);
+		doc->itemToolPrefs().shapeLineColor = attrs.valueAsString("ShapeLineColor");
+		doc->itemToolPrefs().shapeFillColor = attrs.valueAsString("ShapeFillColor");
+		doc->itemToolPrefs().lineColor = attrs.valueAsString("LineColor");
+		doc->itemToolPrefs().textColor = attrs.valueAsString("TextColor");
+		doc->itemToolPrefs().textStrokeColor = attrs.valueAsString("TextStrokeColor");
+		doc->itemToolPrefs().textFillColor = attrs.valueAsString("TextBackgroundColor", CommonStrings::None);
+		doc->itemToolPrefs().textLineColor = attrs.valueAsString("TextLineColor", CommonStrings::None);
+		doc->itemToolPrefs().textFillColorShade = attrs.valueAsInt("TextBackgroundColorShade", 100);
+		doc->itemToolPrefs().textLineColorShade = attrs.valueAsInt("TextLineColorShade", 100);
+		doc->itemToolPrefs().textShade = attrs.valueAsInt("TextColorShade", 100);
+		doc->itemToolPrefs().textStrokeShade = attrs.valueAsInt("TextStrokeColorShade", 100);
+		doc->itemToolPrefs().shapeLineStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("ShapeLineStyle"));
+		doc->itemToolPrefs().lineStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("LineStyle"));
+		doc->itemToolPrefs().shapeLineWidth = attrs.valueAsDouble("ShapeLineWidth", 0.0);
+		doc->itemToolPrefs().lineWidth = attrs.valueAsDouble("LineWidth", 1.0);
+		doc->itemToolPrefs().shapeLineColorShade = attrs.valueAsInt("ShapeLineColorShade", 100);
+		doc->itemToolPrefs().lineColorShade = attrs.valueAsInt("LineColorShade", 100);
+		doc->itemToolPrefs().shapeFillColorShade = attrs.valueAsInt("ShapeFillColorShade", 100);
+		doc->itemToolPrefs().calligraphicPenFillColor = attrs.valueAsString("CalligraphicPenFillColor", "Black");
+		doc->itemToolPrefs().calligraphicPenLineColor = attrs.valueAsString("CalligraphicPenLineColor", "Black");
+		doc->itemToolPrefs().calligraphicPenFillColorShade = attrs.valueAsInt("CalligraphicPenFillColorShade", 100);
+		doc->itemToolPrefs().calligraphicPenLineColorShade = attrs.valueAsInt("CalligraphicPenLineColorShade", 100);
+		doc->itemToolPrefs().calligraphicPenLineWidth = attrs.valueAsDouble("CalligraphicPenLineWidth", 1.0);
+		doc->itemToolPrefs().calligraphicPenAngle = attrs.valueAsDouble("CalligraphicPenAngle", 0.0);
+		doc->itemToolPrefs().calligraphicPenWidth = attrs.valueAsDouble("CalligraphicPenWidth", 10.0);
+		doc->itemToolPrefs().calligraphicPenStyle = static_cast<Qt::PenStyle>(attrs.valueAsInt("CalligraphicPenStyle"));
+		doc->opToolPrefs().dispX = attrs.valueAsDouble("DisplayOffsetX", 10.0);
+		doc->opToolPrefs().dispY = attrs.valueAsDouble("DisplayOffsetY", 10.0);
+		doc->opToolPrefs().constrain = attrs.valueAsDouble("RotationConstrainAngle", 15.0);
+		doc->itemToolPrefs().textTabFillChar = attrs.valueAsString("TabFillCharacter","");
+		doc->itemToolPrefs().textTabWidth = attrs.valueAsDouble("TabWidth", 36.0);
+		doc->itemToolPrefs().firstLineOffset = (FirstLineOffsetPolicy) attrs.valueAsInt("FirstLineOffset", (int) FLOPRealGlyphHeight); // Default to FLOPRealGlyphHeight for legacy docs
+		doc->itemToolPrefs().firstLineOffset = qMax(FLOPRealGlyphHeight, qMin(doc->itemToolPrefs().firstLineOffset, FLOPBaselineGrid));
+		doc->itemToolPrefs().imageFillColor = attrs.valueAsString("ImageFillColor");
+		doc->itemToolPrefs().imageFillColorShade = attrs.valueAsInt("ImageFillColorShade", 100);
+		doc->itemToolPrefs().imageStrokeColor = attrs.valueAsString("ImageStrokeColor");
+		doc->itemToolPrefs().imageStrokeColorShade = attrs.valueAsInt("ImageStrokeColorShade", 100);
+	}
 }
 
 void Scribus171Format::readTypographicSettings(ScribusDoc* doc, const ScXmlStreamAttributes& attrs) const
 {
-	doc->typographicPrefs().valueSuperScript = attrs.valueAsInt("VHOCH");
-	doc->typographicPrefs().scalingSuperScript = attrs.valueAsInt("VHOCHSC");
-	doc->typographicPrefs().valueSubScript = attrs.valueAsInt("VTIEF");
-	doc->typographicPrefs().scalingSubScript = attrs.valueAsInt("VTIEFSC");
-	doc->typographicPrefs().valueSmallCaps = attrs.valueAsInt("VKAPIT");
-	doc->guidesPrefs().valueBaselineGrid = attrs.valueAsDouble("BASEGRID", 12.0);
-	doc->guidesPrefs().offsetBaselineGrid = attrs.valueAsDouble("BASEO", 0.0);
-	// #9621 : autolinespacing is now expressed as a percentage of the font height
-	doc->typographicPrefs().autoLineSpacing = attrs.valueAsInt("AUTOL", 1, 500, 100);
-	doc->typographicPrefs().valueUnderlinePos = attrs.valueAsInt("UnderlinePos", -1);
-	doc->typographicPrefs().valueUnderlineWidth = attrs.valueAsInt("UnderlineWidth", -1);
-	doc->typographicPrefs().valueStrikeThruPos = attrs.valueAsInt("StrikeThruPos", -1);
-	doc->typographicPrefs().valueStrikeThruWidth = attrs.valueAsInt("StrikeThruWidth", -1);
+	if (attrs.hasAttribute("VHOCH"))
+	{
+		doc->typographicPrefs().valueSuperScript = attrs.valueAsInt("VHOCH");
+		doc->typographicPrefs().scalingSuperScript = attrs.valueAsInt("VHOCHSC");
+		doc->typographicPrefs().valueSubScript = attrs.valueAsInt("VTIEF");
+		doc->typographicPrefs().scalingSubScript = attrs.valueAsInt("VTIEFSC");
+		doc->typographicPrefs().valueSmallCaps = attrs.valueAsInt("VKAPIT");
+		doc->guidesPrefs().valueBaselineGrid = attrs.valueAsDouble("BASEGRID", 12.0);
+		doc->guidesPrefs().offsetBaselineGrid = attrs.valueAsDouble("BASEO", 0.0);
+		// #9621 : autolinespacing is now expressed as a percentage of the font height
+		doc->typographicPrefs().autoLineSpacing = attrs.valueAsInt("AUTOL", 1, 500, 100);
+		doc->typographicPrefs().valueUnderlinePos = attrs.valueAsInt("UnderlinePos", -1);
+		doc->typographicPrefs().valueUnderlineWidth = attrs.valueAsInt("UnderlineWidth", -1);
+		doc->typographicPrefs().valueStrikeThruPos = attrs.valueAsInt("StrikeThruPos", -1);
+		doc->typographicPrefs().valueStrikeThruWidth = attrs.valueAsInt("StrikeThruWidth", -1);
+	}
+	else
+	{
+		doc->typographicPrefs().valueSuperScript = attrs.valueAsInt("SuperScriptDisplacement");
+		doc->typographicPrefs().scalingSuperScript = attrs.valueAsInt("SuperScriptScaling");
+		doc->typographicPrefs().valueSubScript = attrs.valueAsInt("SubScriptDisplacement");
+		doc->typographicPrefs().scalingSubScript = attrs.valueAsInt("SubScriptScaling");
+		doc->typographicPrefs().valueSmallCaps = attrs.valueAsInt("SmallCapsScaling");
+		doc->guidesPrefs().valueBaselineGrid = attrs.valueAsDouble("BaselineGridSpacing", 12.0);
+		doc->guidesPrefs().offsetBaselineGrid = attrs.valueAsDouble("BaselineGridOffset", 0.0);
+		// #9621 : autolinespacing is now expressed as a percentage of the font height
+		doc->typographicPrefs().autoLineSpacing = attrs.valueAsInt("AutoLineSpacingPct", 1, 500, 100);
+		doc->typographicPrefs().valueUnderlinePos = attrs.valueAsInt("UnderlinePosition", -1);
+		doc->typographicPrefs().valueUnderlineWidth = attrs.valueAsInt("UnderlineWidth", -1);
+		doc->typographicPrefs().valueStrikeThruPos = attrs.valueAsInt("StrikeThruPosition", -1);
+		doc->typographicPrefs().valueStrikeThruWidth = attrs.valueAsInt("StrikeThruWidth", -1);
+	}
 }
 
 bool Scribus171Format::readPageSets(ScribusDoc* doc, ScXmlStreamReader& reader) const
@@ -2741,14 +3010,10 @@ bool Scribus171Format::readPageSets(ScribusDoc* doc, ScXmlStreamReader& reader) 
 			pageS.FirstPage = attrs.valueAsInt("FirstPage", 0);
 			pageS.Rows = attrs.valueAsInt("Rows", 1);
 			pageS.Columns = attrs.valueAsInt("Columns", 1);
-//			pageS.GapHorizontal = attrs.valueAsDouble("GapHorizontal", 0);
-//			pageS.GapVertical = attrs.valueAsDouble("GapVertical", 0);
-//			pageS.GapBelow = attrs.valueAsDouble("GapBelow", 0);
 			pageS.pageNames.clear();
 		}
 		if (reader.isEndElement() && tagName == QLatin1String("Set"))
 		{
-//			doc->pageSets.append(pageS);
 			doc->appendToPageSets(pageS);
 			if ((doc->pageSets().count()-1 == doc->pagePositioning()) && ((doc->pageGapHorizontal() < 0) && (doc->pageGapVertical() < 0)))
 			{
@@ -2769,28 +3034,57 @@ bool Scribus171Format::readCheckProfile(ScribusDoc* doc, const ScXmlStreamAttrib
 	QString profileName = attrs.valueAsString("Name");
 	if (profileName.isEmpty())
 		return true;
-	checkerSettings.ignoreErrors = attrs.valueAsBool("ignoreErrors", false);
-	checkerSettings.autoCheck = attrs.valueAsBool("autoCheck", true);
-	checkerSettings.checkGlyphs = attrs.valueAsBool("checkGlyphs", true);
-	checkerSettings.checkOrphans = attrs.valueAsBool("checkOrphans", true);
-	checkerSettings.checkOverflow = attrs.valueAsBool("checkOverflow", true);
-	checkerSettings.checkPictures = attrs.valueAsBool("checkPictures", true);
-	checkerSettings.checkPartFilledImageFrames = attrs.valueAsBool("checkPartFilledImageFrames", false);
-	checkerSettings.checkResolution = attrs.valueAsBool("checkResolution", true);
-	checkerSettings.checkTransparency = attrs.valueAsBool("checkTransparency", true);
-	checkerSettings.minResolution = attrs.valueAsDouble("minResolution", 72.0);
-	checkerSettings.maxResolution = attrs.valueAsDouble("maxResolution", 4800.0);
-	checkerSettings.checkAnnotations = attrs.valueAsBool("checkAnnotations", false);
-	checkerSettings.checkRasterPDF = attrs.valueAsBool("checkRasterPDF", true);
-	checkerSettings.checkForGIF = attrs.valueAsBool("checkForGIF", true);
-	checkerSettings.ignoreOffLayers = attrs.valueAsBool("ignoreOffLayers", false);
-	checkerSettings.checkNotCMYKOrSpot = attrs.valueAsBool("checkNotCMYKOrSpot", false);
-	checkerSettings.checkDeviceColorsAndOutputIntent = attrs.valueAsBool("checkDeviceColorsAndOutputIntent", false);
-	checkerSettings.checkFontNotEmbedded = attrs.valueAsBool("checkFontNotEmbedded", false);
-	checkerSettings.checkFontIsOpenType = attrs.valueAsBool("checkFontIsOpenType", false);
-	checkerSettings.checkAppliedMasterDifferentSide = attrs.valueAsBool("checkAppliedMasterDifferentSide", true);
-	checkerSettings.checkEmptyTextFrames = attrs.valueAsBool("checkEmptyTextFrames", true);
-	checkerSettings.checkImageHasProgressiveEncoding = attrs.valueAsBool("checkImageHasProgressiveEncoding", true);
+	//Remove old in 1.8
+	if (attrs.hasAttribute("ignoreErrors"))
+	{
+		checkerSettings.ignoreErrors = attrs.valueAsBool("ignoreErrors", false);
+		checkerSettings.autoCheck = attrs.valueAsBool("autoCheck", true);
+		checkerSettings.checkGlyphs = attrs.valueAsBool("checkGlyphs", true);
+		checkerSettings.checkOrphans = attrs.valueAsBool("checkOrphans", true);
+		checkerSettings.checkOverflow = attrs.valueAsBool("checkOverflow", true);
+		checkerSettings.checkPictures = attrs.valueAsBool("checkPictures", true);
+		checkerSettings.checkPartFilledImageFrames = attrs.valueAsBool("checkPartFilledImageFrames", false);
+		checkerSettings.checkResolution = attrs.valueAsBool("checkResolution", true);
+		checkerSettings.checkTransparency = attrs.valueAsBool("checkTransparency", true);
+		checkerSettings.minResolution = attrs.valueAsDouble("minResolution", 72.0);
+		checkerSettings.maxResolution = attrs.valueAsDouble("maxResolution", 4800.0);
+		checkerSettings.checkAnnotations = attrs.valueAsBool("checkAnnotations", false);
+		checkerSettings.checkRasterPDF = attrs.valueAsBool("checkRasterPDF", true);
+		checkerSettings.checkForGIF = attrs.valueAsBool("checkForGIF", true);
+		checkerSettings.ignoreOffLayers = attrs.valueAsBool("ignoreOffLayers", false);
+		checkerSettings.checkNotCMYKOrSpot = attrs.valueAsBool("checkNotCMYKOrSpot", false);
+		checkerSettings.checkDeviceColorsAndOutputIntent = attrs.valueAsBool("checkDeviceColorsAndOutputIntent", false);
+		checkerSettings.checkFontNotEmbedded = attrs.valueAsBool("checkFontNotEmbedded", false);
+		checkerSettings.checkFontIsOpenType = attrs.valueAsBool("checkFontIsOpenType", false);
+		checkerSettings.checkAppliedMasterDifferentSide = attrs.valueAsBool("checkAppliedMasterDifferentSide", true);
+		checkerSettings.checkEmptyTextFrames = attrs.valueAsBool("checkEmptyTextFrames", true);
+		checkerSettings.checkImageHasProgressiveEncoding = attrs.valueAsBool("checkImageHasProgressiveEncoding", true);
+	}
+	else
+	{
+		checkerSettings.ignoreErrors = attrs.valueAsBool("IgnoreErrors", false);
+		checkerSettings.autoCheck = attrs.valueAsBool("AutoCheck", true);
+		checkerSettings.checkGlyphs = attrs.valueAsBool("CheckGlyphs", true);
+		checkerSettings.checkOrphans = attrs.valueAsBool("CheckOrphans", true);
+		checkerSettings.checkOverflow = attrs.valueAsBool("CheckOverflow", true);
+		checkerSettings.checkPictures = attrs.valueAsBool("CheckPictures", true);
+		checkerSettings.checkPartFilledImageFrames = attrs.valueAsBool("CheckPartFilledImageFrames", false);
+		checkerSettings.checkResolution = attrs.valueAsBool("CheckResolution", true);
+		checkerSettings.checkTransparency = attrs.valueAsBool("CheckTransparency", true);
+		checkerSettings.minResolution = attrs.valueAsDouble("MinimumResolution", 72.0);
+		checkerSettings.maxResolution = attrs.valueAsDouble("MaximumResolution", 4800.0);
+		checkerSettings.checkAnnotations = attrs.valueAsBool("CheckAnnotations", false);
+		checkerSettings.checkRasterPDF = attrs.valueAsBool("CheckRasterPDF", true);
+		checkerSettings.checkForGIF = attrs.valueAsBool("CheckForGIF", true);
+		checkerSettings.ignoreOffLayers = attrs.valueAsBool("IgnoreOffLayers", false);
+		checkerSettings.checkNotCMYKOrSpot = attrs.valueAsBool("CheckNotCMYKOrSpot", false);
+		checkerSettings.checkDeviceColorsAndOutputIntent = attrs.valueAsBool("CheckDeviceColorsAndOutputIntent", false);
+		checkerSettings.checkFontNotEmbedded = attrs.valueAsBool("CheckFontNotEmbedded", false);
+		checkerSettings.checkFontIsOpenType = attrs.valueAsBool("CheckFontIsOpenType", false);
+		checkerSettings.checkAppliedMasterDifferentSide = attrs.valueAsBool("CheckAppliedMasterDifferentSide", true);
+		checkerSettings.checkEmptyTextFrames = attrs.valueAsBool("CheckEmptyTextFrames", true);
+		checkerSettings.checkImageHasProgressiveEncoding = attrs.valueAsBool("CheckImageHasProgressiveEncoding", true);
+	}
 	doc->set1CheckerProfile(profileName, checkerSettings);
 	return true;
 }
@@ -2798,9 +3092,15 @@ bool Scribus171Format::readCheckProfile(ScribusDoc* doc, const ScXmlStreamAttrib
 void Scribus171Format::readColor(ColorList& colors, const ScXmlStreamAttributes& attrs) const
 {
 	ScColor color;
-	if (attrs.hasAttribute("SPACE"))
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("SPACE") || attrs.hasAttribute("Space"))
 	{
-		QString space = attrs.valueAsString("SPACE");
+		//Remove uppercase in 1.8 format
+		QString space;
+		if (attrs.hasAttribute("SPACE"))
+			space = attrs.valueAsString("SPACE");
+		else
+			space = attrs.valueAsString("Space");
 		if (space == "CMYK")
 		{
 			double c = attrs.valueAsDouble("C", 0) / 100.0;
@@ -2837,7 +3137,12 @@ void Scribus171Format::readColor(ColorList& colors, const ScXmlStreamAttributes&
 	}
 	color.setSpotColor( attrs.valueAsBool("Spot", false) );
 	color.setRegistrationColor( attrs.valueAsBool("Register", false) );
-	QString name(attrs.valueAsString("NAME", color.name()));
+	QString name;
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("NAME"))
+		name = attrs.valueAsString("NAME", color.name());
+	else
+		name = attrs.valueAsString("Name", color.name());
 	if (name == "All")
 	{
 		color.setSpotColor(true);
@@ -2862,6 +3167,7 @@ bool Scribus171Format::readGradient(ScribusDoc *doc, VGradient &gra, ScXmlStream
 		ScXmlStreamReader::TokenType tType = reader.readNext();
 		if (tType == ScXmlStreamReader::EndElement && reader.name() == tagName)
 			break;
+		//Remove uppercase in 1.8 format
 		if (tType == ScXmlStreamReader::StartElement && reader.name() == QLatin1String("CSTOP"))
 		{
 			ScXmlStreamAttributes attrs = reader.scAttributes();
@@ -2871,6 +3177,16 @@ bool Scribus171Format::readGradient(ScribusDoc *doc, VGradient &gra, ScXmlStream
 			double opa = attrs.valueAsDouble("TRANS", 1.0);
 			gra.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
 		}
+		else
+			if (tType == ScXmlStreamReader::StartElement && reader.name() == QLatin1String("ColorStop"))
+			{
+				ScXmlStreamAttributes attrs = reader.scAttributes();
+				QString name = attrs.valueAsString("Name");
+				double ramp = attrs.valueAsDouble("Ramp", 0.0);
+				int shade = attrs.valueAsInt("Shade", 100);
+				double opa = attrs.valueAsDouble("Opacity", 1.0);
+				gra.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
+			}
 	}
 	return !reader.hasError();
 }
@@ -3173,41 +3489,59 @@ void Scribus171Format::readParagraphStyle(ScribusDoc *doc, ScXmlStreamReader& re
 			newStyle.setParent(CommonStrings::DefaultParagraphStyle);
 	}
 
-	static const QString LINESPMode("LINESPMode");
-	if (attrs.hasAttribute(LINESPMode))
-		newStyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(attrs.valueAsInt(LINESPMode)));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("LINESPMode"))
+		newStyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(attrs.valueAsInt("LINESPMode")));
+	else if (attrs.hasAttribute("LineSpacingMode"))
+		newStyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(attrs.valueAsInt("LineSpacingMode")));
 
-	static const QString LINESP("LINESP");
-	if (attrs.hasAttribute(LINESP))
-		newStyle.setLineSpacing(attrs.valueAsDouble(LINESP));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("LINESP"))
+		newStyle.setLineSpacing(attrs.valueAsDouble("LINESP"));
+	else if (attrs.hasAttribute("LineSpacing"))
+		newStyle.setLineSpacing(attrs.valueAsDouble("LineSpacing"));
 
-	static const QString INDENT("INDENT");
-	if (attrs.hasAttribute(INDENT))
-		newStyle.setLeftMargin(attrs.valueAsDouble(INDENT));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("INDENT"))
+		newStyle.setLeftMargin(attrs.valueAsDouble("INDENT"));
+	else if (attrs.hasAttribute("LeftMargin"))
+		newStyle.setLeftMargin(attrs.valueAsDouble("LeftMargin"));
 
-	static const QString RMARGIN("RMARGIN");
-	if (attrs.hasAttribute(RMARGIN))
-		newStyle.setRightMargin(attrs.valueAsDouble(RMARGIN));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("RMARGIN"))
+		newStyle.setRightMargin(attrs.valueAsDouble("RMARGIN"));
+	else if (attrs.hasAttribute("RightMargin"))
+		newStyle.setRightMargin(attrs.valueAsDouble("RightMargin"));
 
-	static const QString FIRST("FIRST");
-	if (attrs.hasAttribute(FIRST))
-		newStyle.setFirstIndent(attrs.valueAsDouble(FIRST));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("FIRST"))
+		newStyle.setFirstIndent(attrs.valueAsDouble("FIRST"));
+	else if (attrs.hasAttribute("FirstIndent"))
+		newStyle.setFirstIndent(attrs.valueAsDouble("FirstIndent"));
 
-	static const QString ALIGN("ALIGN");
-	if (attrs.hasAttribute(ALIGN))
-		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt(ALIGN)));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("ALIGN"))
+		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt("ALIGN")));
+	else if (attrs.hasAttribute("Alignment"))
+		newStyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt("Alignment")));
 
-	static const QString DIRECTION("DIRECTION");
-	if (attrs.hasAttribute(DIRECTION))
-		newStyle.setDirection(static_cast<ParagraphStyle::DirectionType>(attrs.valueAsInt(DIRECTION)));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("DIRECTION"))
+		newStyle.setDirection(static_cast<ParagraphStyle::DirectionType>(attrs.valueAsInt("DIRECTION")));
+	else if (attrs.hasAttribute("Direction"))
+		newStyle.setDirection(static_cast<ParagraphStyle::DirectionType>(attrs.valueAsInt("Direction")));
 
-	static const QString VOR("VOR");
-	if (attrs.hasAttribute(VOR))
-		newStyle.setGapBefore(attrs.valueAsDouble(VOR));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("VOR"))
+		newStyle.setGapBefore(attrs.valueAsDouble("VOR"));
+	else if (attrs.hasAttribute("GapBefore"))
+		newStyle.setGapBefore(attrs.valueAsDouble("GapBefore"));
 
-	static const QString NACH("NACH");
-	if (attrs.hasAttribute(NACH))
-		newStyle.setGapAfter(attrs.valueAsDouble(NACH));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("NACH"))
+		newStyle.setGapAfter(attrs.valueAsDouble("NACH"));
+	else if (attrs.hasAttribute("GapAfter"))
+		newStyle.setGapAfter(attrs.valueAsDouble("GapAfter"));
 
 	static const QString ParagraphEffectCharStyle("ParagraphEffectCharStyle");
 	if (attrs.hasAttribute(ParagraphEffectCharStyle))
@@ -3221,21 +3555,25 @@ void Scribus171Format::readParagraphStyle(ScribusDoc *doc, ScXmlStreamReader& re
 	if (attrs.hasAttribute(ParagraphEffectIndent))
 		newStyle.setParEffectIndent(attrs.valueAsDouble(ParagraphEffectIndent));
 
-	static const QString DROP("DROP");
-	if (attrs.hasAttribute(DROP))
-		newStyle.setHasDropCap(static_cast<bool>(attrs.valueAsInt(DROP)));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("DROP"))
+		newStyle.setHasDropCap(static_cast<bool>(attrs.valueAsInt("DROP")));
+	else if (attrs.hasAttribute("HasDropCap"))
+		newStyle.setHasDropCap(static_cast<bool>(attrs.valueAsInt("HasDropCap")));
 
-	static const QString DROPCHSTYLE("DROPCHSTYLE");
-	if (attrs.hasAttribute(DROPCHSTYLE))
-		newStyle.setPeCharStyleName(attrs.valueAsString(DROPCHSTYLE));
+	// static const QString DROPCHSTYLE("DROPCHSTYLE");
+	// if (attrs.hasAttribute(DROPCHSTYLE))
+	// 	newStyle.setPeCharStyleName(attrs.valueAsString(DROPCHSTYLE));
 
-	static const QString DROPLIN("DROPLIN");
-	if (attrs.hasAttribute(DROPLIN))
-		newStyle.setDropCapLines(attrs.valueAsInt(DROPLIN));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("DROPLIN"))
+		newStyle.setDropCapLines(attrs.valueAsInt("DROPLIN"));
+	else if (attrs.hasAttribute("DropCapLines"))
+		newStyle.setDropCapLines(attrs.valueAsInt("DropCapLines"));
 
-	static const QString DROPDIST("DROPDIST");
-	if (attrs.hasAttribute(DROPDIST))
-		newStyle.setParEffectOffset(attrs.valueAsDouble(DROPDIST));
+	// static const QString DROPDIST("DROPDIST");
+	// if (attrs.hasAttribute(DROPDIST))
+	// 	newStyle.setParEffectOffset(attrs.valueAsDouble(DROPDIST));
 
 	static const QString Bullet("Bullet");
 	if (attrs.hasAttribute(Bullet))
@@ -3285,9 +3623,11 @@ void Scribus171Format::readParagraphStyle(ScribusDoc *doc, ScXmlStreamReader& re
 	if (attrs.hasAttribute(NumerationHigher))
 		newStyle.setNumHigher(static_cast<bool>(attrs.valueAsInt(NumerationHigher)));
 
-	static const QString PSHORTCUT("PSHORTCUT");
-	if (attrs.hasAttribute(PSHORTCUT))
-		newStyle.setShortcut(attrs.valueAsString(PSHORTCUT));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("PSHORTCUT"))
+		newStyle.setShortcut(attrs.valueAsString("PSHORTCUT"));
+	else if (attrs.hasAttribute("ParagraphStyleShortcut"))
+		newStyle.setShortcut(attrs.valueAsString("ParagraphStyleShortcut"));
 
 	static const QString OpticalMargins("OpticalMargins");
 	if (attrs.hasAttribute(OpticalMargins))
@@ -3336,12 +3676,16 @@ void Scribus171Format::readParagraphStyle(ScribusDoc *doc, ScXmlStreamReader& re
 	static const QString KeepTogether("KeepTogether");
 	if (attrs.hasAttribute(KeepTogether))
 		newStyle.setKeepTogether(attrs.valueAsInt(KeepTogether));
-	static const QString BCOLOR("BCOLOR");
-	if (attrs.hasAttribute(BCOLOR))
-		newStyle.setBackgroundColor(attrs.valueAsString(BCOLOR, CommonStrings::None));
-	static const QString BSHADE("BSHADE");
-	if (attrs.hasAttribute(BSHADE))
-		newStyle.setBackgroundShade(attrs.valueAsInt(BSHADE, 100));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("BCOLOR"))
+		newStyle.setBackgroundColor(attrs.valueAsString("BCOLOR", CommonStrings::None));
+	else if (attrs.hasAttribute("ParagraphBackgroundColor"))
+		newStyle.setBackgroundColor(attrs.valueAsString("ParagraphBackgroundColor", CommonStrings::None));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("BSHADE"))
+		newStyle.setBackgroundShade(attrs.valueAsInt("BSHADE", 100));
+	else if (attrs.hasAttribute("ParagraphBackgroundColorShade"))
+		newStyle.setBackgroundShade(attrs.valueAsInt("ParagraphBackgroundColorShade", 100));
 
 	readCharacterStyleAttrs(doc, attrs, newStyle.charStyle());
 
@@ -3581,19 +3925,19 @@ void Scribus171Format::readLayers(ScLayer& layer, const ScXmlStreamAttributes& a
 
 bool Scribus171Format::readArrows(ScribusDoc* doc, ScXmlStreamAttributes& attrs) const
 {
-	double xa;
-	double ya;
+	double x;
+	double y;
 	struct ArrowDesc arrow;
 	arrow.name = attrs.valueAsString("Name");
 	arrow.userArrow = true;
 	QString tmp = attrs.valueAsString("Points");
 	ScTextStream fp(&tmp, QIODevice::ReadOnly);
 	unsigned int numPoints = attrs.valueAsUInt("NumPoints");
-	for (uint cx = 0; cx < numPoints; ++cx)
+	for (uint i = 0; i < numPoints; ++i)
 	{
-		fp >> xa;
-		fp >> ya;
-		arrow.points.addPoint(xa, ya);
+		fp >> x;
+		fp >> y;
+		arrow.points.addPoint(x, y);
 	}
 	if (!doc->hasArrowStyle(arrow.name))
 		doc->appendToArrowStyles(arrow);
@@ -3647,9 +3991,9 @@ bool Scribus171Format::readBookMark(ScribusDoc::BookMa& bookmark, int& elem, con
 	bookmark.Last = attrs.valueAsInt("Last");
 	//Fix in 1.8 format
 	if (attrs.hasAttribute("Prev"))
-		bookmark.ItemNr = attrs.valueAsInt("Prev");
+		bookmark.Prev = attrs.valueAsInt("Prev");
 	else
-		bookmark.ItemNr = attrs.valueAsInt("Previous");
+		bookmark.Prev = attrs.valueAsInt("Previous");
 	bookmark.Next = attrs.valueAsInt("Next");
 	bookmark.Parent = attrs.valueAsInt("Parent");
 	return true;
@@ -4172,7 +4516,6 @@ bool Scribus171Format::readOpticalMarginSets(ScribusDoc *doc, ScXmlStreamReader 
 	QString tagName(reader.nameAsString());
 	OpticalMarginSets sets;
 	OpticalMarginSet set;
-	QMap<QString, QString> names;
 	OpticalMarginRules rules;
 
 	while (!reader.atEnd() && !reader.hasError())
@@ -4291,7 +4634,7 @@ bool Scribus171Format::readHyphen(ScribusDoc *doc, ScXmlStreamReader& reader) co
 			QString word = attrs.valueAsString("Word");
 			hyphenationPrefs.ignoredWords.insert(word);
 		}
-		//Removed uppercase in 1.8
+		//Remove uppercase in 1.8
 		else if (reader.isStartElement() && reader.name() == QLatin1String("EXCEPTION"))
 		{
 			ScXmlStreamAttributes attrs = reader.scAttributes();
@@ -4314,32 +4657,74 @@ bool Scribus171Format::readPage(ScribusDoc* doc, ScXmlStreamReader& reader)
 	QString tagName(reader.nameAsString());
 
 	ScXmlStreamAttributes attrs = reader.scAttributes();
-	int     pageNum = attrs.valueAsInt("NUM");
-	QString pageName = attrs.valueAsString("NAM", "");
+	int pageNum = 0;
+	QString pageName;
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("NUM"))
+		pageNum = attrs.valueAsInt("NUM");
+	else
+		pageNum = attrs.valueAsInt("PageNumber");
+	if (attrs.hasAttribute("NAM"))
+		pageName = attrs.valueAsString("NAM", "");
+	else
+		pageName = attrs.valueAsString("PageName", "");
+	//Remove uppercase in 1.8
 	if (tagName == QLatin1String("MASTERPAGE") && pageName.isEmpty())
 	{
 		qDebug() << "scribus171format: corrupted masterpage with empty name detected";
 		return true;
 	}
+	else
+		if (tagName == QLatin1String("MasterPage") && pageName.isEmpty())
+		{
+			qDebug() << "scribus171format: corrupted masterpage with empty name detected";
+			return true;
+		}
 
 	bool savedMasterPageMode = m_Doc->masterPageMode();
 	m_Doc->setMasterPageMode(!pageName.isEmpty());
 	ScPage* newPage = pageName.isEmpty() ? doc->addPage(pageNum) : doc->addMasterPage(pageNum, pageName);
 
-	newPage->LeftPg = attrs.valueAsInt("LEFT", 0);
-	QString mpName = attrs.valueAsString("MNAM", "Normal");
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("LEFT"))
+		newPage->LeftPg = attrs.valueAsInt("LEFT", 0);
+	else
+		newPage->LeftPg = attrs.valueAsInt("LeftPage", 0);
+	//Remove uppercase in 1.8
+	QString mpName;
+	if (attrs.hasAttribute("MNAM"))
+		mpName = attrs.valueAsString("MNAM", "Normal");
+	else
+		mpName = attrs.valueAsString("MasterPageName", "Normal");
 	newPage->setMasterPageName(m_Doc->masterPageMode() ? QString() : mpName);
 	if (attrs.hasAttribute("Size"))
 		newPage->setSize(attrs.valueAsString("Size"));
 	if (attrs.hasAttribute("Orientation"))
 		newPage->setOrientation(attrs.valueAsInt("Orientation"));
-	newPage->setXOffset(attrs.valueAsDouble("PAGEXPOS"));
-	newPage->setYOffset(attrs.valueAsDouble("PAGEYPOS"));
+
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("PAGEXPOS"))
+		newPage->setXOffset(attrs.valueAsDouble("PAGEXPOS"));
+	else
+		newPage->setXOffset(attrs.valueAsDouble("PageXPosition"));
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("PAGEYPOS"))
+		newPage->setYOffset(attrs.valueAsDouble("PAGEYPOS"));
+	else
+		newPage->setYOffset(attrs.valueAsDouble("PageYPosition"));
+
+
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("PAGEWIDTH"))
 		newPage->setWidth(attrs.valueAsDouble("PAGEWIDTH"));
 	else
-		newPage->setWidth(attrs.valueAsDouble("PAGEWITH"));
-	newPage->setHeight(attrs.valueAsDouble("PAGEHEIGHT"));
+		newPage->setWidth(attrs.valueAsDouble("PageWidth"));
+
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("PAGEHEIGHT"))
+		newPage->setHeight(attrs.valueAsDouble("PAGEHEIGHT"));
+	else
+		newPage->setHeight(attrs.valueAsDouble("PageHeight"));
 
 	//14704: Double check the page size should not be Custom in case the size doesn't match a standard size
 	if (attrs.hasAttribute("Size"))
@@ -4354,42 +4739,96 @@ bool Scribus171Format::readPage(ScribusDoc* doc, ScXmlStreamReader& reader)
 
 	newPage->setInitialHeight(newPage->height());
 	newPage->setInitialWidth(newPage->width());
-	newPage->initialMargins.setTop(qMax(0.0, attrs.valueAsDouble("BORDERTOP")));
-	newPage->initialMargins.setBottom(qMax(0.0, attrs.valueAsDouble("BORDERBOTTOM")));
-	newPage->initialMargins.setLeft(qMax(0.0, attrs.valueAsDouble("BORDERLEFT")));
-	newPage->initialMargins.setRight(qMax(0.0, attrs.valueAsDouble("BORDERRIGHT")));
-	newPage->marginPreset = attrs.valueAsInt("PRESET", 0);
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("BORDERTOP"))
+		newPage->initialMargins.setTop(qMax(0.0, attrs.valueAsDouble("BORDERTOP")));
+	else
+		newPage->initialMargins.setTop(qMax(0.0, attrs.valueAsDouble("BorderTop")));
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("BORDERBOTTOM"))
+		newPage->initialMargins.setBottom(qMax(0.0, attrs.valueAsDouble("BORDERBOTTOM")));
+	else
+		newPage->initialMargins.setBottom(qMax(0.0, attrs.valueAsDouble("BorderBottom")));
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("BORDERLEFT"))
+		newPage->initialMargins.setLeft(qMax(0.0, attrs.valueAsDouble("BORDERLEFT")));
+	else
+		newPage->initialMargins.setLeft(qMax(0.0, attrs.valueAsDouble("BorderLeft")));
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("BORDERRIGHT"))
+		newPage->initialMargins.setRight(qMax(0.0, attrs.valueAsDouble("BORDERRIGHT")));
+	else
+		newPage->initialMargins.setRight(qMax(0.0, attrs.valueAsDouble("BorderRight")));
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("PRESET"))
+		newPage->marginPreset = attrs.valueAsInt("PRESET", 0);
+	else
+		newPage->marginPreset = attrs.valueAsInt("Preset", 0);
 	newPage->Margins.setTop(newPage->initialMargins.top());
 	newPage->Margins.setBottom(newPage->initialMargins.bottom());
 
 	m_Doc->setMasterPageMode(savedMasterPageMode);
 
 	// guides reading
-	newPage->guides.setHorizontalAutoGap(attrs.valueAsDouble("AGhorizontalAutoGap", 0.0));
-	newPage->guides.setVerticalAutoGap(attrs.valueAsDouble("AGverticalAutoGap", 0.0));
-	newPage->guides.setHorizontalAutoCount(attrs.valueAsInt("AGhorizontalAutoCount", 0) );
-	newPage->guides.setVerticalAutoCount(attrs.valueAsInt("AGverticalAutoCount", 0) );
-	newPage->guides.setHorizontalAutoRefer(attrs.valueAsInt("AGhorizontalAutoRefer", 0) );
-	newPage->guides.setVerticalAutoRefer(attrs.valueAsInt("AGverticalAutoRefer", 0) );
-	GuideManagerIO::readVerticalGuides(attrs.valueAsString("VerticalGuides"),
-			newPage,
-			GuideManagerCore::Standard,
-			attrs.hasAttribute("NumVGuides"));
-	GuideManagerIO::readHorizontalGuides(attrs.valueAsString("HorizontalGuides"),
-			newPage,
-			GuideManagerCore::Standard,
-			attrs.hasAttribute("NumHGuides"));
-	GuideManagerIO::readSelection(attrs.valueAsString("AGSelection"), newPage);
+	//Remove old ones in 1.8
+	if (attrs.hasAttribute("AGhorizontalAutoGap"))
+	{
+		newPage->guides.setHorizontalAutoGap(attrs.valueAsDouble("AGhorizontalAutoGap", 0.0));
+		newPage->guides.setVerticalAutoGap(attrs.valueAsDouble("AGverticalAutoGap", 0.0));
+		newPage->guides.setHorizontalAutoCount(attrs.valueAsInt("AGhorizontalAutoCount", 0));
+		newPage->guides.setVerticalAutoCount(attrs.valueAsInt("AGverticalAutoCount", 0));
+		newPage->guides.setHorizontalAutoRefer(attrs.valueAsInt("AGhorizontalAutoRefer", 0));
+		newPage->guides.setVerticalAutoRefer(attrs.valueAsInt("AGverticalAutoRefer", 0));
+	}
+	else
+	{
+		newPage->guides.setHorizontalAutoGap(attrs.valueAsDouble("AutoGuideHorizontalGap", 0.0));
+		newPage->guides.setVerticalAutoGap(attrs.valueAsDouble("AutoGuideVerticalGap", 0.0));
+		newPage->guides.setHorizontalAutoCount(attrs.valueAsInt("AutoGuideHorizontalCount", 0));
+		newPage->guides.setVerticalAutoCount(attrs.valueAsInt("AutoGuideVerticalCount", 0));
+		newPage->guides.setHorizontalAutoRefer(attrs.valueAsInt("AutoGuideHorizontalReference", 0));
+		newPage->guides.setVerticalAutoRefer(attrs.valueAsInt("AutoGuideVerticalReference", 0));
+	}
+	GuideManagerIO::readVerticalGuides(attrs.valueAsString("VerticalGuides"), newPage, GuideManagerCore::Standard, false);
+	GuideManagerIO::readHorizontalGuides(attrs.valueAsString("HorizontalGuides"), newPage, GuideManagerCore::Standard, false);
+	if (attrs.hasAttribute("AGSelection"))
+		GuideManagerIO::readSelection(attrs.valueAsString("AGSelection"), newPage);
+	else
+		GuideManagerIO::readSelection(attrs.valueAsString("AutoGuideSelection"), newPage);
 
 	newPage->guides.addHorizontals(newPage->guides.getAutoHorizontals(newPage), GuideManagerCore::Auto);
 	newPage->guides.addVerticals(newPage->guides.getAutoVerticals(newPage), GuideManagerCore::Auto);
 	struct PDFPresentationData ef;
-	ef.pageEffectDuration =  attrs.valueAsInt("pageEffectDuration", 1);
-	ef.pageViewDuration =  attrs.valueAsInt("pageViewDuration", 1);
-	ef.effectType = attrs.valueAsInt("effectType", 0);
-	ef.Dm = attrs.valueAsInt("Dm", 0);
-	ef.M = attrs.valueAsInt("M", 0);
-	ef.Di = attrs.valueAsInt("Di", 0);
+	//Remove old ones in 1.8
+	if (attrs.hasAttribute("pageEffectDuration"))
+		ef.pageEffectDuration =  attrs.valueAsInt("pageEffectDuration", 1);
+	else
+		ef.pageEffectDuration =  attrs.valueAsInt("PageEffectDuration", 1);
+	//Remove old ones in 1.8
+	if (attrs.hasAttribute("pageViewDuration"))
+		ef.pageViewDuration =  attrs.valueAsInt("pageViewDuration", 1);
+	else
+		ef.pageViewDuration =  attrs.valueAsInt("PageViewDuration", 1);
+	//Remove old ones in 1.8
+	if (attrs.hasAttribute("effectType"))
+		ef.effectType = attrs.valueAsInt("effectType", 0);
+	else
+		ef.effectType = attrs.valueAsInt("PageEffectType", 0);
+	//Remove old ones in 1.8
+	if (attrs.hasAttribute("Dm"))
+		ef.Dm = attrs.valueAsInt("Dm", 0);
+	else
+		ef.Dm = attrs.valueAsInt("PageEffectLineDirection", 0);
+	//Remove old ones in 1.8
+	if (attrs.hasAttribute("Dm"))
+		ef.M = attrs.valueAsInt("M", 0);
+	else
+		ef.M = attrs.valueAsInt("PageEffectInsideOutside", 0);
+	//Remove old ones in 1.8
+	if (attrs.hasAttribute("Dm"))
+		ef.Di = attrs.valueAsInt("Di", 0);
+	else
+		ef.Di = attrs.valueAsInt("PageEffectDirection", 0);
 	newPage->PresentVals = ef;
 	return true;
 }
@@ -4402,14 +4841,15 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 	bool savedMasterPageMode = doc->masterPageMode();
 	if (!readObjectParams.loadingPage)
 	{
-		if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("PatternItem") || tagName == QLatin1String("ITEM"))
+		if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("PageObject") || tagName == QLatin1String("FrameObject") ||
+				tagName == QLatin1String("PatternItem") || tagName == QLatin1String("ITEM") || tagName == QLatin1String("Item"))
 			doc->setMasterPageMode(false);
 		else
 			doc->setMasterPageMode(true);
 	}
 
 	PageItem::ItemKind itemKind = PageItem::StandardItem;
-	if (tagName == QLatin1String("FRAMEOBJECT"))
+	if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 		itemKind = PageItem::InlineItem;
 	else if (tagName == QLatin1String("PatternItem"))
 		itemKind = PageItem::PatternItem;
@@ -4420,7 +4860,7 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 
 	int pageNr = -1;
 	QString masterPageName = attrs.valueAsString("OnMasterPage");
-	if ((!masterPageName.isEmpty()) && (tagName == QLatin1String("MASTEROBJECT")))
+	if ((!masterPageName.isEmpty()) && (tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject")))
 	{
 		if (!readObjectParams.renamedMasterPage.isEmpty())
 			masterPageName = readObjectParams.renamedMasterPage;
@@ -4432,13 +4872,13 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 
 	PageItem* newItem = pasteItem(doc, attrs, readObjectParams.baseDir, itemKind, pageNr);
 	newItem->setRedrawBounding();
-	if (tagName == QLatin1String("MASTEROBJECT"))
+	if (tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject"))
 		newItem->setOwnerPage(doc->OnPage(newItem));
 	else
 		newItem->setOwnerPage(attrs.valueAsInt("OwnPage"));
-	if ((tagName == QLatin1String("PAGEOBJECT")) || (tagName == QLatin1String("ITEM")))
+	if ((tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject")) || (tagName == QLatin1String("ITEM") || tagName == QLatin1String("Item")))
 		newItem->setMasterPageName(QString());
-	if (tagName == QLatin1String("ITEM"))
+	if (tagName == QLatin1String("ITEM") || tagName == QLatin1String("Item"))
 	{
 		newItem->setLayer(LayerToPaste);
 		newItem->setMasterPage(doc->OnPage(newItem), doc->currentPage()->pageName());
@@ -4447,7 +4887,10 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 	m_AvailableFonts->findFont(tmpf, doc);
 
 //	newItem->Language = ScMW->GetLang(pg.attribute("LANGUAGE", doc->Language));
-	newItem->isAutoText = attrs.valueAsBool("AUTOTEXT", false);
+	if (attrs.hasAttribute("AUTOTEXT"))
+		newItem->isAutoText = attrs.valueAsBool("AUTOTEXT", false);
+	else
+		newItem->isAutoText = attrs.valueAsBool("AutomaticTextFrame", false);
 	newItem->isEmbedded = attrs.valueAsBool("isInline", false);
 	newItem->gXpos = attrs.valueAsDouble("gXpos", 0.0);
 	newItem->gYpos = attrs.valueAsDouble("gYpos", 0.0);
@@ -4456,7 +4899,7 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 	if (newItem->isAutoText)
 		doc->LastAuto = newItem;
 
-	if (tagName == QLatin1String("FRAMEOBJECT"))
+	if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 	{
 		if (newItem->inlineCharID == -1)
 			FrameItems.append(m_Doc->Items->takeAt(m_Doc->Items->indexOf(newItem)));
@@ -4472,7 +4915,10 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 		info.itemID = attrs.valueAsInt("ItemID", 0);
 		LinkID.insert(info.itemID, newItem);
 	}
-	info.nextItem = attrs.valueAsInt("NEXTITEM", -1);
+	if (attrs.hasAttribute("NEXTITEM"))
+		info.nextItem = attrs.valueAsInt("NEXTITEM", -1);
+	else
+		info.nextItem = attrs.valueAsInt("NextItem", -1);
 	if (isNewFormat)
 	{
 		if (info.nextItem != -1)
@@ -4487,7 +4933,6 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 	info.ownWeld = attrs.valueAsInt("WeldSource", 0);
 	info.ownNr = doc->Items->indexOf(newItem);
 
-	struct ImageLoadRequest loadingInfo;
 #ifdef HAVE_OSG
 	struct PageItem_OSGFrame::viewDefinition currentView;
 #endif
@@ -4505,6 +4950,7 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 			continue;
 		QString tName = reader.name().toString();
 		ScXmlStreamAttributes tAtt = reader.scAttributes();
+		//Remove old format in 1.8
 		if (tName == QLatin1String("CSTOP"))
 		{
 			QString name = tAtt.valueAsString("NAME");
@@ -4513,6 +4959,15 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 			double opa = tAtt.valueAsDouble("TRANS", 1.0);
 			newItem->fill_gradient.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
 		}
+		if (tName == QLatin1String("ColorStop"))
+		{
+			QString name = tAtt.valueAsString("Name");
+			double ramp = tAtt.valueAsDouble("Ramp", 0.0);
+			int shade = tAtt.valueAsInt("Shade", 100);
+			double opa = tAtt.valueAsDouble("Opacity", 1.0);
+			newItem->fill_gradient.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
+		}
+		//Remove old format in 1.8
 		if (tName == QLatin1String("S_CSTOP"))
 		{
 			QString name = tAtt.valueAsString("NAME");
@@ -4521,12 +4976,29 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 			double opa = tAtt.valueAsDouble("TRANS", 1.0);
 			newItem->stroke_gradient.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
 		}
+		if (tName == QLatin1String("ColorStopStroke"))
+		{
+			QString name = tAtt.valueAsString("Name");
+			double ramp = tAtt.valueAsDouble("Ramp", 0.0);
+			int shade = tAtt.valueAsInt("Shade", 100);
+			double opa = tAtt.valueAsDouble("Opacity", 1.0);
+			newItem->stroke_gradient.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
+		}
+		//Remove old format in 1.8
 		if (tName == QLatin1String("M_CSTOP"))
 		{
 			QString name = tAtt.valueAsString("NAME");
 			double ramp = tAtt.valueAsDouble("RAMP", 0.0);
 			int shade = tAtt.valueAsInt("SHADE", 100);
 			double opa = tAtt.valueAsDouble("TRANS", 1.0);
+			newItem->mask_gradient.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
+		}
+		if (tName == QLatin1String("ColorStopMaskGradient"))
+		{
+			QString name = tAtt.valueAsString("Name");
+			double ramp = tAtt.valueAsDouble("Ramp", 0.0);
+			int shade = tAtt.valueAsInt("Shade", 100);
+			double opa = tAtt.valueAsDouble("Opacity", 1.0);
 			newItem->mask_gradient.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
 		}
 		if (tName == QLatin1String("MPoint"))
@@ -4671,6 +5143,7 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 		if (tName == QLatin1String("PSDLayer"))
 		{
 			layerFound = true;
+			struct ImageLoadRequest loadingInfo;
 			loadingInfo.blend = tAtt.valueAsString("Blend");
 			loadingInfo.opacity = tAtt.valueAsInt("Opacity");
 			loadingInfo.visible = tAtt.valueAsBool("Visible");
@@ -4735,7 +5208,8 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 				tb.tabFillChar = tbCh[0];
 			tabValues.append(tb);
 		}
-		if (tName == QLatin1String("LATEX"))
+		//Remove uppercase in 1.8 format
+		if (tName == QLatin1String("LATEX") || tName == QLatin1String("LaTeX"))
 		{
 			if (newItem->isLatexFrame())
 			{
@@ -4751,7 +5225,7 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 				}
 			}
 		}
-		if ((tName == QLatin1String("PAGEOBJECT")) || (tName == QLatin1String("ITEM")))
+		if ((tName == QLatin1String("PAGEOBJECT") || tName == QLatin1String("PageObject")) || (tName == QLatin1String("ITEM") || tagName == QLatin1String("Item")))
 		{
 			if (newItem->isGroup())
 			{
@@ -5519,43 +5993,88 @@ bool Scribus171Format::readPageItemAttributes(PageItem* item, ScXmlStreamReader&
 
 PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttributes& attrs, const QString& baseDir, PageItem::ItemKind itemKind, int pageNr)
 {
-	int z = 0;
-	struct ImageLoadRequest loadingInfo;
-	PageItem::ItemType pt = static_cast<PageItem::ItemType>(attrs.valueAsInt("PTYPE"));
+	PageItem::ItemType pt;
+	if (attrs.hasAttribute("PTYPE"))
+		pt = static_cast<PageItem::ItemType>(attrs.valueAsInt("PTYPE"));
+	else
+		pt = static_cast<PageItem::ItemType>(attrs.valueAsInt("ItemType"));
 	bool isGroupFlag = attrs.valueAsBool("isGroupControl", false);
 	if (isGroupFlag)
 		pt = PageItem::Group;
 	bool isNoteFrameFlag = attrs.valueAsBool("isNoteFrame", false);
 	if (isNoteFrameFlag && (pt == PageItem::TextFrame))
 		pt = PageItem::NoteFrame;
-	double xf;
-	double yf;
-	double x = attrs.valueAsDouble("XPOS");
-	double y = attrs.valueAsDouble("YPOS");
+
+	double x;
+	if (attrs.hasAttribute("XPOS"))
+		x = attrs.valueAsDouble("XPOS");
+	else
+		x = attrs.valueAsDouble("XPosition");
+	double y;
+	if (attrs.hasAttribute("YPOS"))
+		y = attrs.valueAsDouble("YPOS");
+	else
+		y = attrs.valueAsDouble("YPosition");
 	x = Xp + x - GrX;
 	y = Yp + y - GrY;
-	double w = attrs.valueAsDouble("WIDTH");
-	double h = attrs.valueAsDouble("HEIGHT");
-	double pw = attrs.valueAsDouble("PWIDTH");
-	double imageXOffset = attrs.valueAsDouble("LOCALX");
-	double imageYOffset = attrs.valueAsDouble("LOCALY");
-	double imageXScale = attrs.valueAsDouble("LOCALSCX");
-	double imageYScale = attrs.valueAsDouble("LOCALSCY");
-	QString Pcolor = attrs.valueAsString("PCOLOR");
-	if (Pcolor.isEmpty())
-		Pcolor = CommonStrings::None;
-	QString Pcolor2 = attrs.valueAsString("PCOLOR2");
-	if (Pcolor2.isEmpty())
-		Pcolor2 = CommonStrings::None;
+	double w;
+	if (attrs.hasAttribute("WIDTH"))
+		w = attrs.valueAsDouble("WIDTH");
+	else
+		w = attrs.valueAsDouble("Width");
+	double h;
+	if (attrs.hasAttribute("HEIGHT"))
+		h = attrs.valueAsDouble("HEIGHT");
+	else
+		h = attrs.valueAsDouble("Height");
+	double pw;
+	if (attrs.hasAttribute("PWIDTH"))
+		pw = attrs.valueAsDouble("PWIDTH");
+	else
+		pw = attrs.valueAsDouble("LineWidth");
+	double imageOffsetX;
+	if (attrs.hasAttribute("LOCALX"))
+		imageOffsetX = attrs.valueAsDouble("LOCALX");
+	else
+		imageOffsetX = attrs.valueAsDouble("ImageOffsetX");
+	double imageOffsetY;
+	if (attrs.hasAttribute("LOCALY"))
+		imageOffsetY = attrs.valueAsDouble("LOCALY");
+	else
+		imageOffsetY = attrs.valueAsDouble("ImageOffsetY");
+	double imageScaleX;
+	if (attrs.hasAttribute("LOCALSCX"))
+		imageScaleX = attrs.valueAsDouble("LOCALSCX");
+	else
+		imageScaleX = attrs.valueAsDouble("ImageScaleX");
+	double imageScaleY;
+	if (attrs.hasAttribute("LOCALSCY"))
+		imageScaleY = attrs.valueAsDouble("LOCALSCY");
+	else
+		imageScaleY = attrs.valueAsDouble("ImageScaleY");
+	QString fillColor;
+	if (attrs.hasAttribute("PCOLOR"))
+		fillColor = attrs.valueAsString("PCOLOR");
+	else
+		fillColor = attrs.valueAsString("FillColor");
+	if (fillColor.isEmpty())
+		fillColor = CommonStrings::None;
+	QString lineColor;
+	if (attrs.hasAttribute("PCOLOR2"))
+		lineColor = attrs.valueAsString("PCOLOR2");
+	else
+		lineColor = attrs.valueAsString("LineColor");
+	if (lineColor.isEmpty())
+		lineColor = CommonStrings::None;
 	QColor tmpc;
 	PageItem *currItem = nullptr;
-	QString tmp;
 	QString clPath;
+	int z = 0;
 	switch (pt)
 	{
 	// OBSOLETE CR 2005-02-06
 	case PageItem::ItemType1:
-		z = doc->itemAdd(PageItem::Polygon, PageItem::Ellipse, x, y, w, h, pw, Pcolor, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::Polygon, PageItem::Ellipse, x, y, w, h, pw, fillColor, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
@@ -5569,12 +6088,20 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		UndoManager::instance()->setUndoEnabled(false);
-		currItem->ScaleType = attrs.valueAsInt("SCALETYPE", 1);
-		currItem->AspectRatio = attrs.valueAsInt("RATIO", 0);
-		currItem->setImageXYScale(imageXScale, imageYScale);
-		currItem->setImageXYOffset(imageXOffset, imageYOffset);
-		currItem->setImageRotation(attrs.valueAsDouble("LOCALROT"));
-//		if (!currItem->isLatexFrame())
+		if (attrs.hasAttribute("SCALETYPE"))
+			currItem->ScaleType = attrs.valueAsInt("SCALETYPE", 1);
+		else
+			currItem->ScaleType = attrs.valueAsInt("ImageScaleType", 1);
+		if (attrs.hasAttribute("RATIO"))
+			currItem->AspectRatio = attrs.valueAsInt("RATIO", 0);
+		else
+			currItem->AspectRatio = attrs.valueAsInt("ImageRatio", 0);
+		currItem->setImageXYScale(imageScaleX, imageScaleY);
+		currItem->setImageXYOffset(imageOffsetX, imageOffsetY);
+		if (attrs.hasAttribute("LOCALROT"))
+			currItem->setImageRotation(attrs.valueAsDouble("LOCALROT"));
+		else
+			currItem->setImageRotation(attrs.valueAsDouble("ImageRotation"));
 #ifdef HAVE_OSG
 		if ((currItem->isImageFrame() || currItem->isOSGFrame()) && (!currItem->isLatexFrame()))
 #else
@@ -5633,7 +6160,7 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 			currItem->CompressionMethodIndex = attrs.valueAsInt("COMPRESSIONMETHOD", 0);
 		if ((currItem->OverrideCompressionQuality = attrs.hasAttribute("COMPRESSIONQUALITY")))
 			currItem->CompressionQualityIndex = attrs.valueAsInt("COMPRESSIONQUALITY");
-		currItem->setImageXYScale(imageXScale, imageYScale);
+		currItem->setImageXYScale(imageScaleX, imageScaleY);
 		currItem->setImageRotation(attrs.valueAsDouble("LOCALROT"));
 		clPath = attrs.valueAsString("ImageClip", "");
 		if (!clPath.isEmpty())
@@ -5641,45 +6168,48 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 			clipPath = clPath;
 			layerFound = true;
 		}
-		currItem->setImageVisible( attrs.valueAsInt("PICART"));
+		if (attrs.hasAttribute("PICART"))
+			currItem->setImageVisible( attrs.valueAsInt("PICART"));
+		else
+			currItem->setImageVisible( attrs.valueAsInt("ImageVisible"));
 		currItem->setLineWidth(pw);
 		UndoManager::instance()->setUndoEnabled(true);
 		break;
 	// OBSOLETE CR 2005-02-06
 	case PageItem::ItemType3:
-		z = doc->itemAdd(PageItem::Polygon, PageItem::Rectangle, x, y, w, h, pw, Pcolor, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::Polygon, PageItem::Rectangle, x, y, w, h, pw, fillColor, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		break;
 	//
 	case PageItem::PathText:
-		z = doc->itemAdd(PageItem::PathText, PageItem::Unspecified, x, y, w, h, pw, CommonStrings::None, Pcolor, itemKind);
+		z = doc->itemAdd(PageItem::PathText, PageItem::Unspecified, x, y, w, h, pw, CommonStrings::None, fillColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		break;
 	case PageItem::NoteFrame:
 	case PageItem::TextFrame:
-		z = doc->itemAdd(pt, PageItem::Unspecified, x, y, w, h, pw, CommonStrings::None, Pcolor, itemKind);
+		z = doc->itemAdd(pt, PageItem::Unspecified, x, y, w, h, pw, CommonStrings::None, fillColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		break;
 	case PageItem::Line:
-		z = doc->itemAdd(PageItem::Line, PageItem::Unspecified, x, y, w, h, pw, CommonStrings::None, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::Line, PageItem::Unspecified, x, y, w, h, pw, CommonStrings::None, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		break;
 	case PageItem::Polygon:
-		z = doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, x, y, w, h, pw, Pcolor, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, x, y, w, h, pw, fillColor, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		break;
 	case PageItem::PolyLine:
-		z = doc->itemAdd(PageItem::PolyLine, PageItem::Unspecified, x, y, w, h, pw, Pcolor, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::PolyLine, PageItem::Unspecified, x, y, w, h, pw, fillColor, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
@@ -5701,19 +6231,19 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		doc->GroupCounter++;
 		break;
 	case PageItem::RegularPolygon:
-		z = doc->itemAdd(PageItem::RegularPolygon, PageItem::Unspecified, x, y, w, h, pw, Pcolor, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::RegularPolygon, PageItem::Unspecified, x, y, w, h, pw, fillColor, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		break;
 	case PageItem::Arc:
-		z = doc->itemAdd(PageItem::Arc, PageItem::Unspecified, x, y, w, h, pw, Pcolor, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::Arc, PageItem::Unspecified, x, y, w, h, pw, fillColor, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
 		break;
 	case PageItem::Spiral:
-		z = doc->itemAdd(PageItem::Spiral, PageItem::Unspecified, x, y, w, h, pw, Pcolor, Pcolor2, itemKind);
+		z = doc->itemAdd(PageItem::Spiral, PageItem::Unspecified, x, y, w, h, pw, fillColor, lineColor, itemKind);
 		currItem = doc->Items->at(z);
 		if (pageNr > -2) 
 			currItem->setOwnerPage(pageNr);
@@ -5730,7 +6260,10 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	}
 
 	currItem->setGroupClipping(attrs.valueAsBool("groupClips", true));
-	currItem->FrameType = attrs.valueAsInt("FRTYPE", 0);
+	if (attrs.hasAttribute("FRTYPE"))
+		currItem->FrameType = attrs.valueAsInt("FRTYPE", 0);
+	else
+		currItem->FrameType = attrs.valueAsInt("FrameType", 0);
 	int startArrowIndex = attrs.valueAsInt("startArrowIndex", 0);
 	if ((startArrowIndex < 0) || (startArrowIndex > static_cast<int>(doc->arrowStyles().size())))
 	{
@@ -5747,16 +6280,40 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	currItem->setEndArrowIndex(endArrowIndex);
 	currItem->setStartArrowScale(attrs.valueAsInt("startArrowScale", 100));
 	currItem->setEndArrowScale(attrs.valueAsInt("endArrowScale", 100));
-	currItem->NamedLStyle = attrs.valueAsString("NAMEDLST", "");
-	currItem->isBookmark = attrs.valueAsInt("BOOKMARK", 0);
-	currItem->setImageFlippedH( attrs.valueAsInt("FLIPPEDH", 0));
-	currItem->setImageFlippedV( attrs.valueAsInt("FLIPPEDV", 0));
-	currItem->setCornerRadius( attrs.valueAsDouble("RADRECT", 0.0));
-	currItem->ClipEdited = attrs.valueAsInt("CLIPEDIT", 0);
-	currItem->setFillColor(Pcolor);
-	currItem->setLineColor(Pcolor2);
-	currItem->setFillShade(attrs.valueAsInt("SHADE", 100));
-	currItem->setLineShade(attrs.valueAsInt("SHADE2", 100));
+	if (attrs.hasAttribute("NAMEDLST"))
+		currItem->NamedLStyle = attrs.valueAsString("NAMEDLST", "");
+	else
+		currItem->NamedLStyle = attrs.valueAsString("NamedLineStyle", "");
+	if (attrs.hasAttribute("BOOKMARK"))
+		currItem->isBookmark = attrs.valueAsInt("BOOKMARK", 0);
+	else
+		currItem->isBookmark = attrs.valueAsInt("BookMark", 0);
+	if (attrs.hasAttribute("FLIPPEDH"))
+		currItem->setImageFlippedH( attrs.valueAsInt("FLIPPEDH", 0));
+	else
+		currItem->setImageFlippedH( attrs.valueAsInt("FlippedHorizontal", 0));
+	if (attrs.hasAttribute("FLIPPEDV"))
+		currItem->setImageFlippedV( attrs.valueAsInt("FLIPPEDV", 0));
+	else
+		currItem->setImageFlippedV( attrs.valueAsInt("FlippedVertical", 0));
+	if (attrs.hasAttribute("RADRECT"))
+		currItem->setCornerRadius( attrs.valueAsDouble("RADRECT", 0.0));
+	else
+		currItem->setCornerRadius( attrs.valueAsDouble("CornerRadius", 0.0));
+	if (attrs.hasAttribute("CLIPEDIT"))
+		currItem->ClipEdited = attrs.valueAsInt("CLIPEDIT", 0);
+	else
+		currItem->ClipEdited = attrs.valueAsInt("ClipEdited", 0);
+	currItem->setFillColor(fillColor);
+	currItem->setLineColor(lineColor);
+	if (attrs.hasAttribute("SHADE"))
+		currItem->setFillShade(attrs.valueAsInt("SHADE", 100));
+	else
+		currItem->setFillShade(attrs.valueAsInt("FillShade", 100));
+	if (attrs.hasAttribute("SHADE2"))
+		currItem->setLineShade(attrs.valueAsInt("SHADE2", 100));
+	else
+		currItem->setLineShade(attrs.valueAsInt("LineShade", 100));
 
 	ParagraphStyle pstyle;
 	if (attrs.hasAttribute("LINESP"))
@@ -5877,6 +6434,7 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		pstyle.setNumHigher(static_cast<bool>(attrs.valueAsInt("NumerationHigher")));
 	currItem->itemText.setDefaultStyle(pstyle);
 
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("PSTYLE"))
 	{
 		QString pstyleName = attrs.valueAsString("PSTYLE");
@@ -5887,19 +6445,56 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 			currItem->itemText.setDefaultStyle(defStyle);
 		}
 	}
-	currItem->setRotation( attrs.valueAsDouble("ROT", 0.0) );
+	if (attrs.hasAttribute("ParagraphStyle"))
+	{
+		QString pstyleName = attrs.valueAsString("ParagraphStyle");
+		if (!pstyleName.isEmpty())
+		{
+			ParagraphStyle defStyle(currItem->itemText.defaultStyle());
+			defStyle.setParent(pstyleName);
+			currItem->itemText.setDefaultStyle(defStyle);
+		}
+	}
+	if (attrs.hasAttribute("ROT"))
+		currItem->setRotation( attrs.valueAsDouble("ROT", 0.0) );
+	else
+		currItem->setRotation( attrs.valueAsDouble("Rotation", 0.0) );
 	currItem->oldRot = currItem->rotation();
-	currItem->setTextToFrameDist(attrs.valueAsDouble("EXTRA", 0.0),
+	if (attrs.hasAttribute("EXTRA"))
+		currItem->setTextToFrameDist(attrs.valueAsDouble("EXTRA", 0.0),
 								attrs.valueAsDouble("REXTRA", 0.0),
 								attrs.valueAsDouble("TEXTRA", 0.0),
 								attrs.valueAsDouble("BEXTRA", 0.0));
-	currItem->setVerticalAlignment(attrs.valueAsInt("VAlign", 0));
-	currItem->setFirstLineOffset(static_cast<FirstLineOffsetPolicy>(attrs.valueAsInt("FLOP")));
+	else
+		currItem->setTextToFrameDist(attrs.valueAsDouble("TextToFrameDistanceLeft", 0.0),
+								attrs.valueAsDouble("TextToFrameDistanceRight", 0.0),
+								attrs.valueAsDouble("TextToFrameDistanceTop", 0.0),
+								attrs.valueAsDouble("TextToFrameDistanceBottom", 0.0));
+	if (attrs.hasAttribute("VAlign"))
+		currItem->setVerticalAlignment(attrs.valueAsInt("VAlign", 0));
+	else
+		currItem->setVerticalAlignment(attrs.valueAsInt("VerticalAlignment", 0));
+	if (attrs.hasAttribute("FLOP"))
+		currItem->setFirstLineOffset(static_cast<FirstLineOffsetPolicy>(attrs.valueAsInt("FLOP")));
+	else
+		currItem->setFirstLineOffset(static_cast<FirstLineOffsetPolicy>(attrs.valueAsInt("FirstLineOffset")));
 
-	currItem->PLineArt = Qt::PenStyle(attrs.valueAsInt("PLINEART", 0));
-	currItem->PLineEnd = Qt::PenCapStyle(attrs.valueAsInt("PLINEEND", 0));
-	currItem->PLineJoin = Qt::PenJoinStyle(attrs.valueAsInt("PLINEJOIN", 0));
-	currItem->setPrintEnabled( attrs.valueAsInt("PRINTABLE", 1));
+	if (attrs.hasAttribute("PLINEART"))
+	{
+		currItem->PLineArt = Qt::PenStyle(attrs.valueAsInt("PLINEART", 0));
+		currItem->PLineEnd = Qt::PenCapStyle(attrs.valueAsInt("PLINEEND", 0));
+		currItem->PLineJoin = Qt::PenJoinStyle(attrs.valueAsInt("PLINEJOIN", 0));
+	}
+	else
+	{
+		currItem->PLineArt = Qt::PenStyle(attrs.valueAsInt("LinePenStyle", 0));
+		currItem->PLineEnd = Qt::PenCapStyle(attrs.valueAsInt("LineCapStyle", 0));
+		currItem->PLineJoin = Qt::PenJoinStyle(attrs.valueAsInt("LineJoinStyle", 0));
+	}
+	if (attrs.hasAttribute("PRINTABLE"))
+		currItem->setPrintEnabled( attrs.valueAsInt("PRINTABLE", 1));
+	else
+		currItem->setPrintEnabled( attrs.valueAsInt("PrintEnabled", 1));
 	currItem->setIsAnnotation( attrs.valueAsInt("ANNOTATION", 0));
 	currItem->annotation().setType( attrs.valueAsInt("ANTYPE", 0));
 	QString itemName = attrs.valueAsString("ANNAME","");
@@ -5957,9 +6552,12 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		UndoManager::instance()->setUndoEnabled(false);
 		if (currItem->isAnnotation() && currItem->annotation().UseIcons())
 		{
-			currItem->setImageXYScale(imageXScale, imageYScale);
-			currItem->setImageXYOffset(imageXOffset, imageYOffset);
-			currItem->setImageRotation(attrs.valueAsDouble("LOCALROT"));
+			currItem->setImageXYScale(imageScaleX, imageScaleY);
+			currItem->setImageXYOffset(imageOffsetX, imageOffsetY);
+			if (attrs.hasAttribute("LOCALROT"))
+				currItem->setImageRotation(attrs.valueAsDouble("LOCALROT"));
+			else
+				currItem->setImageRotation(attrs.valueAsDouble("ImageRotation"));
 			currItem->Pfile = Relative2Path(attrs.valueAsString("PFILE" , ""), baseDir);
 			currItem->Pfile2 = Relative2Path(attrs.valueAsString("PFILE2", ""), baseDir);
 			currItem->Pfile3 = Relative2Path(attrs.valueAsString("PFILE3", ""), baseDir);
@@ -5971,12 +6569,19 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 			currItem->EmbeddedProfile = attrs.valueAsString("EPROF", "");
 			currItem->UseEmbedded = attrs.valueAsInt("EMBEDDED", 1);
 			doc->loadPict(currItem->Pfile, currItem);
-			currItem->setImageXYScale(imageXScale, imageYScale);
-			currItem->setImageVisible( attrs.valueAsInt("PICART"));
-/*			currItem->BBoxX = ScCLocale::toDoubleC( obj->attribute("BBOXX"));
-			currItem->BBoxH = ScCLocale::toDoubleC( obj->attribute("BBOXH")); */
-			currItem->ScaleType = attrs.valueAsInt("SCALETYPE", 1);
-			currItem->AspectRatio = attrs.valueAsInt("RATIO", 0);
+			currItem->setImageXYScale(imageScaleX, imageScaleY);
+			if (attrs.hasAttribute("PICART"))
+				currItem->setImageVisible(attrs.valueAsInt("PICART"));
+			else
+				currItem->setImageVisible(attrs.valueAsInt("ImageVisible"));
+			if (attrs.hasAttribute("SCALETYPE"))
+				currItem->ScaleType = attrs.valueAsInt("SCALETYPE", 1);
+			else
+				currItem->ScaleType = attrs.valueAsInt("ImageScaleType", 1);
+			if (attrs.hasAttribute("RATIO"))
+				currItem->AspectRatio = attrs.valueAsInt("RATIO", 0);
+			else
+				currItem->AspectRatio = attrs.valueAsInt("ImageRatio", 0);
 		}
 		UndoManager::instance()->setUndoEnabled(true);
 	}
@@ -6070,8 +6675,16 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	currItem->setLineBlendmode(attrs.valueAsInt("TransBlendS", 0));
 	if (attrs.valueAsInt("TRANSPARENT", 0) == 1)
 		currItem->setFillColor(CommonStrings::None);
-	currItem->m_columns = attrs.valueAsInt("COLUMNS", 1);
-	currItem->m_columnGap = attrs.valueAsDouble("COLGAP", 0.0);
+	if (attrs.hasAttribute("COLUMNS"))
+	{
+		currItem->m_columns = attrs.valueAsInt("COLUMNS", 1);
+		currItem->m_columnGap = attrs.valueAsDouble("COLGAP", 0.0);
+	}
+	else
+	{
+		currItem->m_columns = attrs.valueAsInt("Columns", 1);
+		currItem->m_columnGap = attrs.valueAsDouble("ColumnGap", 0.0);
+	}
 	//Remove uppercase in 1.8 format
 	if (attrs.hasAttribute("LAYER") && (attrs.valueAsInt("LAYER", 0) != -1))
 	{
@@ -6105,15 +6718,16 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		if (!found)
 			currItem->setLayer(doc->firstLayerID());
 	}
-	tmp.clear();
-
+	QString tmp;
+	double xf;
+	double yf;
 	//Remove uppercase in 1.8 format
 	if ((attrs.hasAttribute("DashValues")) && (attrs.valueAsInt("DashValues", 0) != 0))
 	{
 		tmp = attrs.valueAsString("Dashes");
 		ScTextStream dgv(&tmp, QIODevice::ReadOnly);
 		currItem->DashValues.clear();
-		int numDash = attrs.valueAsInt("NUMDASH", 0);
+		int numDash = attrs.valueAsInt("DashValues", 0);
 		for (int cxv = 0; cxv < numDash; ++cxv)
 		{
 			dgv >> xf;
@@ -6253,7 +6867,10 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 
 	if (currItem->isPathText())
 		currItem->updatePolyClip();
-	currItem->GrType = attrs.valueAsInt("GRTYP", 0);
+	if (attrs.hasAttribute("GRTYP"))
+		currItem->GrType = attrs.valueAsInt("GRTYP", 0);
+	else
+		currItem->GrType = attrs.valueAsInt("GradientType", 0);
 	QString GrColor;
 	QString GrColor2;
 	int GrShade = 0;
@@ -6412,7 +7029,10 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	bool atPath = attrs.valueAsBool("pAtPathS", false);
 	currItem->setPatternFlip(mirrorX, mirrorY);
 	currItem->setStrokePatternToPath(atPath);
-	currItem->GrTypeStroke = attrs.valueAsInt("GRTYPS", 0);
+	if (attrs.hasAttribute("GRTYPS"))
+		currItem->GrTypeStroke = attrs.valueAsInt("GRTYPS", 0);
+	else
+		currItem->GrTypeStroke = attrs.valueAsInt("GradientTypeStroke", 0);
 	if (((currItem->GrTypeStroke != 0) && (currItem->GrTypeStroke != Gradient_Pattern)) && (currItem->strokeGradient().isEmpty()))
 		currItem->stroke_gradient.clearStops();
 	currItem->GrStrokeStartX = attrs.valueAsDouble("GRSTARTXS", 0.0);
@@ -6426,7 +7046,6 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	QString GrNameS(attrs.valueAsString("GRNAMES", ""));
 	if (!GrNameS.isEmpty())
 		currItem->setStrokeGradient(GrNameS);
-
 
 	currItem->setPatternMask( attrs.valueAsString("patternM", "") );
 	ScMaskTransform maskTransform;
@@ -6755,7 +7374,11 @@ bool Scribus171Format::readLatexInfo(PageItem_LatexFrame* latexitem, ScXmlStream
 
 	latexitem->setConfigFile(attrs.valueAsString("ConfigFile"), true);
 	latexitem->setDpi(attrs.valueAsInt("DPI"));
-	latexitem->setUsePreamble(attrs.valueAsBool("USE_PREAMBLE"));
+	//Remove uppercase in 1.8 format
+	if (attrs.hasAttribute("USE_PREAMBLE"))
+		latexitem->setUsePreamble(attrs.valueAsBool("USE_PREAMBLE"));
+	else
+		latexitem->setUsePreamble(attrs.valueAsBool("UsePreamble"));
 
 	QString formula;
 	while (!reader.atEnd() && !reader.hasError())
@@ -6765,14 +7388,26 @@ bool Scribus171Format::readLatexInfo(PageItem_LatexFrame* latexitem, ScXmlStream
 			break;
 		if (reader.isCharacters())
 			formula += reader.text().toString();
+		//Remove uppercase in 1.8 format
 		if (reader.isStartElement() && reader.name() == QLatin1String("PROPERTY"))
 		{
 			ScXmlStreamAttributes tAtt = reader.scAttributes();
 			QString name = tAtt.valueAsString("name");
 			QString value = tAtt.valueAsString("value");
-			if (name.isEmpty()) continue;
+			if (name.isEmpty())
+				continue;
 			latexitem->editorProperties[name] = value;
 		}
+		else
+			if (reader.isStartElement() && reader.name() == QLatin1String("Property"))
+			{
+				ScXmlStreamAttributes tAtt = reader.scAttributes();
+				QString name = tAtt.valueAsString("Name");
+				QString value = tAtt.valueAsString("Value");
+				if (name.isEmpty())
+					continue;
+				latexitem->editorProperties[name] = value;
+			}
 	}
 	formula = formula.trimmed();
 	latexitem->setFormula(formula, false);
@@ -6886,10 +7521,17 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			}
 			firstElement = false;
 		}
-
+		//Remove uppercase in 1.8 format
 		if (tagName == QLatin1String("COLOR") && attrs.valueAsString("NAME") != CommonStrings::None)
 		{
 			QString colorName = attrs.valueAsString("NAME");
+			if (m_Doc->PageColors.contains(colorName))
+				continue;
+			readColor(m_Doc->PageColors, attrs);
+		}
+		else if (tagName == QLatin1String("Color") && attrs.valueAsString("Name") != CommonStrings::None)
+		{
+			QString colorName = attrs.valueAsString("Name");
 			if (m_Doc->PageColors.contains(colorName))
 				continue;
 			readColor(m_Doc->PageColors, attrs);
@@ -7001,9 +7643,9 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			temp.create(tstyle);
 			m_Doc->redefineCellStyles(temp, false);
 		}
-		if (((tagName == QLatin1String("PAGE")) || (tagName == QLatin1String("MASTERPAGE"))) && (attrs.valueAsInt("NUM") == pageNumber))
+		if (((tagName == QLatin1String("PAGE")) || (tagName == QLatin1String("MASTERPAGE")) || (tagName == QLatin1String("Page")) || (tagName == QLatin1String("MasterPage"))) && (attrs.valueAsInt("NUM") == pageNumber))
 		{
-			if (Mpage && (tagName != QLatin1String("MASTERPAGE")))
+			if (Mpage && (tagName != QLatin1String("MASTERPAGE") && tagName != QLatin1String("MasterPage")))
 				continue;
 			int pageNr = m_Doc->currentPage()->pageNr();
 			newPage = m_Doc->Pages->at(pageNr);
@@ -7109,20 +7751,21 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 				undoManager->action(newPage, ss);
 			}
 		}
-		if ((tagName == QLatin1String("PAGEOBJECT")) || (tagName == QLatin1String("MASTEROBJECT")) || (tagName == QLatin1String("FRAMEOBJECT")))
+		if ((tagName == QLatin1String("PAGEOBJECT")) || (tagName == QLatin1String("MASTEROBJECT")) || (tagName == QLatin1String("FRAMEOBJECT")) ||
+				(tagName == QLatin1String("PageObject")) || (tagName == QLatin1String("MasterObject")) || (tagName == QLatin1String("FrameObject")))
 		{
-			if ((Mpage && tagName != QLatin1String("MASTEROBJECT")) || (!Mpage && tagName == QLatin1String("MASTEROBJECT")))
+			if ((Mpage && (tagName != QLatin1String("MASTEROBJECT") && tagName != QLatin1String("MasterObject"))) || (!Mpage && (tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject"))))
 			{
 				// Go to end of node
 				reader.readToElementEnd();
 				continue;
 			}
 
-			if ((attrs.valueAsInt("OwnPage") != pageNumber) && (tagName != "FRAMEOBJECT"))
+			if ((attrs.valueAsInt("OwnPage") != pageNumber) && (tagName != "FRAMEOBJECT") && (tagName != "FrameObject"))
 			{			
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 					itemRemap[itemCount++] = -1;
-				else if (tagName == QLatin1String("MASTEROBJECT"))
+				else if (tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject"))
 					itemRemapM[itemCountM++] = -1;
 				reader.readToElementEnd();
 				continue;
@@ -7136,7 +7779,7 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			PageItem* newItem = itemInfo.item;
 			newItem->moveBy(-pageX + newPage->xOffset(), - pageY + newPage->yOffset());
 			newItem->setOwnerPage(m_Doc->currentPageNumber());
-			if (tagName == QLatin1String("PAGEOBJECT"))
+			if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				newItem->setMasterPageName(QString());
 			else if (Mpage && !renamedPageName.isEmpty())
 				newItem->setMasterPageName(renamedPageName);
@@ -7153,17 +7796,33 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			else
 			{
 				// first of linked chain?
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				{
 					itemRemap[itemCount++] = m_Doc->DocItems.count();
-					if (attrs.valueAsInt("NEXTITEM", -1) != -1)
-						itemNext[m_Doc->DocItems.count()] = attrs.valueAsInt("NEXTITEM");
+					if (attrs.hasAttribute("NEXTITEM"))
+					{
+						if (attrs.valueAsInt("NEXTITEM", -1) != -1)
+							itemNext[m_Doc->DocItems.count()] = attrs.valueAsInt("NEXTITEM");
+					}
+					else
+					{
+						if (attrs.valueAsInt("NextItem", -1) != -1)
+							itemNext[m_Doc->DocItems.count()] = attrs.valueAsInt("NextItem");
+					}
 				}
-				else if (tagName == QLatin1String("MASTEROBJECT"))
+				else if (tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject"))
 				{
 					itemRemapM[itemCountM++] = m_Doc->MasterItems.count();
-					if (attrs.valueAsInt("NEXTITEM", -1) != -1)
-						itemNextM[m_Doc->MasterItems.count()] = attrs.valueAsInt("NEXTITEM");
+					if (attrs.hasAttribute("NEXTITEM"))
+					{
+						if (attrs.valueAsInt("NEXTITEM", -1) != -1)
+							itemNextM[m_Doc->MasterItems.count()] = attrs.valueAsInt("NEXTITEM");
+					}
+					else
+					{
+						if (attrs.valueAsInt("NextItem", -1) != -1)
+							itemNextM[m_Doc->MasterItems.count()] = attrs.valueAsInt("NextItem");
+					}
 				}
 				if (newItem->isTableItem)
 				{
@@ -7177,7 +7836,7 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 				}
 			}
 
-			if ((tagName == QLatin1String("PAGEOBJECT")) && (groupStackPI.count() > 0))
+			if ((tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject")) && (groupStackPI.count() > 0))
 			{
 				groupStackPI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackPI2.top())
@@ -7188,7 +7847,7 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("FRAMEOBJECT")) && (groupStackFI.count() > 0))
+			else if ((tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject")) && (groupStackFI.count() > 0))
 			{
 				groupStackFI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackFI2.top())
@@ -7199,7 +7858,7 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 						break;
 				}
 			}
-			else if ((tagName == QLatin1String("MASTEROBJECT")) && (groupStackMI.count() > 0))
+			else if ((tagName == QLatin1String("MASTEROBJECT") || tagName == QLatin1String("MasterObject")) && (groupStackMI.count() > 0))
 			{
 				groupStackMI.top().append(itemInfo.item);
 				while (itemInfo.ownNr == groupStackMI2.top())
@@ -7215,12 +7874,12 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			{
 				QList<PageItem*> groupItems;
 				groupItems.append(itemInfo.item);
-				if (tagName == QLatin1String("PAGEOBJECT"))
+				if (tagName == QLatin1String("PAGEOBJECT") || tagName == QLatin1String("PageObject"))
 				{
 					groupStackPI.push(groupItems);
 					groupStackPI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
 				}
-				else if (tagName == QLatin1String("FRAMEOBJECT"))
+				else if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 				{
 					groupStackFI.push(groupItems);
 					groupStackFI2.push(itemInfo.groupLastItem + itemInfo.ownNr);
@@ -7793,11 +8452,24 @@ bool Scribus171Format::readPageCount(const QString& fileName, int *num1, int *nu
 			firstElement = false;
 			continue;
 		}
+		//Remove uppercase in 1.8 format
 		if (tagName == QLatin1String("PAGE"))
 			counter++;
+		if (tagName == QLatin1String("Page"))
+			counter++;
+		//Remove uppercase in 1.8 format
 		if (tagName == QLatin1String("MASTERPAGE"))
 		{
 			pageName = reader.scAttributes().valueAsString("NAM");
+			if (!pageName.isEmpty())
+			{
+				counter2++;
+				masterPageNames.append(pageName);
+			}
+		}
+		if (tagName == QLatin1String("MasterPage"))
+		{
+			pageName = reader.scAttributes().valueAsString("PageName");
 			if (!pageName.isEmpty())
 			{
 				counter2++;

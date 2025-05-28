@@ -167,20 +167,10 @@ double ScrSpinBox::valueFromText(const QString & text) const
 	if (CommonStrings::trStrP.localeAwareCompare(CommonStrings::strP) != 0)
 		ts.replace(CommonStrings::trStrP, CommonStrings::strP);
 
-//	const lconv * lc(localeconv());
 	QString cSepDecimal(QLocale::c().decimalPoint());
 	QString cSepGroup(QLocale::c().groupSeparator());
-//	QString sysSepDecimal(QLocale::system().decimalPoint());
-//	qDebug()<<"sysSepDecimal"<<sysSepDecimal;
-//	QString sysSepGroup(QLocale::system().groupSeparator());
-//	qDebug()<<"sysSepGroup"<<sysSepGroup;
-//	QString crtSepDecimal(QString::fromLocal8Bit( lc->decimal_point ));
-//	QString crtSepGroup(QString::fromLocal8Bit( lc->thousands_sep ));
-//	QString crtSepDecimal(LocaleManager::instance().userPreferredLocale().decimalPoint());
 	QString crtSepGroup(LocaleManager::instance().userPreferredLocale().groupSeparator());
-//	qDebug()<<"crtSepGroup"<<crtSepGroup;
 	QString crtSepDecimal(LocaleManager::instance().userPreferredLocale().decimalPoint());
-//	qDebug()<<"crtSepDecimal"<<crtSepDecimal;
 	QRegExp rxP;
 	if (m_unitIndex == SC_PICAS)
 		rxP.setPattern("\\b(\\d+)" + CommonStrings::strP + "?(\\d+\\" + crtSepDecimal + "?\\d*)?\\b");
@@ -202,24 +192,6 @@ double ScrSpinBox::valueFromText(const QString & text) const
 	}
 // 	qDebug() << "##" << ts;
 
-/*
-	// this could be hardcoded: "."
-
-	if (sysSepGroup != sysSepDecimal)
-	{
-		qDebug()<<"Removing "<<sysSepGroup;
-		ts.remove(sysSepGroup);
-	}
-	ts.replace(sysSepDecimal, crtSepDecimal);
-	qDebug()<<"Replacing "<<sysSepDecimal<<"by"<<crtSepDecimal;
-	if (crtSepGroup != crtSepDecimal)
-	{
-		qDebug()<<"Removing "<<crtSepGroup;
-		ts.remove(crtSepGroup);
-	}
-	ts.replace(crtSepDecimal, cSepDecimal);
-	qDebug()<<"Replacing "<<crtSepDecimal<<"by"<<cSepDecimal;
-	*/
 	if (crtSepGroup != cSepGroup)
 	{
 //		qDebug()<<"Removing "<<crtSepGroup;
@@ -277,7 +249,6 @@ double ScrSpinBox::valueFromText(const QString & text) const
 
 	//Add in the fparser constants using our unit strings, and the conversion factors.
 	FunctionParser fp;
-// 	setFPConstants(fp);
 	fp.AddUnit(CommonStrings::strPT.toStdString(), value2value(1.0, SC_PT, m_unitIndex));
 	fp.AddUnit(CommonStrings::strMM.toStdString(), value2value(1.0, SC_MM, m_unitIndex));
 	fp.AddUnit(CommonStrings::strIN.toStdString(), value2value(1.0, SC_IN, m_unitIndex));
@@ -299,9 +270,18 @@ double ScrSpinBox::valueFromText(const QString & text) const
 	std::string str(ts.toLocal8Bit().data());
 	double erg = this->value();
 	int ret = fp.Parse(str, "", true);
-	if(ret < 0)
+	if (ret < 0)
 		erg = fp.Eval(nullptr);
 	//qDebug() << "fp value =" << erg ;
+
+	if (m_unitIndex == SC_DEGREES)
+	{
+		while (erg < minimum())
+			erg += 360.0;
+		while (erg > maximum())
+			erg -= 360.0;
+	}
+
 	return erg;
 }
 
