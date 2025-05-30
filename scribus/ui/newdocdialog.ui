@@ -474,6 +474,26 @@
                         </property>
                        </widget>
                       </item>
+                      <item>
+                       <widget class="QToolButton" name="buttonLTRBinding">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="checkable">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
+                      <item>
+                       <widget class="QToolButton" name="buttonRTLBinding">
+                        <property name="text">
+                         <string/>
+                        </property>
+                        <property name="checkable">
+                         <bool>true</bool>
+                        </property>
+                       </widget>
+                      </item>
                      </layout>
                     </item>
                    </layout>

@@ -397,7 +397,6 @@ void PropertyWidget_Text::languageChange()
 	buttonTextColor->setPersistentToolTip( tr("Color of selected text"));
 	buttonBackgroundColor->setPersistentToolTip( tr("Background color of selected text"));
 	buttonStrokeColor->setPersistentToolTip( tr("Color of text stroke and/or drop shadow, depending which is chosen. If both are chosen, then they share the same color."));
-
 }
 
 void PropertyWidget_Text::handleTextFill()
@@ -406,7 +405,7 @@ void PropertyWidget_Text::handleTextFill()
 		return;
 
 	PageItem *i2 = m_item;
-	if (m_doc->appMode == modeEditTable)
+	if (m_doc->appMode == modeEditTable && m_item->isTable())
 		i2 = m_item->asTable()->activeCell().textFrame();
 	if (i2 != nullptr)
 	{
@@ -416,7 +415,6 @@ void PropertyWidget_Text::handleTextFill()
 		m_doc->itemSelection_SetFillColor(buttonTextColor->colorName(), &tempSelection);
 		m_doc->itemSelection_SetFillShade(buttonTextColor->colorData().Shade, &tempSelection);
 		m_blockUpdate = false;
-
 	}
 }
 
@@ -426,7 +424,7 @@ void PropertyWidget_Text::handleTextBackground()
 		return;
 
 	PageItem *i2 = m_item;
-	if (m_doc->appMode == modeEditTable)
+	if (m_doc->appMode == modeEditTable && m_item->isTable())
 		i2 = m_item->asTable()->activeCell().textFrame();
 	if (i2 != nullptr)
 	{
@@ -445,7 +443,7 @@ void PropertyWidget_Text::handleTextStroke()
 		return;
 
 	PageItem *i2 = m_item;
-	if (m_doc->appMode == modeEditTable)
+	if (m_doc->appMode == modeEditTable && m_item->isTable())
 		i2 = m_item->asTable()->activeCell().textFrame();
 	if (i2 != nullptr)
 	{
@@ -460,7 +458,6 @@ void PropertyWidget_Text::handleTextStroke()
 
 void PropertyWidget_Text::showTextColors(const QString& fillCol, const QString& backCol, const QString& strokeCol, double fillShd, double backShd, double strokeShd)
 {
-
 	if (!m_doc || !m_item || !m_ScMW || m_ScMW->scriptIsRunning() || m_blockUpdate)
 		return;
 
@@ -475,5 +472,4 @@ void PropertyWidget_Text::showTextColors(const QString& fillCol, const QString& 
 	buttonStrokeColor->setColor(strokeCol, qRound(strokeShd));
 	buttonStrokeColor->updatePreview();
 	buttonStrokeColor->updateFloatingContext();
-
 }
