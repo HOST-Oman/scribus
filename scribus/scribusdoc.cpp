@@ -6194,7 +6194,8 @@ void ScribusDoc::reformPages(bool moveObjects)
 		maxYPos = qMax(maxYPos, page->yOffset()+page->height()+m_docPrefsData.displayPrefs.scratch.bottom());
 	}
     if (rtlBinding == 1)
-        setLoading(false);
+    	setLoading(false);
+
 	if (!isLoading())
 	{
 		QList<PageItem*> weldedItems;

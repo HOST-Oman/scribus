@@ -256,7 +256,7 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 void Prefs_DocumentSetup::setupPageSets()
 {
 	int i = layoutFirstPageIsComboBox->currentIndex();
-    if (!layoutFirstPageIsComboBox->isEnabled() && layoutBindingIsComboBox->isEnabled())
+    if (!layoutFirstPageIsComboBox->isEnabled())
 		i = -1;
 	int currIndex = pageLayoutButtonGroup->checkedId() < 0 ? 0 :pageLayoutButtonGroup->checkedId();
 	layoutFirstPageIsComboBox->clear();
