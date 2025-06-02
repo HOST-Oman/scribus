@@ -2009,7 +2009,7 @@ void ScribusMainWindow::startUpDialog()
 		{
 			int facingPages = dia->choosenLayout();
             int firstPage = dia->layoutFirstPage();
-            //int bind = dia->bind->currentIndex();
+            int docBindingDirection = dia->bindingDirection();
 			docSet = dia->startDocSetup->isChecked();
 			double topMargin = dia->marginGroup->margins().top();
 			double bottomMargin = dia->marginGroup->margins().bottom();
@@ -2023,11 +2023,10 @@ void ScribusMainWindow::startUpDialog()
 			int orientation = dia->orientation();
 			int pageCount = dia->pageCountSpinBox->value();
 			QString pagesize = dia->pageSizeName();
-			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset());
+			doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset(), docBindingDirection);
 			doc->setPageSetFirstPage(facingPages, firstPage);
 			doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
 			HaveNewDoc();
-           // doc->setBinding(bind);
 			doc->reformPages(true);
 			// Don's disturb user with "save?" dialog just after new doc
 			// doc changing should be rewritten maybe... maybe later...
@@ -2087,7 +2086,7 @@ bool ScribusMainWindow::slotFileNew()
 
 	int facingPages = dia->choosenLayout();
 	int firstPage = dia->layoutFirstPage();
-    //int bind = dia->bind->currentIndex();
+    int docBindingDirection = dia->bindingDirection();
     bool docSet = dia->startDocSetup->isChecked();
 	double topMargin = dia->marginGroup->margins().top();
 	double bottomMargin = dia->marginGroup->margins().bottom();
@@ -2102,7 +2101,7 @@ bool ScribusMainWindow::slotFileNew()
 	int pageCount = dia->pageCountSpinBox->value();
 	QString pagesize = dia->pageSizeName();
 
-	if (doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset()))
+	if (doFileNew(pageWidth, pageHeight, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, numberCols, autoframes, facingPages, dia->unitOfMeasureComboBox->currentIndex(), firstPage, orientation, 1, pagesize, true, pageCount, true, dia->marginGroup->marginPreset(), docBindingDirection))
 	{
 		doc->setPageSetFirstPage(facingPages, firstPage);
 		doc->bleeds()->set(dia->bleedTop(), dia->bleedLeft(), dia->bleedBottom(), dia->bleedRight());
@@ -2115,7 +2114,6 @@ bool ScribusMainWindow::slotFileNew()
 		doc->setModified(false);
 		updateActiveWindowCaption(doc->documentFileName());
     }
-    // doc->setBinding(bind);
 	if (docSet)
 		slotDocSetup();
 	return retVal;
@@ -2127,7 +2125,8 @@ ScribusDoc *ScribusMainWindow::newDoc(double width, double height, double topMar
 	return doFileNew(width, height, topMargin, leftMargin, rightMargin, bottomMargin, columnDistance, columnCount, autoTextFrames, pageArrangement, unitIndex, firstPageLocation, orientation, firstPageNumber, defaultPageSize, requiresGUI, pageCount, showView, marginPreset);
 }
 
-ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, const QString& defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset)
+ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double topMargin, double leftMargin, double rightMargin, double bottomMargin, double columnDistance, double columnCount, bool autoTextFrames, int pageArrangement, int unitIndex, int firstPageLocation, int orientation, int firstPageNumber, const QString& defaultPageSize, bool requiresGUI, int pageCount, bool showView, int marginPreset, int
+                                         docBindingDircetion)
 {
 	if (HaveDoc)
 		outlinePalette->buildReopenVals();
@@ -2175,7 +2174,7 @@ ScribusDoc *ScribusMainWindow::doFileNew(double width, double height, double top
 			doc->PageColors = m_prefsManager.appPrefs.colorPrefs.DColors;
 	}
 	tempDoc->PageColors.ensureDefaultColors();
-	tempDoc->setup(unitIndex, pageArrangement, firstPageLocation, orientation, firstPageNumber, defaultPageSize, newDocName);
+	tempDoc->setup(unitIndex, pageArrangement, firstPageLocation, orientation, firstPageNumber, defaultPageSize, newDocName, docBindingDircetion);
 	if (requiresGUI)
 	{
 		HaveDoc++;

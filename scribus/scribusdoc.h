@@ -105,7 +105,7 @@ public:
 	bool inASpecialEditMode() const;
 	QList<PageItem*> getAllItems(const QList<PageItem*> &items) const;
 	QList<PageItem*> *parentGroup(PageItem* item, QList<PageItem*> *list);
-	void setup(int, int, int, int, int, const QString&, const QString&);
+	void setup(int, int, int, int, int, const QString&, const QString&, int docBindingDirection = 0);
 	void setLoading(bool);
 	bool isLoading() const;
 	void setModified(bool);

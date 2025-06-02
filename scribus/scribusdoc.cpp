@@ -678,7 +678,8 @@ QList<PageItem*> *ScribusDoc::parentGroup(PageItem* item, QList<PageItem*> *list
 	return retList;
 }
 
-void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName)
+void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName, int
+                       docBindingDirection)
 {
 	m_docPrefsData.docSetupPrefs.docUnitIndex = unitIndex;
 	setPageSetFirstPage(fp, firstLeft);
@@ -686,6 +687,7 @@ void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, in
 	m_docPrefsData.docSetupPrefs.pageSize = defaultPageSize;
 	FirstPnum = firstPageNumber;
 	m_docPrefsData.docSetupPrefs.pagePositioning = fp;
+	m_docPrefsData.docSetupPrefs.binding = docBindingDirection;
 	setDocumentFileName(documentName);
 	HasCMS = false;
 	if (!pdfOptions().UseLPI)
