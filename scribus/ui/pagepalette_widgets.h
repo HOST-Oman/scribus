@@ -148,7 +148,7 @@ public:
 	int pageHeight();
 
 	void setSelectedPage(int pageID);
-	void set_rtl_binding(int rtl_binding);
+	void setBindingDirection(int rtl_binding);
 	int selectedPage() { return m_selectedPage; };
 
 	void deleteSelectedPage();

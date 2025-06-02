@@ -795,7 +795,7 @@ void PageGrid::showContextMenu(QPoint pos)
 	m_contextMenu->exec( mapToGlobal(pos) );
 }
 
-void PageGrid::set_rtl_binding(int rtl_binding)
+void PageGrid::setBindingDirection(int rtl_binding)
 {
 	if (rtl_binding == 1)
 		m_rtlBinding = true;

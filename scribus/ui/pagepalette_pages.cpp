@@ -381,11 +381,10 @@ void PagePalette_Pages::rebuildPages()
 
 	int counter = currentPageSet.FirstPage;
 	int cols = currentPageSet.Columns;
-
+	pageViewWidget->pageGrid()->setBindingDirection(currView->m_doc->pageBinding());
 	pageViewWidget->pageGrid()->setDocumentPageSize(QSize(currView->m_doc->pageWidth(), currView->m_doc->pageHeight()));
 	pageViewWidget->pageGrid()->setPageInGroup(cols);
 	pageViewWidget->pageGrid()->setPageOffset(counter);
-	pageViewWidget->pageGrid()->set_rtl_binding(currView->m_doc->pageSets()[currView->m_doc->pagePositioning()].Binding);
 
 	m_pagePreviewUpdatePending = false;
 
@@ -457,6 +456,7 @@ void PagePalette_Pages::setView(ScribusView *view)
 		return;
 
 	pageViewWidget->pageGrid()->setSelectionColor(PrefsManager::instance().appPrefs.displayPrefs.pageBorderColor);
+	pageViewWidget->pageGrid()->setBindingDirection(view->m_doc->pageBinding());
 
 //	if (currView)
 //		connect(currView->m_doc, SIGNAL(pagePreviewChanged()), this, SLOT(updatePagePreview()));
