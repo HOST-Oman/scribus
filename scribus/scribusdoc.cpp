@@ -687,7 +687,7 @@ void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, in
 	m_docPrefsData.docSetupPrefs.pageSize = defaultPageSize;
 	FirstPnum = firstPageNumber;
 	m_docPrefsData.docSetupPrefs.pagePositioning = fp;
-	m_docPrefsData.docSetupPrefs.binding = docBindingDirection;
+	m_docPrefsData.docSetupPrefs.docBindingDirection = docBindingDirection;
 	setDocumentFileName(documentName);
 	HasCMS = false;
 	if (!pdfOptions().UseLPI)
@@ -6071,7 +6071,7 @@ void ScribusDoc::reformPages(bool moveObjects)
     double currentYPos = m_docPrefsData.displayPrefs.scratch.top();
     double lastYPos = Pages->at(0)->initialHeight();
     currentXPos += (Pages->at(0)->initialWidth() + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
-	int rtlBinding = m_docPrefsData.docSetupPrefs.binding;
+	int rtlBinding = m_docPrefsData.docSetupPrefs.docBindingDirection;
     if (rtlBinding == 1)
     {
 	    counter = !counter;

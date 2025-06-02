@@ -2419,7 +2419,7 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttri
 {
 	m_Doc->setPageSize(attrs.valueAsString("PAGESIZE"));
 	m_Doc->setPageOrientation(attrs.valueAsInt("ORIENTATION", 0));
-	m_Doc->setBinding(attrs.valueAsInt("PAGEBINDING", 0));
+	m_Doc->setDocBindingDirection(attrs.valueAsInt("PAGEBINDING", 0));
 	m_Doc->FirstPnum  = attrs.valueAsInt("FIRSTNUM", 1);
 	m_Doc->setPagePositioning(attrs.valueAsInt("BOOK", 0));
 

@@ -18,6 +18,7 @@ for which a new license (GPL+exception) is in place.
 #include "prefsfile.h"
 #include "prefsmanager.h"
 #include "prefsstructs.h"
+#include "scribusdoc.h"
 #include "undomanager.h"
 #include "units.h"
 #include "util.h"
@@ -181,7 +182,7 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	setupPageSets();
 
 	layoutFirstPageIsComboBox->setCurrentIndex(prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage);
-    layoutBindingIsComboBox->setCurrentIndex(prefsData->docSetupPrefs.binding);
+    layoutBindingIsComboBox->setCurrentIndex(prefsData->docSetupPrefs.docBindingDirection);
 
 
 	pageWidthSpinBox->blockSignals(false);
@@ -230,7 +231,7 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 	prefsData->docSetupPrefs.pageHeight = pageH;
 	prefsData->docSetupPrefs.pagePositioning = pageLayoutButtonGroup->checkedId();
 	prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage = layoutFirstPageIsComboBox->currentIndex();
-    prefsData->docSetupPrefs.binding = layoutBindingIsComboBox->currentIndex();
+    prefsData->docSetupPrefs.docBindingDirection = layoutBindingIsComboBox->currentIndex();
 
 
 	prefsData->docSetupPrefs.margins = marginsWidget->margins();
@@ -276,7 +277,7 @@ void Prefs_DocumentSetup::setupPageSets()
 		layoutBindingIsComboBox->addItem(CommonStrings::translateDocBindingLocString(CommonStrings::docLoc_RTL_Binding));
 
 		int firstPageIndex = i < 0 ? pageSet.FirstPage : i;
-        int bindingIndex = i < 0 ? m_doc->pageBinding() : i;
+        int bindingIndex = i < 0 ? m_doc->docBindingDirection() : i;
 		firstPageIndex = qMax(0, qMin(firstPageIndex, pageSet.pageNames.count() - 1));
         bindingIndex = qMax(0, qMin(bindingIndex, pageSet.pageNames.count() - 1));
 

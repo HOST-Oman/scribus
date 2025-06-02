@@ -143,7 +143,7 @@ void NewDocDialog::createNewDocPage()
 {
 	int orientation = prefsManager.appPrefs.docSetupPrefs.pageOrientation;
 	int pagePositioning = prefsManager.appPrefs.docSetupPrefs.pagePositioning;
-	int docBindingDirection = prefsManager.appPrefs.docSetupPrefs.binding;
+	int docBindingDirection = prefsManager.appPrefs.docSetupPrefs.docBindingDirection;
 	QString pageSize = prefsManager.appPrefs.docSetupPrefs.pageSize;
 	double pageHeight = prefsManager.appPrefs.docSetupPrefs.pageHeight;
 	double pageWidth = prefsManager.appPrefs.docSetupPrefs.pageWidth;
