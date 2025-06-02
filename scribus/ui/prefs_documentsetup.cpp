@@ -181,7 +181,7 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	setupPageSets();
 
 	layoutFirstPageIsComboBox->setCurrentIndex(prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage);
-    layoutBindingIsComboBox->setCurrentIndex(prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].Binding);
+    layoutBindingIsComboBox->setCurrentIndex(prefsData->docSetupPrefs.binding);
 
 
 	pageWidthSpinBox->blockSignals(false);
@@ -230,7 +230,7 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 	prefsData->docSetupPrefs.pageHeight = pageH;
 	prefsData->docSetupPrefs.pagePositioning = pageLayoutButtonGroup->checkedId();
 	prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage = layoutFirstPageIsComboBox->currentIndex();
-    prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].Binding = layoutBindingIsComboBox->currentIndex();
+    prefsData->docSetupPrefs.binding = layoutBindingIsComboBox->currentIndex();
 
 
 	prefsData->docSetupPrefs.margins = marginsWidget->margins();
@@ -276,7 +276,7 @@ void Prefs_DocumentSetup::setupPageSets()
 		layoutBindingIsComboBox->addItem(CommonStrings::translateDocBindingLocString(CommonStrings::docLoc_RTL_Binding));
 
 		int firstPageIndex = i < 0 ? pageSet.FirstPage : i;
-        int bindingIndex = i < 0 ? pageSet.Binding : i;
+        int bindingIndex = i < 0 ? m_doc->prefsData().docSetupPrefs.binding : i;
 		firstPageIndex = qMax(0, qMin(firstPageIndex, pageSet.pageNames.count() - 1));
         bindingIndex = qMax(0, qMin(bindingIndex, pageSet.pageNames.count() - 1));
 

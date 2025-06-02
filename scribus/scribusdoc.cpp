@@ -6069,7 +6069,7 @@ void ScribusDoc::reformPages(bool moveObjects)
     double currentYPos = m_docPrefsData.displayPrefs.scratch.top();
     double lastYPos = Pages->at(0)->initialHeight();
     currentXPos += (Pages->at(0)->initialWidth() + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
-	int rtlBinding = pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Binding;
+	int rtlBinding = m_docPrefsData.docSetupPrefs.binding;
     if (rtlBinding == 1)
     {
 	    counter = !counter;
