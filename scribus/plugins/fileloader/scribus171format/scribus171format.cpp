@@ -330,6 +330,15 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 				}
 			}
 			else
+			if (tagName == QLatin1String("ScribusElementUTF8"))
+			{
+				if (!loc)
+				{
+					GrX = attrs.valueAsDouble("XPosition");
+					GrY = attrs.valueAsDouble("YPosition");
+				}
+			}
+			else
 			{
 				success = false;
 				break;
@@ -342,6 +351,13 @@ bool Scribus171Format::loadElements(const QString& data, const QString& fileDir,
 		if (tagName == QLatin1String("COLOR") && attrs.valueAsString("NAME") != CommonStrings::None)
 		{
 			QString colorName = attrs.valueAsString("NAME");
+			if (m_Doc->PageColors.contains(colorName))
+				continue;
+			readColor(m_Doc->PageColors, attrs);
+		}
+		else if (tagName == QLatin1String("Color") && attrs.valueAsString("Name") != CommonStrings::None)
+		{
+			QString colorName = attrs.valueAsString("Name");
 			if (m_Doc->PageColors.contains(colorName))
 				continue;
 			readColor(m_Doc->PageColors, attrs);
@@ -869,6 +885,13 @@ bool Scribus171Format::loadStory(const QByteArray& data, StoryText& story, PageI
 				continue;
 			readColor(m_Doc->PageColors, attrs);
 		}
+		if (tagName == QLatin1String("Color") && attrs.valueAsString("Name") != CommonStrings::None)
+		{
+			QString colorName = attrs.valueAsString("Name");
+			if (m_Doc->PageColors.contains(colorName))
+				continue;
+			readColor(m_Doc->PageColors, attrs);
+		}
 		if (tagName == QLatin1String("Gradient"))
 		{
 			VGradient gra;
@@ -946,7 +969,7 @@ bool Scribus171Format::loadStory(const QByteArray& data, StoryText& story, PageI
 			if (!mlName.isEmpty() && !m_Doc->docLineStyles.contains(mlName))
 				m_Doc->docLineStyles.insert(mlName, ml);
 		}
-		if (tagName == QLatin1String("FRAMEOBJECT"))
+		if (tagName == QLatin1String("FRAMEOBJECT") || tagName == QLatin1String("FrameObject"))
 		{
 			ItemInfo itemInfo;
 			success = readObject(m_Doc, reader, readObjectParams, itemInfo);
@@ -5003,6 +5026,7 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 			double opa = tAtt.valueAsDouble("Opacity", 1.0);
 			newItem->mask_gradient.addStop(SetColor(doc, name, shade), ramp, 0.5, opa, name, shade);
 		}
+		//Remove in 1.8
 		if (tName == QLatin1String("MPoint"))
 		{
 			MeshPoint mp;
@@ -5025,6 +5049,29 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 				mGArrayRows++;
 			}
 		}
+		if (tName == QLatin1String("MeshPoint"))
+		{
+			MeshPoint mp;
+			mp.colorName = tAtt.valueAsString("Name");
+			mp.shade = tAtt.valueAsInt("Shade", 100);
+			mp.transparency = tAtt.valueAsDouble("Transparency", 1.0);
+			mp.gridPoint = FPoint(tAtt.valueAsDouble("GridPointX", 0.0), tAtt.valueAsDouble("GridPointY", 0.0));
+			mp.controlTop = FPoint(tAtt.valueAsDouble("ControlTopX", 0.0), tAtt.valueAsDouble("ControlTopY", 0.0));
+			mp.controlBottom = FPoint(tAtt.valueAsDouble("ControlBottomX", 0.0), tAtt.valueAsDouble("ControlBottomY", 0.0));
+			mp.controlLeft = FPoint(tAtt.valueAsDouble("ControlLeftX", 0.0), tAtt.valueAsDouble("ControlLeftY", 0.0));
+			mp.controlRight = FPoint(tAtt.valueAsDouble("ControlRightX", 0.0), tAtt.valueAsDouble("ControlRightY", 0.0));
+			mp.controlColor = FPoint(tAtt.valueAsDouble("ControlColorX", mp.gridPoint.x()), tAtt.valueAsDouble("ControlColorY", mp.gridPoint.y()));
+			mp.color = SetColor(doc, mp.colorName, mp.shade);
+			mp.color.setAlphaF(mp.transparency);
+			newItem->meshGradientArray[mGArrayRows][mGArrayCols] = mp;
+			mGArrayCols++;
+			if (mGArrayCols == newItem->meshGradientArray[mGArrayRows].count())
+			{
+				mGArrayCols = 0;
+				mGArrayRows++;
+			}
+		}
+		//Remove in 1.8
 		if (tName == QLatin1String("PMPoint"))
 		{
 			MeshPoint mp;
@@ -5054,89 +5101,38 @@ bool Scribus171Format::readObject(ScribusDoc* doc, ScXmlStreamReader& reader, co
 				mGArrayRows++;
 			}
 		}
-
-		if (tName == QLatin1String("ITEXT"))
-			readItemText(newItem->itemText, tAtt, lastStyle);
-		else if (tName == QLatin1String("TableData"))
+		if (tName == QLatin1String("PatchMeshPoint"))
+		{
+			MeshPoint mp;
+			mp.colorName = tAtt.valueAsString("Name");
+			mp.shade = tAtt.valueAsInt("Shade", 100);
+			mp.transparency = tAtt.valueAsDouble("Transparency", 1.0);
+			mp.gridPoint = FPoint(tAtt.valueAsDouble("GridPointX", 0.0), tAtt.valueAsDouble("GridPointY", 0.0));
+			mp.controlTop = FPoint(tAtt.valueAsDouble("ControlTopX", mp.gridPoint.x()), tAtt.valueAsDouble("ControlTopY", mp.gridPoint.y()));
+			mp.controlBottom = FPoint(tAtt.valueAsDouble("ControlBottomX", mp.gridPoint.x()), tAtt.valueAsDouble("ControlBottomY", mp.gridPoint.y()));
+			mp.controlLeft = FPoint(tAtt.valueAsDouble("ControlLeftX", mp.gridPoint.x()), tAtt.valueAsDouble("ControlLeftY", mp.gridPoint.y()));
+			mp.controlRight = FPoint(tAtt.valueAsDouble("ControlRightX", mp.gridPoint.x()), tAtt.valueAsDouble("ControlRightY", mp.gridPoint.y()));
+			mp.controlColor = FPoint(tAtt.valueAsDouble("ControlColorX", mp.gridPoint.x()), tAtt.valueAsDouble("ControlColorY", mp.gridPoint.y()));
+			mp.color = SetColor(doc, mp.colorName, mp.shade);
+			mp.color.setAlphaF(mp.transparency);
+			if (mGArrayCols == 0)
+				newItem->meshGradientPatches[mGArrayRows].TL = mp;
+			else if (mGArrayCols == 1)
+				newItem->meshGradientPatches[mGArrayRows].TR = mp;
+			else if (mGArrayCols == 2)
+				newItem->meshGradientPatches[mGArrayRows].BR = mp;
+			else if (mGArrayCols == 3)
+				newItem->meshGradientPatches[mGArrayRows].BL = mp;
+			mGArrayCols++;
+			if (mGArrayCols == 4)
+			{
+				mGArrayCols = 0;
+				mGArrayRows++;
+			}
+		}
+		if (tName == QLatin1String("TableData"))
 		{
 			readItemTableData(newItem->asTable(), reader, doc);
-		}
-		else if (tName == QLatin1String("para"))
-		{
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::PARSEP);
-			ParagraphStyle newStyle;
-			readParagraphStyle(doc, reader, newStyle);
-			newItem->itemText.setStyle(newItem->itemText.length()-1, newStyle);
-			newItem->itemText.setCharStyle(newItem->itemText.length()-1, 1, lastStyle->Style);
-		}
-		else if (tName == QLatin1String("trail"))
-		{
-			ParagraphStyle newStyle;
-			readParagraphStyle(doc, reader, newStyle);
-			newItem->itemText.setStyle(newItem->itemText.length(), newStyle);
-		}
-		else if (tName == QLatin1String("tab"))
-		{
-			CharStyle newStyle;
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::TAB);
-			readCharacterStyleAttrs(doc, tAtt, newStyle);
-			newItem->itemText.setCharStyle(newItem->itemText.length()-1, 1, newStyle);
-			lastStyle->StyleStart = newItem->itemText.length()-1;
-			lastStyle->Style = newStyle;
-		}
-		else if (tName == QLatin1String("breakline"))
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::LINEBREAK);
-		else if (tName == QLatin1String("breakcol"))
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::COLBREAK);
-		else if (tName == QLatin1String("breakframe"))
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::FRAMEBREAK);
-		else if (tName == QLatin1String("nbhyphen"))
-		{
-			CharStyle newStyle;
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::NBHYPHEN);
-			readCharacterStyleAttrs(doc, tAtt, newStyle);
-			newItem->itemText.setCharStyle(newItem->itemText.length()-1, 1, newStyle);
-			lastStyle->StyleStart = newItem->itemText.length()-1;
-			lastStyle->Style = newStyle;
-		}
-		else if (tName == QLatin1String("nbspace"))
-		{
-			CharStyle newStyle;
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::NBSPACE);
-			readCharacterStyleAttrs(doc, tAtt, newStyle);
-			newItem->itemText.setCharStyle(newItem->itemText.length()-1, 1, newStyle);
-			lastStyle->StyleStart = newItem->itemText.length()-1;
-			lastStyle->Style = newStyle;
-		}
-		else if (tName == QLatin1String("zwnbspace"))
-		{
-			CharStyle newStyle;
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::ZWNBSPACE);
-			readCharacterStyleAttrs(doc, tAtt, newStyle);
-			newItem->itemText.setCharStyle(newItem->itemText.length()-1, 1, newStyle);
-			lastStyle->StyleStart = newItem->itemText.length()-1;
-			lastStyle->Style = newStyle;
-		}
-		else if (tName == QLatin1String("zwspace"))
-		{
-			CharStyle newStyle;
-			newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::ZWSPACE);
-			readCharacterStyleAttrs(doc, tAtt, newStyle);
-			newItem->itemText.setCharStyle(newItem->itemText.length()-1, 1, newStyle);
-			lastStyle->StyleStart = newItem->itemText.length()-1;
-			lastStyle->Style = newStyle;
-		}
-		else if (tName == QLatin1String("var"))
-		{
-			CharStyle newStyle;
-			if (tAtt.value("name") == QLatin1String("pgno"))
-				newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::PAGENUMBER);
-			else
-				newItem->itemText.insertChars(newItem->itemText.length(), SpecialChars::PAGECOUNT);
-			readCharacterStyleAttrs(doc, tAtt, newStyle);
-			newItem->itemText.setCharStyle(newItem->itemText.length()-1, 1, newStyle);
-			lastStyle->StyleStart = newItem->itemText.length()-1;
-			lastStyle->Style = newStyle;
 		}
 		if (tName == QLatin1String("PageItemAttributes"))
 		{
@@ -6318,54 +6314,150 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		currItem->setLineShade(attrs.valueAsInt("LineShade", 100));
 
 	ParagraphStyle pstyle;
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("LINESP"))
 		pstyle.setLineSpacing(attrs.valueAsDouble("LINESP"));
+	else
+		if (attrs.hasAttribute("LineSpacing"))
+			pstyle.setLineSpacing(attrs.valueAsDouble("LineSpacing"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("LINESPMode"))
 		pstyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(attrs.valueAsInt("LINESPMode", 0)));
+	else
+		if (attrs.hasAttribute("LineSpacingMode"))
+			pstyle.setLineSpacingMode(static_cast<ParagraphStyle::LineSpacingMode>(attrs.valueAsInt("LineSpacingMode", 0)));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("ALIGN"))
 		pstyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt("ALIGN", 0)));
+	else
+		if (attrs.hasAttribute("Alignment"))
+			pstyle.setAlignment(static_cast<ParagraphStyle::AlignmentType>(attrs.valueAsInt("Alignment", 0)));
+	//Remove uppercase in 1.8
 	if (attrs.valueAsBool("REVERS"))
 		pstyle.setDirection(ParagraphStyle::RTL);
+	else
+		if (attrs.valueAsBool("Reversed"))
+			pstyle.setDirection(ParagraphStyle::RTL);
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("DIRECTION"))
 		pstyle.setDirection(static_cast<ParagraphStyle::DirectionType>(attrs.valueAsInt("DIRECTION", 0)));
+	else
+		if (attrs.hasAttribute("Direction"))
+			pstyle.setDirection(static_cast<ParagraphStyle::DirectionType>(attrs.valueAsInt("Direction", 0)));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("IFONT"))
 		pstyle.charStyle().setFont(m_AvailableFonts->findFont(attrs.valueAsString("IFONT"), doc));
+	else
+		if (attrs.hasAttribute("Font"))
+			pstyle.charStyle().setFont(m_AvailableFonts->findFont(attrs.valueAsString("Font"), doc));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("ISIZE"))
 		pstyle.charStyle().setFontSize(qRound(attrs.valueAsDouble("ISIZE") * 10));
+	else
+		if (attrs.hasAttribute("FontSize"))
+			pstyle.charStyle().setFontSize(qRound(attrs.valueAsDouble("FontSize") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSTROKE"))
 		pstyle.charStyle().setStrokeColor(attrs.valueAsString("TXTSTROKE"));
+	else
+		if (attrs.hasAttribute("StrokeColor"))
+			pstyle.charStyle().setStrokeColor(attrs.valueAsString("StrokeColor"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTFILL"))
 		pstyle.charStyle().setFillColor(attrs.valueAsString("TXTFILL"));
+	else
+		if (attrs.hasAttribute("FontColor"))
+			pstyle.charStyle().setFillColor(attrs.valueAsString("FontColor"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSTRSH"))
 		pstyle.charStyle().setStrokeShade(attrs.valueAsInt("TXTSTRSH"));
+	else
+		if (attrs.hasAttribute("StrokeShade"))
+			pstyle.charStyle().setStrokeShade(attrs.valueAsInt("StrokeShade"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTFILLSH"))
 		pstyle.charStyle().setFillShade(attrs.valueAsInt("TXTFILLSH"));
+	else
+		if (attrs.hasAttribute("FillShade"))
+			pstyle.charStyle().setFillShade(attrs.valueAsInt("FillShade"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSCALE"))
 		pstyle.charStyle().setScaleH(qRound(attrs.valueAsDouble("TXTSCALE") * 10));
+	else
+		if (attrs.hasAttribute("ScaleHorizontal"))
+			pstyle.charStyle().setScaleH(qRound(attrs.valueAsDouble("ScaleHorizontal") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSCALEV"))
 		pstyle.charStyle().setScaleV(qRound(attrs.valueAsDouble("TXTSCALEV") * 10));
+	else
+		if (attrs.hasAttribute("ScaleVertical"))
+			pstyle.charStyle().setScaleV(qRound(attrs.valueAsDouble("ScaleVertical") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTBASE"))
 		pstyle.charStyle().setBaselineOffset(qRound(attrs.valueAsDouble("TXTBASE") * 10));
+	else
+		if (attrs.hasAttribute("BaselineOffset"))
+			pstyle.charStyle().setBaselineOffset(qRound(attrs.valueAsDouble("BaselineOffset") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSHX"))
 		pstyle.charStyle().setShadowXOffset(qRound(attrs.valueAsDouble("TXTSHX") * 10));
+	else
+		if (attrs.hasAttribute("TextShadowXOffset"))
+			pstyle.charStyle().setShadowXOffset(qRound(attrs.valueAsDouble("TextShadowXOffset") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSHY"))
 		pstyle.charStyle().setShadowYOffset(qRound(attrs.valueAsDouble("TXTSHY") * 10));
+	else
+		if (attrs.hasAttribute("TextShadowYOffset"))
+			pstyle.charStyle().setShadowYOffset(qRound(attrs.valueAsDouble("TextShadowYOffset") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTOUT"))
 		pstyle.charStyle().setOutlineWidth(qRound(attrs.valueAsDouble("TXTOUT") * 10));
+	else
+		if (attrs.hasAttribute("TextOutlineWidth"))
+			pstyle.charStyle().setOutlineWidth(qRound(attrs.valueAsDouble("TextOutlineWidth") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTULP"))
 		pstyle.charStyle().setUnderlineOffset(qRound(attrs.valueAsDouble("TXTULP") * 10));
+	else
+		if (attrs.hasAttribute("TextUnderlineOffset"))
+			pstyle.charStyle().setUnderlineOffset(qRound(attrs.valueAsDouble("TextUnderlineOffset") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTULW"))
 		pstyle.charStyle().setUnderlineWidth(qRound(attrs.valueAsDouble("TXTULW") * 10));
+	else
+		if (attrs.hasAttribute("TextUnderlineWidth"))
+			pstyle.charStyle().setUnderlineWidth(qRound(attrs.valueAsDouble("TextUnderlineWidth") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSTP"))
 		pstyle.charStyle().setStrikethruOffset(qRound(attrs.valueAsDouble("TXTSTP") * 10));
+	else
+		if (attrs.hasAttribute("TextStrikeThroughOffset"))
+			pstyle.charStyle().setStrikethruOffset(qRound(attrs.valueAsDouble("TextStrikeThroughOffset") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTSTW"))
 		pstyle.charStyle().setStrikethruWidth(qRound(attrs.valueAsDouble("TXTSTW") * 10));
+	else
+		if (attrs.hasAttribute("TextStrikeThroughWidth"))
+			pstyle.charStyle().setStrikethruWidth(qRound(attrs.valueAsDouble("TextStrikeThroughWidth") * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTFEATURES"))
 		pstyle.charStyle().setFeatures(attrs.valueAsString("TXTFEATURES").split(" ", Qt::SkipEmptyParts));
+	else
+		if (attrs.hasAttribute("Features"))
+			pstyle.charStyle().setFeatures(attrs.valueAsString("Features").split(" ", Qt::SkipEmptyParts));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("TXTKERN"))
 		pstyle.charStyle().setTracking(qRound(attrs.valueAsDouble("TXTKERN", 0.0) * 10));
+	else
+		if (attrs.hasAttribute("Kerning"))
+			pstyle.charStyle().setTracking(qRound(attrs.valueAsDouble("Kerning", 0.0) * 10));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("wordTrack"))
 		pstyle.charStyle().setWordTracking(attrs.valueAsDouble("wordTrack"));
+	else
+		if (attrs.hasAttribute("WordTrack"))
+			pstyle.charStyle().setWordTracking(attrs.valueAsDouble("WordTrack"));
 	if (attrs.hasAttribute("MinWordTrack"))
 		pstyle.setMinWordTracking(attrs.valueAsDouble("MinWordTrack"));
 	if (attrs.hasAttribute("MinGlyphShrink"))
@@ -6378,12 +6470,24 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		pstyle.setOpticalMarginSetId(attrs.valueAsString("OpticalMarginSetId"));
 	if (attrs.hasAttribute("HyphenationMode"))
 		pstyle.setHyphenationMode(attrs.valueAsInt("HyphenationMode"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("leftMargin"))
 		pstyle.setLeftMargin(attrs.valueAsDouble("leftMargin"));
+	else
+		if (attrs.hasAttribute("LeftMargin"))
+			pstyle.setLeftMargin(attrs.valueAsDouble("LeftMargin"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("rightMargin"))
 		pstyle.setRightMargin(attrs.valueAsDouble("rightMargin"));
+	else
+		if (attrs.hasAttribute("RightMargin"))
+			pstyle.setRightMargin(attrs.valueAsDouble("RightMargin"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("firstIndent"))
 		pstyle.setFirstIndent(attrs.valueAsDouble("firstIndent"));
+	else
+		if (attrs.hasAttribute("FirstIndent"))
+			pstyle.setFirstIndent(attrs.valueAsDouble("FirstIndent"));
 	if (attrs.hasAttribute("keepLinesStart"))
 		pstyle.setKeepLinesStart(attrs.valueAsInt("keepLinesStart"));
 	if (attrs.hasAttribute("keepLinesEnd"))
@@ -6398,12 +6502,24 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		pstyle.setParEffectOffset(attrs.valueAsDouble("ParagraphEffectOffset"));
 	if (attrs.hasAttribute("ParagraphEffectIndent"))
 		pstyle.setParEffectIndent(attrs.valueAsDouble("ParagraphEffectIndent"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("DROP"))
 		pstyle.setHasDropCap(static_cast<bool>(attrs.valueAsInt("DROP")));
+	else
+		if (attrs.hasAttribute("HasDropCap"))
+			pstyle.setHasDropCap(static_cast<bool>(attrs.valueAsInt("HasDropCap")));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("DROPLIN"))
 		pstyle.setDropCapLines(attrs.valueAsInt("DROPLIN"));
+	else
+		if (attrs.hasAttribute("DropCapLines"))
+			pstyle.setDropCapLines(attrs.valueAsInt("DropCapLines"));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("DROPDIST"))
 		pstyle.setParEffectOffset(attrs.valueAsDouble("DROPDIST"));
+	else
+		if (attrs.hasAttribute("ParagraphEffectOffset"))
+			pstyle.setParEffectOffset(attrs.valueAsDouble("ParagraphEffectOffset"));
 	if (attrs.hasAttribute("Bullet"))
 		pstyle.setHasBullet(static_cast<bool>(attrs.valueAsInt("Bullet")));
 	if (attrs.hasAttribute("BulletStr"))
@@ -6667,15 +6783,31 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	}
 	else
 		currItem->setTextFlowMode(PageItem::TextFlowDisabled);
-	currItem->setLocked (attrs.valueAsBool("LOCK", false));
-	currItem->setSizeLocked(attrs.valueAsBool("LOCKR", false));
-	currItem->fillRule = attrs.valueAsBool("fillRule", true);
-	currItem->doOverprint = attrs.valueAsBool("doOverprint", false);
-	currItem->setFillTransparency(attrs.valueAsDouble("TransValue", 0.0));
-	currItem->setLineTransparency(attrs.valueAsDouble("TransValueS", 0.0));
-	currItem->setFillBlendmode(attrs.valueAsInt("TransBlend", 0));
-	currItem->setLineBlendmode(attrs.valueAsInt("TransBlendS", 0));
-	if (attrs.valueAsInt("TRANSPARENT", 0) == 1)
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("LOCK"))
+	{
+		currItem->setLocked (attrs.valueAsBool("LOCK", false));
+		currItem->setSizeLocked(attrs.valueAsBool("LOCKR", false));
+		currItem->fillRule = attrs.valueAsBool("fillRule", true);
+		currItem->doOverprint = attrs.valueAsBool("doOverprint", false);
+		currItem->setFillTransparency(attrs.valueAsDouble("TransValue", 0.0));
+		currItem->setLineTransparency(attrs.valueAsDouble("TransValueS", 0.0));
+		currItem->setFillBlendmode(attrs.valueAsInt("TransBlend", 0));
+		currItem->setLineBlendmode(attrs.valueAsInt("TransBlendS", 0));
+	}
+	else
+	{
+		currItem->setLocked (attrs.valueAsBool("ItemLocked", false));
+		currItem->setSizeLocked(attrs.valueAsBool("ItemSizeLocked", false));
+		currItem->fillRule = attrs.valueAsBool("FillRule", true);
+		currItem->doOverprint = attrs.valueAsBool("DoOverprint", false);
+		currItem->setFillTransparency(attrs.valueAsDouble("FillTransparency", 0.0));
+		currItem->setLineTransparency(attrs.valueAsDouble("LineTransparency", 0.0));
+		currItem->setFillBlendmode(attrs.valueAsInt("FillBlendMode", 0));
+		currItem->setLineBlendmode(attrs.valueAsInt("LineBlendMode", 0));
+	}
+
+	if (attrs.valueAsInt("TRANSPARENT", 0) == 1) //Unnecessary?
 		currItem->setFillColor(CommonStrings::None);
 	if (attrs.hasAttribute("COLUMNS"))
 	{
@@ -8407,12 +8539,20 @@ bool Scribus171Format::readColors(const QString& fileName, ColorList & colors)
 			firstElement = false;
 			continue;
 		}
+		//Remove uppercase in 1.8
 		if (tagName == QLatin1String("COLOR") && attrs.valueAsString("NAME") != CommonStrings::None)
 		{
 			attrs = reader.scAttributes();
 			if (attrs.valueAsString("NAME") != CommonStrings::None)
 				readColor(colors, attrs);
 		}
+		else
+			if (tagName == QLatin1String("Color") && attrs.valueAsString("Name") != CommonStrings::None)
+			{
+				attrs = reader.scAttributes();
+				if (attrs.valueAsString("Name") != CommonStrings::None)
+					readColor(colors, attrs);
+			}
 	}
 	return success;
 }
