@@ -2419,7 +2419,6 @@ void Scribus150Format::readDocAttributes(ScribusDoc* doc, const ScXmlStreamAttri
 {
 	m_Doc->setPageSize(attrs.valueAsString("PAGESIZE"));
 	m_Doc->setPageOrientation(attrs.valueAsInt("ORIENTATION", 0));
-	m_Doc->setDocBindingDirection(attrs.valueAsInt("PAGEBINDING", 0));
 	m_Doc->FirstPnum  = attrs.valueAsInt("FIRSTNUM", 1);
 	m_Doc->setPagePositioning(attrs.valueAsInt("BOOK", 0));
 
@@ -3489,7 +3488,6 @@ bool Scribus150Format::readPDFOptions(ScribusDoc* doc, ScXmlStreamReader& reader
 	// Fixme: check input pdf version
 	doc->pdfOptions().Version    = (PDFVersion::Version) attrs.valueAsInt("Version");
 	doc->pdfOptions().Resolution = attrs.valueAsInt("Resolution");
-	doc->pdfOptions().Binding    = attrs.valueAsInt("Binding");
 	doc->pdfOptions().fileName   = "";
 
 	doc->pdfOptions().FontEmbedding = (PDFOptions::PDFFontEmbedding) attrs.valueAsInt("FontEmbedding", 0);
@@ -6598,7 +6596,6 @@ bool Scribus150Format::loadPage(const QString & fileName, int pageNumber, bool M
 				ss->set("LEFT_OLD", newPage->LeftPg);
 				ss->set("NAME_OLD", newPage->pageName());
 				ss->set("ORIENTATION_OLD", newPage->orientation());
-                ss->set("BINDING_OLD", newPage);
 				ss->set("SIZE_OLD", newPage->size());
 				ss->set("WIDTH_OLD", newPage->width());
 				ss->set("HEIGHT_OLD", newPage->height());
