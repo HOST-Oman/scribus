@@ -17,6 +17,7 @@ for which a new license (GPL+exception) is in place.
 #include "prefsfile.h"
 #include "prefsmanager.h"
 #include "prefsstructs.h"
+#include "scribusdoc.h"
 #include "undomanager.h"
 #include "units.h"
 #include "util.h"
@@ -63,6 +64,11 @@ Prefs_DocumentSetup::Prefs_DocumentSetup(QWidget* parent, ScribusDoc* doc)
 	layoutFirstPageIsComboBox->addItem(" ");
 	layoutFirstPageIsComboBox->setCurrentIndex(0);
 	layoutFirstPageIsComboBox->setEnabled(false);
+
+	layoutBindingIsComboBox->clear();
+	layoutBindingIsComboBox->addItem(" ");
+	layoutBindingIsComboBox->setCurrentIndex(0);
+	layoutBindingIsComboBox->setEnabled(false);
 
 	pageWidthSpinBox->setMaximum(16777215);
 	pageHeightSpinBox->setMaximum(16777215);
@@ -175,6 +181,7 @@ void Prefs_DocumentSetup::restoreDefaults(struct ApplicationPrefs *prefsData)
 	setupPageSets();
 
 	layoutFirstPageIsComboBox->setCurrentIndex(prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage);
+	layoutBindingIsComboBox->setCurrentIndex(prefsData->docSetupPrefs.docBindingDirection);
 
 	pageWidthSpinBox->blockSignals(false);
 	pageHeightSpinBox->blockSignals(false);
@@ -222,6 +229,7 @@ void Prefs_DocumentSetup::saveGuiToPrefs(struct ApplicationPrefs *prefsData) con
 	prefsData->docSetupPrefs.pageHeight = pageH;
 	prefsData->docSetupPrefs.pagePositioning = pageLayoutButtonGroup->checkedId();
 	prefsData->pageSets[prefsData->docSetupPrefs.pagePositioning].FirstPage = layoutFirstPageIsComboBox->currentIndex();
+	prefsData->docSetupPrefs.docBindingDirection = layoutBindingIsComboBox->currentIndex();
 
 	prefsData->docSetupPrefs.margins = marginsWidget->margins();
 	prefsData->docSetupPrefs.bleeds = bleedsWidget->margins();
@@ -250,22 +258,36 @@ void Prefs_DocumentSetup::setupPageSets()
 		i = -1;
 	int currIndex = pageLayoutButtonGroup->checkedId() < 0 ? 0 :pageLayoutButtonGroup->checkedId();
 	layoutFirstPageIsComboBox->clear();
+	layoutBindingIsComboBox->clear();
 	if (currIndex > 0 && currIndex < pageSets.count())
 	{
 		const PageSet& pageSet = pageSets.at(currIndex);
 		const QStringList& pageNames = pageSet.pageNames;
 		layoutFirstPageIsComboBox->setEnabled(true);
+		layoutBindingIsComboBox->setEnabled(true);
 		for (const QString& pageName : pageNames)
+		{
 			layoutFirstPageIsComboBox->addItem(CommonStrings::translatePageSetLocString(pageName));
+		}
+		layoutBindingIsComboBox->addItem(CommonStrings::translateDocBindingLocString(CommonStrings::docLoc_LTR_Binding));
+		layoutBindingIsComboBox->addItem(CommonStrings::translateDocBindingLocString(CommonStrings::docLoc_RTL_Binding));
+
 		int firstPageIndex = i < 0 ? pageSet.FirstPage : i;
+		int bindingIndex = i < 0 ? m_doc->docBindingDirection() : i;
 		firstPageIndex = qMax(0, qMin(firstPageIndex, pageSet.pageNames.count() - 1));
+		bindingIndex = qMax(0, qMin(bindingIndex, pageSet.pageNames.count() - 1));
+
 		layoutFirstPageIsComboBox->setCurrentIndex(firstPageIndex);
+		layoutBindingIsComboBox->setCurrentIndex(bindingIndex);
 	}
 	else
 	{
 		layoutFirstPageIsComboBox->addItem(" ");
 		layoutFirstPageIsComboBox->setCurrentIndex(0);
 		layoutFirstPageIsComboBox->setEnabled(false);
+		layoutBindingIsComboBox->addItem(" ");
+		layoutBindingIsComboBox->setCurrentIndex(0);
+		layoutBindingIsComboBox->setEnabled(false);
 	}
 }
 

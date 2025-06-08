@@ -319,6 +319,8 @@ void PageGrid::setPageLayout(PageLayout layout)
 void PageGrid::setPageOffset(int pageCount)
 {
 	m_pageOffset = pageCount;
+	if (m_rtlBinding)
+		m_pageOffset = !pageCount;
 	calculateSize();
 	update();
 }
@@ -444,7 +446,10 @@ int PageGrid::columnAt(QPoint pos)
 
 	int m_columns = columns();
 
-	return (m_col < m_columns) ? m_col : m_columns -1;
+	int correctedCol = (m_col < m_columns) ? m_col : m_columns -1;
+	if (m_rtlBinding)
+		return  !correctedCol;
+	return correctedCol;
 }
 
 int PageGrid::rowAt(QPoint pos)
@@ -789,6 +794,14 @@ void PageGrid::showContextMenu(QPoint pos)
 	m_contextMenu->exec( mapToGlobal(pos) );
 }
 
+void PageGrid::setBindingDirection(int rtl_binding)
+{
+	if (rtl_binding == 1)
+		m_rtlBinding = true;
+	else
+		m_rtlBinding = false;
+}
+
 /* ********************************************************************************* *
  *
  * Events
@@ -802,6 +815,9 @@ void PageGrid::paintEvent(QPaintEvent *event)
 	int x = m_groupSpace;
 	int y = m_rowSpace;
 	int offset = 0;
+	bool firstPage = false;
+	bool lastPage = false;
+	int groupStart = 0;
 	QRect selectedPageRect;
 	QColor foregroundColor( PrefsManager::instance().appPrefs.displayPrefs.scratchColor.lightness() <= 128 ? Qt::white : Qt::black);
 
@@ -818,7 +834,8 @@ void PageGrid::paintEvent(QPaintEvent *event)
 	// Draw pages
 	for (int r = 0; r < rows(); r++)
 	{
-		int groupStart = m_groupSpace;
+		if (!lastPage)
+			groupStart = m_groupSpace;
 		int groupWidth = 0;
 		bool drawGroupRect = false;
 
@@ -828,12 +845,28 @@ void PageGrid::paintEvent(QPaintEvent *event)
 			// cell is after last page cell
 			if (count >= pageCount() + m_pageOffset)
 				break;
-
+			// cell is last page cell
+			if (count == pageCount() + m_pageOffset -1 )
+			{
+				lastPage = true;
+			}
 			// cell is a page cell
 			if (count >= m_pageOffset && count < pageCount() + m_pageOffset)
 			{
 				int id = count - m_pageOffset;
 				PageCell * cell = getPageItem(id);
+				if (m_rtlBinding)
+				{
+					x = (rowWidth(r) - dummyPageSize().width() - 1 - m_cellGap - x);;
+					if (firstPage)
+					{
+						x = m_groupSpace;
+						firstPage = false;
+						lastPage = false;
+					}
+					if (lastPage)
+						groupStart = x;
+				}
 				if (id == m_selectedPage)
 					selectedPageRect = QRect(x, y, cell->pageWidthByHeight(pageHeight()), pageHeight() );
 				QPoint pos(x,y);
@@ -845,9 +878,8 @@ void PageGrid::paintEvent(QPaintEvent *event)
 					offset = 0;
 				else
 					offset = m_cellGap;
-
-
-				x += cell->pageWidthByHeight(pageHeight()) + offset;
+				if (!m_rtlBinding)
+					x += cell->pageWidthByHeight(pageHeight()) + offset;
 				groupWidth += cell->pageWidthByHeight(pageHeight()) + offset;
 				drawGroupRect = true;
 
@@ -857,8 +889,9 @@ void PageGrid::paintEvent(QPaintEvent *event)
 			else
 			{
 				offset = ((c + 1) % m_cellsInGroup) == 0 ? 0 : m_cellGap;
-				x += dummyPageSize().width() + offset;
-
+				if (!m_rtlBinding)
+					x += dummyPageSize().width() + offset;
+				firstPage = true;
 				// adjust start on first row if first page has an offset
 				if(r == 0)
 					groupStart = x;
