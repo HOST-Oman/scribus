@@ -2008,8 +2008,8 @@ void ScribusMainWindow::startUpDialog()
 		if (dia->tabSelected() == NewDocDialog::NewDocumentTab)
 		{
 			int facingPages = dia->choosenLayout();
-            int firstPage = dia->layoutFirstPage();
-            int docBindingDirection = dia->bindingDirection();
+			int firstPage = dia->layoutFirstPage();
+			int docBindingDirection = dia->bindingDirection();
 			docSet = dia->startDocSetup->isChecked();
 			double topMargin = dia->marginGroup->margins().top();
 			double bottomMargin = dia->marginGroup->margins().bottom();
@@ -2086,8 +2086,8 @@ bool ScribusMainWindow::slotFileNew()
 
 	int facingPages = dia->choosenLayout();
 	int firstPage = dia->layoutFirstPage();
-    int docBindingDirection = dia->bindingDirection();
-    bool docSet = dia->startDocSetup->isChecked();
+	int docBindingDirection = dia->bindingDirection();
+	bool docSet = dia->startDocSetup->isChecked();
 	double topMargin = dia->marginGroup->margins().top();
 	double bottomMargin = dia->marginGroup->margins().bottom();
 	double leftMargin = dia->marginGroup->margins().left();
@@ -2113,7 +2113,8 @@ bool ScribusMainWindow::slotFileNew()
 		// doc changing should be rewritten maybe... maybe later...
 		doc->setModified(false);
 		updateActiveWindowCaption(doc->documentFileName());
-    }
+	}
+
 	if (docSet)
 		slotDocSetup();
 	return retVal;
@@ -2363,7 +2364,6 @@ void ScribusMainWindow::extrasMenuAboutToShow()
 			}
 			allItems.clear();
 		}
-        //doc->setBinding(bind);
 	}
 	scrActions["extrasManageImages"]->setEnabled(enablePicManager);
 }

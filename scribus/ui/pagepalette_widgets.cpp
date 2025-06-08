@@ -23,7 +23,6 @@ for which a new license (GPL+exception) is in place.
 
 #include "iconmanager.h"
 #include "pagepalette_widgets.h"
-
 #include "prefsfile.h"
 #include "prefsmanager.h"
 #include "scribusapp.h"
@@ -839,7 +838,6 @@ void PageGrid::paintEvent(QPaintEvent *event)
 			groupStart = m_groupSpace;
 		int groupWidth = 0;
 		bool drawGroupRect = false;
-
 
 		for (int c = 0; c < columns(); c++)
 		{

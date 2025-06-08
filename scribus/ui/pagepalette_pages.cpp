@@ -381,6 +381,7 @@ void PagePalette_Pages::rebuildPages()
 
 	int counter = currentPageSet.FirstPage;
 	int cols = currentPageSet.Columns;
+
 	pageViewWidget->pageGrid()->setBindingDirection(currView->m_doc->docBindingDirection());
 	pageViewWidget->pageGrid()->setDocumentPageSize(QSize(currView->m_doc->pageWidth(), currView->m_doc->pageHeight()));
 	pageViewWidget->pageGrid()->setPageInGroup(cols);

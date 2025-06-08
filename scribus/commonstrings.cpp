@@ -244,7 +244,7 @@ const QString& CommonStrings::translatePageSetString(const QString &untrString)
 
 const QString& CommonStrings::translatePageSetLocString(const QString &untrString)
 {
-    if (untrString == pageLocLeft)
+	if (untrString == pageLocLeft)
 		return trPageLocLeft;
 	if (untrString == pageLocMiddle)
 		return trPageLocMiddle;
@@ -254,25 +254,25 @@ const QString& CommonStrings::translatePageSetLocString(const QString &untrStrin
 		return trPageLocMiddleRight;
 	if (untrString == pageLocRight)
 		return trPageLocRight;
-    return untrString;
+	return untrString;
 }
 
-const QString& CommonStrings::translateDocBindingLocString(const QString &untrString)
+const QString &CommonStrings::translateDocBindingLocString(const QString &untrString)
 {
-    if (untrString == docLoc_RTL_Binding)
-        return trDocLoc_RTL_Binding;
-    if (untrString == docLoc_LTR_Binding)
-        return trDocLoc_LTR_Binding;
-    return untrString;
+	if (untrString == docLoc_RTL_Binding)
+		return trDocLoc_RTL_Binding;
+	if (untrString == docLoc_LTR_Binding)
+		return trDocLoc_LTR_Binding;
+	return untrString;
 }
 
-const QString& CommonStrings::untranslateDocBindingString(const QString &trString)
+const QString &CommonStrings::untranslateDocBindingString(const QString &trString)
 {
-    if (trString == trDocLoc_RTL_Binding)
-        return docLoc_RTL_Binding;
-    if (trString == trDocLoc_LTR_Binding)
-        return docLoc_LTR_Binding;
-    return trString;
+	if (trString == trDocLoc_RTL_Binding)
+		return docLoc_RTL_Binding;
+	if (trString == trDocLoc_LTR_Binding)
+		return docLoc_LTR_Binding;
+	return trString;
 }
 
 const QString& CommonStrings::untranslatePageSetString(const QString &trString)
@@ -395,10 +395,10 @@ void CommonStrings::languageChange()
 	CommonStrings::trPageLocMiddleRight = tr( "Middle Right", "Middle Right page location" );
 	CommonStrings::trPageLocRight       = tr( "Right Page", "Right page location" );
 
-    CommonStrings::docLoc_RTL_Binding   = "Right to Left";
-    CommonStrings::docLoc_LTR_Binding   = "Left to Right";
-    CommonStrings::trDocLoc_RTL_Binding = tr("Right to Left", "Right to Left Document binding direction");
-    CommonStrings::trDocLoc_LTR_Binding = tr("Left to Right", "Left to Right Document Binding direction");
+	CommonStrings::docLoc_RTL_Binding = "Right to Left";
+	CommonStrings::docLoc_LTR_Binding = "Left to Right";
+	CommonStrings::trDocLoc_RTL_Binding = tr("Right to Left", "Right to Left Document binding direction");
+	CommonStrings::trDocLoc_LTR_Binding = tr("Left to Right", "Left to Right Document Binding direction");
 
 	CommonStrings::masterPageNormal         = "Normal";
 	CommonStrings::trMasterPageNormal       = tr( "Normal", "Default single master page" );

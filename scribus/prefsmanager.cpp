@@ -1377,8 +1377,8 @@ bool PrefsManager::writePref(const QString& filePath)
 	deDocumentSetup.setAttribute("Language", appPrefs.docSetupPrefs.language);
 	deDocumentSetup.setAttribute("UnitIndex", appPrefs.docSetupPrefs.docUnitIndex);
 	deDocumentSetup.setAttribute("PageSize", appPrefs.docSetupPrefs.pageSize);
-    deDocumentSetup.setAttribute("PageBinding", appPrefs.docSetupPrefs.docBindingDirection);
-    deDocumentSetup.setAttribute("PageOrientation", appPrefs.docSetupPrefs.pageOrientation);
+	deDocumentSetup.setAttribute("PageBinding", appPrefs.docSetupPrefs.docBindingDirection);
+	deDocumentSetup.setAttribute("PageOrientation", appPrefs.docSetupPrefs.pageOrientation);
 	deDocumentSetup.setAttribute("PageWidth", ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageWidth));
 	deDocumentSetup.setAttribute("PageHeight", ScCLocale::toQStringC(appPrefs.docSetupPrefs.pageHeight));
 	deDocumentSetup.setAttribute("MarginTop", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.top()));
@@ -2073,7 +2073,7 @@ bool PrefsManager::readPref(const QString& filePath)
 			appPrefs.docSetupPrefs.docUnitIndex = dc.attribute("UnitIndex", "0").toInt();
 			PageSize ps( dc.attribute("PageSize", PageSize::defaultSizesList().at(1)) );
 			appPrefs.docSetupPrefs.pageSize = (ps.name() == CommonStrings::customPageSize ) ? PageSize::defaultSizesList().at(1) : ps.name();
-            appPrefs.docSetupPrefs.docBindingDirection = dc.attribute("PageBinding", "0").toInt();
+			appPrefs.docSetupPrefs.docBindingDirection = dc.attribute("PageBinding", "0").toInt();
 			appPrefs.docSetupPrefs.pageOrientation = dc.attribute("PageOrientation", "0").toInt();
 			appPrefs.docSetupPrefs.pageWidth   = ScCLocale::toDoubleC(dc.attribute("PageWidth"), 595.0);
 			appPrefs.docSetupPrefs.pageHeight  = ScCLocale::toDoubleC(dc.attribute("PageHeight"), 842.0);

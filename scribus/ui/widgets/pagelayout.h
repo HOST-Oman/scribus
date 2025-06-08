@@ -63,7 +63,6 @@ private:
 	QMenu* menuFirstPage { nullptr };
 	QHBoxLayout* layoutGroupLayout { nullptr };
 
-
 	void reloadScheme();
 	void reloadFirstPage(int scheme);
 
@@ -71,6 +70,7 @@ protected slots:
 	void languageChange();
 	void changeScheme(QAction* action);
 	void changeFirstPage(QAction* action);
+
 };
 
 #endif // PAGELAYOUT_H

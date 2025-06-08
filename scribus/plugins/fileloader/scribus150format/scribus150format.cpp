@@ -3488,6 +3488,7 @@ bool Scribus150Format::readPDFOptions(ScribusDoc* doc, ScXmlStreamReader& reader
 	// Fixme: check input pdf version
 	doc->pdfOptions().Version    = (PDFVersion::Version) attrs.valueAsInt("Version");
 	doc->pdfOptions().Resolution = attrs.valueAsInt("Resolution");
+	doc->pdfOptions().Binding    = attrs.valueAsInt("Binding");
 	doc->pdfOptions().fileName   = "";
 
 	doc->pdfOptions().FontEmbedding = (PDFOptions::PDFFontEmbedding) attrs.valueAsInt("FontEmbedding", 0);

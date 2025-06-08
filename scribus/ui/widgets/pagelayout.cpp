@@ -95,6 +95,7 @@ void PageLayouts::setScheme(int nr)
 	buttonScheme->setIcon(menuScheme->actions().at(m_scheme)->icon());
 
 	reloadFirstPage(m_scheme);
+
 }
 
 void PageLayouts::setHideLabelsPermanently(bool hide)

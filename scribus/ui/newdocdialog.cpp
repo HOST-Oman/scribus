@@ -572,7 +572,6 @@ void NewDocDialog::setLayout(int layoutId)
 		case 3:
 			pageLayoutButtons->button(0)->setChecked(false);
 			pageLayoutButtons->button(2)->setChecked(true);
-			// pageLayoutButtons->button(3)->setChecked(true);
 			pageLayoutButtons->button(4)->setChecked(false);
 			setDocLayout(1);
 			setDocBindingDirection(0);
