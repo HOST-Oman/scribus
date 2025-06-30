@@ -69,8 +69,8 @@ NewDocDialog::NewDocDialog(QWidget* parent, const QStringList& recentDocs, bool 
 	buttonSinglePage->setIcon(iconManager.loadIcon("page-simple"));
 	buttonDoublePageLeft->setIcon(iconManager.loadIcon("page-first-left"));
 	buttonDoublePageRight->setIcon(iconManager.loadIcon("page-doublesided"));
-	buttonLTRBinding->setIcon(iconManager.loadIcon("text-direction-ltr"));
-	buttonRTLBinding->setIcon(iconManager.loadIcon("text-direction-rtl"));
+	buttonLTRBinding->setIcon(iconManager.loadIcon("page-binding-left"));
+	buttonRTLBinding->setIcon(iconManager.loadIcon("page-binding-right"));
 	labelColumns->setPixmap(iconManager.loadPixmap("paragraph-columns"));
 
 	// for now we just hide buttonDoublePageLeft button

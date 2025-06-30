@@ -387,6 +387,8 @@ On Dark:  #e580ff; rgb(229, 128, 255); hsl(288, 100, 75)
 		<icon id="lock-unlocked" file="16/action-unlock.svg" />
 		<icon id="page-3fold" file="16/page-type-threefold.svg" />
 		<icon id="page-4fold" file="16/page-type-fourfold.svg" />
+		<icon id="page-binding-left" file="16/page-binding-left.svg" />
+		<icon id="page-binding-right" file="16/page-binding-right.svg" />
 		<icon id="page-doublesided" file="16/page-type-facing.svg" />
 		<icon id="page-duplicate" file="16/page-duplicate.svg" />
 		<icon id="page-first-left" file="16/page-first-left.svg" />
