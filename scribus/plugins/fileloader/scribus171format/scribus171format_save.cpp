@@ -1889,9 +1889,9 @@ void Scribus171Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Sto
 			// something new, write pending chars
 			if  (k - lastPos > 0)
 			{
-				docu.writeEmptyElement("ITEXT");
+				docu.writeEmptyElement("Content");
 				putCStyle(docu, lastStyle);
-				docu.writeAttribute("CH", textWithSoftHyphens(story, lastPos, k));
+				docu.writeAttribute("Chars", textWithSoftHyphens(story, lastPos, k));
 			}
 			lastStyle = style1;
 			lastPos = k;
@@ -1899,12 +1899,12 @@ void Scribus171Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Sto
 
 		if (ch == SpecialChars::OBJECT && story.object(k).getPageItem(doc) != nullptr)
 		{
-			// each obj in its own ITEXT for now
-			docu.writeEmptyElement("ITEXT");
+			// each obj in its own ITEXT Content for now
+			docu.writeEmptyElement("Content");
 			putCStyle(docu, lastStyle);
 			tmpnum.setNum(ch.unicode());
 			docu.writeAttribute("Unicode", tmpnum);
-			docu.writeAttribute("COBJ", story.object(k).getInlineCharID());
+			docu.writeAttribute("Object", story.object(k).getInlineCharID());
 		}
 		else if (ch == SpecialChars::OBJECT && story.hasMark(k))
 		{
@@ -1967,7 +1967,7 @@ void Scribus171Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Sto
 				 (0xd800 <= ch.unicode() && ch.unicode() < 0xe000) ||
 				 ch.unicode() == 0xfffe || ch.unicode() == 0xffff)
 		{
-			docu.writeEmptyElement("ITEXT");
+			docu.writeEmptyElement("Content");
 			putCStyle(docu, lastStyle);
 			tmpnum.setNum(ch.unicode());
 			docu.writeAttribute("Unicode", tmpnum);		
@@ -1982,9 +1982,9 @@ void Scribus171Format::writeITEXTs(ScribusDoc *doc, ScXmlStreamWriter &docu, Sto
 	// write pending chars
 	if (story.length() - lastPos > 0)
 	{
-		docu.writeEmptyElement("ITEXT");
+		docu.writeEmptyElement("Content");
 		putCStyle(docu, lastStyle);
-		docu.writeAttribute("CH", textWithSoftHyphens(story, lastPos, story.length()));
+		docu.writeAttribute("Chars", textWithSoftHyphens(story, lastPos, story.length()));
 	}
 	// paragraphstyle for trailing chars
 	if (story.length() == 0 || story.text(story.length() - 1) != SpecialChars::PARSEP)
@@ -2086,149 +2086,149 @@ void Scribus171Format::WriteObjects(ScribusDoc *doc, ScXmlStreamWriter& docu, co
 		{
 			if (item->GrType == Gradient_Pattern)
 			{
-				docu.writeAttribute("pattern", item->pattern());
+				docu.writeAttribute("Pattern", item->pattern());
 				const ScPatternTransform& patternTrans = item->patternTransform();
 				bool mirrorX, mirrorY;
 				item->patternFlip(mirrorX, mirrorY);
-				docu.writeAttribute("pScaleX", patternTrans.scaleX * 100.0);
-				docu.writeAttribute("pScaleY", patternTrans.scaleY * 100.0);
-				docu.writeAttribute("pOffsetX", patternTrans.offsetX);
-				docu.writeAttribute("pOffsetY", patternTrans.offsetY);
-				docu.writeAttribute("pRotation", patternTrans.rotation);
-				docu.writeAttribute("pSkewX", patternTrans.skewX);
-				docu.writeAttribute("pSkewY", patternTrans.skewY);
-				docu.writeAttribute("pMirrorX", mirrorX);
-				docu.writeAttribute("pMirrorY", mirrorY);
+				docu.writeAttribute("PatternXScale", patternTrans.scaleX * 100.0);
+				docu.writeAttribute("PatternYScale", patternTrans.scaleY * 100.0);
+				docu.writeAttribute("PatternXOffset", patternTrans.offsetX);
+				docu.writeAttribute("PatternYOffset", patternTrans.offsetY);
+				docu.writeAttribute("PatternRotation", patternTrans.rotation);
+				docu.writeAttribute("PatternXSkew", patternTrans.skewX);
+				docu.writeAttribute("PatternYSkew", patternTrans.skewY);
+				docu.writeAttribute("PatternXMirror", mirrorX);
+				docu.writeAttribute("PatternYMirror", mirrorY);
 			}
 			else
 			{
 				if (item->GrType == Gradient_Mesh)
 				{
-					docu.writeAttribute("GMAY", item->meshGradientArray[0].count());
-					docu.writeAttribute("GMAX", item->meshGradientArray.count());
+					docu.writeAttribute("GradientMeshArrayColumns", item->meshGradientArray[0].count());
+					docu.writeAttribute("GradientMeshArrayRows", item->meshGradientArray.count());
 				}
 				else if (item->GrType == Gradient_PatchMesh)
 				{
-					docu.writeAttribute("GMAX", item->meshGradientPatches.count());
+					docu.writeAttribute("GradientMeshArrayRows", item->meshGradientPatches.count());
 				}
 				else if (item->GrType == Gradient_Hatch)
 				{
 					docu.writeAttribute("HatchMode", item->hatchType);
-					docu.writeAttribute("HatchDist", item->hatchDistance);
+					docu.writeAttribute("HatchDistance", item->hatchDistance);
 					docu.writeAttribute("HatchAngle", item->hatchAngle);
-					docu.writeAttribute("HatchSolidB", item->hatchUseBackground);
-					docu.writeAttribute("HatchBackG", item->hatchBackground);
-					docu.writeAttribute("HatchForeC", item->hatchForeground);
+					docu.writeAttribute("HatchUseBackground", item->hatchUseBackground);
+					docu.writeAttribute("HatchBackgroundColor", item->hatchBackground);
+					docu.writeAttribute("HatchForegroundColor", item->hatchForeground);
 				}
 				else
 				{
-					docu.writeAttribute("GRSTARTX", item->GrStartX);
-					docu.writeAttribute("GRSTARTY", item->GrStartY);
-					docu.writeAttribute("GRENDX", item->GrEndX);
-					docu.writeAttribute("GRENDY", item->GrEndY);
-					docu.writeAttribute("GRFOCALX", item->GrFocalX);
-					docu.writeAttribute("GRFOCALY", item->GrFocalY);
-					docu.writeAttribute("GRSCALE", item->GrScale);
-					docu.writeAttribute("GRSKEW", item->GrSkew);
-					docu.writeAttribute("GRExt", item->getGradientExtend());
+					docu.writeAttribute("GradientStartX", item->GrStartX);
+					docu.writeAttribute("GradientStartY", item->GrStartY);
+					docu.writeAttribute("GradientEndX", item->GrEndX);
+					docu.writeAttribute("GradientEndY", item->GrEndY);
+					docu.writeAttribute("GradientFocalX", item->GrFocalX);
+					docu.writeAttribute("GradientFocalY", item->GrFocalY);
+					docu.writeAttribute("GradientScale", item->GrScale);
+					docu.writeAttribute("GradientSkew", item->GrSkew);
+					docu.writeAttribute("GradientExtend", item->getGradientExtend());
 					if ((item->GrType == Gradient_4Colors) || (item->GrType == Gradient_Diamond))
 					{
-						docu.writeAttribute("GRC1X", item->GrControl1.x());
-						docu.writeAttribute("GRC1Y", item->GrControl1.y());
-						docu.writeAttribute("GRCOLP1", item->GrColorP1);
-						docu.writeAttribute("GRC2X", item->GrControl2.x());
-						docu.writeAttribute("GRC2Y", item->GrControl2.y());
-						docu.writeAttribute("GRCOLP2", item->GrColorP2);
-						docu.writeAttribute("GRC3X", item->GrControl3.x());
-						docu.writeAttribute("GRC3Y", item->GrControl3.y());
-						docu.writeAttribute("GRCOLP3", item->GrColorP3);
-						docu.writeAttribute("GRC4X", item->GrControl4.x());
-						docu.writeAttribute("GRC4Y", item->GrControl4.y());
-						docu.writeAttribute("GRC5X", item->GrControl5.x());
-						docu.writeAttribute("GRC5Y", item->GrControl5.y());
-						docu.writeAttribute("GRCOLP4", item->GrColorP4);
-						docu.writeAttribute("GRCOLT1", item->GrCol1transp);
-						docu.writeAttribute("GRCOLT2", item->GrCol2transp);
-						docu.writeAttribute("GRCOLT3", item->GrCol3transp);
-						docu.writeAttribute("GRCOLT4", item->GrCol4transp);
-						docu.writeAttribute("GRCOLS1", item->GrCol1Shade);
-						docu.writeAttribute("GRCOLS2", item->GrCol2Shade);
-						docu.writeAttribute("GRCOLS3", item->GrCol3Shade);
-						docu.writeAttribute("GRCOLS4", item->GrCol4Shade);
+						docu.writeAttribute("GradientControl1X", item->GrControl1.x());
+						docu.writeAttribute("GradientControl1Y", item->GrControl1.y());
+						docu.writeAttribute("GradientColorP1", item->GrColorP1);
+						docu.writeAttribute("GradientControl2X", item->GrControl2.x());
+						docu.writeAttribute("GradientControl2Y", item->GrControl2.y());
+						docu.writeAttribute("GradientColorP2", item->GrColorP2);
+						docu.writeAttribute("GradientControl3X", item->GrControl3.x());
+						docu.writeAttribute("GradientControl3Y", item->GrControl3.y());
+						docu.writeAttribute("GradientColorP3", item->GrColorP3);
+						docu.writeAttribute("GradientControl4X", item->GrControl4.x());
+						docu.writeAttribute("GradientControl4Y", item->GrControl4.y());
+						docu.writeAttribute("GradientControl5X", item->GrControl5.x());
+						docu.writeAttribute("GradientControl5Y", item->GrControl5.y());
+						docu.writeAttribute("GradientColorP4", item->GrColorP4);
+						docu.writeAttribute("GradientColorP1Transparency", item->GrCol1transp);
+						docu.writeAttribute("GradientColorP2Transparency", item->GrCol2transp);
+						docu.writeAttribute("GradientColorP3Transparency", item->GrCol3transp);
+						docu.writeAttribute("GradientColorP4Transparency", item->GrCol4transp);
+						docu.writeAttribute("GradientColorP1Shade", item->GrCol1Shade);
+						docu.writeAttribute("GradientColorP2Shade", item->GrCol2Shade);
+						docu.writeAttribute("GradientColorP3Shade", item->GrCol3Shade);
+						docu.writeAttribute("GradientColorP4Shade", item->GrCol4Shade);
 					}
 				}
 			}
 		}
 		if (!item->gradient().isEmpty())
-			docu.writeAttribute("GRNAME", item->gradient());
+			docu.writeAttribute("GradientName", item->gradient());
 		if (!item->strokeGradient().isEmpty())
-			docu.writeAttribute("GRNAMES", item->strokeGradient());
+			docu.writeAttribute("GradientStrokeName", item->strokeGradient());
 		if (!item->gradientMask().isEmpty())
-			docu.writeAttribute("GRNAMEM", item->gradientMask());
+			docu.writeAttribute("GradientMaskName", item->gradientMask());
 		if (item->GrTypeStroke > 0)
 		{
-			docu.writeAttribute("GRExtS", item->getStrokeGradientExtend());
-			docu.writeAttribute("GRSTARTXS", item->GrStrokeStartX);
-			docu.writeAttribute("GRSTARTYS", item->GrStrokeStartY);
-			docu.writeAttribute("GRENDXS", item->GrStrokeEndX);
-			docu.writeAttribute("GRENDYS", item->GrStrokeEndY);
-			docu.writeAttribute("GRFOCALXS", item->GrStrokeFocalX);
-			docu.writeAttribute("GRFOCALYS", item->GrStrokeFocalY);
-			docu.writeAttribute("GRSCALES", item->GrStrokeScale);
-			docu.writeAttribute("GRSKEWS", item->GrStrokeSkew);
+			docu.writeAttribute("GradientStrokeExtend", item->getStrokeGradientExtend());
+			docu.writeAttribute("GradientStrokeStartX", item->GrStrokeStartX);
+			docu.writeAttribute("GradientStrokeStartY", item->GrStrokeStartY);
+			docu.writeAttribute("GradientStrokeEndX", item->GrStrokeEndX);
+			docu.writeAttribute("GradientStrokeEndY", item->GrStrokeEndY);
+			docu.writeAttribute("GradientStrokeFocalX", item->GrStrokeFocalX);
+			docu.writeAttribute("GradientStrokeFocalY", item->GrStrokeFocalY);
+			docu.writeAttribute("GradientStrokeScale", item->GrStrokeScale);
+			docu.writeAttribute("GradientStrokeSkew", item->GrStrokeSkew);
 		}
 		if (!item->strokePattern().isEmpty())
 		{
-			docu.writeAttribute("patternS", item->strokePattern());
+			docu.writeAttribute("StrokePattern", item->strokePattern());
 			const ScStrokePatternTransform& strokePatTrans = item->strokePatternTransform();
 			bool mirrorX, mirrorY;
 			item->strokePatternFlip(mirrorX, mirrorY);
 			bool atPath = item->isStrokePatternToPath();
-			docu.writeAttribute("pScaleXS", strokePatTrans.scaleX * 100.0);
-			docu.writeAttribute("pScaleYS", strokePatTrans.scaleY * 100.0);
-			docu.writeAttribute("pOffsetXS", strokePatTrans.offsetX);
-			docu.writeAttribute("pOffsetYS", strokePatTrans.offsetY);
-			docu.writeAttribute("pRotationS", strokePatTrans.rotation);
-			docu.writeAttribute("pSkewXS", strokePatTrans.skewX);
-			docu.writeAttribute("pSkewYS", strokePatTrans.skewY);
-			docu.writeAttribute("pSpaceS", strokePatTrans.space);
-			docu.writeAttribute("pMirrorXS", mirrorX);
-			docu.writeAttribute("pMirrorYS", mirrorY);
-			docu.writeAttribute("pAtPathS", atPath);
+			docu.writeAttribute("StrokePatternXScale", strokePatTrans.scaleX * 100.0);
+			docu.writeAttribute("StrokePatternYScale", strokePatTrans.scaleY * 100.0);
+			docu.writeAttribute("StrokePatternXOffset", strokePatTrans.offsetX);
+			docu.writeAttribute("StrokePatternYOffset", strokePatTrans.offsetY);
+			docu.writeAttribute("StrokePatternRotation", strokePatTrans.rotation);
+			docu.writeAttribute("StrokePatternXSkew", strokePatTrans.skewX);
+			docu.writeAttribute("StrokePatternYSkew", strokePatTrans.skewY);
+			docu.writeAttribute("StrokePatternSpace", strokePatTrans.space);
+			docu.writeAttribute("StrokePatternXMirror", mirrorX);
+			docu.writeAttribute("StrokePatternYMirror", mirrorY);
+			docu.writeAttribute("StrokePatternToPath", atPath);
 		}
 		if (item->GrMask > 0)
 		{
-			docu.writeAttribute("GRExtM", item->mask_gradient.repeatMethod());
-			docu.writeAttribute("GRTYPM", item->GrMask);
-			docu.writeAttribute("GRSTARTXM", item->GrMaskStartX);
-			docu.writeAttribute("GRSTARTYM", item->GrMaskStartY);
-			docu.writeAttribute("GRENDXM", item->GrMaskEndX);
-			docu.writeAttribute("GRENDYM", item->GrMaskEndY);
-			docu.writeAttribute("GRFOCALXM", item->GrMaskFocalX);
-			docu.writeAttribute("GRFOCALYM", item->GrMaskFocalY);
-			docu.writeAttribute("GRSCALEM", item->GrMaskScale);
-			docu.writeAttribute("GRSKEWM", item->GrMaskSkew);
+			docu.writeAttribute("GradientMaskRepeatMethod", item->mask_gradient.repeatMethod());
+			docu.writeAttribute("GradientMaskType", item->GrMask);
+			docu.writeAttribute("GradientMaskStartX", item->GrMaskStartX);
+			docu.writeAttribute("GradientMaskStartY", item->GrMaskStartY);
+			docu.writeAttribute("GradientMaskEndX", item->GrMaskEndX);
+			docu.writeAttribute("GradientMaskEndY", item->GrMaskEndY);
+			docu.writeAttribute("GradientMaskFocalX", item->GrMaskFocalX);
+			docu.writeAttribute("GradientMaskFocalY", item->GrMaskFocalY);
+			docu.writeAttribute("GradientMaskScale", item->GrMaskScale);
+			docu.writeAttribute("GradientMaskSkew", item->GrMaskSkew);
 		}
 		if (!item->patternMask().isEmpty())
 		{
-			docu.writeAttribute("patternM", item->patternMask());
+			docu.writeAttribute("MaskPattern", item->patternMask());
 			const ScMaskTransform& maskTrans = item->maskTransform();
 			bool mirrorX, mirrorY;
 			item->maskFlip(mirrorX, mirrorY);
-			docu.writeAttribute("pScaleXM", maskTrans.scaleX * 100.0);
-			docu.writeAttribute("pScaleYM", maskTrans.scaleY * 100.0);
-			docu.writeAttribute("pOffsetXM", maskTrans.offsetX);
-			docu.writeAttribute("pOffsetYM", maskTrans.offsetY);
-			docu.writeAttribute("pRotationM", maskTrans.rotation);
-			docu.writeAttribute("pSkewXM", maskTrans.skewX);
-			docu.writeAttribute("pSkewYM", maskTrans.skewY);
-			docu.writeAttribute("pMirrorXM", mirrorX);
-			docu.writeAttribute("pMirrorYM", mirrorY);
+			docu.writeAttribute("MaskPatternScaleX", maskTrans.scaleX * 100.0);
+			docu.writeAttribute("MaskPatternScaleY", maskTrans.scaleY * 100.0);
+			docu.writeAttribute("MaskPatternOffsetX", maskTrans.offsetX);
+			docu.writeAttribute("MaskPatternOffsetY", maskTrans.offsetY);
+			docu.writeAttribute("MaskPatternRotation", maskTrans.rotation);
+			docu.writeAttribute("MaskPatternSkewX", maskTrans.skewX);
+			docu.writeAttribute("MaskPatternSkewY", maskTrans.skewY);
+			docu.writeAttribute("MaskPatternMirrorX", mirrorX);
+			docu.writeAttribute("MaskPatternMirrorY", mirrorY);
 		}
 		if (item->itemText.defaultStyle().hasParent())
 			docu.writeAttribute("ParagraphStyle", item->itemText.defaultStyle().parent());
 		if (! item->itemText.defaultStyle().isInhAlignment())
-			docu.writeAttribute("ALIGN", item->itemText.defaultStyle().alignment());
+			docu.writeAttribute("Alignment", item->itemText.defaultStyle().alignment());
 		
 		docu.writeAttribute("Layer", item->m_layerID);
 		if (item->isBookmark)
@@ -2790,50 +2790,50 @@ void Scribus171Format::SetItemProps(ScXmlStreamWriter& docu, PageItem* item, con
 	}
 	if (item->isAnnotation())
 	{
-		docu.writeAttribute("ANNOTATION",1);
-		docu.writeAttribute("ANTYPE", item->annotation().Type());
-		docu.writeAttribute("ANACTION", item->annotation().Action());
-		docu.writeAttribute("ANEACT", item->annotation().E_act());
-		docu.writeAttribute("ANXACT", item->annotation().X_act());
-		docu.writeAttribute("ANDACT", item->annotation().D_act());
-		docu.writeAttribute("ANFOACT", item->annotation().Fo_act());
-		docu.writeAttribute("ANBLACT", item->annotation().Bl_act());
-		docu.writeAttribute("ANKACT", item->annotation().K_act());
-		docu.writeAttribute("ANFACT", item->annotation().F_act());
-		docu.writeAttribute("ANVACT", item->annotation().V_act());
-		docu.writeAttribute("ANCACT", item->annotation().C_act());
+		docu.writeAttribute("Annotation", 1);
+		docu.writeAttribute("AnnotationType", item->annotation().Type());
+		docu.writeAttribute("AnnotationAction", item->annotation().Action());
+		docu.writeAttribute("AnnotationActionE", item->annotation().E_act());
+		docu.writeAttribute("AnnotationActionX", item->annotation().X_act());
+		docu.writeAttribute("AnnotationActionD", item->annotation().D_act());
+		docu.writeAttribute("AnnotationActionFo", item->annotation().Fo_act());
+		docu.writeAttribute("AnnotationActionBl", item->annotation().Bl_act());
+		docu.writeAttribute("AnnotationActionK", item->annotation().K_act());
+		docu.writeAttribute("AnnotationActionF", item->annotation().F_act());
+		docu.writeAttribute("AnnotationActionV", item->annotation().V_act());
+		docu.writeAttribute("AnnotationActionC", item->annotation().C_act());
 		if (item->annotation().ActionType() == Annotation::Action_URI)
-			docu.writeAttribute("ANEXTERN", item->annotation().Extern());
+			docu.writeAttribute("AnnotationExtern", item->annotation().Extern());
 		else
-			docu.writeAttribute("ANEXTERN", Path2Relative(item->annotation().Extern(), baseDir));
-		docu.writeAttribute("ANZIEL", item->annotation().Ziel());
-		docu.writeAttribute("ANACTYP", item->annotation().ActionType());
-		docu.writeAttribute("ANTOOLTIP", item->annotation().ToolTip());
-		docu.writeAttribute("ANBWID", item->annotation().borderWidth());
-		docu.writeAttribute("ANBSTY", item->annotation().borderStyle());
-		docu.writeAttribute("ANFEED", item->annotation().Feed());
-		docu.writeAttribute("ANFLAG", item->annotation().Flag());
-		docu.writeAttribute("ANFONT", item->annotation().Font());
-		docu.writeAttribute("ANFORMAT", item->annotation().Format());
-		docu.writeAttribute("ANROLL", item->annotation().RollOver());
-		docu.writeAttribute("ANDOWN", item->annotation().Down());
-		docu.writeAttribute("ANVIS", item->annotation().Vis());
-		docu.writeAttribute("ANMC", item->annotation().MaxChar());
-		docu.writeAttribute("ANCHK", item->annotation().IsChk());
-		docu.writeAttribute("ANAA", item->annotation().AAact());
-		docu.writeAttribute("ANCHKS", item->annotation().ChkStil());
-		docu.writeAttribute("ANBCOL", item->annotation().borderColor());
-		docu.writeAttribute("ANHTML", item->annotation().HTML());
-		docu.writeAttribute("ANICON", item->annotation().UseIcons());
-		docu.writeAttribute("ANPLACE", item->annotation().IPlace());
-		docu.writeAttribute("ANSCALE", item->annotation().ScaleW());
-		docu.writeAttribute("ANITYP", item->annotation().Icon());
-		docu.writeAttribute("ANOPEN", item->annotation().IsAnOpen());
+			docu.writeAttribute("AnnotationExtern", Path2Relative(item->annotation().Extern(), baseDir));
+		docu.writeAttribute("AnnotationCount", item->annotation().Ziel());
+		docu.writeAttribute("AnnotationActionType", item->annotation().ActionType());
+		docu.writeAttribute("AnnotationToolTip", item->annotation().ToolTip());
+		docu.writeAttribute("AnnotationBorderWidth", item->annotation().borderWidth());
+		docu.writeAttribute("AnnotationBorderStyle", item->annotation().borderStyle());
+		docu.writeAttribute("AnnotationFeed", item->annotation().Feed());
+		docu.writeAttribute("AnnotationFlag", item->annotation().Flag());
+		docu.writeAttribute("AnnotationFont", item->annotation().Font());
+		docu.writeAttribute("AnnotationFormat", item->annotation().Format());
+		docu.writeAttribute("AnnotationRollOver", item->annotation().RollOver());
+		docu.writeAttribute("AnnotationDown", item->annotation().Down());
+		docu.writeAttribute("AnnotationVisible", item->annotation().Vis());
+		docu.writeAttribute("AnnotationMaxChar", item->annotation().MaxChar());
+		docu.writeAttribute("AnnotationIsCheck", item->annotation().IsChk());
+		docu.writeAttribute("AnnotationAction", item->annotation().AAact());
+		docu.writeAttribute("AnnotationCheckStyle", item->annotation().ChkStil());
+		docu.writeAttribute("AnnotationBorderColor", item->annotation().borderColor());
+		docu.writeAttribute("AnnotationHTML", item->annotation().HTML());
+		docu.writeAttribute("AnnotationUseIcons", item->annotation().UseIcons());
+		docu.writeAttribute("AnnotationTextPosition", item->annotation().IPlace());
+		docu.writeAttribute("AnnotationScaleWidth", item->annotation().ScaleW());
+		docu.writeAttribute("AnnotationIcon", item->annotation().Icon());
+		docu.writeAttribute("AnnotationTextOpen", item->annotation().IsAnOpen());
 	}
 	if (!item->AutoName)
-		docu.writeAttribute("ANNAME", item->itemName());
+		docu.writeAttribute("AutoName", item->itemName());
 	if (item->textFlowMode() != 0)
-		docu.writeAttribute("TEXTFLOWMODE", (int) item->textFlowMode() );
+		docu.writeAttribute("TextFlowMode", (int) item->textFlowMode() );
 	if (item->isTextFrame() || item->isPathText() || item->isImageFrame())
 	{
 		docu.writeAttribute("ImageScaleX", item->imageXScale());
@@ -2940,16 +2940,16 @@ void Scribus171Format::SetItemProps(ScXmlStreamWriter& docu, PageItem* item, con
 		docu.writeAttribute("LineBlendMode", item->lineBlendmode());
 	if (item->hasSoftShadow())
 	{
-		docu.writeAttribute("HASSOFTSHADOW", item->hasSoftShadow() ? 1 : 0);
-		docu.writeAttribute("SOFTSHADOWXOFFSET", item->softShadowXOffset());
-		docu.writeAttribute("SOFTSHADOWYOFFSET", item->softShadowYOffset());
-		docu.writeAttribute("SOFTSHADOWCOLOR", item->softShadowColor());
-		docu.writeAttribute("SOFTSHADOWBLURRADIUS", item->softShadowBlurRadius());
-		docu.writeAttribute("SOFTSHADOWSHADE", item->softShadowShade());
-		docu.writeAttribute("SOFTSHADOWBLENDMODE", item->softShadowBlendMode());
-		docu.writeAttribute("SOFTSHADOWOPACITY", item->softShadowOpacity());
-		docu.writeAttribute("SOFTSHADOWERASE", item->softShadowErasedByObject());
-		docu.writeAttribute("SOFTSHADOWOBJTRANS", item->softShadowHasObjectTransparency());
+		docu.writeAttribute("HasSoftShadow", item->hasSoftShadow() ? 1 : 0);
+		docu.writeAttribute("SoftShadowBlendMode", item->softShadowBlendMode());
+		docu.writeAttribute("SoftShadowBlurRadius", item->softShadowBlurRadius());
+		docu.writeAttribute("SoftShadowColor", item->softShadowColor());
+		docu.writeAttribute("SoftShadowErase", item->softShadowErasedByObject());
+		docu.writeAttribute("SoftShadowHasObjectTransparency", item->softShadowHasObjectTransparency());
+		docu.writeAttribute("SoftShadowOpacity", item->softShadowOpacity());
+		docu.writeAttribute("SoftShadowShade", item->softShadowShade());
+		docu.writeAttribute("SoftShadowXOffset", item->softShadowXOffset());
+		docu.writeAttribute("SoftShadowYOffset", item->softShadowYOffset());
 	}
 
 	QString tmp;

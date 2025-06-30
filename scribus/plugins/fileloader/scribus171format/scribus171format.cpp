@@ -5690,8 +5690,10 @@ bool Scribus171Format::readStoryText(ScribusDoc *doc, ScXmlStreamReader& reader,
 			readParagraphStyle(doc, reader, newStyle);
 			story.setDefaultStyle(newStyle);
 		}
-
+		//Remove ITEXT in 1.8
 		if (tName == QLatin1String("ITEXT"))
+			readItemText(story, tAtt, lastStyle);
+		else if (tName == QLatin1String("Content"))
 			readItemText(story, tAtt, lastStyle);
 		else if (tName == QLatin1String("para"))
 		{
@@ -5855,7 +5857,11 @@ bool Scribus171Format::readItemText(StoryText& story, const ScXmlStreamAttribute
 	}
 	else
 	{
-		tmp2 = attrs.valueAsString("CH");
+		//Remove uppercase in 1.8
+		if (attrs.hasAttribute("CH"))
+			tmp2 = attrs.valueAsString("CH");
+		else
+			tmp2 = attrs.valueAsString("Chars");
 		
 		// legacy stuff:
 		tmp2.replace(QRegularExpression("\r"), QChar(13));
@@ -5873,7 +5879,12 @@ bool Scribus171Format::readItemText(StoryText& story, const ScXmlStreamAttribute
 	last->ParaStyle = pstylename;
 	// end of legacy stuff
 
-	int iobj = attrs.valueAsInt("COBJ", -1);
+	int iobj = -1;
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("COBJ"))
+		iobj = attrs.valueAsInt("COBJ", -1);
+	else
+		iobj = attrs.valueAsInt("Object", -1);
 
 	for (int cxx = 0; cxx < tmp2.length(); ++cxx)
 	{
@@ -6573,11 +6584,13 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 			currItem->itemText.setDefaultStyle(defStyle);
 		}
 	}
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("ROT"))
 		currItem->setRotation( attrs.valueAsDouble("ROT", 0.0) );
 	else
 		currItem->setRotation( attrs.valueAsDouble("Rotation", 0.0) );
 	currItem->oldRot = currItem->rotation();
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("EXTRA"))
 		currItem->setTextToFrameDist(attrs.valueAsDouble("EXTRA", 0.0),
 								attrs.valueAsDouble("REXTRA", 0.0),
@@ -6588,15 +6601,17 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 								attrs.valueAsDouble("TextToFrameDistanceRight", 0.0),
 								attrs.valueAsDouble("TextToFrameDistanceTop", 0.0),
 								attrs.valueAsDouble("TextToFrameDistanceBottom", 0.0));
+	//Remove in 1.8
 	if (attrs.hasAttribute("VAlign"))
 		currItem->setVerticalAlignment(attrs.valueAsInt("VAlign", 0));
 	else
 		currItem->setVerticalAlignment(attrs.valueAsInt("VerticalAlignment", 0));
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("FLOP"))
 		currItem->setFirstLineOffset(static_cast<FirstLineOffsetPolicy>(attrs.valueAsInt("FLOP")));
 	else
 		currItem->setFirstLineOffset(static_cast<FirstLineOffsetPolicy>(attrs.valueAsInt("FirstLineOffset")));
-
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("PLINEART"))
 	{
 		currItem->PLineArt = Qt::PenStyle(attrs.valueAsInt("PLINEART", 0));
@@ -6609,13 +6624,19 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		currItem->PLineEnd = Qt::PenCapStyle(attrs.valueAsInt("LineCapStyle", 0));
 		currItem->PLineJoin = Qt::PenJoinStyle(attrs.valueAsInt("LineJoinStyle", 0));
 	}
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("PRINTABLE"))
 		currItem->setPrintEnabled( attrs.valueAsInt("PRINTABLE", 1));
 	else
 		currItem->setPrintEnabled( attrs.valueAsInt("PrintEnabled", 1));
-	currItem->setIsAnnotation( attrs.valueAsInt("ANNOTATION", 0));
-	currItem->annotation().setType( attrs.valueAsInt("ANTYPE", 0));
-	QString itemName = attrs.valueAsString("ANNAME","");
+
+	//Remove uppercase in 1.8
+	QString itemName;
+	if (attrs.hasAttribute("ANNAME"))
+		itemName = attrs.valueAsString("ANNAME","");
+	else
+		if (attrs.hasAttribute("AutoName"))
+			itemName = attrs.valueAsString("AutoName","");
 	if (!itemName.isEmpty())
 	{
 		if (currItem->itemName() == itemName)
@@ -6626,44 +6647,91 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 			currItem->AutoName = false;
 		}
 	}
-
-	currItem->annotation().setAction( attrs.valueAsString("ANACTION","") );
-	currItem->annotation().setE_act ( attrs.valueAsString("ANEACT","") );
-	currItem->annotation().setX_act ( attrs.valueAsString("ANXACT","") );
-	currItem->annotation().setD_act ( attrs.valueAsString("ANDACT","") );
-	currItem->annotation().setFo_act( attrs.valueAsString("ANFOACT","") );
-	currItem->annotation().setBl_act( attrs.valueAsString("ANBLACT","") );
-	currItem->annotation().setK_act ( attrs.valueAsString("ANKACT","") );
-	currItem->annotation().setF_act ( attrs.valueAsString("ANFACT","") );
-	currItem->annotation().setV_act ( attrs.valueAsString("ANVACT","") );
-	currItem->annotation().setC_act ( attrs.valueAsString("ANCACT","") );
-	currItem->annotation().setActionType(attrs.valueAsInt("ANACTYP", 0));
-	currItem->annotation().setExtern( attrs.valueAsString("ANEXTERN",""));
-	if ((!currItem->annotation().Extern().isEmpty()) && (currItem->annotation().ActionType() != 8))
-		currItem->annotation().setExtern(Relative2Path(attrs.valueAsString("ANEXTERN", "") , baseDir));
-	currItem->annotation().setZiel( attrs.valueAsInt("ANZIEL", 0));
-	currItem->annotation().setToolTip ( attrs.valueAsString("ANTOOLTIP",""));
-	currItem->annotation().setRollOver( attrs.valueAsString("ANROLL",""));
-	currItem->annotation().setDown( attrs.valueAsString("ANDOWN",""));
-	currItem->annotation().setBorderWidth( attrs.valueAsInt("ANBWID", 1));
-	currItem->annotation().setBorderStyle( attrs.valueAsInt("ANBSTY", 0));
-	currItem->annotation().setFeed( attrs.valueAsInt("ANFEED", 1));
-	currItem->annotation().setFlag( attrs.valueAsInt("ANFLAG", 0));
-	currItem->annotation().setFont( attrs.valueAsInt("ANFONT", 4));
-	currItem->annotation().setFormat( attrs.valueAsInt("ANFORMAT", 0));
-	currItem->annotation().setVis( attrs.valueAsInt("ANVIS", 0));
-	currItem->annotation().setIsChk( attrs.valueAsBool("ANCHK", false) );
-	currItem->annotation().setCheckState(currItem->annotation().IsChk());
-	currItem->annotation().setAAact( attrs.valueAsBool("ANAA", false) );
-	currItem->annotation().setHTML ( attrs.valueAsInt("ANHTML", 0));
-	currItem->annotation().setUseIcons( attrs.valueAsBool("ANICON", false));
-	currItem->annotation().setChkStil ( attrs.valueAsInt("ANCHKS", 0));
-	currItem->annotation().setMaxChar ( attrs.valueAsInt("ANMC", -1));
-	currItem->annotation().setBorderColor( attrs.valueAsString("ANBCOL", CommonStrings::None));
-	currItem->annotation().setIPlace(attrs.valueAsInt("ANPLACE", 1));
-	currItem->annotation().setScaleW(attrs.valueAsInt("ANSCALE", 0));
-	currItem->annotation().setIcon(attrs.valueAsInt("ANITYP", 0));
-	currItem->annotation().setAnOpen(attrs.valueAsBool("ANOPEN", false) );
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("ANNOTATION"))
+	{
+		currItem->setIsAnnotation( attrs.valueAsInt("ANNOTATION", 0));
+		currItem->annotation().setType( attrs.valueAsInt("ANTYPE", 0));
+		currItem->annotation().setAction( attrs.valueAsString("ANACTION","") );
+		currItem->annotation().setE_act ( attrs.valueAsString("ANEACT","") );
+		currItem->annotation().setX_act ( attrs.valueAsString("ANXACT","") );
+		currItem->annotation().setD_act ( attrs.valueAsString("ANDACT","") );
+		currItem->annotation().setFo_act( attrs.valueAsString("ANFOACT","") );
+		currItem->annotation().setBl_act( attrs.valueAsString("ANBLACT","") );
+		currItem->annotation().setK_act ( attrs.valueAsString("ANKACT","") );
+		currItem->annotation().setF_act ( attrs.valueAsString("ANFACT","") );
+		currItem->annotation().setV_act ( attrs.valueAsString("ANVACT","") );
+		currItem->annotation().setC_act ( attrs.valueAsString("ANCACT","") );
+		currItem->annotation().setActionType(attrs.valueAsInt("ANACTYP", 0));
+		currItem->annotation().setExtern( attrs.valueAsString("ANEXTERN",""));
+		if ((!currItem->annotation().Extern().isEmpty()) && (currItem->annotation().ActionType() != 8))
+			currItem->annotation().setExtern(Relative2Path(attrs.valueAsString("ANEXTERN", "") , baseDir));
+		currItem->annotation().setZiel( attrs.valueAsInt("ANZIEL", 0));
+		currItem->annotation().setToolTip ( attrs.valueAsString("ANTOOLTIP",""));
+		currItem->annotation().setRollOver( attrs.valueAsString("ANROLL",""));
+		currItem->annotation().setDown( attrs.valueAsString("ANDOWN",""));
+		currItem->annotation().setBorderWidth( attrs.valueAsInt("ANBWID", 1));
+		currItem->annotation().setBorderStyle( attrs.valueAsInt("ANBSTY", 0));
+		currItem->annotation().setFeed( attrs.valueAsInt("ANFEED", 1));
+		currItem->annotation().setFlag( attrs.valueAsInt("ANFLAG", 0));
+		currItem->annotation().setFont( attrs.valueAsInt("ANFONT", 4));
+		currItem->annotation().setFormat( attrs.valueAsInt("ANFORMAT", 0));
+		currItem->annotation().setVis( attrs.valueAsInt("ANVIS", 0));
+		currItem->annotation().setIsChk( attrs.valueAsBool("ANCHK", false) );
+		currItem->annotation().setCheckState(currItem->annotation().IsChk());
+		currItem->annotation().setAAact( attrs.valueAsBool("ANAA", false) );
+		currItem->annotation().setHTML ( attrs.valueAsInt("ANHTML", 0));
+		currItem->annotation().setUseIcons( attrs.valueAsBool("ANICON", false));
+		currItem->annotation().setChkStil ( attrs.valueAsInt("ANCHKS", 0));
+		currItem->annotation().setMaxChar ( attrs.valueAsInt("ANMC", -1));
+		currItem->annotation().setBorderColor( attrs.valueAsString("ANBCOL", CommonStrings::None));
+		currItem->annotation().setIPlace(attrs.valueAsInt("ANPLACE", 1));
+		currItem->annotation().setScaleW(attrs.valueAsInt("ANSCALE", 0));
+		currItem->annotation().setIcon(attrs.valueAsInt("ANITYP", 0));
+		currItem->annotation().setAnOpen(attrs.valueAsBool("ANOPEN", false) );
+	}
+	else
+	{
+		currItem->setIsAnnotation( attrs.valueAsInt("Annotation", 0));
+		currItem->annotation().setType( attrs.valueAsInt("AnnotationType", 0));
+		currItem->annotation().setAction( attrs.valueAsString("AnnotationAction","") );
+		currItem->annotation().setE_act ( attrs.valueAsString("AnnotationActionE","") );
+		currItem->annotation().setX_act ( attrs.valueAsString("AnnotationActionX","") );
+		currItem->annotation().setD_act ( attrs.valueAsString("AnnotationActionD","") );
+		currItem->annotation().setFo_act( attrs.valueAsString("AnnotationActionFo","") );
+		currItem->annotation().setBl_act( attrs.valueAsString("AnnotationActionBL","") );
+		currItem->annotation().setK_act ( attrs.valueAsString("AnnotationActionK","") );
+		currItem->annotation().setF_act ( attrs.valueAsString("AnnotationActionF","") );
+		currItem->annotation().setV_act ( attrs.valueAsString("AnnotationActionV","") );
+		currItem->annotation().setC_act ( attrs.valueAsString("AnnotationActionC","") );
+		currItem->annotation().setActionType(attrs.valueAsInt("AnnotationActionType", 0));
+		currItem->annotation().setExtern( attrs.valueAsString("AnnotationExtern",""));
+		if ((!currItem->annotation().Extern().isEmpty()) && (currItem->annotation().ActionType() != 8))
+			currItem->annotation().setExtern(Relative2Path(attrs.valueAsString("AnnotationExtern", "") , baseDir));
+		currItem->annotation().setZiel( attrs.valueAsInt("AnnotationCount", 0));
+		currItem->annotation().setToolTip ( attrs.valueAsString("AnnotationToolTip",""));
+		currItem->annotation().setRollOver( attrs.valueAsString("AnnotationRollOver",""));
+		currItem->annotation().setDown( attrs.valueAsString("AnnotationDown",""));
+		currItem->annotation().setBorderWidth( attrs.valueAsInt("AnnotationBorderWidth", 1));
+		currItem->annotation().setBorderStyle( attrs.valueAsInt("AnnotationBorderStyle", 0));
+		currItem->annotation().setFeed( attrs.valueAsInt("AnnotationFeed", 1));
+		currItem->annotation().setFlag( attrs.valueAsInt("AnnotationFlag", 0));
+		currItem->annotation().setFont( attrs.valueAsInt("AnnotationFont", 4));
+		currItem->annotation().setFormat( attrs.valueAsInt("AnnotationFormat", 0));
+		currItem->annotation().setVis( attrs.valueAsInt("AnnotationVisible", 0));
+		currItem->annotation().setIsChk( attrs.valueAsBool("AnnotationIsCheck", false) );
+		currItem->annotation().setCheckState(currItem->annotation().IsChk());
+		currItem->annotation().setAAact( attrs.valueAsBool("AnnotationAction", false) );
+		currItem->annotation().setHTML ( attrs.valueAsInt("AnnotationHTML", 0));
+		currItem->annotation().setUseIcons( attrs.valueAsBool("AnnotationUseIcons", false));
+		currItem->annotation().setChkStil ( attrs.valueAsInt("AnnotationCheckStyle", 0));
+		currItem->annotation().setMaxChar ( attrs.valueAsInt("AnnotationMaxChar", -1));
+		currItem->annotation().setBorderColor( attrs.valueAsString("AnnotationBorderColor", CommonStrings::None));
+		currItem->annotation().setIPlace(attrs.valueAsInt("AnnotationTextPosition", 1));
+		currItem->annotation().setScaleW(attrs.valueAsInt("AnnotationScaleWidth", 0));
+		currItem->annotation().setIcon(attrs.valueAsInt("AnnotationIcon", 0));
+		currItem->annotation().setAnOpen(attrs.valueAsBool("AnnotationTextOpen", false) );
+	}
 
 	if (currItem->isTextFrame() || currItem->isPathText())
 	{
@@ -6672,6 +6740,7 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		{
 			currItem->setImageXYScale(imageScaleX, imageScaleY);
 			currItem->setImageXYOffset(imageOffsetX, imageOffsetY);
+			//Remove uppercase in 1.8
 			if (attrs.hasAttribute("LOCALROT"))
 				currItem->setImageRotation(attrs.valueAsDouble("LOCALROT"));
 			else
@@ -6772,6 +6841,9 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	currItem->textPathFlipped = attrs.valueAsBool("textPathFlipped", false);
 	if ( attrs.hasAttribute("TEXTFLOWMODE") )
 		currItem->setTextFlowMode((PageItem::TextFlowMode) attrs.valueAsInt("TEXTFLOWMODE", 0));
+	else
+		if ( attrs.hasAttribute("TextFlowMode") )
+			currItem->setTextFlowMode((PageItem::TextFlowMode) attrs.valueAsInt("TextFlowMode", 0));
 	else if ( attrs.valueAsInt("TEXTFLOW", 0) != 0)
 	{
 		if (attrs.valueAsInt("TEXTFLOW2", 0))
@@ -7013,25 +7085,56 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 	{
 		if (currItem->GrType == Gradient_Pattern)
 		{
-			currItem->setPattern( attrs.valueAsString("pattern", "") );
-			ScPatternTransform patternTrans;
-			patternTrans.scaleX = attrs.valueAsDouble("pScaleX", 100.0) / 100.0;
-			patternTrans.scaleY = attrs.valueAsDouble("pScaleY", 100.0) / 100.0;
-			patternTrans.offsetX = attrs.valueAsDouble("pOffsetX", 0.0);
-			patternTrans.offsetY = attrs.valueAsDouble("pOffsetY", 0.0);
-			patternTrans.rotation = attrs.valueAsDouble("pRotation", 0.0);
-			patternTrans.skewX = attrs.valueAsDouble("pSkewX", 0.0);
-			patternTrans.skewY = attrs.valueAsDouble("pSkewY", 0.0);
-			currItem->setPatternTransform(patternTrans);
-			bool mirrorX = attrs.valueAsBool("pMirrorX", false);
-			bool mirrorY = attrs.valueAsBool("pMirrorY", false);
-			currItem->setPatternFlip(mirrorX, mirrorY);
+			//Remove in 1.8
+			if (attrs.hasAttribute("pattern"))
+			{
+				currItem->setPattern( attrs.valueAsString("pattern", "") );
+				ScPatternTransform patternTrans;
+				patternTrans.scaleX = attrs.valueAsDouble("pScaleX", 100.0) / 100.0;
+				patternTrans.scaleY = attrs.valueAsDouble("pScaleY", 100.0) / 100.0;
+				patternTrans.offsetX = attrs.valueAsDouble("pOffsetX", 0.0);
+				patternTrans.offsetY = attrs.valueAsDouble("pOffsetY", 0.0);
+				patternTrans.rotation = attrs.valueAsDouble("pRotation", 0.0);
+				patternTrans.skewX = attrs.valueAsDouble("pSkewX", 0.0);
+				patternTrans.skewY = attrs.valueAsDouble("pSkewY", 0.0);
+				currItem->setPatternTransform(patternTrans);
+				bool mirrorX = attrs.valueAsBool("pMirrorX", false);
+				bool mirrorY = attrs.valueAsBool("pMirrorY", false);
+				currItem->setPatternFlip(mirrorX, mirrorY);
+			}
+			else
+			{
+				currItem->setPattern( attrs.valueAsString("Pattern", "") );
+				ScPatternTransform patternTrans;
+				patternTrans.scaleX = attrs.valueAsDouble("PatternXScale", 100.0) / 100.0;
+				patternTrans.scaleY = attrs.valueAsDouble("PatternYScale", 100.0) / 100.0;
+				patternTrans.offsetX = attrs.valueAsDouble("PatternXOffset", 0.0);
+				patternTrans.offsetY = attrs.valueAsDouble("PatternYOffset", 0.0);
+				patternTrans.rotation = attrs.valueAsDouble("PatternRotation", 0.0);
+				patternTrans.skewX = attrs.valueAsDouble("PatternXSkew", 0.0);
+				patternTrans.skewY = attrs.valueAsDouble("PatternYSkew", 0.0);
+				currItem->setPatternTransform(patternTrans);
+				bool mirrorX = attrs.valueAsBool("PatternXMirror", false);
+				bool mirrorY = attrs.valueAsBool("PatternYMirror", false);
+				currItem->setPatternFlip(mirrorX, mirrorY);
+			}
 		}
 		else if (currItem->GrType == Gradient_Mesh)
 		{
 			currItem->meshGradientArray.clear();
-			int mGArrayRows = attrs.valueAsInt("GMAX", 1);
-			int mGArrayCols = attrs.valueAsInt("GMAY", 1);
+			int mGArrayRows = 1;
+			int mGArrayCols = 1;
+			//Remove uppercase in 1.8
+			if (attrs.hasAttribute("GMAX"))
+			{
+				mGArrayRows = attrs.valueAsInt("GMAX", 1);
+				mGArrayCols = attrs.valueAsInt("GMAY", 1);
+			}
+			else
+			{
+				mGArrayRows = attrs.valueAsInt("GradientMeshArrayRows", 1);
+				mGArrayCols = attrs.valueAsInt("GradientMeshArrayColumns", 1);
+			}
 			for (int mgr = 0; mgr < mGArrayRows; mgr++)
 			{
 				QList<MeshPoint> ml;
@@ -7046,7 +7149,12 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		else if (currItem->GrType == Gradient_PatchMesh)
 		{
 			currItem->meshGradientPatches.clear();
-			int mGArrayRows = attrs.valueAsInt("GMAX", 1);
+			int mGArrayRows = 1;
+			//Remove uppercase in 1.8
+			if (attrs.hasAttribute("GMAX"))
+				mGArrayRows = attrs.valueAsInt("GMAX", 1);
+			else
+				mGArrayRows = attrs.valueAsInt("GradientMeshArrayRows", 1);
 			for (int mgr = 0; mgr < mGArrayRows; mgr++)
 			{
 				meshGradientPatch patchM;
@@ -7055,54 +7163,116 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		}
 		else if (currItem->GrType == Gradient_Hatch)
 		{
-			int hatchType = attrs.valueAsInt("HatchMode", 0);
-			double hatchDistance = attrs.valueAsDouble("HatchDist", 2);
-			double hatchAngle = attrs.valueAsDouble("HatchAngle", 0);
-			bool hatchUseBackground = attrs.valueAsBool("HatchSolidB", false);
-			QString hatchBackground = attrs.valueAsString("HatchBackG", CommonStrings::None);
-			QString hatchForeground = attrs.valueAsString("HatchForeC", CommonStrings::None);
-			currItem->setHatchParameters(hatchType, hatchDistance, hatchAngle, hatchUseBackground, hatchBackground, hatchForeground);
+			if (attrs.hasAttribute("HatchSolidB"))
+			{
+				int hatchType = attrs.valueAsInt("HatchMode", 0);
+				double hatchDistance = attrs.valueAsDouble("HatchDist", 2);
+				double hatchAngle = attrs.valueAsDouble("HatchAngle", 0);
+				bool hatchUseBackground = attrs.valueAsBool("HatchSolidB", false);
+				QString hatchBackground = attrs.valueAsString("HatchBackG", CommonStrings::None);
+				QString hatchForeground = attrs.valueAsString("HatchForeC", CommonStrings::None);
+				currItem->setHatchParameters(hatchType, hatchDistance, hatchAngle, hatchUseBackground, hatchBackground, hatchForeground);
+			}
+			else
+			{
+				int hatchType = attrs.valueAsInt("HatchMode", 0);
+				double hatchDistance = attrs.valueAsDouble("HatchDistance", 2);
+				double hatchAngle = attrs.valueAsDouble("HatchAngle", 0);
+				bool hatchUseBackground = attrs.valueAsBool("HatchUseBackground", false);
+				QString hatchBackground = attrs.valueAsString("HatchBackgroundColor", CommonStrings::None);
+				QString hatchForeground = attrs.valueAsString("HatchForegroundColor", CommonStrings::None);
+				currItem->setHatchParameters(hatchType, hatchDistance, hatchAngle, hatchUseBackground, hatchBackground, hatchForeground);
+
+			}
 		}
 		else
 		{
-			currItem->GrStartX = attrs.valueAsDouble("GRSTARTX", 0.0);
-			currItem->GrStartY = attrs.valueAsDouble("GRSTARTY", 0.0);
-			currItem->GrEndX = attrs.valueAsDouble("GRENDX", currItem->width());
-			currItem->GrEndY = attrs.valueAsDouble("GRENDY", 0.0);
-			currItem->GrFocalX = attrs.valueAsDouble("GRFOCALX", 0.0);
-			currItem->GrFocalY = attrs.valueAsDouble("GRFOCALY", 0.0);
-			currItem->GrScale = attrs.valueAsDouble("GRSCALE", 1.0);
-			currItem->GrSkew = attrs.valueAsDouble("GRSKEW", 0.0);
-			GrColor = attrs.valueAsString("GRCOLOR","");
-			if (!GrColor.isEmpty())
+			//Remove uppercase in 1.8
+			if (attrs.hasAttribute("GRSTARTX"))
 			{
-				GrColor2 = attrs.valueAsString("GRCOLOR2", "");
-				GrShade = attrs.valueAsInt("GRSHADE", 100);
-				GrShade2 = attrs.valueAsInt("GRSHADE2", 100);
+				currItem->GrStartX = attrs.valueAsDouble("GRSTARTX", 0.0);
+				currItem->GrStartY = attrs.valueAsDouble("GRSTARTY", 0.0);
+				currItem->GrEndX = attrs.valueAsDouble("GRENDX", currItem->width());
+				currItem->GrEndY = attrs.valueAsDouble("GRENDY", 0.0);
+				currItem->GrFocalX = attrs.valueAsDouble("GRFOCALX", 0.0);
+				currItem->GrFocalY = attrs.valueAsDouble("GRFOCALY", 0.0);
+				currItem->GrScale = attrs.valueAsDouble("GRSCALE", 1.0);
+				currItem->GrSkew = attrs.valueAsDouble("GRSKEW", 0.0);
+				GrColor = attrs.valueAsString("GRCOLOR","");
+				if (!GrColor.isEmpty())
+				{
+					GrColor2 = attrs.valueAsString("GRCOLOR2", "");
+					GrShade = attrs.valueAsInt("GRSHADE", 100);
+					GrShade2 = attrs.valueAsInt("GRSHADE2", 100);
+				}
+				QString GrName(attrs.valueAsString("GRNAME", ""));
+				if (!GrName.isEmpty())
+					currItem->setGradient(GrName);
+				if ((currItem->GrType == Gradient_4Colors) || (currItem->GrType == Gradient_Diamond))
+				{
+					currItem->GrControl1 = FPoint(attrs.valueAsDouble("GRC1X", 0.0), attrs.valueAsDouble("GRC1Y", 0.0));
+					currItem->GrControl2 = FPoint(attrs.valueAsDouble("GRC2X", 0.0), attrs.valueAsDouble("GRC2Y", 0.0));
+					currItem->GrControl3 = FPoint(attrs.valueAsDouble("GRC3X", 0.0), attrs.valueAsDouble("GRC3Y", 0.0));
+					currItem->GrControl4 = FPoint(attrs.valueAsDouble("GRC4X", 0.0), attrs.valueAsDouble("GRC4Y", 0.0));
+					currItem->GrControl5 = FPoint(attrs.valueAsDouble("GRC5X", 0.0), attrs.valueAsDouble("GRC5Y", 0.0));
+					currItem->GrColorP1 = attrs.valueAsString("GRCOLP1", "Black");
+					currItem->GrColorP2 = attrs.valueAsString("GRCOLP2", "Black");
+					currItem->GrColorP3 = attrs.valueAsString("GRCOLP3", "Black");
+					currItem->GrColorP4 = attrs.valueAsString("GRCOLP4", "Black");
+					currItem->GrCol1transp = attrs.valueAsDouble("GRCOLT1", 1.0);
+					currItem->GrCol2transp = attrs.valueAsDouble("GRCOLT2", 1.0);
+					currItem->GrCol3transp = attrs.valueAsDouble("GRCOLT3", 1.0);
+					currItem->GrCol4transp = attrs.valueAsDouble("GRCOLT4", 1.0);
+					currItem->GrCol1Shade = attrs.valueAsInt("GRCOLS1", 100);
+					currItem->GrCol2Shade = attrs.valueAsInt("GRCOLS2", 100);
+					currItem->GrCol3Shade = attrs.valueAsInt("GRCOLS3", 100);
+					currItem->GrCol4Shade = attrs.valueAsInt("GRCOLS4", 100);
+					currItem->set4ColorColors(currItem->GrColorP1, currItem->GrColorP2, currItem->GrColorP3, currItem->GrColorP4);
+				}
 			}
-			QString GrName(attrs.valueAsString("GRNAME", ""));
-			if (!GrName.isEmpty())
-				currItem->setGradient(GrName);
-			if ((currItem->GrType == Gradient_4Colors) || (currItem->GrType == Gradient_Diamond))
+			else
 			{
-				currItem->GrControl1 = FPoint(attrs.valueAsDouble("GRC1X", 0.0), attrs.valueAsDouble("GRC1Y", 0.0));
-				currItem->GrControl2 = FPoint(attrs.valueAsDouble("GRC2X", 0.0), attrs.valueAsDouble("GRC2Y", 0.0));
-				currItem->GrControl3 = FPoint(attrs.valueAsDouble("GRC3X", 0.0), attrs.valueAsDouble("GRC3Y", 0.0));
-				currItem->GrControl4 = FPoint(attrs.valueAsDouble("GRC4X", 0.0), attrs.valueAsDouble("GRC4Y", 0.0));
-				currItem->GrControl5 = FPoint(attrs.valueAsDouble("GRC5X", 0.0), attrs.valueAsDouble("GRC5Y", 0.0));
-				currItem->GrColorP1 = attrs.valueAsString("GRCOLP1", "Black");
-				currItem->GrColorP2 = attrs.valueAsString("GRCOLP2", "Black");
-				currItem->GrColorP3 = attrs.valueAsString("GRCOLP3", "Black");
-				currItem->GrColorP4 = attrs.valueAsString("GRCOLP4", "Black");
-				currItem->GrCol1transp = attrs.valueAsDouble("GRCOLT1", 1.0);
-				currItem->GrCol2transp = attrs.valueAsDouble("GRCOLT2", 1.0);
-				currItem->GrCol3transp = attrs.valueAsDouble("GRCOLT3", 1.0);
-				currItem->GrCol4transp = attrs.valueAsDouble("GRCOLT4", 1.0);
-				currItem->GrCol1Shade = attrs.valueAsInt("GRCOLS1", 100);
-				currItem->GrCol2Shade = attrs.valueAsInt("GRCOLS2", 100);
-				currItem->GrCol3Shade = attrs.valueAsInt("GRCOLS3", 100);
-				currItem->GrCol4Shade = attrs.valueAsInt("GRCOLS4", 100);
-				currItem->set4ColorColors(currItem->GrColorP1, currItem->GrColorP2, currItem->GrColorP3, currItem->GrColorP4);
+				currItem->GrStartX = attrs.valueAsDouble("GradientStartX", 0.0);
+				currItem->GrStartY = attrs.valueAsDouble("GradientStartY", 0.0);
+				currItem->GrEndX = attrs.valueAsDouble("GradientEndX", currItem->width());
+				currItem->GrEndY = attrs.valueAsDouble("GradientEndY", 0.0);
+				currItem->GrFocalX = attrs.valueAsDouble("GradientFocalX", 0.0);
+				currItem->GrFocalY = attrs.valueAsDouble("GradientFocalY", 0.0);
+				currItem->GrScale = attrs.valueAsDouble("GradientScale", 1.0);
+				currItem->GrSkew = attrs.valueAsDouble("GradientSkew", 0.0);
+				//<<Seems like unused code
+				GrColor = attrs.valueAsString("GRCOLOR","");
+				if (!GrColor.isEmpty())
+				{
+					GrColor2 = attrs.valueAsString("GRCOLOR2", "");
+					GrShade = attrs.valueAsInt("GRSHADE", 100);
+					GrShade2 = attrs.valueAsInt("GRSHADE2", 100);
+				}
+				//>>
+				QString GrName(attrs.valueAsString("GradientName", ""));
+				if (!GrName.isEmpty())
+					currItem->setGradient(GrName);
+				if ((currItem->GrType == Gradient_4Colors) || (currItem->GrType == Gradient_Diamond))
+				{
+					currItem->GrControl1 = FPoint(attrs.valueAsDouble("GradientControl1X", 0.0), attrs.valueAsDouble("GradientControl1Y", 0.0));
+					currItem->GrControl2 = FPoint(attrs.valueAsDouble("GradientControl2X", 0.0), attrs.valueAsDouble("GradientControl2Y", 0.0));
+					currItem->GrControl3 = FPoint(attrs.valueAsDouble("GradientControl3X", 0.0), attrs.valueAsDouble("GradientControl3Y", 0.0));
+					currItem->GrControl4 = FPoint(attrs.valueAsDouble("GradientControl4X", 0.0), attrs.valueAsDouble("GradientControl4Y", 0.0));
+					currItem->GrControl5 = FPoint(attrs.valueAsDouble("GradientControl5X", 0.0), attrs.valueAsDouble("GradientControl5Y", 0.0));
+					currItem->GrColorP1 = attrs.valueAsString("GradientColorP1", "Black");
+					currItem->GrColorP2 = attrs.valueAsString("GradientColorP2", "Black");
+					currItem->GrColorP3 = attrs.valueAsString("GradientColorP3", "Black");
+					currItem->GrColorP4 = attrs.valueAsString("GradientColorP4", "Black");
+					currItem->GrCol1transp = attrs.valueAsDouble("GradientColorP1Transparency", 1.0);
+					currItem->GrCol2transp = attrs.valueAsDouble("GradientColorP2Transparency", 1.0);
+					currItem->GrCol3transp = attrs.valueAsDouble("GradientColorP3Transparency", 1.0);
+					currItem->GrCol4transp = attrs.valueAsDouble("GradientColorP4Transparency", 1.0);
+					currItem->GrCol1Shade = attrs.valueAsInt("GradientColorP1Shade", 100);
+					currItem->GrCol2Shade = attrs.valueAsInt("GradientColorP2Shade", 100);
+					currItem->GrCol3Shade = attrs.valueAsInt("GradientColorP3Shade", 100);
+					currItem->GrCol4Shade = attrs.valueAsInt("GradientColorP4Shade", 100);
+					currItem->set4ColorColors(currItem->GrColorP1, currItem->GrColorP2, currItem->GrColorP3, currItem->GrColorP4);
+				}
 			}
 		}
 	}
@@ -7146,91 +7316,203 @@ PageItem* Scribus171Format::pasteItem(ScribusDoc *doc, const ScXmlStreamAttribut
 		default:
 			break;
 	}
-
-	currItem->setStrokePattern( attrs.valueAsString("patternS", "") );
-	ScStrokePatternTransform strokePatternTrans;
-	strokePatternTrans.scaleX = attrs.valueAsDouble("pScaleXS", 100.0) / 100.0;
-	strokePatternTrans.scaleY = attrs.valueAsDouble("pScaleYS", 100.0) / 100.0;
-	strokePatternTrans.offsetX = attrs.valueAsDouble("pOffsetXS", 0.0);
-	strokePatternTrans.offsetY = attrs.valueAsDouble("pOffsetYS", 0.0);
-	strokePatternTrans.rotation = attrs.valueAsDouble("pRotationS", 0.0);
-	strokePatternTrans.skewX = attrs.valueAsDouble("pSkewXS", 0.0);
-	strokePatternTrans.skewY = attrs.valueAsDouble("pSkewYS", 0.0);
-	strokePatternTrans.space = attrs.valueAsDouble("pSpaceS", 1.0);
-	currItem->setStrokePatternTransform(strokePatternTrans);
-	bool mirrorX = attrs.valueAsBool("pMirrorXS", false);
-	bool mirrorY = attrs.valueAsBool("pMirrorYS", false);
-	bool atPath = attrs.valueAsBool("pAtPathS", false);
-	currItem->setPatternFlip(mirrorX, mirrorY);
-	currItem->setStrokePatternToPath(atPath);
+	//Remove in 1.8
+	if (attrs.hasAttribute("patternS"))
+	{
+		currItem->setStrokePattern( attrs.valueAsString("patternS", "") );
+		ScStrokePatternTransform strokePatternTrans;
+		strokePatternTrans.scaleX = attrs.valueAsDouble("pScaleXS", 100.0) / 100.0;
+		strokePatternTrans.scaleY = attrs.valueAsDouble("pScaleYS", 100.0) / 100.0;
+		strokePatternTrans.offsetX = attrs.valueAsDouble("pOffsetXS", 0.0);
+		strokePatternTrans.offsetY = attrs.valueAsDouble("pOffsetYS", 0.0);
+		strokePatternTrans.rotation = attrs.valueAsDouble("pRotationS", 0.0);
+		strokePatternTrans.skewX = attrs.valueAsDouble("pSkewXS", 0.0);
+		strokePatternTrans.skewY = attrs.valueAsDouble("pSkewYS", 0.0);
+		strokePatternTrans.space = attrs.valueAsDouble("pSpaceS", 1.0);
+		currItem->setStrokePatternTransform(strokePatternTrans);
+		bool mirrorX = attrs.valueAsBool("pMirrorXS", false);
+		bool mirrorY = attrs.valueAsBool("pMirrorYS", false);
+		bool atPath = attrs.valueAsBool("pAtPathS", false);
+		currItem->setPatternFlip(mirrorX, mirrorY);
+		currItem->setStrokePatternToPath(atPath);
+	}
+	else
+	{
+		currItem->setStrokePattern( attrs.valueAsString("StrokePattern", "") );
+		ScStrokePatternTransform strokePatternTrans;
+		strokePatternTrans.scaleX = attrs.valueAsDouble("StrokePatternXScale", 100.0) / 100.0;
+		strokePatternTrans.scaleY = attrs.valueAsDouble("StrokePatternYScale", 100.0) / 100.0;
+		strokePatternTrans.offsetX = attrs.valueAsDouble("StrokePatternXOffset", 0.0);
+		strokePatternTrans.offsetY = attrs.valueAsDouble("StrokePatternYOffset", 0.0);
+		strokePatternTrans.rotation = attrs.valueAsDouble("StrokePatternRotation", 0.0);
+		strokePatternTrans.skewX = attrs.valueAsDouble("StrokePatternXSkew", 0.0);
+		strokePatternTrans.skewY = attrs.valueAsDouble("StrokePatternYSkew", 0.0);
+		strokePatternTrans.space = attrs.valueAsDouble("StrokePatternSpace", 1.0);
+		currItem->setStrokePatternTransform(strokePatternTrans);
+		bool mirrorX = attrs.valueAsBool("StrokePatternXMirror", false);
+		bool mirrorY = attrs.valueAsBool("StrokePatternYMirror", false);
+		bool atPath = attrs.valueAsBool("StrokePatternToPath", false);
+		currItem->setPatternFlip(mirrorX, mirrorY);
+		currItem->setStrokePatternToPath(atPath);
+	}
+	//Remove uppercase in 1.8
 	if (attrs.hasAttribute("GRTYPS"))
 		currItem->GrTypeStroke = attrs.valueAsInt("GRTYPS", 0);
 	else
 		currItem->GrTypeStroke = attrs.valueAsInt("GradientTypeStroke", 0);
 	if (((currItem->GrTypeStroke != 0) && (currItem->GrTypeStroke != Gradient_Pattern)) && (currItem->strokeGradient().isEmpty()))
 		currItem->stroke_gradient.clearStops();
-	currItem->GrStrokeStartX = attrs.valueAsDouble("GRSTARTXS", 0.0);
-	currItem->GrStrokeStartY = attrs.valueAsDouble("GRSTARTYS", 0.0);
-	currItem->GrStrokeEndX = attrs.valueAsDouble("GRENDXS", currItem->width());
-	currItem->GrStrokeEndY = attrs.valueAsDouble("GRENDYS", 0.0);
-	currItem->GrStrokeFocalX = attrs.valueAsDouble("GRFOCALXS", 0.0);
-	currItem->GrStrokeFocalY = attrs.valueAsDouble("GRFOCALYS", 0.0);
-	currItem->GrStrokeScale = attrs.valueAsDouble("GRSCALES", 1.0);
-	currItem->GrStrokeSkew = attrs.valueAsDouble("GRSKEWS", 0.0);
-	QString GrNameS(attrs.valueAsString("GRNAMES", ""));
-	if (!GrNameS.isEmpty())
-		currItem->setStrokeGradient(GrNameS);
+	if (attrs.hasAttribute("GRSTARTXS"))
+	{
+		currItem->GrStrokeStartX = attrs.valueAsDouble("GRSTARTXS", 0.0);
+		currItem->GrStrokeStartY = attrs.valueAsDouble("GRSTARTYS", 0.0);
+		currItem->GrStrokeEndX = attrs.valueAsDouble("GRENDXS", currItem->width());
+		currItem->GrStrokeEndY = attrs.valueAsDouble("GRENDYS", 0.0);
+		currItem->GrStrokeFocalX = attrs.valueAsDouble("GRFOCALXS", 0.0);
+		currItem->GrStrokeFocalY = attrs.valueAsDouble("GRFOCALYS", 0.0);
+		currItem->GrStrokeScale = attrs.valueAsDouble("GRSCALES", 1.0);
+		currItem->GrStrokeSkew = attrs.valueAsDouble("GRSKEWS", 0.0);
+		QString GrNameS(attrs.valueAsString("GRNAMES", ""));
+		if (!GrNameS.isEmpty())
+			currItem->setStrokeGradient(GrNameS);
+	}
+	else
+	{
+		currItem->GrStrokeStartX = attrs.valueAsDouble("GradientStrokeStartX", 0.0);
+		currItem->GrStrokeStartY = attrs.valueAsDouble("GradientStrokeStartY", 0.0);
+		currItem->GrStrokeEndX = attrs.valueAsDouble("GradientStrokeEndX", currItem->width());
+		currItem->GrStrokeEndY = attrs.valueAsDouble("GradientStrokeEndY", 0.0);
+		currItem->GrStrokeFocalX = attrs.valueAsDouble("GradientStrokeFocalX", 0.0);
+		currItem->GrStrokeFocalY = attrs.valueAsDouble("GradientStrokeFocalY", 0.0);
+		currItem->GrStrokeScale = attrs.valueAsDouble("GradientStrokeScale", 1.0);
+		currItem->GrStrokeSkew = attrs.valueAsDouble("GradientStrokeSkew", 0.0);
+		QString GrNameS(attrs.valueAsString("GradientStrokeName", ""));
+		if (!GrNameS.isEmpty())
+			currItem->setStrokeGradient(GrNameS);
+	}
 
-	currItem->setPatternMask( attrs.valueAsString("patternM", "") );
-	ScMaskTransform maskTransform;
-	maskTransform.scaleX = attrs.valueAsDouble("pScaleXM", 100.0) / 100.0;
-	maskTransform.scaleY = attrs.valueAsDouble("pScaleYM", 100.0) / 100.0;
-	maskTransform.offsetX = attrs.valueAsDouble("pOffsetXM", 0.0);
-	maskTransform.offsetY = attrs.valueAsDouble("pOffsetYM", 0.0);
-	maskTransform.rotation = attrs.valueAsDouble("pRotationM", 0.0);
-	maskTransform.skewX = attrs.valueAsDouble("pSkewXM", 0.0);
-	maskTransform.skewY = attrs.valueAsDouble("pSkewYM", 0.0);
-	currItem->setMaskTransform(maskTransform);
-	bool mirrorXm = attrs.valueAsBool("pMirrorXM", false);
-	bool mirrorYm = attrs.valueAsBool("pMirrorYM", false);
-	currItem->setMaskFlip(mirrorXm, mirrorYm);
-	QString GrNameM(attrs.valueAsString("GRNAMEM", ""));
-	currItem->GrMask = attrs.valueAsInt("GRTYPM", 0);
+	//Remove in 1.8
+	if (attrs.hasAttribute("patternM"))
+	{
+		currItem->setPatternMask( attrs.valueAsString("patternM", "") );
+		ScMaskTransform maskTransform;
+		maskTransform.scaleX = attrs.valueAsDouble("pScaleXM", 100.0) / 100.0;
+		maskTransform.scaleY = attrs.valueAsDouble("pScaleYM", 100.0) / 100.0;
+		maskTransform.offsetX = attrs.valueAsDouble("pOffsetXM", 0.0);
+		maskTransform.offsetY = attrs.valueAsDouble("pOffsetYM", 0.0);
+		maskTransform.rotation = attrs.valueAsDouble("pRotationM", 0.0);
+		maskTransform.skewX = attrs.valueAsDouble("pSkewXM", 0.0);
+		maskTransform.skewY = attrs.valueAsDouble("pSkewYM", 0.0);
+		currItem->setMaskTransform(maskTransform);
+		bool mirrorXm = attrs.valueAsBool("pMirrorXM", false);
+		bool mirrorYm = attrs.valueAsBool("pMirrorYM", false);
+		currItem->setMaskFlip(mirrorXm, mirrorYm);
+	}
+	else
+	{
+		currItem->setPatternMask( attrs.valueAsString("MaskPattern", "") );
+		ScMaskTransform maskTransform;
+		maskTransform.scaleX = attrs.valueAsDouble("MaskPatternScaleX", 100.0) / 100.0;
+		maskTransform.scaleY = attrs.valueAsDouble("MaskPatternScaleY", 100.0) / 100.0;
+		maskTransform.offsetX = attrs.valueAsDouble("MaskPatternOffsetX", 0.0);
+		maskTransform.offsetY = attrs.valueAsDouble("MaskPatternOffsetY", 0.0);
+		maskTransform.rotation = attrs.valueAsDouble("MaskPatternRotation", 0.0);
+		maskTransform.skewX = attrs.valueAsDouble("MaskPatternSkewX", 0.0);
+		maskTransform.skewY = attrs.valueAsDouble("MaskPatternSkewY", 0.0);
+		currItem->setMaskTransform(maskTransform);
+		bool mirrorXm = attrs.valueAsBool("MaskPatternMirrorX", false);
+		bool mirrorYm = attrs.valueAsBool("MaskPatternMirrorY", false);
+		currItem->setMaskFlip(mirrorXm, mirrorYm);
+	}
+
+
+
+
+	QString GrNameM;
+	if (attrs.hasAttribute("GRNAMEM"))
+		GrNameM = attrs.valueAsString("GRNAMEM", "");
+	else
+		GrNameM = attrs.valueAsString("GradientMaskName", "");
+	if (attrs.hasAttribute("GRTYPM"))
+		currItem->GrMask = attrs.valueAsInt("GRTYPM", 0);
+	else
+		currItem->GrMask = attrs.valueAsInt("GradientMaskType", 0);
 	if ((currItem->GrMask == GradMask_Linear) || (currItem->GrMask == GradMask_LinearLumAlpha))
 		currItem->mask_gradient = VGradient(VGradient::linear);
 	else if ((currItem->GrMask == GradMask_Radial) || (currItem->GrMask == GradMask_RadialLumAlpha))
 		currItem->mask_gradient = VGradient(VGradient::radial);
 	if (((currItem->GrMask == GradMask_Linear) || (currItem->GrMask == GradMask_Radial) || (currItem->GrMask == GradMask_LinearLumAlpha) || (currItem->GrMask == GradMask_RadialLumAlpha)) && (GrNameM.isEmpty()))
 		currItem->mask_gradient.clearStops();
-	currItem->GrMaskStartX = attrs.valueAsDouble("GRSTARTXM", 0.0);
-	currItem->GrMaskStartY = attrs.valueAsDouble("GRSTARTYM", 0.0);
-	currItem->GrMaskEndX = attrs.valueAsDouble("GRENDXM", currItem->width());
-	currItem->GrMaskEndY = attrs.valueAsDouble("GRENDYM", 0.0);
-	currItem->GrMaskFocalX = attrs.valueAsDouble("GRFOCALXM", 0.0);
-	currItem->GrMaskFocalY = attrs.valueAsDouble("GRFOCALYM", 0.0);
-	currItem->GrMaskScale = attrs.valueAsDouble("GRSCALEM", 1.0);
-	currItem->GrMaskSkew = attrs.valueAsDouble("GRSKEWM", 0.0);
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("GRSTARTXM"))
+	{
+		currItem->GrMaskStartX = attrs.valueAsDouble("GRSTARTXM", 0.0);
+		currItem->GrMaskStartY = attrs.valueAsDouble("GRSTARTYM", 0.0);
+		currItem->GrMaskEndX = attrs.valueAsDouble("GRENDXM", currItem->width());
+		currItem->GrMaskEndY = attrs.valueAsDouble("GRENDYM", 0.0);
+		currItem->GrMaskFocalX = attrs.valueAsDouble("GRFOCALXM", 0.0);
+		currItem->GrMaskFocalY = attrs.valueAsDouble("GRFOCALYM", 0.0);
+		currItem->GrMaskScale = attrs.valueAsDouble("GRSCALEM", 1.0);
+		currItem->GrMaskSkew = attrs.valueAsDouble("GRSKEWM", 0.0);
+	}
+	else
+	{
+		currItem->GrMaskStartX = attrs.valueAsDouble("GradientMaskStartX", 0.0);
+		currItem->GrMaskStartY = attrs.valueAsDouble("GradientMaskStartY", 0.0);
+		currItem->GrMaskEndX = attrs.valueAsDouble("GradientMaskEndX", currItem->width());
+		currItem->GrMaskEndY = attrs.valueAsDouble("GradientMaskEndY", 0.0);
+		currItem->GrMaskFocalX = attrs.valueAsDouble("GradientMaskFocalX", 0.0);
+		currItem->GrMaskFocalY = attrs.valueAsDouble("GradientMaskFocalY", 0.0);
+		currItem->GrMaskScale = attrs.valueAsDouble("GradientMaskScale", 1.0);
+		currItem->GrMaskSkew = attrs.valueAsDouble("GradientMaskSkew", 0.0);
+	}
 	if (!GrNameM.isEmpty())
 		currItem->setGradientMask(GrNameM);
 	if (attrs.hasAttribute("InID"))
 		currItem->inlineCharID = attrs.valueAsInt("InID", -1);
 	else
 		currItem->inlineCharID = -1;
-	currItem->setGradientExtend((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GRExt", VGradient::pad)));
-	currItem->setStrokeGradientExtend((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GRExtS", VGradient::pad)));
-	currItem->mask_gradient.setRepeatMethod((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GRExtM", VGradient::pad)));
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("GRExt"))
+	{
+		currItem->setGradientExtend((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GRExt", VGradient::pad)));
+		currItem->setStrokeGradientExtend((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GRExtS", VGradient::pad)));
+		currItem->mask_gradient.setRepeatMethod((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GRExtM", VGradient::pad)));
+	}
+	else
+	{
+		currItem->setGradientExtend((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GradientExtend", VGradient::pad)));
+		currItem->setStrokeGradientExtend((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GradientStrokeExtend", VGradient::pad)));
+		currItem->mask_gradient.setRepeatMethod((VGradient::VGradientRepeatMethod)(attrs.valueAsInt("GradientMaskRepeatMethod", VGradient::pad)));
+	}
 
-	currItem->setHasSoftShadow(attrs.valueAsBool("HASSOFTSHADOW", false));
-	currItem->setSoftShadowXOffset(attrs.valueAsDouble("SOFTSHADOWXOFFSET", 5.0));
-	currItem->setSoftShadowYOffset(attrs.valueAsDouble("SOFTSHADOWYOFFSET", 5.0));
-	currItem->setSoftShadowColor(attrs.valueAsString("SOFTSHADOWCOLOR", "Black"));
-	currItem->setSoftShadowShade(attrs.valueAsInt("SOFTSHADOWSHADE", 100));
-	currItem->setSoftShadowBlurRadius(attrs.valueAsDouble("SOFTSHADOWBLURRADIUS", 5.0));
-	currItem->setSoftShadowBlendMode(attrs.valueAsInt("SOFTSHADOWBLENDMODE", 0));
-	currItem->setSoftShadowOpacity(attrs.valueAsDouble("SOFTSHADOWOPACITY", 0.0));
-	currItem->setSoftShadowErasedByObject(attrs.valueAsBool("SOFTSHADOWERASE", false));
-	currItem->setSoftShadowHasObjectTransparency(attrs.valueAsBool("SOFTSHADOWOBJTRANS", false));
-
+	//Remove uppercase in 1.8
+	if (attrs.hasAttribute("HASSOFTSHADOW"))
+	{
+		currItem->setHasSoftShadow(attrs.valueAsBool("HASSOFTSHADOW", false));
+		currItem->setSoftShadowXOffset(attrs.valueAsDouble("SOFTSHADOWXOFFSET", 5.0));
+		currItem->setSoftShadowYOffset(attrs.valueAsDouble("SOFTSHADOWYOFFSET", 5.0));
+		currItem->setSoftShadowColor(attrs.valueAsString("SOFTSHADOWCOLOR", "Black"));
+		currItem->setSoftShadowShade(attrs.valueAsInt("SOFTSHADOWSHADE", 100));
+		currItem->setSoftShadowBlurRadius(attrs.valueAsDouble("SOFTSHADOWBLURRADIUS", 5.0));
+		currItem->setSoftShadowBlendMode(attrs.valueAsInt("SOFTSHADOWBLENDMODE", 0));
+		currItem->setSoftShadowOpacity(attrs.valueAsDouble("SOFTSHADOWOPACITY", 0.0));
+		currItem->setSoftShadowErasedByObject(attrs.valueAsBool("SOFTSHADOWERASE", false));
+		currItem->setSoftShadowHasObjectTransparency(attrs.valueAsBool("SOFTSHADOWOBJTRANS", false));
+	}
+	else
+	{
+		currItem->setHasSoftShadow(attrs.valueAsBool("HasSoftShadow", false));
+		currItem->setSoftShadowBlendMode(attrs.valueAsInt("SoftShadowBlendMode", 0));
+		currItem->setSoftShadowBlurRadius(attrs.valueAsDouble("SoftShadowBlurRadius", 5.0));
+		currItem->setSoftShadowColor(attrs.valueAsString("SoftShadowColor", "Black"));
+		currItem->setSoftShadowErasedByObject(attrs.valueAsBool("SoftShadowErase", false));
+		currItem->setSoftShadowHasObjectTransparency(attrs.valueAsBool("SoftShadowHasObjectTransparency", false));
+		currItem->setSoftShadowOpacity(attrs.valueAsDouble("SoftShadowOpacity", 0.0));
+		currItem->setSoftShadowShade(attrs.valueAsInt("SoftShadowShade", 100));
+		currItem->setSoftShadowXOffset(attrs.valueAsDouble("SoftShadowXOffset", 5.0));
+		currItem->setSoftShadowYOffset(attrs.valueAsDouble("SoftShadowYOffset", 5.0));
+	}
 	//currItem->setRedrawBounding();
 	//currItem->OwnPage = view->OnPage(currItem);
 	return currItem;
@@ -7777,7 +8059,7 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			temp.create(tstyle);
 			m_Doc->redefineCellStyles(temp, false);
 		}
-		if (((tagName == QLatin1String("PAGE")) || (tagName == QLatin1String("MASTERPAGE")) || (tagName == QLatin1String("Page")) || (tagName == QLatin1String("MasterPage"))) && (attrs.valueAsInt("NUM") == pageNumber))
+		if (((tagName == QLatin1String("PAGE")) || (tagName == QLatin1String("MASTERPAGE")) || (tagName == QLatin1String("Page")) || (tagName == QLatin1String("MasterPage"))) && (attrs.valueAsInt("NUM") == pageNumber || attrs.valueAsInt("PageNumber") == pageNumber))
 		{
 			if (Mpage && (tagName != QLatin1String("MASTERPAGE") && tagName != QLatin1String("MasterPage")))
 				continue;
@@ -7812,24 +8094,39 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			}
 			if (Mpage)
 			{
-				newPage->LeftPg = attrs.valueAsInt("LEFT", 0);
-
+				//Remove uppercase in 1.8
+				if (attrs.hasAttribute("LEFT"))
+					newPage->LeftPg = attrs.valueAsInt("LEFT", 0);
+				else
+					newPage->LeftPg = attrs.valueAsInt("LeftPage", 0);
 				if (!renamedPageName.isEmpty())
 					newPage->setPageName(renamedPageName);
 				else
-					newPage->setPageName(attrs.valueAsString("NAM",""));
+				{
+					//Remove uppercase in 1.8
+					if (attrs.hasAttribute("NAM"))
+						newPage->setPageName(attrs.valueAsString("NAM",""));
+					else
+						newPage->setPageName(attrs.valueAsString("PageName",""));
+				}
 			}
 			if (attrs.hasAttribute("Size"))
 				newPage->setSize(attrs.valueAsString("Size"));
 			if (attrs.hasAttribute("Orientation"))
 				newPage->setOrientation(attrs.valueAsInt("Orientation"));
 			if (attrs.hasAttribute("PAGEWIDTH"))
-				newPage->setWidth( attrs.valueAsDouble("PAGEWIDTH") );
+				newPage->setWidth(attrs.valueAsDouble("PAGEWIDTH"));
 			else
-				newPage->setWidth( attrs.valueAsDouble("PAGEWITH") );
-			newPage->setHeight( attrs.valueAsDouble("PAGEHEIGHT") );
+				newPage->setWidth(attrs.valueAsDouble("PageWidth"));
+			//Remove uppercase in 1.8
+			if (attrs.hasAttribute("PAGEHEIGHT"))
+				newPage->setHeight(attrs.valueAsDouble("PAGEHEIGHT"));
+			else
+				newPage->setHeight(attrs.valueAsDouble("PageHeight"));
 			newPage->setInitialHeight(newPage->height());
 			newPage->setInitialWidth(newPage->width());
+			if (attrs.hasAttribute("BORDERTOP"))
+			{
 			newPage->initialMargins.setTop(qMax(0.0, attrs.valueAsDouble("BORDERTOP")));
 			newPage->initialMargins.setBottom(qMax(0.0, attrs.valueAsDouble("BORDERBOTTOM")));
 			newPage->initialMargins.setLeft(qMax(0.0, attrs.valueAsDouble("BORDERLEFT")));
@@ -7839,14 +8136,40 @@ bool Scribus171Format::loadPage(const QString & fileName, int pageNumber, bool M
 			newPage->Margins.setBottom(newPage->initialMargins.bottom());
 			pageX = attrs.valueAsDouble("PAGEXPOS");
 			pageY = attrs.valueAsDouble("PAGEYPOS");
+			}
+			else
+			{
+				newPage->initialMargins.setTop(qMax(0.0, attrs.valueAsDouble("BorderTop")));
+				newPage->initialMargins.setBottom(qMax(0.0, attrs.valueAsDouble("BorderBottom")));
+				newPage->initialMargins.setLeft(qMax(0.0, attrs.valueAsDouble("BorderLeft")));
+				newPage->initialMargins.setRight(qMax(0.0, attrs.valueAsDouble("BorderRight")));
+				newPage->marginPreset = attrs.valueAsInt("Preset", 0);
+				newPage->Margins.setTop(newPage->initialMargins.top());
+				newPage->Margins.setBottom(newPage->initialMargins.bottom());
+				pageX = attrs.valueAsDouble("PageXPosition");
+				pageY = attrs.valueAsDouble("PageYPosition");
+			}
 
 			// guides reading
-			newPage->guides.setHorizontalAutoGap(attrs.valueAsDouble("AGhorizontalAutoGap", 0.0));
-			newPage->guides.setVerticalAutoGap(attrs.valueAsDouble("AGverticalAutoGap", 0.0));
-			newPage->guides.setHorizontalAutoCount(attrs.valueAsInt("AGhorizontalAutoCount", 0));
-			newPage->guides.setVerticalAutoCount(attrs.valueAsInt("AGverticalAutoCount", 0));
-			newPage->guides.setHorizontalAutoRefer(attrs.valueAsInt("AGhorizontalAutoRefer", 0));
-			newPage->guides.setVerticalAutoRefer(attrs.valueAsInt("AGverticalAutoRefer", 0));
+			//Remove in 1.8
+			if (attrs.hasAttribute("AGhorizontalAutoGap"))
+			{
+				newPage->guides.setHorizontalAutoGap(attrs.valueAsDouble("AGhorizontalAutoGap", 0.0));
+				newPage->guides.setVerticalAutoGap(attrs.valueAsDouble("AGverticalAutoGap", 0.0));
+				newPage->guides.setHorizontalAutoCount(attrs.valueAsInt("AGhorizontalAutoCount", 0));
+				newPage->guides.setVerticalAutoCount(attrs.valueAsInt("AGverticalAutoCount", 0));
+				newPage->guides.setHorizontalAutoRefer(attrs.valueAsInt("AGhorizontalAutoRefer", 0));
+				newPage->guides.setVerticalAutoRefer(attrs.valueAsInt("AGverticalAutoRefer", 0));
+			}
+			else
+			{
+				newPage->guides.setHorizontalAutoGap(attrs.valueAsDouble("AutoGuideHorizontalGap", 0.0));
+				newPage->guides.setVerticalAutoGap(attrs.valueAsDouble("AutoGuideVerticalGap", 0.0));
+				newPage->guides.setHorizontalAutoCount(attrs.valueAsInt("AutoGuideHorizontalCount", 0));
+				newPage->guides.setVerticalAutoCount(attrs.valueAsInt("AutoGuideVerticalCount", 0));
+				newPage->guides.setHorizontalAutoRefer(attrs.valueAsInt("AutoGuideHorizontalReference", 0));
+				newPage->guides.setVerticalAutoRefer(attrs.valueAsInt("AutoGuideVerticalReference", 0));
+			}
 			GuideManagerIO::readVerticalGuides(attrs.valueAsString("VerticalGuides"),
 											newPage,
 											GuideManagerCore::Standard,
