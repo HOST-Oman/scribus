@@ -134,7 +134,7 @@ PyObject* scribus_getgradstop(PyObject* /* self */, PyObject* args)
 
 	if (stopIndex < 0 || stopIndex >= gradStopsCount)
 	{
-		PyErr_SetString(PyExc_ValueError, QObject::tr("Stop index out of bounds, must be 0 <= index <= stopsCount.", "python error").toLocal8Bit().constData());
+		PyErr_SetString(PyExc_ValueError, QObject::tr("Stop index out of bounds, must be 0 <= index <= stopsCount.", "python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -318,11 +318,11 @@ PyObject *scribus_getimagepage(PyObject* /* self */, PyObject* args)
 	if (!checkHaveDocument())
 		return nullptr;
 
-	char *Name = const_cast<char*>("");
-	if (!PyArg_ParseTuple(args, "|es", "utf-8", &Name))
+	PyESString name;
+	if (!PyArg_ParseTuple(args, "|es", "utf-8", name.ptr()))
 		return nullptr;
 
-	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
+	PageItem *item = GetUniqueItem(QString::fromUtf8(name.c_str()));
 	if (item == nullptr)
 		return nullptr;
 
@@ -334,15 +334,36 @@ PyObject *scribus_getimagepagecount(PyObject* /* self */, PyObject* args)
 	if (!checkHaveDocument())
 		return nullptr;
 
-	char *Name = const_cast<char*>("");
-	if (!PyArg_ParseTuple(args, "|es", "utf-8", &Name))
+	PyESString name;
+	if (!PyArg_ParseTuple(args, "|es", "utf-8", name.ptr()))
 		return nullptr;
 
-	PageItem *item = GetUniqueItem(QString::fromUtf8(Name));
+	PageItem *item = GetUniqueItem(QString::fromUtf8(name.c_str()));
 	if (item == nullptr)
 		return nullptr;
 
 	return PyLong_FromLong(static_cast<long>(item->pixm.imgInfo.numberOfPages));
+}
+
+PyObject *scribus_getimagepreviewresolution(PyObject* /* self */, PyObject* args)
+{
+	if (!checkHaveDocument())
+		return nullptr;
+
+	PyESString name;
+	if (!PyArg_ParseTuple(args, "|es", "utf-8", name.ptr()))
+		return nullptr;
+
+	PageItem *item = GetUniqueItem(QString::fromUtf8(name.c_str()));
+	if (item == nullptr)
+		return nullptr;
+	if (!item->isImageFrame())
+	{
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
+		return nullptr;
+	}
+
+	return PyLong_FromLong(static_cast<long>(item->pixm.imgInfo.lowResType));
 }
 
 PyObject *scribus_getimagescale(PyObject* /* self */, PyObject* args)
@@ -356,6 +377,25 @@ PyObject *scribus_getimagescale(PyObject* /* self */, PyObject* args)
 	if (item == nullptr)
 		return nullptr;
 	return Py_BuildValue("(ff)", item->imageXScale() / 72.0 * item->pixm.imgInfo.xres, item->imageYScale() / 72.0 * item->pixm.imgInfo.yres);
+}
+
+PyObject *scribus_getimageppi(PyObject* /* self */, PyObject* args)
+{
+	PyESString name;
+	if (!PyArg_ParseTuple(args, "|es", "utf-8", name.ptr()))
+		return nullptr;
+	if (!checkHaveDocument())
+		return nullptr;
+	const PageItem *item = GetUniqueItem(QString::fromUtf8(name.c_str()));
+	if (item == nullptr)
+		return nullptr;
+	if (!item->isImageFrame())
+	{
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
+		return nullptr;
+	}
+
+	return Py_BuildValue("(ii)", qRound(72.0 / item->imageXScale()), qRound(72.0 / item->imageYScale()));
 }
 
 PyObject *scribus_getimagefile(PyObject* /* self */, PyObject* args)
@@ -471,7 +511,7 @@ PyObject *scribus_getallobjects(PyObject* /* self */, PyObject* args, PyObject *
 	int numPages = currentDoc->Pages->count();
 	if (pageNr < 0 || pageNr >= numPages)
 	{
-		PyErr_SetString(PyExc_ValueError, QObject::tr("page number is invalid.", "python error").toLocal8Bit().constData());
+		PyErr_SetString(PyExc_ValueError, QObject::tr("page number is invalid.", "python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -481,7 +521,7 @@ PyObject *scribus_getallobjects(PyObject* /* self */, PyObject* args, PyObject *
 		const ScLayer *layer = currentDoc->Layers.layerByName(layerName);
 		if (!layer)
 		{
-			PyErr_SetString(PyExc_ValueError, QObject::tr("layer name is invalid.", "python error").toLocal8Bit().constData());
+			PyErr_SetString(PyExc_ValueError, QObject::tr("layer name is invalid.", "python error").toUtf8().constData());
 			return nullptr;
 		}
 		layerId = layer->ID;
@@ -565,7 +605,7 @@ PyObject *scribus_getimagecolorspace(PyObject* /* self */, PyObject* args)
 	if (item->itemType() != PageItem::ImageFrame)
 	{
 		PyErr_SetString(WrongFrameTypeError,
-			QObject::tr("Page item must be an ImageFrame", "python error").toLocal8Bit().constData());
+			QObject::tr("Page item must be an ImageFrame", "python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -608,6 +648,8 @@ void cmdgetpropdocwarnings()
 	  << scribus_getimageoffset__doc__
 	  << scribus_getimagepage__doc__
 	  << scribus_getimagepagecount__doc__
+	  << scribus_getimageppi__doc__
+	  << scribus_getimagepreviewresolution__doc__
 	  << scribus_getimagescale__doc__
 	  << scribus_getlinecolor__doc__ 
 	  << scribus_getlineblendmode__doc__ 

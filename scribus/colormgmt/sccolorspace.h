@@ -19,14 +19,15 @@ class SCRIBUS_API ScColorSpace
 {
 public:
 	ScColorSpace();
-	ScColorSpace(ScColorSpaceData*);
-	ScColorSpace(const QSharedPointer<ScColorSpaceData>&);
+	explicit ScColorSpace(ScColorSpaceData*);
+	explicit ScColorSpace(const QSharedPointer<ScColorSpaceData>&);
 
 	ScColorMgmtEngine& engine() { return m_data->engine(); }
 	const ScColorMgmtEngine& engine() const { return m_data->engine(); }
 
-	inline bool isNull()    const { return m_data.isNull(); }
-	inline operator bool () const { return !isNull(); }
+	void reset() { m_data.reset(); }
+	bool isNull()    const { return m_data.isNull(); }
+	operator bool () const { return !isNull(); }
 
 	eColorType   type() const;
 	eColorFormat colorFormat() const;
@@ -65,7 +66,10 @@ public:
 
 	bool operator==(const ScColorSpace& other) const;
 
-protected:
+	ScColorSpace& operator=(const ScColorSpace& other) = default;
+	ScColorSpace& operator=(std::nullptr_t) { m_data.reset(); return *this; }
+
+private:
 	QSharedPointer<ScColorSpaceData> m_data;
 
 	QWeakPointer<ScColorSpaceData>   weakRef()   const { return m_data.toWeakRef(); }

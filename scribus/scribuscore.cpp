@@ -51,7 +51,7 @@ for which a new license (GPL+exception) is in place.
 
 //extern ScribusQApp* ScQApp;
 
-ScribusCore::ScribusCore() : defaultEngine(colorMgmtEngineFactory.createDefaultEngine()),
+ScribusCore::ScribusCore() : defaultEngine(ScColorMgmtEngineFactory::createDefaultEngine()),
 							m_iconManager(IconManager::instance()),
 							m_prefsManager(PrefsManager::instance())
 {
@@ -453,6 +453,10 @@ void ScribusCore::getCMSProfilesDir(const QString& pfad, bool showInfo, bool rec
 				if (!PrinterProfiles.contains(profileName))
 					PrinterProfiles.insert(profileName, profInfo);
 			}
+			break;
+		default:
+			if (showInfo)
+				sDebug(QString("Color profile uses an unsupported device class: %1").arg(profInfo.file));
 			break;
 		}
 		if (showInfo)

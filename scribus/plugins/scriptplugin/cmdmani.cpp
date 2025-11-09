@@ -30,7 +30,7 @@ PyObject *scribus_loadimage(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(WrongFrameTypeError, QObject::tr("Target is not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(WrongFrameTypeError, QObject::tr("Target is not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 	ScCore->primaryMainWindow()->doc->loadPict(QString::fromUtf8(image.c_str()), item);
@@ -50,7 +50,7 @@ PyObject *scribus_scaleimage(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -58,7 +58,7 @@ PyObject *scribus_scaleimage(PyObject* /* self */, PyObject* args)
 	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
 	ScribusView* currentView = ScCore->primaryMainWindow()->view;
 	Selection tempSelection(*currentDoc->m_Selection);
-	bool hadOrigSelection = (tempSelection.count() != 0);
+	bool hadOrigSelection = !tempSelection.isEmpty();
 
 	currentDoc->m_Selection->clear();
 	// Clear the selection
@@ -84,28 +84,60 @@ PyObject *scribus_setimagepage(PyObject* /* self */, PyObject* args)
 	if (!checkHaveDocument())
 		return nullptr;
 
-	char *name = const_cast<char*>("");
+	PyESString name;
 	int page;
-	if (!PyArg_ParseTuple(args, "i|es", &page, "utf-8", &name))
+	if (!PyArg_ParseTuple(args, "i|es", &page, "utf-8", name.ptr()))
 		return nullptr;
 
-	PageItem *item = GetUniqueItem(QString::fromUtf8(name));
+	PageItem *item = GetUniqueItem(QString::fromUtf8(name.c_str()));
 	if (item == nullptr)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 
 	if (page < 0 || page > item->pixm.imgInfo.numberOfPages)
 	{
-		PyErr_SetString(ScribusException, QObject::tr("The image has %1 pages: cannot switch to page %2.","python error").arg(item->pixm.imgInfo.numberOfPages).arg(page).toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("The image has %1 pages: cannot switch to page %2.","python error").arg(item->pixm.imgInfo.numberOfPages).arg(page).toUtf8().constData());
 		return nullptr;
 	}
 
 	item->pixm.imgInfo.actualPageNumber = page;
 
+	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
+	currentDoc->updatePic();
+
+	Py_RETURN_NONE;
+}
+
+PyObject *scribus_setimagepreviewresolution(PyObject* /* self */, PyObject* args)
+{
+	if (!checkHaveDocument())
+		return nullptr;
+
+	PyESString name;
+	int resolutionType;
+	if (!PyArg_ParseTuple(args, "i|es", &resolutionType, "utf-8", name.ptr()))
+		return nullptr;
+
+	PageItem *item = GetUniqueItem(QString::fromUtf8(name.c_str()));
+	if (item == nullptr)
+		return nullptr;
+	if (!item->isImageFrame())
+	{
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
+		return nullptr;
+	}
+
+	if (resolutionType < 0 || resolutionType > 2)
+	{
+		PyErr_SetString(ScribusException, QObject::tr("The resolution shall be one of: IMAGE_PREVIEW_RESOLUTION_FULL, IMAGE_PREVIEW_RESOLUTION_NORMAL, IMAGE_PREVIEW_RESOLUTION_LOW. %1 is an invalid value.", "python error").arg(resolutionType).toUtf8().constData());
+		return nullptr;
+	}
+
+	item->pixm.imgInfo.lowResType = resolutionType;
 	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
 	currentDoc->updatePic();
 
@@ -125,7 +157,7 @@ PyObject *scribus_setimagescale(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -133,7 +165,7 @@ PyObject *scribus_setimagescale(PyObject* /* self */, PyObject* args)
 	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
 	ScribusView* currentView = ScCore->primaryMainWindow()->view;
 	Selection tempSelection(*currentDoc->m_Selection);
-	bool hadOrigSelection = (tempSelection.count() != 0);
+	bool hadOrigSelection = !tempSelection.isEmpty();
 
 	currentDoc->m_Selection->clear();
 	// Clear the selection
@@ -168,7 +200,7 @@ PyObject *scribus_setimageoffset(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -176,7 +208,7 @@ PyObject *scribus_setimageoffset(PyObject* /* self */, PyObject* args)
 	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
 	ScribusView* currentView = ScCore->primaryMainWindow()->view;
 	Selection tempSelection(*ScCore->primaryMainWindow()->doc->m_Selection);
-	bool hadOrigSelection = (tempSelection.count() != 0);
+	bool hadOrigSelection = !tempSelection.isEmpty();
 
 	currentDoc->m_Selection->clear();
 	// Clear the selection
@@ -212,7 +244,7 @@ PyObject *scribus_setimagebrightness(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -240,7 +272,7 @@ PyObject *scribus_setimagegrayscale(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -270,7 +302,7 @@ PyObject *scribus_moveobjectrel(PyObject* /* self */, PyObject* args)
 	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
 	ScribusView* currentView = ScCore->primaryMainWindow()->view;
 	Selection tempSelection(*currentDoc->m_Selection);
-	bool hadOrigSelection = (tempSelection.count() != 0);
+	bool hadOrigSelection = !tempSelection.isEmpty();
 
 	currentDoc->m_Selection->clear();
 	// Clear the selection
@@ -312,7 +344,7 @@ PyObject *scribus_moveobjectabs(PyObject* /* self */, PyObject* args)
 	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
 	ScribusView* currentView = ScCore->primaryMainWindow()->view;
 	Selection tempSelection(*currentDoc->m_Selection);
-	bool hadOrigSelection = (tempSelection.count() != 0);
+	bool hadOrigSelection = !tempSelection.isEmpty();
 
 	// Clear the selection
 	currentView->deselectItems();
@@ -413,7 +445,7 @@ PyObject *scribus_groupobjects(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (il == nullptr && ScCore->primaryMainWindow()->doc->m_Selection->count() < 2)
 	{
-		PyErr_SetString(PyExc_TypeError, QObject::tr("Need selection or argument list of items to group", "python error").toLocal8Bit().constData());
+		PyErr_SetString(PyExc_TypeError, QObject::tr("Need selection or argument list of items to group", "python error").toUtf8().constData());
 		return nullptr;
 	}
 	Selection *tempSelection = nullptr;
@@ -445,7 +477,7 @@ PyObject *scribus_groupobjects(PyObject* /* self */, PyObject* args)
 	if (finalSelection->count() < 2)
 	{
 		// We can't very well group only one item
-		PyErr_SetString(NoValidObjectError, QObject::tr("Cannot group less than two items", "python error").toLocal8Bit().constData());
+		PyErr_SetString(NoValidObjectError, QObject::tr("Cannot group less than two items", "python error").toUtf8().constData());
 		finalSelection = nullptr;
 		delete tempSelection;
 		return nullptr;
@@ -487,7 +519,7 @@ PyObject *scribus_scalegroup(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (sc == 0.0)
 	{
-		PyErr_SetString(PyExc_ValueError, QObject::tr("Cannot scale by 0%.","python error").toLocal8Bit().constData());
+		PyErr_SetString(PyExc_ValueError, QObject::tr("Cannot scale by 0%.","python error").toUtf8().constData());
 		return nullptr;
 	}
 	PageItem *i = GetUniqueItem(QString::fromUtf8(name.c_str()));
@@ -499,12 +531,10 @@ PyObject *scribus_scalegroup(PyObject* /* self */, PyObject* args)
 
 	currentView->deselectItems();
 	currentView->selectItem(i);
-//	int h = currentView->frameResizeHandle;
-//	currentView->frameResizeHandle = 1;
 	currentView->startGroupTransaction(Um::Resize, "", Um::IResize);
 	currentDoc->scaleGroup(sc, sc);
 	currentView->endGroupTransaction();
-//	currentView->frameResizeHandle = h;
+
 	Py_RETURN_NONE;
 }
 
@@ -642,7 +672,7 @@ PyObject *scribus_setscaleframetoimage(PyObject* /* self */, PyObject* args)
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(WrongFrameTypeError, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(WrongFrameTypeError, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 	Selection *sel = new Selection(ScCore->primaryMainWindow());
@@ -669,7 +699,7 @@ PyObject *scribus_setscaleimagetoframe(PyObject* /* self */, PyObject* args, PyO
 		return nullptr;
 	if (!item->isImageFrame())
 	{
-		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toLocal8Bit().constData());
+		PyErr_SetString(ScribusException, QObject::tr("Specified item not an image frame.","python error").toUtf8().constData());
 		return nullptr;
 	}
 	// Set the item to scale if appropriate. ScaleType 1 is free
@@ -701,7 +731,7 @@ PyObject *scribus_flipobject(PyObject* /* self */, PyObject* args)
 	ScribusDoc* currentDoc = ScCore->primaryMainWindow()->doc;
 	ScribusView* currentView = ScCore->primaryMainWindow()->view;
 	Selection tempSelection(*currentDoc->m_Selection);
-	bool hadOrigSelection = (tempSelection.count() != 0);
+	bool hadOrigSelection = !tempSelection.isEmpty();
 
 	currentDoc->m_Selection->clear();
 	// Clear the selection
@@ -738,7 +768,7 @@ PyObject *scribus_combinepolygons(PyObject * /* self */)
 		const PageItem* it = currentDoc->m_Selection->itemAt(i);
 		if (!it->isPolygon() && !it->isPolyLine())
 		{
-			PyErr_SetString(WrongFrameTypeError, QObject::tr("Selection must contain only shapes or bezier curves.", "python error").toLocal8Bit().constData());
+			PyErr_SetString(WrongFrameTypeError, QObject::tr("Selection must contain only shapes or bezier curves.", "python error").toUtf8().constData());
 			return nullptr;
 		}
 	}
@@ -757,14 +787,14 @@ PyObject *scribus_seteditmode(PyObject * /* self */)
 
 	if (currentDoc->m_Selection->count() < 1)
 	{
-		PyErr_SetString(NoValidObjectError, QString("No item selected.").toLocal8Bit().constData());
+		PyErr_SetString(NoValidObjectError, QString("No item selected.").toUtf8().constData());
 		return nullptr;
 	}
 
 	auto currItem = currentDoc->m_Selection->itemAt(0);
 	if (!currItem->isTextFrame() && !currItem->isImageFrame())
 	{
-		PyErr_SetString(WrongFrameTypeError, QString("Only image and text frames are supported.").toLocal8Bit().constData());
+		PyErr_SetString(WrongFrameTypeError, QString("Only image and text frames are supported.").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -782,14 +812,14 @@ PyObject *scribus_setnormalmode(PyObject * /* self */)
 
 	if (currentDoc->m_Selection->count() < 1)
 	{
-		PyErr_SetString(NoValidObjectError, QString("No item selected.").toLocal8Bit().constData());
+		PyErr_SetString(NoValidObjectError, QString("No item selected.").toUtf8().constData());
 		return nullptr;
 	}
 
 	auto currItem = currentDoc->m_Selection->itemAt(0);
 	if (!currItem->isTextFrame() && !currItem->isImageFrame())
 	{
-		PyErr_SetString(WrongFrameTypeError, QString("Only image and text frames are supported.").toLocal8Bit().constData());
+		PyErr_SetString(WrongFrameTypeError, QString("Only image and text frames are supported.").toUtf8().constData());
 		return nullptr;
 	}
 
@@ -826,6 +856,7 @@ void cmdmanidocwarnings()
 	  << scribus_setimagegrayscale__doc__
 	  << scribus_setimageoffset__doc__
 	  << scribus_setimagepage__doc__
+	  << scribus_setimagepreviewresolution__doc__
 	  << scribus_setimagescale__doc__
 	  << scribus_setnormalmode__doc__
 	  << scribus_setrotation__doc__

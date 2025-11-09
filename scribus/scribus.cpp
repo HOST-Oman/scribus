@@ -102,6 +102,7 @@ for which a new license (GPL+exception) is in place.
 #include "commonstrings.h"
 #include "desaxe/digester.h"
 #include "documentchecker.h"
+#include "documentlogmanager.h"
 #include "fileloader.h"
 #include "filewatcher.h"
 #include "fpoint.h"
@@ -148,6 +149,7 @@ for which a new license (GPL+exception) is in place.
 #include "selection.h"
 #include "serializer.h"
 #include "storyloader.h"
+#include "stylesearch.h"
 #include "textnote.h"
 #include "tocgenerator.h"
 #include "ui/about.h"
@@ -168,6 +170,7 @@ for which a new license (GPL+exception) is in place.
 #include "ui/copypagetomasterpagedialog.h"
 #include "ui/customfdialog.h"
 #include "ui/delpages.h"
+#include "ui/documentlogviewer.h"
 #include "ui/downloadspalette.h"
 #include "ui/edittoolbar.h"
 #include "ui/effectsdialog.h"
@@ -231,6 +234,7 @@ for which a new license (GPL+exception) is in place.
 #include "ui/smtextstyles.h"
 #include "ui/storyeditor.h"
 #include "ui/stylemanager.h"
+#include "ui/stylesearchdialog.h"
 #include "ui/symbolpalette.h"
 #include "ui/tabmanager.h"
 #include "ui/transformdialog.h"
@@ -363,6 +367,7 @@ int ScribusMainWindow::initScMW(bool primaryMainWindow)
 	m_objectSpecificUndo = false;
 
 	m_undoManager = UndoManager::instance();
+	m_documentLogManager = DocumentLogManager::instance();
 	PrefsContext *undoPrefs = m_prefsManager.prefsFile->getContext("undo");
 	m_undoManager->setUndoEnabled(undoPrefs->getBool("enabled", true));
 	m_tocGenerator = new TOCGenerator();
@@ -758,6 +763,14 @@ void ScribusMainWindow::initPalettes()
 	docCheckerPalette->installEventFilter(this);
 	docCheckerPalette->hide();
 
+	// DocumentLog
+	documentLogViewer = new DocumentLogViewer(this, false);
+	documentLogViewer->setManager(m_documentLogManager);
+	connect( scrActions["toolsDocumentLog"], SIGNAL(toggled(bool)) , documentLogViewer, SLOT(setPaletteShown(bool)) );
+	connect( documentLogViewer, SIGNAL(paletteShown(bool)), scrActions["toolsDocumentLog"], SLOT(setChecked(bool)));
+	documentLogViewer->installEventFilter(this);
+	documentLogViewer->hide();
+
 	// Align & Distribute
 	alignDistributePalette = dockManager->alignDistributePalette;
 	alignDistributePalette->setToggleViewAction(scrActions["toolsAlignDistribute"]);
@@ -1052,6 +1065,8 @@ void ScribusMainWindow::initMenuBar()
 	scrMenuMgr->addMenuItemString("itemPreviewLow", "ItemPreviewSettings");
 	scrMenuMgr->createMenu("TextFeatures", tr("Text Features", "Item"));
 	scrMenuMgr->addMenuItemString("TextFeatures", "Item");
+	scrMenuMgr->addMenuItemString("itemStyleSearch", "TextFeatures");
+	scrMenuMgr->addMenuItemString("SEPARATOR", "TextFeatures");
 	scrMenuMgr->addMenuItemString("alignLeft", "TextFeatures");
 	scrMenuMgr->addMenuItemString("alignCenter", "TextFeatures");
 	scrMenuMgr->addMenuItemString("alignRight", "TextFeatures");
@@ -1216,7 +1231,7 @@ void ScribusMainWindow::initMenuBar()
 	scrMenuMgr->addMenuItemString("SEPARATOR", "Page");
 	scrMenuMgr->addMenuItemString("viewSnapToGrid", "Page");
 	scrMenuMgr->addMenuItemString("viewSnapToGuides", "Page");
-	scrMenuMgr->addMenuItemString("viewSnapToElements", "Page");
+	scrMenuMgr->addMenuItemString("viewSnapToItems", "Page");
 
 	//View menu
 	scrMenuMgr->createMenu("View", ActionManager::defaultMenuNameEntryTranslated("View"));
@@ -1370,6 +1385,7 @@ void ScribusMainWindow::addDefaultWindowMenuItems()
 	scrMenuMgr->addMenuItemString("SEPARATOR", "Windows");
 	scrMenuMgr->addMenuItemString("toolsMeasurements", "Windows");
 	scrMenuMgr->addMenuItemString("toolsPreflightVerifier", "Windows");
+	scrMenuMgr->addMenuItemString("toolsDocumentLog", "Windows");
 	scrMenuMgr->addMenuItemString("SEPARATOR", "Windows");
 	scrMenuMgr->addMenuItemString("toolsToolbarTools", "Windows");
 	scrMenuMgr->addMenuItemString("toolsToolbarPDF", "Windows");
@@ -1907,6 +1923,7 @@ void ScribusMainWindow::closeEvent(QCloseEvent *ce)
 		m_prefsManager.savePrefs();
 	UndoManager::deleteInstance();
 	FormatsManager::deleteInstance();
+	DocumentLogManager::deleteInstance();
 //	qApp->changeOverrideCursor(QCursor(Qt::ArrowCursor));
 	ce->accept();
 }
@@ -2109,7 +2126,7 @@ bool ScribusMainWindow::slotFileNew()
 		HaveNewDoc();
 		doc->reformPages(true);
 		retVal = true;
-		// Don's disturb user with "save?" dialog just after new doc
+		// Don't disturb user with "save?" dialog just after new doc
 		// doc changing should be rewritten maybe... maybe later...
 		doc->setModified(false);
 		updateActiveWindowCaption(doc->documentFileName());
@@ -2406,19 +2423,19 @@ void ScribusMainWindow::newActWin(QMdiSubWindow *w)
 		disconnect(m_undoManager, SIGNAL(undoRedoDone()) , doc->view(), SLOT(DrawNew()));
 		disconnect(doc, SIGNAL(addBookmark(PageItem *)), this, SLOT(AddBookMark(PageItem *)));
 		disconnect(doc, SIGNAL(deleteBookmark(PageItem *)), this, SLOT(DelBookMark(PageItem *)));
-		unitSwitcher->disconnect();
+		disconnect(unitSwitcher, SIGNAL(activated(int)), doc->view(), SLOT(ChgUnit(int)));
 		unitSwitcher->setEnabled(false);
-		zoomSpinBox->disconnect();
+		disconnect(zoomSpinBox, SIGNAL(valueChanged(double)), doc->view(), SLOT(setZoom()));
 		zoomSpinBox->setEnabled(false);
-		zoomDefaultToolbarButton->disconnect();
+		disconnect(zoomDefaultToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoom100()));
 		zoomDefaultToolbarButton->setEnabled(false);
-		zoomOutToolbarButton->disconnect();
+		disconnect(zoomOutToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoomOut()));
 		zoomDefaultToolbarButton->setEnabled(false);
-		zoomInToolbarButton->disconnect();
+		disconnect(zoomInToolbarButton, SIGNAL(clicked()), doc->view(), SLOT(slotZoomIn()));
 		zoomInToolbarButton->setEnabled(false);
-		layerMenu->disconnect();
+		disconnect(layerMenu, SIGNAL(activated(int)), doc->view(), SLOT(GotoLayer(int)));
 		layerMenu->setEnabled(false);
-		pageSelector->disconnect();
+		disconnect(pageSelector, SIGNAL(pageChanged(int)), this, SLOT(setCurrentPage(int)));
 		pageSelector->setEnabled(false);
 	}
 	doc = ActWin->doc();
@@ -2561,6 +2578,7 @@ void ScribusMainWindow::SwitchWin()
 	outlinePalette->setDoc(doc);
 	symbolPalette->setDoc(doc);
 	inlinePalette->setDoc(doc);
+	documentLogViewer->setDocument(doc->uuidString());
 	rebuildLayersList();
 	updateLayerMenu();
 	//Do not set this!, it doesn't get valid pointers unless its in EditClip mode and its not
@@ -2960,17 +2978,17 @@ void ScribusMainWindow::doPasteRecent(const QString& data)
 		int docItemCount = doc->Items->count();
 		bool savedAlignGrid = doc->SnapGrid;
 		bool savedAlignGuides = doc->SnapGuides;
-		bool savedAlignElement = doc->SnapElement;
+		bool savedAlignElement = doc->SnapItems;
 		doc->SnapGrid = false;
 		doc->SnapGuides = false;
-		doc->SnapElement = false;
+		doc->SnapItems = false;
 		if ((view->dragX == 0.0) && (view->dragY == 0.0))
 			slotElemRead(data, doc->currentPage()->xOffset(), doc->currentPage()->yOffset(), true, true, doc, view);
 		else
 			slotElemRead(data, view->dragX, view->dragY, true, false, doc, view);
 		doc->SnapGrid = savedAlignGrid;
 		doc->SnapGuides = savedAlignGuides;
-		doc->SnapElement = savedAlignElement;
+		doc->SnapItems = savedAlignElement;
 		Selection tmpSelection(this, false);
 		tmpSelection.copy(*doc->m_Selection, true);
 		for (int i = docItemCount; i < doc->Items->count(); ++i)
@@ -4224,7 +4242,7 @@ bool ScribusMainWindow::DoFileClose()
 		else
 			QDir::setCurrent( QDir::homePath() );
 	}
-	pageSelector->disconnect();
+	disconnect(pageSelector, SIGNAL(pageChanged(int)), this, SLOT(setCurrentPage(int)));
 	pageSelector->setMaximum(1);
 	pageSelector->setEnabled(false);
 	updateLayerMenu();
@@ -4641,7 +4659,7 @@ void ScribusMainWindow::slotEditPaste(bool forcePlainText)
 		{
 			bool savedAlignGrid = doc->SnapGrid;
 			bool savedAlignGuides = doc->SnapGuides;
-			bool savedAlignElement = doc->SnapElement;
+			bool savedAlignElement = doc->SnapItems;
 			int ac = doc->Items->count();
 			bool isGroup = false;
 			double gx, gy, gh, gw;
@@ -4649,7 +4667,7 @@ void ScribusMainWindow::slotEditPaste(bool forcePlainText)
 			FPoint maxSize = doc->maxCanvasCoordinate;
 			doc->SnapGrid = false;
 			doc->SnapGuides = false;
-			doc->SnapElement = false;
+			doc->SnapItems = false;
 			// HACK #6541 : undo does not handle text modification => do not record embedded item creation
 			// if embedded item is deleted, undo system will not be aware of its deletion => crash - JG
 			m_undoManager->setUndoEnabled(false);
@@ -4658,7 +4676,7 @@ void ScribusMainWindow::slotEditPaste(bool forcePlainText)
 
 			doc->SnapGrid = savedAlignGrid;
 			doc->SnapGuides = savedAlignGuides;
-			doc->SnapElement = savedAlignElement;
+			doc->SnapItems = savedAlignElement;
 			Selection tempSelection(*doc->m_Selection);
 			doc->m_Selection->clear();
 			if (doc->Items->count() - ac > 1)
@@ -4714,12 +4732,12 @@ void ScribusMainWindow::slotEditPaste(bool forcePlainText)
 		{
 			bool savedAlignGrid = doc->SnapGrid;
 			bool savedAlignGuides = doc->SnapGuides;
-			bool savedAlignElement = doc->SnapElement;
+			bool savedAlignElement = doc->SnapItems;
 			FPoint minSize = doc->minCanvasCoordinate;
 			FPoint maxSize = doc->maxCanvasCoordinate;
 			doc->SnapGrid = false;
 			doc->SnapGuides = false;
-			doc->SnapElement = false;
+			doc->SnapItems = false;
 			QString ext = ScMimeData::clipboardKnownDataExt();
 			QByteArray bitsBits = ScMimeData::clipboardKnownDataData();
 			double x0 = (view->contentsX() / view->scale()) + ((view->visibleWidth() / 2.0) / view->scale());
@@ -4733,7 +4751,7 @@ void ScribusMainWindow::slotEditPaste(bool forcePlainText)
 				retObj->setXYPos(x, y, true);
 				doc->SnapGrid = savedAlignGrid;
 				doc->SnapGuides = savedAlignGuides;
-				doc->SnapElement = savedAlignElement;
+				doc->SnapItems = savedAlignElement;
 				Selection tempSelection(*doc->m_Selection);
 				doc->m_Selection->clear();
 				doc->m_Selection->delaySignalsOn();
@@ -4788,10 +4806,10 @@ void ScribusMainWindow::slotEditPaste(bool forcePlainText)
 		int docItemCount = doc->Items->count();
 		bool savedAlignGrid = doc->SnapGrid;
 		bool savedAlignGuides = doc->SnapGuides;
-		bool savedAlignElement = doc->SnapElement;
+		bool savedAlignElement = doc->SnapItems;
 		doc->SnapGrid = false;
 		doc->SnapGuides = false;
-		doc->SnapElement = false;
+		doc->SnapItems = false;
 		if (internalCopy)
 			slotElemRead(internalCopyBuffer, doc->currentPage()->xOffset(), doc->currentPage()->yOffset(), false, true, doc, view);
 		else
@@ -4802,7 +4820,7 @@ void ScribusMainWindow::slotEditPaste(bool forcePlainText)
 
 		doc->SnapGrid = savedAlignGrid;
 		doc->SnapGuides = savedAlignGuides;
-		doc->SnapElement = savedAlignElement;
+		doc->SnapItems = savedAlignElement;
 		doc->m_Selection->delaySignalsOn();
 		for (int i = docItemCount; i < doc->Items->count(); ++i)
 		{
@@ -5100,13 +5118,36 @@ void ScribusMainWindow::slotOnlineHelpClosed()
 
 void ScribusMainWindow::slotResourceManager()
 {
-	if (!resourceManager) // in case its allocated???? maybe can remove in future
-	{
-		resourceManager = new ResourceManager(this);
-		resourceManager->exec();
-		resourceManager->deleteLater();
-		resourceManager = nullptr;
-	}
+	if (resourceManager) // in case its allocated???? maybe can remove in future
+		return;
+	resourceManager = new ResourceManager(this);
+	resourceManager->exec();
+	resourceManager->deleteLater();
+	resourceManager = nullptr;
+}
+
+void ScribusMainWindow::slotItemStyleSearch()
+{
+	if (!HaveDoc)
+		return;
+
+	StyleSearch styleSearch(doc);
+	styleSearch.update();
+
+	if (!styleSearch.hasStyles())
+		return;
+
+	StyleSearchDialog dialog(this, styleSearch.getStyles());
+	dialog.setModal(true);
+
+	int result = dialog.exec();
+	if (result != QDialog::Accepted)
+		return;
+
+	auto style = dialog.getStyle();
+	if (style.name.isEmpty())
+		return;
+	styleSearch.execute(style);
 }
 
 void ScribusMainWindow::ToggleTips()
@@ -5725,13 +5766,13 @@ void ScribusMainWindow::toggleSnapElements()
 {
 	if (!doc)
 		return;
-	doc->SnapElement = !doc->SnapElement;
+	doc->SnapItems = !doc->SnapItems;
 	slotDocCh();
 }
 
 void ScribusMainWindow::setSnapElements(bool b)
 {
-	if (doc && doc->SnapElement != b)
+	if (doc && doc->SnapItems != b)
 		toggleSnapElements();
 }
 
@@ -6443,6 +6484,10 @@ void ScribusMainWindow::slotPrefsOrg()
 	ScQApp->setLocale();
 
 	bool forceStyleUpdate = false;
+	bool useDefaultScratchColor = false;
+	if (m_prefsManager.appPrefs.displayPrefs.scratchColor == QApplication::palette().color(QPalette::Active, QPalette::Window))
+		useDefaultScratchColor = true;
+
 #if (QT_VERSION >= QT_VERSION_CHECK(6, 8, 0))
 	QString newUIStylePalette = m_prefsManager.appPrefs.uiPrefs.stylePalette;
 	if (oldPrefs.uiPrefs.stylePalette != newUIStylePalette)
@@ -6484,12 +6529,16 @@ void ScribusMainWindow::slotPrefsOrg()
 		QString styleName = m_prefsManager.guiSystemStyle();
 		if (!newUIStyle.isEmpty())
 			styleName = newUIStyle;
+
 		QStyle * newStyle = QStyleFactory::create(styleName);
 		if (newStyle)
 			QApplication::setStyle(newStyle);
 		else
 			m_prefsManager.appPrefs.uiPrefs.style = oldPrefs.uiPrefs.style;
 	}
+
+	if (useDefaultScratchColor)
+		m_prefsManager.appPrefs.displayPrefs.scratchColor = QApplication::palette().color(QPalette::Active, QPalette::Window);
 
 	QString newIconSet = m_prefsManager.guiIconSet();
 	// Recreate icons if icon set or GUI changed. For GUI change the icon recreation will automatically detect light and dark themes
@@ -8803,7 +8852,7 @@ void ScribusMainWindow::PutToInline(const QString& buffer)
 	Selection tempSelection(*doc->m_Selection);
 	bool savedAlignGrid = doc->SnapGrid;
 	bool savedAlignGuides = doc->SnapGuides;
-	bool savedAlignElement = doc->SnapElement;
+	bool savedAlignElement = doc->SnapItems;
 	int ac = doc->Items->count();
 	bool isGroup = false;
 	double gx, gy, gh, gw;
@@ -8811,12 +8860,12 @@ void ScribusMainWindow::PutToInline(const QString& buffer)
 	FPoint maxSize = doc->maxCanvasCoordinate;
 	doc->SnapGrid  = false;
 	doc->SnapGuides = false;
-	doc->SnapElement = false;
+	doc->SnapItems = false;
 	m_undoManager->setUndoEnabled(false);
 	slotElemRead(buffer, 0, 0, false, true, doc, view);
 	doc->SnapGrid  = savedAlignGrid;
 	doc->SnapGuides = savedAlignGuides;
-	doc->SnapElement = savedAlignElement;
+	doc->SnapItems = savedAlignElement;
 	doc->m_Selection->clear();
 	if (doc->Items->count() - ac > 1)
 		isGroup = true;
@@ -8862,7 +8911,7 @@ void ScribusMainWindow::PutToInline()
 	Selection tempSelection(*doc->m_Selection);
 	bool savedAlignGrid = doc->SnapGrid;
 	bool savedAlignGuides = doc->SnapGuides;
-	bool savedAlignElement = doc->SnapElement;
+	bool savedAlignElement = doc->SnapItems;
 	int ac = doc->Items->count();
 	bool isGroup = false;
 	double gx, gy, gh, gw;
@@ -8870,7 +8919,7 @@ void ScribusMainWindow::PutToInline()
 	FPoint maxSize = doc->maxCanvasCoordinate;
 	doc->SnapGrid  = false;
 	doc->SnapGuides = false;
-	doc->SnapElement = false;
+	doc->SnapItems = false;
 	m_undoManager->setUndoEnabled(false);
 	internalCopy = true;
 	slotEditCopy();
@@ -8878,7 +8927,7 @@ void ScribusMainWindow::PutToInline()
 	internalCopy = false;
 	doc->SnapGrid  = savedAlignGrid;
 	doc->SnapGuides = savedAlignGuides;
-	doc->SnapElement = savedAlignElement;
+	doc->SnapItems = savedAlignElement;
 	doc->m_Selection->clear();
 	if (doc->Items->count() - ac > 1)
 		isGroup = true;
@@ -8928,13 +8977,13 @@ void ScribusMainWindow::PutToPatterns()
 
 	bool savedAlignGrid = doc->SnapGrid;
 	bool savedAlignGuides = doc->SnapGuides;
-	bool savedAlignElement = doc->SnapElement;
+	bool savedAlignElement = doc->SnapItems;
 	int ac = doc->Items->count();
 	FPoint minSize = doc->minCanvasCoordinate;
 	FPoint maxSize = doc->maxCanvasCoordinate;
 	doc->SnapGrid  = false;
 	doc->SnapGuides = false;
-	doc->SnapElement = false;
+	doc->SnapItems = false;
 	m_undoManager->setUndoEnabled(false);
 	internalCopy = true;
 	slotEditCopy();
@@ -8942,7 +8991,7 @@ void ScribusMainWindow::PutToPatterns()
 	internalCopy = false;
 	doc->SnapGrid  = savedAlignGrid;
 	doc->SnapGuides = savedAlignGuides;
-	doc->SnapElement = savedAlignElement;
+	doc->SnapItems = savedAlignElement;
 	doc->m_Selection->clear();
 	view->deselectItems(true);
 	PageItem* currItem;

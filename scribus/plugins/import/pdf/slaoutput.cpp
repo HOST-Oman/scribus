@@ -294,9 +294,9 @@ SlaOutputDev::~SlaOutputDev()
 }
 
 /* get Actions not implemented by Poppler */
-LinkAction* SlaOutputDev::SC_getAction(AnnotWidget *ano)
+std::unique_ptr<LinkAction> SlaOutputDev::SC_getAction(AnnotWidget *ano)
 {
-	LinkAction *linkAction = nullptr;
+	std::unique_ptr<LinkAction> linkAction;
 	Object obj;
 	Ref refa = ano->getRef();
 
@@ -311,11 +311,11 @@ LinkAction* SlaOutputDev::SC_getAction(AnnotWidget *ano)
 			Object actionObject = additionalActionsObject.dictLookup("S");
 			if (actionObject.isName("ImportData"))
 			{
-				linkAction = new LinkImportData(&additionalActionsObject);
+				linkAction.reset(new LinkImportData(&additionalActionsObject));
 			}
 			else if (actionObject.isName("SubmitForm"))
 			{
-				linkAction = new LinkSubmitForm(&additionalActionsObject);
+				linkAction.reset(new LinkSubmitForm(&additionalActionsObject));
 			}
 		}
 	}
@@ -1065,12 +1065,12 @@ void SlaOutputDev::handleActions(PageItem* ite, AnnotWidget *ano)
 			}
 			else
 			{
-				LinkAction* scact = SC_getAction(ano);
+				std::unique_ptr<LinkAction> scact = SC_getAction(ano);
 				if (scact)
 				{
 					if (actString == "ImportData")
 					{
-						auto *impo = (LinkImportData*) scact;
+						auto *impo = (LinkImportData*) scact.get();
 						if (impo->isOk())
 						{
 							ite->annotation().setActionType(5);
@@ -1079,7 +1079,7 @@ void SlaOutputDev::handleActions(PageItem* ite, AnnotWidget *ano)
 					}
 					else if (actString == "SubmitForm")
 					{
-						auto *impo = (LinkSubmitForm*) scact;
+						auto *impo = (LinkSubmitForm*) scact.get();
 						if (impo->isOk())
 						{
 							ite->annotation().setActionType(3);
@@ -1364,14 +1364,22 @@ void SlaOutputDev::restoreState(GfxState *state)
 	m_graphicStack.restore();
 }
 
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+void SlaOutputDev::beginTransparencyGroup(GfxState *state, const std::array<double, 4>& bbox, GfxColorSpace * /*blendingColorSpace*/, bool isolated, bool knockout, bool forSoftMask)
+#else
 void SlaOutputDev::beginTransparencyGroup(GfxState *state, const double *bbox, GfxColorSpace * /*blendingColorSpace*/, bool isolated, bool knockout, bool forSoftMask)
+#endif
 {
 // 	qDebug() << "SlaOutputDev::beginTransparencyGroup isolated:" << isolated << "knockout:" << knockout << "forSoftMask:" << forSoftMask;
 	pushGroup("", forSoftMask);
 	m_groupStack.top().isolated = isolated;
 }
 
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+void SlaOutputDev::paintTransparencyGroup(GfxState *state, const std::array<double, 4>& bbox)
+#else
 void SlaOutputDev::paintTransparencyGroup(GfxState *state, const double *bbox)
+#endif
 {
 // 	qDebug() << "SlaOutputDev::paintTransparencyGroup";
 	if (m_groupStack.count() != 0)
@@ -1470,7 +1478,11 @@ void SlaOutputDev::endTransparencyGroup(GfxState *state)
 	m_tmpSel->clear();
 }
 
-void SlaOutputDev::setSoftMask(GfxState * /*state*/, const double * bbox, bool alpha, Function *transferFunc, GfxColor * /*backdropColor*/)
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+void SlaOutputDev::setSoftMask(GfxState* /*state*/, const std::array<double, 4>& bbox, bool alpha, Function* transferFunc, GfxColor* /*backdropColor*/)
+#else
+void SlaOutputDev::setSoftMask(GfxState* /*state*/, const double* bbox, bool alpha, Function* transferFunc, GfxColor* /*backdropColor*/)
+#endif
 {
 	if (m_groupStack.count() <= 0)
 		return;
@@ -2225,11 +2237,20 @@ bool SlaOutputDev::patchMeshShadedFill(GfxState *state, GfxPatchMeshShading *sha
 	return true;
 }
 
-bool SlaOutputDev::tilingPatternFill(GfxState *state, Gfx * /*gfx*/, Catalog *cat, GfxTilingPattern *tPat, const double *mat, int x0, int y0, int x1, int y1, double xStep, double yStep)
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+bool SlaOutputDev::tilingPatternFill(GfxState *state, Gfx* /*gfx*/, Catalog *cat, GfxTilingPattern *tPat, const std::array<double, 6>& mat, int x0, int y0, int x1, int y1, double xStep, double yStep)
+#else
+bool SlaOutputDev::tilingPatternFill(GfxState *state, Gfx* /*gfx*/, Catalog *cat, GfxTilingPattern *tPat, const double *mat, int x0, int y0, int x1, int y1, double xStep, double yStep)
+#endif
 {
 //	qDebug() << "SlaOutputDev::tilingPatternFill";
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+	const std::array<double, 4>& bbox = tPat->getBBox();
+	const std::array<double, 6>& pmat = tPat->getMatrix();
+#else
 	const double *bbox = tPat->getBBox();
 	const double *pmat = tPat->getMatrix();
+#endif
 	Dict *resDict = tPat->getResDict();
 
 	PDFRectangle box;
@@ -3091,7 +3112,12 @@ void SlaOutputDev::updateFont(GfxState *state)
 			break;
 		case fontTrueType:
 		case fontTrueTypeOT:
-#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(24, 11, 0)
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 7, 0)
+			if (!fileName.empty())
+				ff = FoFiTrueType::load(fileName.c_str(), fontLoc->fontNum);
+			else
+				ff = FoFiTrueType::make(fontsrc->buf, fontLoc->fontNum);
+#elif POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(24, 11, 0)
 			if (!fileName.empty())
 				ff = FoFiTrueType::load(fileName.c_str(), fontLoc->fontNum);
 			else
@@ -3226,7 +3252,12 @@ void SlaOutputDev::updateFont(GfxState *state)
 #endif
 			else
 			{
-#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(24, 11, 0)
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 7, 0)
+				if (!fileName.empty())
+					ff = FoFiTrueType::load(fileName.c_str(), fontLoc->fontNum);
+				else
+					ff = FoFiTrueType::make(fontsrc->buf, fontLoc->fontNum);
+#elif POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(24, 11, 0)
 				if (!fileName.empty())
 					ff = FoFiTrueType::load(fileName.c_str(), fontLoc->fontNum);
 				else
@@ -3329,75 +3360,73 @@ void SlaOutputDev::drawChar(GfxState* state, double x, double y, double dx, doub
 	// Invisible or only used for clipping
 	if (textRenderingMode == 3)
 		return;
-	if (textRenderingMode < 8)
+	if (textRenderingMode >= 8)
+		return;
+
+	SplashPath * fontPath = m_font->getGlyphPath(code);
+	if (!fontPath)
+		return;
+
+	QPainterPath qPath;
+	qPath.setFillRule(Qt::WindingFill);
+	for (int i = 0; i < fontPath->getLength(); ++i)
 	{
-		SplashPath * fontPath;
-		fontPath = m_font->getGlyphPath(code);
-		if (fontPath)
+		unsigned char f;
+		fontPath->getPoint(i, &x1, &y1, &f);
+		if (f & splashPathFirst)
+			qPath.moveTo(x1,y1);
+		else if (f & splashPathCurve)
 		{
-			QPainterPath qPath;
-			qPath.setFillRule(Qt::WindingFill);
-			for (int i = 0; i < fontPath->getLength(); ++i)
-			{
-				unsigned char f;
-				fontPath->getPoint(i, &x1, &y1, &f);
-				if (f & splashPathFirst)
-					qPath.moveTo(x1,y1);
-				else if (f & splashPathCurve)
-				{
-					double x3, y3;
-					++i;
-					fontPath->getPoint(i, &x2, &y2, &f);
-					++i;
-					fontPath->getPoint(i, &x3, &y3, &f);
-					qPath.cubicTo(x1, y1, x2, y2, x3, y3);
-				}
-				else
-					qPath.lineTo(x1, y1);
-				if (f & splashPathLast)
-					qPath.closeSubpath();
-			}
-			const double * ctm = state->getCTM();
-			m_ctm = QTransform(ctm[0], ctm[1], ctm[2], ctm[3], ctm[4], ctm[5]);
-			double xCoor = m_doc->currentPage()->xOffset();
-			double yCoor = m_doc->currentPage()->yOffset();
-			FPointArray textPath;
-			textPath.fromQPainterPath(qPath);
-			FPoint wh = textPath.widthHeight();
-			if (textRenderingMode > 3)
-			{
-				QTransform mm;
-				mm.scale(1, -1);
-				mm.translate(x, -y);
-				// Remember the glyph for later clipping
- 				m_clipTextPath.addPath(m_ctm.map(mm.map(qPath)));
-			}
-			if ((textPath.size() > 3) && ((wh.x() != 0.0) || (wh.y() != 0.0)) && (textRenderingMode != 7))
-			{
-				int z = m_doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, xCoor, yCoor, 10, 10, 0, CommonStrings::None, CommonStrings::None);
-				PageItem* ite = m_doc->Items->at(z);
+			double x3, y3;
+			++i;
+			fontPath->getPoint(i, &x2, &y2, &f);
+			++i;
+			fontPath->getPoint(i, &x3, &y3, &f);
+			qPath.cubicTo(x1, y1, x2, y2, x3, y3);
+		}
+		else
+			qPath.lineTo(x1, y1);
+		if (f & splashPathLast)
+			qPath.closeSubpath();
+	}
+	const double * ctm = state->getCTM();
+	m_ctm = QTransform(ctm[0], ctm[1], ctm[2], ctm[3], ctm[4], ctm[5]);
+	double xCoor = m_doc->currentPage()->xOffset();
+	double yCoor = m_doc->currentPage()->yOffset();
+	FPointArray textPath;
+	textPath.fromQPainterPath(qPath);
+	FPoint wh = textPath.widthHeight();
+	if (textRenderingMode > 3)
+	{
+		QTransform mm;
+		mm.scale(1, -1);
+		mm.translate(x, -y);
+		// Remember the glyph for later clipping
+ 		m_clipTextPath.addPath(m_ctm.map(mm.map(qPath)));
+	}
+	if ((textPath.size() > 3) && ((wh.x() != 0.0) || (wh.y() != 0.0)) && (textRenderingMode != 7))
+	{
+		int z = m_doc->itemAdd(PageItem::Polygon, PageItem::Unspecified, xCoor, yCoor, 10, 10, 0, CommonStrings::None, CommonStrings::None);
+		PageItem* ite = m_doc->Items->at(z);
 
-				// todo: merge this between vector and text implementations.
-				QTransform mm;
-				mm.scale(1, -1);
-				mm.translate(x, -y);
-				textPath.map(mm);
-				textPath.map(m_ctm);
-				ite->PoLine = textPath.copy();
-				setItemFillAndStroke(state, ite);
-				// Fill text rendering modes. See above
-				m_doc->adjustItemSize(ite);
-				m_Elements->append(ite);
-				if (m_groupStack.count() != 0)
-				{
-					m_groupStack.top().Items.append(ite);
-					applyMask(ite);
-				}
-			}
-			delete fontPath;
-
+		// todo: merge this between vector and text implementations.
+		QTransform mm;
+		mm.scale(1, -1);
+		mm.translate(x, -y);
+		textPath.map(mm);
+		textPath.map(m_ctm);
+		ite->PoLine = textPath.copy();
+		setItemFillAndStroke(state, ite);
+		// Fill text rendering modes. See above
+		m_doc->adjustItemSize(ite);
+		m_Elements->append(ite);
+		if (m_groupStack.count() != 0)
+		{
+			m_groupStack.top().Items.append(ite);
+			applyMask(ite);
 		}
 	}
+	delete fontPath;
 }
 
 
@@ -3631,7 +3660,11 @@ QString SlaOutputDev::getAnnotationColor(const AnnotColor *color)
 		return CommonStrings::None;
 	if (color->getSpace() == AnnotColor::colorRGB)
 	{
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+		const std::array<double, 4>& color_data = color->getValues();
+#else
 		const double *color_data = color->getValues();
+#endif
 		double Rc = color_data[0];
 		double Gc = color_data[1];
 		double Bc = color_data[2];
@@ -3640,7 +3673,11 @@ QString SlaOutputDev::getAnnotationColor(const AnnotColor *color)
 	}
 	else if (color->getSpace() == AnnotColor::colorCMYK)
 	{
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+		const std::array<double, 4>& color_data = color->getValues();
+#else
 		const double *color_data = color->getValues();
+#endif
 		double Cc = color_data[0];
 		double Mc = color_data[1];
 		double Yc = color_data[2];
@@ -3650,7 +3687,11 @@ QString SlaOutputDev::getAnnotationColor(const AnnotColor *color)
 	}
 	else if (color->getSpace() == AnnotColor::colorGray)
 	{
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 9, 0)
+		const std::array<double, 4>& color_data = color->getValues();
+#else
 		const double *color_data = color->getValues();
+#endif
 		double Kc = 1.0 - color_data[0];
 		tmp.setCmykColorF(0, 0, 0, Kc);
 		fNam = m_doc->PageColors.tryAddColor(namPrefix+tmp.name(), tmp);
@@ -3672,31 +3713,30 @@ QString SlaOutputDev::convertPath(const GfxPath *path)
 	for (int i = 0; i < path->getNumSubpaths(); ++i)
 	{
 		const GfxSubpath * subpath = path->getSubpath(i);
-		if (subpath->getNumPoints() > 0)
+		if (subpath->getNumPoints() <= 0)
+			continue;
+		output += QString("M %1 %2").arg(subpath->getX(0)).arg(subpath->getY(0));
+		int j = 1;
+		while (j < subpath->getNumPoints())
 		{
-			output += QString("M %1 %2").arg(subpath->getX(0)).arg(subpath->getY(0));
-			int j = 1;
-			while (j < subpath->getNumPoints())
+			if (subpath->getCurve(j))
 			{
-				if (subpath->getCurve(j))
-				{
-					output += QString("C %1 %2 %3 %4 %5 %6")
-					.arg(subpath->getX(j)).arg(subpath->getY(j))
-					.arg(subpath->getX(j + 1)).arg(subpath->getY(j + 1))
-					.arg(subpath->getX(j + 2)).arg(subpath->getY(j + 2));
-					j += 3;
-				}
-				else
-				{
-					output += QString("L %1 %2").arg(subpath->getX(j)).arg(subpath->getY(j));
-					++j;
-				}
+				output += QString("C %1 %2 %3 %4 %5 %6")
+				.arg(subpath->getX(j)).arg(subpath->getY(j))
+				.arg(subpath->getX(j + 1)).arg(subpath->getY(j + 1))
+				.arg(subpath->getX(j + 2)).arg(subpath->getY(j + 2));
+				j += 3;
 			}
-			if (subpath->isClosed())
+			else
 			{
-				output += QString("Z");
-				m_pathIsClosed = true;
+				output += QString("L %1 %2").arg(subpath->getX(j)).arg(subpath->getY(j));
+				++j;
 			}
+		}
+		if (subpath->isClosed())
+		{
+			output += QString("Z");
+			m_pathIsClosed = true;
 		}
 	}
 	return output;
@@ -3728,21 +3768,11 @@ void SlaOutputDev::getPenState(GfxState *state)
 			m_lineJoin = Qt::BevelJoin;
 			break;
 	}
-#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(22, 9, 0)
 	const auto& dashPattern = state->getLineDash(&m_dashOffset);
 	QVector<double> pattern(dashPattern.size());
 	for (size_t i = 0; i < dashPattern.size(); ++i)
 		pattern[i] = dashPattern[i];
 	m_dashValues = pattern;
-#else
-	double* dashPattern;
-	int dashLength;
-	state->getLineDash(&dashPattern, &dashLength, &m_dashOffset);
-	QVector<double> pattern(dashLength);
-	for (int i = 0; i < dashLength; ++i)
-		pattern[i] = dashPattern[i];
-	m_dashValues = pattern;
-#endif
 }
 
 int SlaOutputDev::getBlendMode(GfxState *state) const
@@ -3853,6 +3883,41 @@ void SlaOutputDev::pushGroup(const QString& maskName, bool forSoftMask, bool alp
 
 QString SlaOutputDev::UnicodeParsedString(const GooString *s1) const
 {
+#if POPPLER_ENCODED_VERSION >= POPPLER_VERSION_ENCODE(25, 10, 0)
+	if (!s1 || s1->size() == 0)
+		return QString();
+	bool isUnicode;
+	int i;
+	Unicode u;
+	QString result;
+	if ((s1->getChar(0) & 0xff) == 0xfe && (s1->size() > 1 && (s1->getChar(1) & 0xff) == 0xff))
+	{
+		isUnicode = true;
+		i = 2;
+		result.reserve((s1->size() - 2) / 2);
+	}
+	else
+	{
+		isUnicode = false;
+		i = 0;
+		result.reserve(s1->size());
+	}
+	while (i < s1->size())
+	{
+		if (isUnicode)
+		{
+			u = ((s1->getChar(i) & 0xff) << 8) | (s1->getChar(i + 1) & 0xff);
+			i += 2;
+		}
+		else
+		{
+			u = s1->getChar(i) & 0xff;
+			++i;
+		}
+		result += QChar(u);
+	}
+	return result;
+#else
 	if (!s1 || s1->getLength() == 0)
 		return QString();
 	bool isUnicode;
@@ -3886,6 +3951,7 @@ QString SlaOutputDev::UnicodeParsedString(const GooString *s1) const
 		result += QChar( u );
 	}
 	return result;
+#endif
 }
 
 QString SlaOutputDev::UnicodeParsedString(const std::string& s1) const

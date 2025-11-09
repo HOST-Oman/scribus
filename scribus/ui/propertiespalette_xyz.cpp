@@ -361,12 +361,13 @@ void PropertiesPalette_XYZ::setCurrentItem(PageItem *item)
 
 	doGroup->setEnabled(false);
 	doUnGroup->setEnabled(false);
-	if ((m_doc->m_Selection->count() > 1) && haveSameParent)
+	if (m_doc->m_Selection->count() > 1 && haveSameParent)
 		doGroup->setEnabled(true);
-	if (m_doc->m_Selection->count() == 1)
-		doUnGroup->setEnabled(m_item->isGroup());
-	if ((m_doc->appMode == modeEditClip) && (m_item->isGroup()))
-		doUnGroup->setEnabled(false);
+	if (m_doc->m_Selection->count() > 0)
+	{
+		if (m_doc->appMode != modeEditClip && m_doc->m_Selection->containsItemType(PageItem::Group))
+			doUnGroup->setEnabled(true);
+	}
 	if (m_item->isOSGFrame())
 	{
 		setEnabled(true);
@@ -725,7 +726,6 @@ void PropertiesPalette_XYZ::handleNewX()
 	if (!m_haveDoc || !m_haveItem || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 
-	QTransform ma;
 	double x = (xposSpin->value() / m_unitRatio) + m_doc->rulerXoffset;
 	double base = 0.0;
 	if (m_doc->guidesPrefs().rulerMode)
@@ -777,6 +777,7 @@ void PropertiesPalette_XYZ::handleNewX()
 		}
 		else
 		{
+			QTransform ma;
 			ma.translate(m_item->xPos(), m_item->yPos());
 			ma.rotate(m_item->rotation());
 
@@ -824,7 +825,6 @@ void PropertiesPalette_XYZ::handleNewY()
 	if (!m_haveDoc || !m_haveItem || !m_ScMW || m_ScMW->scriptIsRunning())
 		return;
 
-	QTransform ma;
 	double y = (yposSpin->value() / m_unitRatio) + m_doc->rulerYoffset;
 	double base = 0;
 	if (m_doc->guidesPrefs().rulerMode)
@@ -876,6 +876,7 @@ void PropertiesPalette_XYZ::handleNewY()
 		}
 		else
 		{
+			QTransform ma;
 			ma.translate(m_item->xPos(), m_item->yPos());
 			ma.rotate(m_item->rotation());
 

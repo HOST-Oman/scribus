@@ -910,7 +910,7 @@ void AppModeHelper::enableActionsForSelection(ScribusMainWindow* scmw, ScribusDo
 		(*a_scrActions)["itemLock"]->setEnabled(doc->appMode != modeEditClip);
 		(*a_scrActions)["itemLockSize"]->setEnabled(true);
 		(*a_scrActions)["itemPrintingEnabled"]->setEnabled(true);
-		if (currItem->isGroup())
+		if (doc->m_Selection->containsItemType(PageItem::Group))
 		{
 			(*a_scrActions)["itemUngroup"]->setEnabled(doc->appMode != modeEdit);
 			(*a_scrActions)["itemGroupAdjust"]->setEnabled(doc->appMode != modeEdit);
@@ -1514,7 +1514,7 @@ void AppModeHelper::mainWindowHasNewDoc(const ScribusDoc *doc, bool clipScrapHav
 
 	(*a_scrActions)["viewSnapToGrid"]->setChecked(doc->SnapGrid);
 	(*a_scrActions)["viewSnapToGuides"]->setChecked(doc->SnapGuides);
-	(*a_scrActions)["viewSnapToElements"]->setChecked(doc->SnapElement);
+	(*a_scrActions)["viewSnapToItems"]->setChecked(doc->SnapItems);
 	(*a_scrActions)["viewShowRulers"]->setEnabled(true);
 
 	(*a_scrActions)["insertFrame"]->setEnabled(true);
@@ -1547,6 +1547,7 @@ void AppModeHelper::mainWindowHasNewDoc(const ScribusDoc *doc, bool clipScrapHav
 	(*a_scrActions)["toolsPDFAnnot3D"]->setEnabled(true);
 #endif
 	(*a_scrActions)["toolsPreflightVerifier"]->setEnabled(true);
+	(*a_scrActions)["toolsDocumentLog"]->setEnabled(true);
 	bool setter = doc->DocPages.count() > 1;
 	(*a_scrActions)["pageDelete"]->setEnabled(setter);
 	(*a_scrActions)["pageMove"]->setEnabled(setter);
@@ -1638,7 +1639,7 @@ void AppModeHelper::mainWindowSwitchWin(const ScribusDoc *doc)
 
 	(*a_scrActions)["viewSnapToGrid"]->setChecked(doc->SnapGrid);
 	(*a_scrActions)["viewSnapToGuides"]->setChecked(doc->SnapGuides);
-	(*a_scrActions)["viewSnapToElements"]->setChecked(doc->SnapElement);
+	(*a_scrActions)["viewSnapToItems"]->setChecked(doc->SnapItems);
 
 	enableExperimentalActions(doc);
 }
@@ -1750,6 +1751,7 @@ void AppModeHelper::mainWindowCloseLastDoc()
 	(*a_scrActions)["toolsPDFRadioButton"]->setEnabled(false);
 	(*a_scrActions)["toolsPDFTextField"]->setEnabled(false);
 	(*a_scrActions)["toolsPreflightVerifier"]->setEnabled(false);
+	(*a_scrActions)["toolsDocumentLog"]->setEnabled(false);
 	(*a_scrActions)["toolsRotate"]->setEnabled(false);
 	(*a_scrActions)["toolsSelect"]->setEnabled(false);
 	(*a_scrActions)["toolsUnlinkTextFrame"]->setEnabled(false);
@@ -1763,7 +1765,7 @@ void AppModeHelper::mainWindowCloseLastDoc()
 	(*a_scrActions)["viewFitInWindow"]->setEnabled(false);
 	(*a_scrActions)["viewFitWidth"]->setEnabled(false);
 	(*a_scrActions)["viewShowRulers"]->setEnabled(false);
-	(*a_scrActions)["viewSnapToElements"]->setChecked(false);
+	(*a_scrActions)["viewSnapToItems"]->setChecked(false);
 	(*a_scrActions)["viewSnapToGrid"]->setChecked(false);
 	(*a_scrActions)["viewSnapToGuides"]->setChecked(false);
 
@@ -1853,6 +1855,7 @@ void AppModeHelper::enableTextStyleActions(bool enabled)
 	(*a_scrActions)["typeEffectSubscript"]->setEnabled(enabled);
 	(*a_scrActions)["typeEffectOutline"]->setEnabled(enabled);
 	(*a_scrActions)["typeEffectShadow"]->setEnabled(enabled);
+	(*a_scrActions)["itemStyleSearch"]->setEnabled(enabled);
 }
 
 void AppModeHelper::setStartupActionsEnabled(bool enabled)
@@ -1917,6 +1920,7 @@ void AppModeHelper::setStartupActionsEnabled(bool enabled)
 	(*a_scrActions)["insertMarkNote"]->setEnabled(false);
 	(*a_scrActions)["insertMarkIndex"]->setEnabled(false);
 	(*a_scrActions)["toolsPreflightVerifier"]->setEnabled(false);
+	(*a_scrActions)["toolsDocumentLog"]->setEnabled(false);
 	(*a_scrActions)["extrasHyphenateText"]->setEnabled(false);
 	(*a_scrActions)["extrasDeHyphenateText"]->setEnabled(false);
 	(*a_scrActions)["viewFitInWindow"]->setEnabled(false);
@@ -1927,7 +1931,7 @@ void AppModeHelper::setStartupActionsEnabled(bool enabled)
 	(*a_scrActions)["viewFit200"]->setEnabled(false);
 	(*a_scrActions)["viewFit400"]->setEnabled(false);
 	(*a_scrActions)["viewSnapToGuides"]->setChecked(false);
-	(*a_scrActions)["viewSnapToElements"]->setChecked(false);
+	(*a_scrActions)["viewSnapToItems"]->setChecked(false);
 	(*a_scrActions)["viewSnapToGrid"]->setChecked(false);
 	(*a_scrActions)["viewShowRulers"]->setEnabled(false);
 //	scrMenuMgr->setMenuEnabled("Insert", false);

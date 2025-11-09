@@ -309,6 +309,10 @@ void ActionManager::initStyleMenuActions()
 		connect( (*scrActions)[fontSizeName], SIGNAL(triggeredData(int)), mainWindow, SLOT(setItemFontSize(int)));
 	}
 
+	name = "itemStyleSearch";
+	scrActions->insert(name, new ScrAction("", defaultKey(name), mainWindow));
+	connect( (*scrActions)["itemStyleSearch"], SIGNAL(triggered()), mainWindow, SLOT(slotItemStyleSearch()));
+
 	//Alignment actions
 	name = "alignLeft";
 	scrActions->insert(name, new ScrAction(ScrAction::DataInt, QString(), QString(), "", defaultKey(name), mainWindow, 0));
@@ -715,7 +719,7 @@ void ActionManager::initViewMenuActions()
 	scrActions->insert(name, new ScrAction("snap-grid", "snap-grid", "", defaultKey(name), mainWindow));
 	name = "viewSnapToGuides";
 	scrActions->insert(name, new ScrAction("snap-guides", "snap-guides", "", defaultKey(name), mainWindow));
-	name = "viewSnapToElements";
+	name = "viewSnapToItems";
 	scrActions->insert(name, new ScrAction("snap-items", "snap-items", "", defaultKey(name), mainWindow));
 	name = "viewShowContextMenu";
 	scrActions->insert(name, new ScrAction("", defaultKey(name), mainWindow));
@@ -751,7 +755,7 @@ void ActionManager::initViewMenuActions()
 	(*scrActions)["viewRulerMode"]->setToggleAction(true);
 	(*scrActions)["viewSnapToGrid"]->setToggleAction(true);
 	(*scrActions)["viewSnapToGuides"]->setToggleAction(true);
-	(*scrActions)["viewSnapToElements"]->setToggleAction(true);
+	(*scrActions)["viewSnapToItems"]->setToggleAction(true);
 	(*scrActions)["showMouseCoordinates"]->setToggleAction(true);
 
 	(*scrActions)["viewPreviewMode"]->setChecked(false);
@@ -791,7 +795,7 @@ void ActionManager::initViewMenuActions()
 	connect( (*scrActions)["viewRulerMode"], SIGNAL(triggered()), mainWindow, SLOT(toggleRulerMode()) );
 	connect( (*scrActions)["viewSnapToGrid"], SIGNAL(triggered()), mainWindow, SLOT(toggleSnapGrid()) );
 	connect( (*scrActions)["viewSnapToGuides"], SIGNAL(triggered()), mainWindow, SLOT(toggleSnapGuides()) );
-	connect( (*scrActions)["viewSnapToElements"], SIGNAL(triggered()), mainWindow, SLOT(toggleSnapElements()) );
+	connect( (*scrActions)["viewSnapToItems"], SIGNAL(triggered()), mainWindow, SLOT(toggleSnapElements()) );
 	connect( (*scrActions)["showMouseCoordinates"], SIGNAL(triggered()), mainWindow, SLOT(ToggleMouseTips()) );
 //	connect( (*scrActions)["viewNewView"], SIGNAL(triggered()), mainWindow, SLOT(newView()) );
 
@@ -825,6 +829,8 @@ void ActionManager::initToolsMenuActions()
 	scrActions->insert(name, new ScrAction("", defaultKey(name), mainWindow));
 	name = "toolsPreflightVerifier";
 	scrActions->insert(name, new ScrAction("preflight-verifier", "preflight-verifier","", defaultKey(name), mainWindow));
+	name = "toolsDocumentLog";
+	scrActions->insert(name, new ScrAction("", "","", defaultKey(name), mainWindow));
 	name = "toolsAlignDistribute";
 	scrActions->insert(name, new ScrAction("", defaultKey(name), mainWindow));
 	name = "toolsSymbols";
@@ -919,6 +925,7 @@ void ActionManager::initToolsMenuActions()
 	(*scrActions)["toolsDownloads"]->setShortcutContext(Qt::ApplicationShortcut);
 	(*scrActions)["toolsActionHistory"]->setShortcutContext(Qt::ApplicationShortcut);
 	(*scrActions)["toolsPreflightVerifier"]->setShortcutContext(Qt::ApplicationShortcut);
+	(*scrActions)["toolsDocumentLog"]->setShortcutContext(Qt::ApplicationShortcut);
 	(*scrActions)["toolsAlignDistribute"]->setShortcutContext(Qt::ApplicationShortcut);
 	(*scrActions)["toolsSymbols"]->setShortcutContext(Qt::ApplicationShortcut);
 	(*scrActions)["toolsInline"]->setShortcutContext(Qt::ApplicationShortcut);
@@ -926,9 +933,12 @@ void ActionManager::initToolsMenuActions()
 	(*scrActions)["toolsDownloads"]->setToggleAction(true);
 	(*scrActions)["toolsMeasurements"]->setToggleAction(true);
 	(*scrActions)["toolsPreflightVerifier"]->setToggleAction(true);
+	(*scrActions)["toolsDocumentLog"]->setToggleAction(true);
 	(*scrActions)["toolsToolbarTools"]->setToggleAction(true);
 	(*scrActions)["toolsToolbarPDF"]->setToggleAction(true);
 	(*scrActions)["toolsToolbarView"]->setToggleAction(true);
+
+	(*scrActions)["toolsDocumentLog"]->setChecked(false);
 
 	*modeActionNames << "toolsSelect" << "toolsInsertTextFrame" << "toolsInsertImageFrame" << "toolsInsertTable";
 	*modeActionNames << "toolsInsertShape" << "toolsInsertPolygon" << "toolsInsertArc" << "toolsInsertSpiral" << "toolsInsertLine" << "toolsInsertBezier";
@@ -1547,6 +1557,9 @@ void ActionManager::languageChange()
 		(*scrActions)[fontSizeName]->setTexts( tr("%1 pt").arg(fontSize));
 	}
 	(*scrActions)["fontSizeOther"]->setTexts( tr("&Other..."));
+
+	(*scrActions)["itemStyleSearch"]->setTexts( tr("Style &Search"));
+
 	(*scrActions)["alignLeft"]->setTexts( tr("&Left"));
 	(*scrActions)["alignCenter"]->setTexts( tr("&Center"));
 	(*scrActions)["alignRight"]->setTexts( tr("&Right"));
@@ -1681,7 +1694,7 @@ void ActionManager::languageChange()
 	(*scrActions)["viewRulerMode"]->setTexts( tr("Rulers Relative to Page"));
 	(*scrActions)["viewSnapToGrid"]->setTexts( tr("Sn&ap to Grid"));
 	(*scrActions)["viewSnapToGuides"]->setTexts( tr("Sna&p to Guides"));
-	(*scrActions)["viewSnapToElements"]->setTexts( tr("Snap to Items"));
+	(*scrActions)["viewSnapToItems"]->setTexts( tr("Snap to Items"));
 	(*scrActions)["viewShowContextMenu"]->setTexts( tr("Show Context Menu"));
 //	(*scrActions)["viewNewView"]->setTexts( tr("New View"));
 
@@ -1698,6 +1711,7 @@ void ActionManager::languageChange()
 	(*scrActions)["toolsMeasurements"]->setTexts( tr("&Measurements"));
 	(*scrActions)["toolsActionHistory"]->setTexts( tr("Action &History"));
 	(*scrActions)["toolsPreflightVerifier"]->setTexts( tr("Preflight &Verifier"));
+	(*scrActions)["toolsDocumentLog"]->setTexts( tr("Document &Log"));
 	(*scrActions)["toolsAlignDistribute"]->setTexts( tr("&Align and Distribute"));
 	(*scrActions)["toolsSymbols"]->setTexts( tr("Symbols"));
 	(*scrActions)["toolsInline"]->setTexts( tr("Inline Items"));
@@ -1816,6 +1830,7 @@ void ActionManager::languageChange()
 	(*scrActions)["toolsPDFRadioButton"]->setStatusTextAndShortcut( tr("Insert PDF radio button"));
 	(*scrActions)["toolsPDFTextField"]->setStatusTextAndShortcut( tr("Insert PDF text field"));
 	(*scrActions)["toolsPreflightVerifier"]->setStatusTextAndShortcut( tr("Analyse the document for issues prior to exporting to PDF"));
+	(*scrActions)["toolsDocumentLog"]->setStatusTextAndShortcut( tr("Display logged warnings and errors from editing activities"));
 	(*scrActions)["toolsRotate"]->setStatusTextAndShortcut( tr("Rotate an item"));
 	(*scrActions)["toolsSelect"]->setStatusTextAndShortcut( tr("Select an item"));
 	(*scrActions)["toolsUnlinkTextFrame"]->setStatusTextAndShortcut( tr("Unlink text frames"));
@@ -1947,6 +1962,7 @@ void ActionManager::createDefaultShortcuts()
 	defKeys.insert("itemRaiseToTop", Qt::Key_Home);
 	defKeys.insert("itemLower", Qt::CTRL | Qt::Key_End);
 	defKeys.insert("itemRaise", Qt::CTRL | Qt::Key_Home);
+	defKeys.insert("itemStyleSearch", Qt::SHIFT | Qt::Key_Escape);
 
 	//Insert Menu
 	//Page menu
@@ -2316,7 +2332,7 @@ void ActionManager::createDefaultMenus()
 		<< "pageManageProperties"
 		<< "viewSnapToGrid"
 		<< "viewSnapToGuides"
-		<< "viewSnapToElements";
+		<< "viewSnapToItems";
 	//View
 	++itmenu;
 	itmenu->second
@@ -2385,6 +2401,7 @@ void ActionManager::createDefaultMenus()
 		<< "toolsMeasurements"
 		<< "toolsActionHistory"
 		<< "toolsPreflightVerifier"
+		<< "toolsDocumentLog"
 		<< "toolsAlignDistribute"
 		<< "toolsSymbols"
 		<< "toolsInline"

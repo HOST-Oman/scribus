@@ -270,6 +270,8 @@
     <ClInclude Include="..\..\..\scribus\desaxe\saxXML.h" />
     <ClInclude Include="..\..\..\scribus\desaxe\simple_actions.h" />
     <ClInclude Include="..\..\..\scribus\desaxe\uniqueid.h" />
+    <moc Include="..\..\..\scribus\documentlogmanager.h" />
+    <ClInclude Include="..\..\..\scribus\documentlogtypes.h" />
     <ClInclude Include="..\..\..\scribus\fonts\cff.h" />
     <ClInclude Include="..\..\..\scribus\fonts\fontfeatures.h" />
     <ClInclude Include="..\..\..\scribus\fonts\sfnt.h" />
@@ -373,6 +375,7 @@
     <ClInclude Include="..\..\..\scribus\sccolorstructs.h" />
     <ClInclude Include="..\..\..\scribus\scprintengine_pdf.h" />
     <moc Include="..\..\..\scribus\storyloader.h" />
+    <ClInclude Include="..\..\..\scribus\stylesearch.h" />
     <ClInclude Include="..\..\..\scribus\styles\cellstyle.h" />
     <moc Include="..\..\..\scribus\ui\charselect.h" />
     <moc Include="..\..\..\scribus\ui\charselectenhanced.h" />
@@ -656,6 +659,7 @@
     <moc Include="..\..\..\scribus\ui\imageclippingpaths.h" />
     <moc Include="..\..\..\scribus\ui\imagelayers.h" />
     <moc Include="..\..\..\scribus\ui\opticalmargineditor.h" />
+    <moc Include="..\..\..\scribus\ui\documentlogviewer.h" />
     <ClInclude Include="..\..\..\scribus\ui\propertywidgetbase.h" />
     <moc Include="..\..\..\scribus\pslib.h" />
     <moc Include="..\..\..\scribus\ui\query.h" />
@@ -679,6 +683,7 @@
     <moc Include="..\..\..\scribus\ui\scdialog.h" />
     <moc Include="..\..\..\scribus\ui\propertywidget_text.h" />
     <moc Include="..\..\..\scribus\ui\widgets\color_button.h" />
+    <moc Include="..\..\..\scribus\ui\stylesearchdialog.h" />
     <ClInclude Include="..\..\..\scribus\ui\widgets\combo_blendmode.h" />
     <moc Include="..\..\..\scribus\ui\widgets\form_widget.h" />
     <ClInclude Include="..\..\..\scribus\ui\widgets\combo_linestyle.h" />
@@ -928,6 +933,7 @@
     <ClCompile Include="..\..\..\scribus\desaxe\saxiohelper.cpp" />
     <ClCompile Include="..\..\..\scribus\desaxe\saxXML.cpp" />
     <ClCompile Include="..\..\..\scribus\desaxe\uniqueid.cpp" />
+    <ClCompile Include="..\..\..\scribus\documentlogmanager.cpp" />
     <ClCompile Include="..\..\..\scribus\fonts\cff.cpp" />
     <ClCompile Include="..\..\..\scribus\fonts\fontfeatures.cpp" />
     <ClCompile Include="..\..\..\scribus\fonts\sfnt.cpp" />
@@ -971,6 +977,7 @@
     <ClCompile Include="..\..\..\scribus\scprintengine_pdf.cpp" />
     <ClCompile Include="..\..\..\scribus\selectionrubberband.cpp" />
     <ClCompile Include="..\..\..\scribus\storyloader.cpp" />
+    <ClCompile Include="..\..\..\scribus\stylesearch.cpp" />
     <ClCompile Include="..\..\..\scribus\textnote.cpp" />
     <ClCompile Include="..\..\..\scribus\text\boxes.cpp" />
     <ClCompile Include="..\..\..\scribus\text\glyphcluster.cpp" />
@@ -1094,6 +1101,7 @@
     <ClCompile Include="..\..\..\scribus\ui\directionselect.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\docks\dock_centralwidget.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\docks\dock_panelbase.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\documentlogviewer.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\downloadspalette.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\editor.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\edittoolbar.cpp" />
@@ -1490,6 +1498,7 @@
     <ClCompile Include="..\..\..\scribus\ui\smfontfeatures.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\smlineedit.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\smnumformatcombo.cpp" />
+    <ClCompile Include="..\..\..\scribus\ui\stylesearchdialog.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\viewtoolbar.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\widgets\color_button.cpp" />
     <ClCompile Include="..\..\..\scribus\ui\widgets\combo_blendmode.cpp" />
@@ -1679,6 +1688,7 @@
     <uic Include="..\..\..\scribus\ui\copypagetomasterpage.ui" />
     <uic Include="..\..\..\scribus\ui\createrange.ui" />
     <uic Include="..\..\..\scribus\ui\cxfimportdialogbase.ui" />
+    <uic Include="..\..\..\scribus\ui\documentlogviewerbase.ui" />
     <uic Include="..\..\..\scribus\ui\downloadspalettebase.ui" />
     <uic Include="..\..\..\scribus\ui\extimageprops.ui" />
     <uic Include="..\..\..\scribus\ui\gradientaddedit.ui" />
@@ -1791,6 +1801,7 @@
     <uic Include="..\..\..\scribus\ui\spiralvectorbase.ui" />
     <uic Include="..\..\..\scribus\ui\spiralwidgetbase.ui" />
     <uic Include="..\..\..\scribus\ui\stylemanager.ui" />
+    <uic Include="..\..\..\scribus\ui\stylesearchdialog.ui" />
     <uic Include="..\..\..\scribus\ui\tablecolumnwidthsdialog.ui" />
     <uic Include="..\..\..\scribus\ui\tablerowheightsdialog.ui" />
     <uic Include="..\..\..\scribus\ui\tabpdfoptions.ui" />

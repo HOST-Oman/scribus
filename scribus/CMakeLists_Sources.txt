@@ -75,6 +75,7 @@ set(SCRIBUS_SOURCES
 	deferredtask.cpp
 	documentchecker.cpp
 	documentinformation.cpp
+	documentlogmanager.cpp
 	exif.cpp
 	fileloader.cpp
 	filesearch.cpp
@@ -213,6 +214,7 @@ set(SCRIBUS_SOURCES
 	serializer.cpp
 	storyloader.cpp
 	styleitem.cpp
+	stylesearch.cpp
 	tableborder.cpp
 	tablecell.cpp
 	tableutils.cpp
@@ -323,6 +325,7 @@ set(SCRIBUS_SOURCES
 	ui/dasheditor.cpp
 	ui/dcolor.cpp
 	ui/delpages.cpp
+	ui/documentlogviewer.cpp
 	ui/downloadspalette.cpp
 	ui/editor.cpp
 	ui/effectsdialog.cpp
@@ -525,6 +528,7 @@ set(SCRIBUS_SOURCES
 	ui/storyeditor.cpp
 	ui/stylecombos.cpp
 	ui/stylemanager.cpp
+	ui/stylesearchdialog.cpp
 	ui/styleselect.cpp
 	ui/styleview.cpp
 	ui/swatchcombo.cpp

@@ -66,7 +66,7 @@ Hruler::Hruler(ScribusView *pa, ScribusDoc *doc) : QWidget(pa),
 	//setBackgroundRole(QPalette::Window);
 	//setAutoFillBackground(true);
 	setMouseTracking(true);
-	m_contextMenu = new QMenu();
+	m_contextMenu = new QMenu(this);
 	rulerGesture = new RulerGesture(m_view, RulerGesture::HORIZONTAL);
 	unitChange();
 	languageChange();
@@ -614,7 +614,7 @@ void Hruler::paintEvent(QPaintEvent *e)
 							}
 							break;
 						case ParagraphStyle::CommaTab:
-						case ParagraphStyle::DotTab:
+						case ParagraphStyle::PeriodTab:
 							p.drawLine(xPos, tabline, xPos, bottomline - pWidth);
 							p.drawLine(xPos - 4, bottomline - pWidth, xPos + 4, bottomline - pWidth);
 							p.drawLine(xPos + 3, bottomline - 3 - pWidth, xPos + 2, bottomline - 3 - pWidth);
@@ -1084,7 +1084,7 @@ void Hruler::languageChange()
 	m_contextMenu->addAction(im.loadIcon("tabulator-left"), tr("Left"))->setData(ParagraphStyle::LeftTab);
 	m_contextMenu->addAction(im.loadIcon("tabulator-center"), tr("Center"))->setData(ParagraphStyle::CenterTab);
 	m_contextMenu->addAction(im.loadIcon("tabulator-comma"), tr("Comma"))->setData(ParagraphStyle::CommaTab);
-	m_contextMenu->addAction(im.loadIcon("tabulator-dot"), tr("Dot"))->setData(ParagraphStyle::DotTab);
+	m_contextMenu->addAction(im.loadIcon("tabulator-dot"), tr("Period"))->setData(ParagraphStyle::PeriodTab);
 	m_contextMenu->addAction(im.loadIcon("tabulator-right"), tr("Right"))->setData(ParagraphStyle::RightTab);
 }
 

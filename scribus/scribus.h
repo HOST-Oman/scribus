@@ -71,7 +71,10 @@ class BookPalette;
 class CharSelect;
 class CheckDocument;
 class ColorCombo;
+class ContentPalette;
 class DockManager;
+class DocumentLogManager;
+class DocumentLogViewer;
 class DownloadsPalette;
 class EditToolBar;
 class FileToolBar;
@@ -94,7 +97,6 @@ class PagePalette;
 class PageSelector;
 class PrefsContext;
 class PrefsManager;
-class ContentPalette;
 class PropertiesPalette;
 class ResourceManager;
 class ScMWMenuManager;
@@ -248,6 +250,7 @@ public:
 	QLabel* mainWindowXPosDataLabel {nullptr};
 	QLabel* mainWindowYPosLabel {nullptr};
 	QLabel* mainWindowYPosDataLabel {nullptr};
+
 	GuideManager *guidePalette {nullptr};
 	CharSelect *charPalette {nullptr};
 	PropertiesPalette *propertiesPalette {nullptr};
@@ -268,6 +271,8 @@ public:
 	UndoPalette* undoPalette {nullptr};
 	AlignDistributePalette *alignDistributePalette {nullptr};
 	ResourceManager *resourceManager {nullptr};
+	DocumentLogViewer *documentLogViewer {nullptr};
+
 	StoryEditor* storyEditor {nullptr};
 	StoryEditor* CurrStED {nullptr};
 	QMdiArea *mdiArea {nullptr};
@@ -417,6 +422,7 @@ public slots:
 	void slotOnlineHelp(const QString& jumpToSection = QString(), const QString& jumpToFile = QString());
 	void slotOnlineHelpClosed();
 	void slotResourceManager();
+	void slotItemStyleSearch();
 	void ToggleTips();
 	void ToggleMouseTips();
 	/** \brief Erzeugt eine neue Seite */
@@ -656,6 +662,7 @@ private:
 
 	StyleManager *m_styleManager {nullptr};
 	UndoManager *m_undoManager {nullptr};
+	DocumentLogManager *m_documentLogManager {nullptr};
 	PrefsManager& m_prefsManager;
 	WidgetManager &m_widgetManager;
 	FormatsManager *m_formatsManager {nullptr};	
