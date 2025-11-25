@@ -77,6 +77,7 @@ public:
 	int orientation() const { return m_orientation;}
 	int choosenLayout() const { return m_choosenLayout;}
 	int layoutFirstPage() const { return m_layoutFirstPage; }
+	int bindingDirection() const { return m_bindingDirection; }
 	double pageWidth() const { return m_pageWidth;}
 	double pageHeight() const { return m_pageHeight;}
 	double distance() const { return m_distance;}
@@ -97,6 +98,7 @@ public slots:
 	void setPageSize(const QString &);
 	void setDocLayout(int layout);
 	void setDocFirstPage(int firstPage);
+	void setDocBindingDirection(int bindingDirection);
 	/*! Opens document on doubleclick
 	\author Petr Vanek <petr@yarpen.cz>
 	*/
@@ -126,6 +128,7 @@ protected:
 	double m_unitRatio { 1.0 };
 	int m_orientation { 0 };
 	int m_choosenLayout { 0 };
+	int m_bindingDirection { 0 };
 	int m_layoutFirstPage { 0 };
 	double m_pageWidth { 1.0 };
 	double m_pageHeight { 1.0 };

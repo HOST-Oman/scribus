@@ -68,8 +68,16 @@ NewDocDialog::NewDocDialog(QWidget* parent, const QStringList& recentDocs, bool 
 	buttonHorizontal->setIcon(iconManager.loadIcon("page-orientation-horizontal"));
 	buttonSinglePage->setIcon(iconManager.loadIcon("page-simple"));
 	buttonDoublePageLeft->setIcon(iconManager.loadIcon("page-first-left"));
-	buttonDoublePageRight->setIcon(iconManager.loadIcon("page-first-right"));
+	buttonDoublePageRight->setIcon(iconManager.loadIcon("page-doublesided"));
+	buttonLTRBinding->setIcon(iconManager.loadIcon("page-binding-left"));
+	buttonRTLBinding->setIcon(iconManager.loadIcon("page-binding-right"));
 	labelColumns->setPixmap(iconManager.loadPixmap("paragraph-columns"));
+
+	// for now we just hide buttonDoublePageLeft button
+	buttonDoublePageLeft->setVisible(false);
+	// disable LTR & RTL unless facing page is enabled
+	buttonLTRBinding->setDisabled(true);
+	buttonRTLBinding->setDisabled(true);
 
 	createNewDocPage();
 	if (startUp)
@@ -98,6 +106,8 @@ NewDocDialog::NewDocDialog(QWidget* parent, const QStringList& recentDocs, bool 
 	buttonSinglePage->setToolTip(tr("Single page document"));
 	buttonDoublePageLeft->setToolTip(tr("A document with facing pages, with the first page on the left side"));
 	buttonDoublePageRight->setToolTip(tr("A document with facing pages, with the first page on the right side"));
+	buttonLTRBinding->setToolTip(tr("LTR binding direction"));
+	buttonRTLBinding->setToolTip(tr("RTL Binding direction"));
 	widthSpinBox->setToolTip( tr( "Width of the document's pages, editable if you have chosen a custom page size" ) );
 	heightSpinBox->setToolTip( tr( "Height of the document's pages, editable if you have chosen a custom page size" ) );
 	pageCountSpinBox->setToolTip( tr( "Initial number of pages of the document" ) );
@@ -133,6 +143,7 @@ void NewDocDialog::createNewDocPage()
 {
 	int orientation = prefsManager.appPrefs.docSetupPrefs.pageOrientation;
 	int pagePositioning = prefsManager.appPrefs.docSetupPrefs.pagePositioning;
+	int docBindingDirection = prefsManager.appPrefs.docSetupPrefs.docBindingDirection;
 	QString pageSize = prefsManager.appPrefs.docSetupPrefs.pageSize;
 	double pageHeight = prefsManager.appPrefs.docSetupPrefs.pageHeight;
 	double pageWidth = prefsManager.appPrefs.docSetupPrefs.pageWidth;
@@ -149,12 +160,16 @@ void NewDocDialog::createNewDocPage()
 	pageOrientationButtons->button(orientation)->setChecked(true);
 
 	pageLayoutButtons = new QButtonGroup();
+	pageLayoutButtons->setExclusive(false);
 	pageLayoutButtons->addButton(buttonSinglePage, 0);
 	pageLayoutButtons->addButton(buttonDoublePageLeft, 1);
 	pageLayoutButtons->addButton(buttonDoublePageRight, 2);
+	pageLayoutButtons->addButton(buttonLTRBinding, 3);
+	pageLayoutButtons->addButton(buttonRTLBinding, 4);
 	if (pagePositioning == singlePage)
 	{
 		pageLayoutButtons->button(0)->setChecked(true);
+		pageLayoutButtons->button(1)->setChecked(true);
 	}
 	else if (prefsManager.appPrefs.pageSets[pagePositioning].FirstPage == 0)
 	{
@@ -164,6 +179,11 @@ void NewDocDialog::createNewDocPage()
 	{
 		pageLayoutButtons->button(2)->setChecked(true);
 	}
+
+	if (docBindingDirection == 1)
+		pageLayoutButtons->button(4)->setChecked(true);
+	else
+		pageLayoutButtons->button(3)->setChecked(true);
 
 	listPageFormats->setValues(pageSize, orientation, PageSizeInfo::Preferred, PageSizeList::NameAsc);
 
@@ -216,6 +236,7 @@ void NewDocDialog::createNewDocPage()
 	setDocLayout(pagePositioning);
 	setSize(pageSize);
 	setOrientation(orientation);
+	setDocBindingDirection(docBindingDirection);
 
 	numberOfCols->setButtonSymbols( QSpinBox::UpDownArrows );
 	numberOfCols->setMinimum( 1 );
@@ -524,18 +545,47 @@ void NewDocDialog::setLayout(int layoutId)
 	switch (layoutId)
 	{
 		case 0:
+			pageLayoutButtons->button(2)->setChecked(false);
+			pageLayoutButtons->button(3)->setDisabled(true);
+			pageLayoutButtons->button(4)->setDisabled(true);
 			setDocLayout(0);
-		break;
+			break;
 		case 1:
+			// pageLayoutButtons->button(2)->setChecked(false);
+			// pageLayoutButtons->button(3)->setDisabled(true);
+			// pageLayoutButtons->button(4)->setDisabled(true);
 			setDocLayout(1);
 			pagePreview->setFirstPage(0);
 			setDocFirstPage(0);
-		break;
+			break;
 		case 2:
+			pageLayoutButtons->button(0)->setChecked(false);
+			pageLayoutButtons->button(3)->setDisabled(false);
+			pageLayoutButtons->button(4)->setDisabled(false);
+			pageLayoutButtons->button(3)->setChecked(true);
+			pageLayoutButtons->button(4)->setChecked(false);
+
 			setDocLayout(1);
 			pagePreview->setFirstPage(1);
 			setDocFirstPage(1);
-		break;
+			break;
+		case 3:
+			pageLayoutButtons->button(0)->setChecked(false);
+			pageLayoutButtons->button(2)->setChecked(true);
+			pageLayoutButtons->button(4)->setChecked(false);
+			setDocLayout(1);
+			setDocBindingDirection(0);
+			setDocFirstPage(1);
+			break;
+		case 4:
+			pageLayoutButtons->button(0)->setChecked(false);
+			pageLayoutButtons->button(2)->setChecked(true);
+			pageLayoutButtons->button(3)->setChecked(false);
+
+			setDocLayout(1);
+			setDocBindingDirection(1);
+			setDocFirstPage(0);
+			break;
 	}
 }
 
@@ -603,6 +653,11 @@ void NewDocDialog::setDocLayout(int layout)
 void NewDocDialog::setDocFirstPage(int firstPage)
 {
 	m_layoutFirstPage = firstPage;
+}
+
+void NewDocDialog::setDocBindingDirection(int bindingDirection)
+{
+	m_bindingDirection = bindingDirection;
 }
 
 void NewDocDialog::recentDocListBox_doubleClicked()

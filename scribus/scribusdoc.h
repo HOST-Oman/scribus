@@ -107,7 +107,7 @@ public:
 	bool inASpecialEditMode() const;
 	QList<PageItem*> getAllItems(const QList<PageItem*> &items) const;
 	QList<PageItem*> *parentGroup(PageItem* item, QList<PageItem*> *list);
-	void setup(int, int, int, int, int, const QString&, const QString&);
+	void setup(int, int, int, int, int, const QString&, const QString&, int docBindingDirection = 0);
 	void setLoading(bool);
 	bool isLoading() const;
 	void setModified(bool);
@@ -217,6 +217,8 @@ public:
 
 	int pageOrientation() const { return m_docPrefsData.docSetupPrefs.pageOrientation; }
 	void setPageOrientation(int o) { m_docPrefsData.docSetupPrefs.pageOrientation = o; }
+	int docBindingDirection() const { return m_docPrefsData.docSetupPrefs.docBindingDirection; }
+	void setDocBindingDirection(int x) { m_docPrefsData.docSetupPrefs.docBindingDirection = x; }
 	int pagePositioning() const { return m_docPrefsData.docSetupPrefs.pagePositioning; }
 	void setPagePositioning(int p) { m_docPrefsData.docSetupPrefs.pagePositioning = p; }
 
