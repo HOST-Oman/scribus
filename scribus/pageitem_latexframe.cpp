@@ -55,12 +55,13 @@ PageItem_LatexFrame::PageItem_LatexFrame(ScribusDoc *pa, double x, double y, dou
 	connect(latex, &QProcess::errorOccurred, this, &PageItem_LatexFrame::latexError);
 	latex->setProcessChannelMode(QProcess::MergedChannels);
 	
-	QTemporaryFile *tempfile = new QTemporaryFile(QDir::tempPath() + "/scribus_temp_render_XXXXXX");
-	tempfile->open();
-	tempFileBase = getLongPathName(tempfile->fileName());
-	tempfile->setAutoRemove(false);
-	tempfile->close();
-	delete tempfile;
+	QTemporaryFile tempFile(QDir::tempPath() + "/scribus_temp_render_XXXXXX");
+	if (tempFile.open())
+	{
+		tempFileBase = getLongPathName(tempFile.fileName());
+		tempFile.setAutoRemove(false);
+		tempFile.close();
+	}
 	Q_ASSERT(!tempFileBase.isEmpty());
 	
 	m_lastDpi = realDpi();
@@ -248,8 +249,9 @@ void PageItem_LatexFrame::runApplication()
 		return;
 	}
 	
-	QFile tempfile(tempFileBase);
-	if (!tempfile.open(QIODevice::Truncate|QIODevice::WriteOnly)) {
+	QFile tempFile(tempFileBase);
+	if (!tempFile.open(QIODevice::Truncate|QIODevice::WriteOnly))
+	{
 		m_err = 0xffff;
 		update(); //Show error marker
 		if (firstWarningTmpfile)
@@ -260,7 +262,7 @@ void PageItem_LatexFrame::runApplication()
 			firstWarningTmpfile = false;
 		}
 		qCritical() << "RENDER FRAME:" << tr("Could not create a temporary file to run the application!");
-		//Don't know how to continue as it's impossible to create tempfile
+		//Don't know how to continue as it's impossible to create tempFile
 		return;
 	}
 	firstWarningTmpfile = true;
@@ -314,8 +316,8 @@ void PageItem_LatexFrame::runApplication()
 	
 	imageFile = tempFileBase + config->imageExtension();
 
-	writeFileContents(&tempfile);
-	tempfile.close();
+	writeFileContents(&tempFile);
+	tempFile.close();
 	
 	latex->setWorkingDirectory(QDir::tempPath());
 	latex->start(program, args);
@@ -356,7 +358,7 @@ void PageItem_LatexFrame::rerunApplication(bool updateDisplay)
 }
 
 
-void PageItem_LatexFrame::writeFileContents(QFile *tempfile)
+void PageItem_LatexFrame::writeFileContents(QFile *tempFile)
 {
 	QString tmp(formulaText);
 	double scaleX, scaleY, realW, realH, offsetX, offsetY;
@@ -394,7 +396,7 @@ void PageItem_LatexFrame::writeFileContents(QFile *tempfile)
 		i.next();
 		tmp.replace("$scribus_"+i.key()+"$", i.value());
 	}
-	tempfile->write(tmp.toUtf8());
+	tempFile->write(tmp.toUtf8());
 }
 
 bool PageItem_LatexFrame::setFormula(const QString& formula, bool undoable)

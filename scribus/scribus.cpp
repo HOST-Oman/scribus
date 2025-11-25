@@ -3897,16 +3897,12 @@ void ScribusMainWindow::slotGetClipboardImage()
 	if (img.isNull())
 		return;
 
-	QTemporaryFile *tempFile = new QTemporaryFile(QDir::tempPath() + "/scribus_temp_XXXXXX.png");
-	tempFile->setAutoRemove(false);
-	if (!tempFile->open())
-	{
-		delete tempFile;
+	QTemporaryFile tempFile(QDir::tempPath() + "/scribus_temp_XXXXXX.png");
+	if (!tempFile.open())
 		return;
-	}
-	QString fileName = getLongPathName(tempFile->fileName());
-	tempFile->close();
-	delete tempFile;
+	QString fileName = getLongPathName(tempFile.fileName());
+	tempFile.setAutoRemove(false);
+	tempFile.close();
 
 	if (!img.save(fileName, "PNG"))
 	{
@@ -6249,7 +6245,7 @@ void ScribusMainWindow::setAlignmentValue(int i)
 	{
 		QString actionName = "align" + alignment[j];
 		if (scrActions[actionName])
-			scrActions[actionName]->setChecked(i == j);
+			scrActions[actionName]->setChecked(i == static_cast<int>(j));
 	}
 }
 
@@ -6261,7 +6257,7 @@ void ScribusMainWindow::setDirectionValue(int i)
 	{
 		QString actionName = "direction" + direction[j];
 		if (scrActions[actionName])
-			scrActions[actionName]->setChecked(i == j);
+			scrActions[actionName]->setChecked(i == static_cast<int>(j));
 	}
 }
 
@@ -6516,7 +6512,7 @@ void ScribusMainWindow::slotPrefsOrg()
 #if (defined Q_OS_LINUX)
 			QApplication::setPalette(this->style()->standardPalette());
 #endif
-		}
+	}
 	}
 #endif
 

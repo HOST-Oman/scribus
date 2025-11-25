@@ -377,19 +377,20 @@ void ScrPainter::drawBitmap(const libwpg::WPGBitmap& bitmap, double hres, double
 	double h = (bitmap.rect.y2 - bitmap.rect.y1) * 72.0;
 	int z = m_Doc->itemAdd(PageItem::ImageFrame, PageItem::Unspecified, bitmap.rect.x1 * 72 + baseX, bitmap.rect.y1 * 72 + baseY, w, h, 1, m_Doc->itemToolPrefs().imageFillColor, m_Doc->itemToolPrefs().imageStrokeColor);
 	PageItem *ite = m_Doc->Items->at(z);
-	QTemporaryFile *tempFile = new QTemporaryFile(QDir::tempPath() + "/scribus_temp_wpg_XXXXXX.png");
-	tempFile->setAutoRemove(false);
-	tempFile->open();
-	QString fileName = getLongPathName(tempFile->fileName());
-	tempFile->close();
-	delete tempFile;
-	ite->isTempFile = true;
-	ite->isInlineImage = true;
-	image.setDotsPerMeterX ((int) (hres / 0.0254));
-	image.setDotsPerMeterY ((int) (vres / 0.0254));
-	image.save(fileName, "PNG");
-	m_Doc->loadPict(fileName, ite);
-	ite->setImageScalingMode(false, false);
+	QTemporaryFile tempFile(QDir::tempPath() + "/scribus_temp_wpg_XXXXXX.png");
+	if (tempFile.open())
+	{
+		QString fileName = getLongPathName(tempFile.fileName());
+		tempFile.setAutoRemove(false);
+		tempFile.close();
+		ite->isTempFile = true;
+		ite->isInlineImage = true;
+		image.setDotsPerMeterX((int) (hres / 0.0254));
+		image.setDotsPerMeterY((int) (vres / 0.0254));
+		image.save(fileName, "PNG");
+		m_Doc->loadPict(fileName, ite);
+		ite->setImageScalingMode(false, false);
+	}
 	ite->moveBy(m_Doc->currentPage()->xOffset(), m_Doc->currentPage()->yOffset());
 	finishItem(ite);
 //	qDebug() << "drawBitmap";
