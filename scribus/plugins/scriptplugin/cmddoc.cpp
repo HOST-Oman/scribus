@@ -15,22 +15,20 @@ for which a new license (GPL+exception) is in place.
 
 #include <QApplication>
 
-/*
-newDocument(size, margins, orientation, firstPageNumber,
-            unit, pagesType, firstPageOrder)*/
 PyObject *scribus_newdocument(PyObject* /* self */, PyObject* args)
 {
 	double topMargin, bottomMargin, leftMargin, rightMargin;
 	double pageWidth, pageHeight;
 	int orientation, firstPageNr, unit, pagesType, firstPageOrder, numPages;
+	int bindingDirection = 0;
 
 	PyObject *p, *m;
 
-	if ((!PyArg_ParseTuple(args, "OOiiiiii", &p, &m, &orientation,
+	if ((!PyArg_ParseTuple(args, "OOiiiiii|i", &p, &m, &orientation,
 											&firstPageNr, &unit,
 											&pagesType,
 											&firstPageOrder,
-											&numPages)) ||
+											&numPages, &bindingDirection)) ||
 						(!PyArg_ParseTuple(p, "dd", &pageWidth, &pageHeight)) ||
 						(!PyArg_ParseTuple(m, "dddd", &leftMargin, &rightMargin,
 												&topMargin, &bottomMargin)))
@@ -39,12 +37,8 @@ PyObject *scribus_newdocument(PyObject* /* self */, PyObject* args)
 		numPages = 1;
 	if (pagesType == 0)
 	{
-	//	facingPages = 0;
 		firstPageOrder = 0;
 	}
-//	else
-//		facingPages = 1;
-	// checking the bounds
 	if (pagesType < firstPageOrder)
 	{
 		PyErr_SetString(ScribusException, QObject::tr("firstPageOrder is bigger than allowed.","python error").toUtf8().constData());
@@ -71,7 +65,8 @@ PyObject *scribus_newdocument(PyObject* /* self */, PyObject* args)
 								// columnDistance, numberCols, autoframes,
 								0, 1, false,
 								pagesType, unit, firstPageOrder,
-								orientation, firstPageNr, "Custom", true, numPages);
+								orientation, firstPageNr, "Custom", true,
+								numPages, true, 0, bindingDirection);
 	ScCore->primaryMainWindow()->doc->setPageSetFirstPage(pagesType, firstPageOrder);
 
 	return PyLong_FromLong(static_cast<long>(ret));

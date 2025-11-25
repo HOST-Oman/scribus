@@ -308,14 +308,31 @@
           </widget>
          </item>
          <item row="5" column="0">
-          <widget class="QLabel" name="layoutBindingIsLabel">
+          <widget class="QLabel" name="layoutBindingDirectionLabel">
            <property name="text">
             <string>Binding Direction:</string>
            </property>
           </widget>
          </item>
          <item row="5" column="1">
-          <widget class="QComboBox" name="layoutBindingIsComboBox"/>
+          <widget class="QRadioButton" name="leftToRightRadioButton">
+           <property name="text">
+            <string>Left to Right</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">bindingDirectionButtonGroup</string>
+           </attribute>
+          </widget>
+         </item>
+         <item row="6" column="1">
+          <widget class="QRadioButton" name="rightToLeftRadioButton">
+           <property name="text">
+            <string>Right to Left</string>
+           </property>
+           <attribute name="buttonGroup">
+            <string notr="true">bindingDirectionButtonGroup</string>
+           </attribute>
+          </widget>
          </item>
         </layout>
        </item>
@@ -895,5 +912,6 @@
  </connections>
  <buttongroups>
   <buttongroup name="pageLayoutButtonGroup"/>
+  <buttongroup name="bindingDirectionButtonGroup"/>
  </buttongroups>
 </ui>

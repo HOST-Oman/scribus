@@ -456,6 +456,7 @@ void PrefsManager::initDefaults()
 	pageS.pageNames.append(CommonStrings::pageLocRight);
 	appPrefs.pageSets.append(pageS);
 	appPrefs.docSetupPrefs.pagePositioning = singlePage;
+	appPrefs.docSetupPrefs.bindingDirection = 0;
 	appPrefs.fontPrefs.askBeforeSubstitute = true;
 	appPrefs.miscPrefs.haveStylePreview = true;
 	appPrefs.miscPrefs.saveEmergencyFile = true;
@@ -1387,6 +1388,7 @@ bool PrefsManager::writePref(const QString& filePath)
 	deDocumentSetup.setAttribute("MarginRight", ScCLocale::toQStringC(appPrefs.docSetupPrefs.margins.right()));
 	deDocumentSetup.setAttribute("MarginPreset", appPrefs.docSetupPrefs.marginPreset);
 	deDocumentSetup.setAttribute("PagePositioning", appPrefs.docSetupPrefs.pagePositioning);
+	deDocumentSetup.setAttribute("BindingDirection", appPrefs.docSetupPrefs.bindingDirection);
 	deDocumentSetup.setAttribute("AutoSave", static_cast<int>(appPrefs.docSetupPrefs.AutoSave));
 	deDocumentSetup.setAttribute("AutoSaveTime", appPrefs.docSetupPrefs.AutoSaveTime);
 	deDocumentSetup.setAttribute("AutoSaveCount", appPrefs.docSetupPrefs.AutoSaveCount);
@@ -2083,6 +2085,7 @@ bool PrefsManager::readPref(const QString& filePath)
 			appPrefs.docSetupPrefs.margins.setRight(ScCLocale::toDoubleC(dc.attribute("MarginRight"), 9.0));
 			appPrefs.docSetupPrefs.marginPreset   = dc.attribute("MarginPreset", "0").toInt();
 			appPrefs.docSetupPrefs.pagePositioning	= dc.attribute("PagePositioning", "0").toInt();
+			appPrefs.docSetupPrefs.bindingDirection	= dc.attribute("BindingDirection", "0").toInt();
 			appPrefs.docSetupPrefs.AutoSave	  = static_cast<bool>(dc.attribute("AutoSave", "0").toInt());
 			appPrefs.docSetupPrefs.AutoSaveTime  = dc.attribute("AutoSaveTime", "600000").toInt();
 			appPrefs.docSetupPrefs.AutoSaveCount  = dc.attribute("AutoSaveCount", "1").toInt();

@@ -14,7 +14,7 @@ for which a new license (GPL+exception) is in place.
 
 PyDoc_STRVAR(scribus_newdocument__doc__,
 QT_TR_NOOP("newDocument(size, margins, orientation, firstPageNumber,\n\
-                        unit, pagesType, firstPageOrder, numPages) -> bool\n\
+                        unit, pagesType, firstPageOrder, numPages, bindingDirection) -> bool\n\
 \n\
 Creates a new document and returns true if successful. The parameters have the\n\
 following meaning:\n\
@@ -42,7 +42,9 @@ PAGE_4 is 4-fold.\n\
 firstPageOrder = What is position of first page in the document.\n\
 Indexed from 0 (0 = first).\n\
 \n\
-numPage = Number of pages to be created.\n\
+numPages = Number of pages to be created.\n\
+\n\
+bindingDirection = 0 = LTR, 1 = RTL (optional, defaults to 0).\n\
 \n\
 The values for width, height and the margins are expressed in the given unit\n\
 for the document. PAPER_* constants are expressed in points. If your document\n\
