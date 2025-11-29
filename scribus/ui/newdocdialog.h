@@ -78,7 +78,6 @@ public:
 	int choosenLayout() const { return m_choosenLayout;}
 	int bindingDirection() const { return m_bindingDirection; }
 	int layoutFirstPage() const { return m_layoutFirstPage; }
-	int bindingDirection() const { return m_bindingDirection; }
 	double pageWidth() const { return m_pageWidth;}
 	double pageHeight() const { return m_pageHeight;}
 	double distance() const { return m_distance;}

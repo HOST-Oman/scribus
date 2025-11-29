@@ -76,12 +76,6 @@ NewDocDialog::NewDocDialog(QWidget* parent, const QStringList& recentDocs, bool 
 	buttonBindingDirection->setIcon(pageBindingIcon);
 	labelColumns->setPixmap(iconManager.loadPixmap("paragraph-columns"));
 
-	// for now we just hide buttonDoublePageLeft button
-	buttonDoublePageLeft->setVisible(false);
-	// disable LTR & RTL unless facing page is enabled
-	buttonLTRBinding->setDisabled(true);
-	buttonRTLBinding->setDisabled(true);
-
 	createNewDocPage();
 	if (startUp)
 	{
@@ -146,7 +140,7 @@ void NewDocDialog::createNewDocPage()
 {
 	int orientation = prefsManager.appPrefs.docSetupPrefs.pageOrientation;
 	int pagePositioning = prefsManager.appPrefs.docSetupPrefs.pagePositioning;
-	int docBindingDirection = prefsManager.appPrefs.docSetupPrefs.docBindingDirection;
+	int bindingDirection = prefsManager.appPrefs.docSetupPrefs.bindingDirection;
 	QString pageSize = prefsManager.appPrefs.docSetupPrefs.pageSize;
 	double pageHeight = prefsManager.appPrefs.docSetupPrefs.pageHeight;
 	double pageWidth = prefsManager.appPrefs.docSetupPrefs.pageWidth;
@@ -163,12 +157,9 @@ void NewDocDialog::createNewDocPage()
 	pageOrientationButtons->button(orientation)->setChecked(true);
 
 	pageLayoutButtons = new QButtonGroup();
-	pageLayoutButtons->setExclusive(false);
 	pageLayoutButtons->addButton(buttonSinglePage, 0);
 	pageLayoutButtons->addButton(buttonDoublePageLeft, 1);
 	pageLayoutButtons->addButton(buttonDoublePageRight, 2);
-	pageLayoutButtons->addButton(buttonLTRBinding, 3);
-	pageLayoutButtons->addButton(buttonRTLBinding, 4);
 	if (pagePositioning == singlePage)
 	{
 		pageLayoutButtons->button(0)->setChecked(true);
@@ -238,7 +229,7 @@ void NewDocDialog::createNewDocPage()
 	setDocLayout(pagePositioning);
 	setSize(pageSize);
 	setOrientation(orientation);
-	setDocBindingDirection(docBindingDirection);
+	setDocBindingDirection(bindingDirection);
 
 	numberOfCols->setButtonSymbols( QSpinBox::UpDownArrows );
 	numberOfCols->setMinimum( 1 );
@@ -547,28 +538,16 @@ void NewDocDialog::setLayout(int layoutId)
 	switch (layoutId)
 	{
 		case 0:
-			pageLayoutButtons->button(2)->setChecked(false);
-			pageLayoutButtons->button(3)->setDisabled(true);
-			pageLayoutButtons->button(4)->setDisabled(true);
 			setDocLayout(0);
 			buttonBindingDirection->setDisabled(true);
 		break;
 		case 1:
-			// pageLayoutButtons->button(2)->setChecked(false);
-			// pageLayoutButtons->button(3)->setDisabled(true);
-			// pageLayoutButtons->button(4)->setDisabled(true);
 			setDocLayout(1);
 			pagePreview->setFirstPage(0);
 			setDocFirstPage(0);
 			buttonBindingDirection->setDisabled(false);
 		break;
 		case 2:
-			pageLayoutButtons->button(0)->setChecked(false);
-			pageLayoutButtons->button(3)->setDisabled(false);
-			pageLayoutButtons->button(4)->setDisabled(false);
-			pageLayoutButtons->button(3)->setChecked(true);
-			pageLayoutButtons->button(4)->setChecked(false);
-
 			setDocLayout(1);
 			pagePreview->setFirstPage(1);
 			setDocFirstPage(1);
