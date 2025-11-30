@@ -76,8 +76,8 @@ public:
 
 	int orientation() const { return m_orientation;}
 	int choosenLayout() const { return m_choosenLayout;}
-	int layoutFirstPage() const { return m_layoutFirstPage; }
 	int bindingDirection() const { return m_bindingDirection; }
+	int layoutFirstPage() const { return m_layoutFirstPage; }
 	double pageWidth() const { return m_pageWidth;}
 	double pageHeight() const { return m_pageHeight;}
 	double distance() const { return m_distance;}
@@ -95,6 +95,7 @@ public slots:
 	void ExitOK();
 	void setOrientation(int ori);
 	void setLayout(int layoutId);
+	void setBindingDirection(bool checked);
 	void setPageSize(const QString &);
 	void setDocLayout(int layout);
 	void setDocFirstPage(int firstPage);
@@ -128,7 +129,7 @@ protected:
 	double m_unitRatio { 1.0 };
 	int m_orientation { 0 };
 	int m_choosenLayout { 0 };
-	int m_bindingDirection { 0 };
+	int m_bindingDirection { 0 }; // 0 = LTR, 1 = RTL
 	int m_layoutFirstPage { 0 };
 	double m_pageWidth { 1.0 };
 	double m_pageHeight { 1.0 };

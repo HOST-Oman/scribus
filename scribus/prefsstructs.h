@@ -168,7 +168,7 @@ struct DocumentSetupPrefs
 	bool AutoSaveLocation;
 	QString AutoSaveDir;
 	bool saveCompressed;
-	int docBindingDirection;
+	int bindingDirection; //! 0 = LTR, 1 = RTL
 };
 
 //Guides

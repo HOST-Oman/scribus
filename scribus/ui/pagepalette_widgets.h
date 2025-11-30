@@ -134,7 +134,10 @@ public:
 	void setPageLayout(PageLayout layout);
 	PageLayout pageLayout() { return m_pageLayout; };
 
-	void setPageOffset(int pageCount);
+	/**
+	 * @param offset currrently it's 0 for single page document documents, 0 or 1 for double page document.
+	 */
+	void setPageOffset(int offset);
 	int pageOffset() { return m_pageOffset; };
 
 	QList<PageCell*> pageList {QList<PageCell*>()};

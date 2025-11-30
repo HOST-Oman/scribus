@@ -316,11 +316,12 @@ void PageGrid::setPageLayout(PageLayout layout)
 	update();
 }
 
-void PageGrid::setPageOffset(int pageCount)
+void PageGrid::setPageOffset(int offset)
 {
-	m_pageOffset = pageCount;
 	if (m_rtlBinding)
-		m_pageOffset = !pageCount;
+		m_pageOffset = offset == 1 ? 0 : 1;
+	else
+		m_pageOffset = offset;
 	calculateSize();
 	update();
 }
@@ -446,9 +447,10 @@ int PageGrid::columnAt(QPoint pos)
 
 	int m_columns = columns();
 
-	int correctedCol = (m_col < m_columns) ? m_col : m_columns -1;
+	int correctedCol = (m_col < m_columns) ? m_col : m_columns - 1;
+	// for RTL documents, we only support single and double page documents, not the legacy multipane documents
 	if (m_rtlBinding)
-		return  !correctedCol;
+		return  correctedCol == 0 ? 1 : 0;
 	return correctedCol;
 }
 
@@ -796,10 +798,7 @@ void PageGrid::showContextMenu(QPoint pos)
 
 void PageGrid::setBindingDirection(int rtl_binding)
 {
-	if (rtl_binding == 1)
-		m_rtlBinding = true;
-	else
-		m_rtlBinding = false;
+	m_rtlBinding = rtl_binding == 1;
 }
 
 /* ********************************************************************************* *
@@ -845,11 +844,10 @@ void PageGrid::paintEvent(QPaintEvent *event)
 			// cell is after last page cell
 			if (count >= pageCount() + m_pageOffset)
 				break;
-			// cell is last page cell
-			if (count == pageCount() + m_pageOffset -1 )
-			{
+
+			if (count == pageCount() + m_pageOffset - 1)
 				lastPage = true;
-			}
+
 			// cell is a page cell
 			if (count >= m_pageOffset && count < pageCount() + m_pageOffset)
 			{
@@ -878,6 +876,7 @@ void PageGrid::paintEvent(QPaintEvent *event)
 					offset = 0;
 				else
 					offset = m_cellGap;
+
 				if (!m_rtlBinding)
 					x += cell->pageWidthByHeight(pageHeight()) + offset;
 				groupWidth += cell->pageWidthByHeight(pageHeight()) + offset;
@@ -892,6 +891,7 @@ void PageGrid::paintEvent(QPaintEvent *event)
 				if (!m_rtlBinding)
 					x += dummyPageSize().width() + offset;
 				firstPage = true;
+
 				// adjust start on first row if first page has an offset
 				if(r == 0)
 					groupStart = x;

@@ -107,7 +107,10 @@ public:
 	bool inASpecialEditMode() const;
 	QList<PageItem*> getAllItems(const QList<PageItem*> &items) const;
 	QList<PageItem*> *parentGroup(PageItem* item, QList<PageItem*> *list);
-	void setup(int, int, int, int, int, const QString&, const QString&, int docBindingDirection = 0);
+	/**
+	 * @param bindingDirection Defaults to 0 for all the one page temporary documents Scribus creates
+	 */
+	void setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName, int bindingDirection = 0);
 	void setLoading(bool);
 	bool isLoading() const;
 	void setModified(bool);
@@ -217,8 +220,8 @@ public:
 
 	int pageOrientation() const { return m_docPrefsData.docSetupPrefs.pageOrientation; }
 	void setPageOrientation(int o) { m_docPrefsData.docSetupPrefs.pageOrientation = o; }
-	int docBindingDirection() const { return m_docPrefsData.docSetupPrefs.docBindingDirection; }
-	void setDocBindingDirection(int x) { m_docPrefsData.docSetupPrefs.docBindingDirection = x; }
+	int bindingDirection() const { return m_docPrefsData.docSetupPrefs.bindingDirection; }
+	void setBindingDirection(int d) { m_docPrefsData.docSetupPrefs.bindingDirection = d; }
 	int pagePositioning() const { return m_docPrefsData.docSetupPrefs.pagePositioning; }
 	void setPagePositioning(int p) { m_docPrefsData.docSetupPrefs.pagePositioning = p; }
 

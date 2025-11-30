@@ -680,7 +680,7 @@ QList<PageItem*> *ScribusDoc::parentGroup(PageItem* item, QList<PageItem*> *list
 	return retList;
 }
 
-void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName, int docBindingDirection)
+void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, int firstPageNumber, const QString& defaultPageSize, const QString& documentName, int bindingDirection)
 {
 	m_docPrefsData.docSetupPrefs.docUnitIndex = unitIndex;
 	setPageSetFirstPage(fp, firstLeft);
@@ -688,7 +688,7 @@ void ScribusDoc::setup(int unitIndex, int fp, int firstLeft, int orientation, in
 	m_docPrefsData.docSetupPrefs.pageSize = defaultPageSize;
 	FirstPnum = firstPageNumber;
 	m_docPrefsData.docSetupPrefs.pagePositioning = fp;
-	m_docPrefsData.docSetupPrefs.docBindingDirection = docBindingDirection;
+	m_docPrefsData.docSetupPrefs.bindingDirection = bindingDirection;
 	setDocumentFileName(documentName);
 	HasCMS = false;
 	if (!pdfOptions().UseLPI)
@@ -6068,18 +6068,21 @@ void ScribusDoc::reformPages(bool moveObjects)
 	int rowcounter = 0;
 	double maxXPos = 0.0;
 	double maxYPos = 0.0;
-	double currentXPos = m_docPrefsData.displayPrefs.scratch.left();
-	double currentYPos = m_docPrefsData.displayPrefs.scratch.top();
 	double lastYPos = Pages->at(0)->initialHeight();
-	currentXPos += (Pages->at(0)->initialWidth() + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
-	int rtlBinding = m_docPrefsData.docSetupPrefs.docBindingDirection;
-	if (rtlBinding == 1) {
-		counter = !counter;
-		currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
-		currentXPos -= (m_docPrefsData.docSetupPrefs.pageWidth + m_docPrefsData.displayPrefs.pageGapHorizontal) *
-				counter;
-	}
 
+	bool rtlBinding = m_docPrefsData.docSetupPrefs.bindingDirection == 1;
+
+	double currentXPos = m_docPrefsData.displayPrefs.scratch.left();
+	if (rtlBinding)
+	{
+		counter = counter == 1 ? 0 : 1;
+		currentXPos +=  m_docPrefsData.docSetupPrefs.pageWidth
+			- (m_docPrefsData.docSetupPrefs.pageWidth + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
+	}
+	else
+		currentXPos += (Pages->at(0)->initialWidth() + m_docPrefsData.displayPrefs.pageGapHorizontal) * counter;
+
+	double currentYPos = m_docPrefsData.displayPrefs.scratch.top();
 
 	ScPage* page;
 	int docPageCount = Pages->count();
@@ -6119,18 +6122,14 @@ void ScribusDoc::reformPages(bool moveObjects)
 			page->setYOffset(currentYPos);
 			if (counter < pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns-1)
 			{
-				if (rtlBinding == 1)
-				{
+				if (rtlBinding)
 					currentXPos -= page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
-				}
 				else
-				{
 					currentXPos += page->width() + m_docPrefsData.displayPrefs.pageGapHorizontal;
-				}
 				lastYPos = qMax(lastYPos, page->height());
 				if (counter == 0)
 				{
-					if (rtlBinding == 1)
+					if (rtlBinding)
 					{
 						page->Margins.setLeft(page->initialMargins.left());
 						page->Margins.setRight(page->initialMargins.right());
@@ -6143,7 +6142,7 @@ void ScribusDoc::reformPages(bool moveObjects)
 				}
 				else
 				{
-					if (rtlBinding == 1)
+					if (rtlBinding)
 					{
 						page->Margins.setLeft(page->initialMargins.right());
 						page->Margins.setRight(page->initialMargins.right());
@@ -6157,17 +6156,16 @@ void ScribusDoc::reformPages(bool moveObjects)
 			}
 			else
 			{
-				if (rtlBinding == 1)
+				if (rtlBinding)
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left() + m_docPrefsData.docSetupPrefs.pageWidth;
 				else
 					currentXPos = m_docPrefsData.displayPrefs.scratch.left();
-
 				if (pageSets()[m_docPrefsData.docSetupPrefs.pagePositioning].Columns > 1)
 					currentYPos += qMax(lastYPos, page->height())+m_docPrefsData.displayPrefs.pageGapVertical;
 				else
 					currentYPos += page->height()+m_docPrefsData.displayPrefs.pageGapVertical;
 				lastYPos = 0;
-				if (rtlBinding == 1)
+				if (rtlBinding)
 				{
 					page->Margins.setRight(page->initialMargins.left());
 					page->Margins.setLeft(page->initialMargins.right());
@@ -6192,8 +6190,6 @@ void ScribusDoc::reformPages(bool moveObjects)
 		maxXPos = qMax(maxXPos, page->xOffset()+page->width()+m_docPrefsData.displayPrefs.scratch.right());
 		maxYPos = qMax(maxYPos, page->yOffset()+page->height()+m_docPrefsData.displayPrefs.scratch.bottom());
 	}
-	if (rtlBinding == 1)
-		setLoading(false);
 	if (!isLoading())
 	{
 		QList<PageItem*> weldedItems;
